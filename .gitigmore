@@ -1,0 +1,7 @@
+*.pyc
+*.swp
+tmp
+config\.json
+\.vscode/*
+\.vscode/sftp\.json
+.coverage*
