@@ -7,7 +7,6 @@ source:
   git_tag: {{ environ['TAG'] }}
 
 build:
-  script: build.sh
   string: {{ environ['BUILD_NAME'] }}
 
 about:
