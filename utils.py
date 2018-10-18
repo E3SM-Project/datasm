@@ -192,7 +192,18 @@ def mapfile_gen(basepath, inipath, casename, maxprocesses, event=None):
     while proc.poll() is None:
         if event is not None and event.is_set():
             proc.terminate()
+        lines = proc.stdout.readlines()
+        if lines != b'':
+            for line in lines:
+                print(line)
         sleep(1)
+    err = proc.stderr.readlines()
+    if err:
+        for line in err:
+            print(line)
+        return -1
+    else:
+        return 0
 
 
 def _setup_dst(case, basepath, res_dir, grid, datatype, filename):
@@ -200,20 +211,28 @@ def _setup_dst(case, basepath, res_dir, grid, datatype, filename):
     Find the destination path for a file
     """
     freq = 'mon'
+    dstgrid = 'native'
     if datatype in ['atmos', 'atmos_regrid', 'atmos_ts', 'atmos_climo']:
         type_dir = 'atmos'
         if datatype == 'atmos':
             output_type = 'model-output'
         elif datatype == 'atmos_ts':
             output_type = 'time-series'
+            dstgrid = grid
+        elif datatype == 'atmos_regrid':
+            output_type = 'model-output'
+            dstgrid = grid
         elif datatype == 'atmos_climo':
             output_type = 'climo'
+            dstgrid = grid
             freq = 'monClim'
             for season in ['ANN', 'DJF', 'MAM', 'JJA', 'SON']:
                 if season in filename:
                     freq = 'seasonClim'
                     break
     elif datatype in ['land', 'land_regrid']:
+        if datatype == 'land_regrid':
+            dstgrid = grid
         type_dir = 'land'
         output_type = 'model-output'
     elif datatype == 'ocean':
@@ -232,7 +251,7 @@ def _setup_dst(case, basepath, res_dir, grid, datatype, filename):
         case,
         res_dir,
         type_dir,
-        grid,
+        dstgrid,
         output_type,
         freq,
         'ens1',

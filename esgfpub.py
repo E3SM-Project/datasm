@@ -62,8 +62,9 @@ if __name__ == "__main__":
         sys.exit(1)
 
     RUNMAPS = CONFIG.get('mapfiles', False)
-    if not RUNMAPS or RUNMAPS not in [True, 'true', 1, '1']:
+    if not RUNMAPS or RUNMAPS not in [True, 'true', 'True', 1, '1']:
         print_message('Not running mapfile generation', 'ok')
+        print_message('Publication prep complete', 'ok')
         sys.exit(0)
 
     INIPATH = CONFIG['ini_path']
@@ -72,7 +73,7 @@ if __name__ == "__main__":
 
     try:
         print_message('Starting mapfile generation', 'ok')
-        mapfile_gen(
+        res = mapfile_gen(
             basepath=BASEOUTPUT,
             inipath=INIPATH,
             casename=CASE,
@@ -82,4 +83,5 @@ if __name__ == "__main__":
         print_message('Keyboard interrupt ... exiting')
         event.set()
     else:
-        print_message('Publication prep complete', 'ok')
+        if res == 0:
+            print_message('Publication prep complete', 'ok')
