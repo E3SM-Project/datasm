@@ -6,7 +6,8 @@ from __future__ import print_function
 import sys
 import argparse
 from configobj import ConfigObj
-from utils import structure_gen, mapfile_gen, transfer_files
+from threading import Event
+from utils import structure_gen, mapfile_gen, transfer_files, print_message
 
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser()
@@ -20,51 +21,67 @@ if __name__ == "__main__":
     try:
         CONFIG = ConfigObj(ARGS.config)
     except SyntaxError as error:
-        print("Unable to parse config file")
+        print_message("Unable to parse config file")
         print(repr(error))
         sys.exit(1)
 
     try:
         BASEOUTPUT = CONFIG['output_path']
         CASE = CONFIG['case']
-        GRIDS = CONFIG['grids']
+        GRID = CONFIG['non_native_grid']
         ATMRES = CONFIG['atmospheric_resolution']
         OCNRES = CONFIG['ocean_resolution']
-        FILE_TYPES = CONFIG['file_types']
+        DATA_PATHS = CONFIG['data_paths']
     except ValueError as error:
-        print('Unable to find values in config file')
+        print_message('Unable to find values in config file')
         print(repr(error))
         sys.exit(1)
 
     try:
+        print_message('Generating ESGF file structure', 'ok')
         structure_gen(
             basepath=BASEOUTPUT,
             casename=CASE,
-            grids=GRIDS,
+            grid=GRID,
             atmos_res=ATMRES,
             ocean_res=OCNRES,
-            file_types=FILE_TYPES)
+            data_paths=DATA_PATHS)
     except IOError as error:
-        print('Error generating file structure')
+        print_message('Error generating file structure')
         print(repr(error))
         sys.exit(1)
 
-    transfer_files(
-        basepath=BASEOUTPUT,
-        mode=CONFIG.get('transfer_mode', 'copy'),
+    print_message('Transfering files', 'ok')
+    ret = transfer_files(
+        outpath=BASEOUTPUT,
         case=CASE,
-        file_types=FILE_TYPES,
-        excludes=CONFIG.get('excludes', ''))
+        grid=GRID,
+        mode=CONFIG.get('transfer_mode', 'copy'),
+        data_paths=DATA_PATHS)
+    if ret == -1:
+        sys.exit(1)
 
-    RUNMAPS = CONFIG['mapfiles']
-    if RUNMAPS not in [True, 'true', 1, '1']:
-        print('Not running mapfile generation')
+    RUNMAPS = CONFIG.get('mapfiles', False)
+    if not RUNMAPS or RUNMAPS not in [True, 'true', 'True', 1, '1']:
+        print_message('Not running mapfile generation', 'ok')
+        print_message('Publication prep complete', 'ok')
         sys.exit(0)
 
     INIPATH = CONFIG['ini_path']
     NUMWORKERS = CONFIG['num_workers']
-    mapfile_gen(
-        basepath=BASEOUTPUT,
-        inipath=INIPATH,
-        casename=CASE,
-        maxprocesses=NUMWORKERS)
+    event = Event()
+
+    try:
+        print_message('Starting mapfile generation', 'ok')
+        res = mapfile_gen(
+            basepath=BASEOUTPUT,
+            inipath=INIPATH,
+            casename=CASE,
+            maxprocesses=NUMWORKERS,
+            event=event)
+    except KeyboardInterrupt as error:
+        print_message('Keyboard interrupt ... exiting')
+        event.set()
+    else:
+        if res == 0:
+            print_message('Publication prep complete', 'ok')
