@@ -1,8 +1,8 @@
-export VERSION="0.0.2"
+export VERSION="0.0.3"
 export BUILD_NAME="0"
 export CONDA_BLD_PATH=~/conda-bld
 USER="e3sm"
-PLATFORM="linux-64"
+PLATFORM="noarch"
 PKG="esgfpub"
 
 if [ -d $CONDA_BLD_PATH ]; then
@@ -19,7 +19,7 @@ else
 fi
 echo "Building" $VERSION"-"$BUILD_NAME "for label:" $TAG
 
-conda build -c $USER -c conda-forge -c cdat .
+conda build -c $USER -c conda-forge .
 
 if [ $? -eq 1 ]; then
     echo "conda build failed"
