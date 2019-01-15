@@ -13,82 +13,27 @@ from shutil import move, copy
 from time import sleep
 from tqdm import tqdm
 
-if __name__ == "__main__":
-    PARSER = argparse.ArgumentParser()
-    PARSER.add_argument("config", help="Path to configuration file")
-    ARGS = PARSER.parse_args()
+class colors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
-    if not ARGS.config:
-        PARSER.print_help()
-        sys.exit(1)
+def print_message(message, status='error'):
+    """
+    Prints a message with either a green + or a red -
 
-    try:
-        CONFIG = ConfigObj(ARGS.config)
-    except SyntaxError as error:
-        print_message("Unable to parse config file")
-        print(repr(error))
-        sys.exit(1)
-
-    try:
-        BASEOUTPUT = CONFIG['output_path']
-        CASE = CONFIG['case']
-        GRID = CONFIG['non_native_grid']
-        ATMRES = CONFIG['atmospheric_resolution']
-        OCNRES = CONFIG['ocean_resolution']
-        DATA_PATHS = CONFIG['data_paths']
-    except ValueError as error:
-        print_message('Unable to find values in config file')
-        print(repr(error))
-        sys.exit(1)
-
-    try:
-        print_message('Generating ESGF file structure', 'ok')
-        structure_gen(
-            basepath=BASEOUTPUT,
-            casename=CASE,
-            grid=GRID,
-            atmos_res=ATMRES,
-            ocean_res=OCNRES,
-            data_paths=DATA_PATHS)
-    except IOError as error:
-        print_message('Error generating file structure')
-        print(repr(error))
-        sys.exit(1)
-
-    print_message('Transfering files', 'ok')
-    ret = transfer_files(
-        outpath=BASEOUTPUT,
-        case=CASE,
-        grid=GRID,
-        mode=CONFIG.get('transfer_mode', 'copy'),
-        data_paths=DATA_PATHS)
-    if ret == -1:
-        sys.exit(1)
-
-    RUNMAPS = CONFIG.get('mapfiles', False)
-    if not RUNMAPS or RUNMAPS not in [True, 'true', 'True', 1, '1']:
-        print_message('Not running mapfile generation', 'ok')
-        print_message('Publication prep complete', 'ok')
-        sys.exit(0)
-
-    INIPATH = CONFIG['ini_path']
-    NUMWORKERS = CONFIG['num_workers']
-    event = Event()
-
-    try:
-        print_message('Starting mapfile generation', 'ok')
-        res = mapfile_gen(
-            basepath=BASEOUTPUT,
-            inipath=INIPATH,
-            casename=CASE,
-            maxprocesses=NUMWORKERS,
-            event=event)
-    except KeyboardInterrupt as error:
-        print_message('Keyboard interrupt ... exiting')
-        event.set()
-    else:
-        if res == 0:
-            print_message('Publication prep complete', 'ok')
+    Parameters:
+        message (str): the message to print
+        status (str): th"""
+    if status == 'error':
+        print(colors.FAIL + '[-] ' + colors.ENDC + colors.BOLD + str(message) + colors.ENDC)
+    elif status == 'ok':
+        print(colors.OKGREEN + '[+] ' + colors.ENDC + str(message))
 
 def structure_gen(basepath, casename, grid, atmos_res, ocean_res, data_paths):
     """
@@ -339,24 +284,82 @@ def _setup_dst(case, basepath, res_dir, grid, datatype, filename):
         'v1',
         filename)
 
-class colors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+if __name__ == "__main__":
+    PARSER = argparse.ArgumentParser()
+    PARSER.add_argument("config", help="Path to configuration file")
+    ARGS = PARSER.parse_args()
 
-def print_message(message, status='error'):
-    """
-    Prints a message with either a green + or a red -
+    if not ARGS.config:
+        PARSER.print_help()
+        sys.exit(1)
 
-    Parameters:
-        message (str): the message to print
-        status (str): th"""
-    if status == 'error':
-        print(colors.FAIL + '[-] ' + colors.ENDC + colors.BOLD + str(message) + colors.ENDC)
-    elif status == 'ok':
-        print(colors.OKGREEN + '[+] ' + colors.ENDC + str(message))
+    try:
+        CONFIG = ConfigObj(ARGS.config)
+    except SyntaxError as error:
+        print_message("Unable to parse config file")
+        print(repr(error))
+        sys.exit(1)
+
+    try:
+        BASEOUTPUT = CONFIG['output_path']
+        CASE = CONFIG['case']
+        GRID = CONFIG['non_native_grid']
+        ATMRES = CONFIG['atmospheric_resolution']
+        OCNRES = CONFIG['ocean_resolution']
+        DATA_PATHS = CONFIG['data_paths']
+    except ValueError as error:
+        print_message('Unable to find values in config file')
+        print(repr(error))
+        sys.exit(1)
+
+    try:
+        print_message('Generating ESGF file structure', 'ok')
+        structure_gen(
+            basepath=BASEOUTPUT,
+            casename=CASE,
+            grid=GRID,
+            atmos_res=ATMRES,
+            ocean_res=OCNRES,
+            data_paths=DATA_PATHS)
+    except IOError as error:
+        print_message('Error generating file structure')
+        print(repr(error))
+        sys.exit(1)
+
+    print_message('Transfering files', 'ok')
+    ret = transfer_files(
+        outpath=BASEOUTPUT,
+        case=CASE,
+        grid=GRID,
+        mode=CONFIG.get('transfer_mode', 'copy'),
+        data_paths=DATA_PATHS)
+    if ret == -1:
+        sys.exit(1)
+
+    RUNMAPS = CONFIG.get('mapfiles', False)
+    if not RUNMAPS or RUNMAPS not in [True, 'true', 'True', 1, '1']:
+        print_message('Not running mapfile generation', 'ok')
+        print_message('Publication prep complete', 'ok')
+        sys.exit(0)
+
+    INIPATH = CONFIG['ini_path']
+    NUMWORKERS = CONFIG['num_workers']
+    event = Event()
+
+    try:
+        print_message('Starting mapfile generation', 'ok')
+        res = mapfile_gen(
+            basepath=BASEOUTPUT,
+            inipath=INIPATH,
+            casename=CASE,
+            maxprocesses=NUMWORKERS,
+            event=event)
+    except KeyboardInterrupt as error:
+        print_message('Keyboard interrupt ... exiting')
+        event.set()
+    else:
+        if res == 0:
+            print_message('Publication prep complete', 'ok')
+
+
+
