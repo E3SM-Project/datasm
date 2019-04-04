@@ -5,10 +5,11 @@ from setuptools import find_packages, setup
 
 setup(
     name="esgfpub",
-    version="0.0.4",
+    version="0.1.0",
     author="Sterling Baldwin",
     author_email="baldwin32@llnl.gov",
     description="E3SM Automated publication to ESGF",
-    scripts=["esgfpub"],
-    packages=find_packages(
-        exclude=["*.test", "*.test.*", "test.*", "test", "*_template.py"]))
+    entry_points={
+        'console_scripts':
+            ['esgfpub = esgfpub.__main__:main']},
+    packages=find_packages())

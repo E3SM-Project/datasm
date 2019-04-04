@@ -1,8 +1,7 @@
 """
-A user facing script for using the ESGF publication automation scripts
+Utility functions for esgfpub
 """
-#!/usr/bin/env python
-from __future__ import print_function
+
 import os
 import sys
 import argparse
@@ -12,6 +11,7 @@ from subprocess import call, Popen, PIPE
 from shutil import move, copy
 from time import sleep
 from tqdm import tqdm
+
 
 class colors:
     HEADER = '\033[95m'
@@ -23,6 +23,7 @@ class colors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 def print_message(message, status='error'):
     """
     Prints a message with either a green + or a red -
@@ -31,11 +32,13 @@ def print_message(message, status='error'):
         message (str): the message to print
         status (str): th"""
     if status == 'error':
-        print(colors.FAIL + '[-] ' + colors.ENDC + colors.BOLD + str(message) + colors.ENDC)
+        print(colors.FAIL + '[-] ' + colors.ENDC +
+              colors.BOLD + str(message) + colors.ENDC)
     elif status == 'ok':
         print(colors.OKGREEN + '[+] ' + colors.ENDC + str(message))
 
-def structure_gen(basepath, casename, grid, atmos_res, ocean_res, data_paths):
+
+def structure_gen(basepath, casename, grid, atmos_res, ocean_res, data_paths, ensemble):
     """
     generate the esgf publication structure
 
@@ -47,6 +50,7 @@ def structure_gen(basepath, casename, grid, atmos_res, ocean_res, data_paths):
         ocean_res (str): the ocean resolution i.e. 60-30km
         data_paths (dict): a dictionary with keys with the file type name, and values of the
             path to where those files are stored
+        ensemble (str): the name of the ensemble member (usually ens1, ens2, ect.)
     """
 
     # make the top level directories
@@ -59,7 +63,7 @@ def structure_gen(basepath, casename, grid, atmos_res, ocean_res, data_paths):
 
     # make the list of descrete types to handle
     dtypes = list()
-    for dtype in data_paths.keys():
+    for dtype in list(data_paths.keys()):
         index = dtype.find('_')
         if index > 0:
             new_type = dtype[:index]
@@ -82,7 +86,7 @@ def structure_gen(basepath, casename, grid, atmos_res, ocean_res, data_paths):
                 grid_dir,
                 'model-output',
                 'mon',
-                'ens1',
+                ensemble,
                 'v1'))
         # atmos and land types should include climos/regrid/ts
         if dtype in ['atmos', 'land']:
@@ -94,7 +98,7 @@ def structure_gen(basepath, casename, grid, atmos_res, ocean_res, data_paths):
                         grid_dir,
                         'model-output',
                         'mon',
-                        'ens1',
+                        ensemble,
                         'v1'))
                 if dtype == 'atmos' and grid != 'native':
                     # /basedir/resolution_dir/dtype/grid/climo/monClim/ens1/v1
@@ -103,7 +107,7 @@ def structure_gen(basepath, casename, grid, atmos_res, ocean_res, data_paths):
                             grid_dir,
                             'climo',
                             'monClim',
-                            'ens1',
+                            ensemble,
                             'v1'))
                     # /basedir/resolution_dir/dtype/grid/climo/seasonClim/ens1/v1
                     new_paths.append(
@@ -111,7 +115,7 @@ def structure_gen(basepath, casename, grid, atmos_res, ocean_res, data_paths):
                             grid_dir,
                             'climo',
                             'seasonClim',
-                            'ens1',
+                            ensemble,
                             'v1'))
                     # /basedir/resolution_dir/dtype/grid/time-series/mon/ens1/v1
                     new_paths.append(
@@ -119,12 +123,13 @@ def structure_gen(basepath, casename, grid, atmos_res, ocean_res, data_paths):
                             grid_dir,
                             'time-series',
                             'mon',
-                            'ens1',
+                            ensemble,
                             'v1'))
     for path in tqdm(new_paths):
         makedir(path)
+
     # set the permissions so the ESGF server can open the directories
-    cmd = ['chmod', '-R', 'a+rx', os.path.join(basepath, casename)]
+    cmd = ['chmod', '-R', 'a+rX', os.path.join(basepath, casename)]
     call(cmd)
 
 
@@ -136,7 +141,7 @@ def makedir(directory):
         os.makedirs(directory)
 
 
-def transfer_files(outpath, case, mode, grid, data_paths):
+def transfer_files(outpath, case, mode, grid, data_paths, ensemble):
     """
     Move or copy data into the ESGF publication structure
 
@@ -165,22 +170,23 @@ def transfer_files(outpath, case, mode, grid, data_paths):
     # the first subdirectory is a directory with the name
     # of the atm resolution and the ocean resolution
     resolution_dir = os.listdir(
-        os.path.join(outpath, 
-            os.listdir(outpath)[0]))[0]
+        os.path.join(outpath,
+                     os.listdir(outpath)[0]))[0]
     if not resolution_dir:
         raise Exception('Missing resolution directory')
 
-    for dtype, path in data_paths.items():
+    for dtype, path in list(data_paths.items()):
         contents = os.listdir(path)
         for item in tqdm(contents, desc=dtype):
             src = os.path.join(path, item)
-            dst = _setup_dst(
+            dst = setup_dst(
                 case=case,
                 basepath=outpath,
                 res_dir=resolution_dir,
                 grid=grid,
                 datatype=dtype,
-                filename=item)
+                filename=item,
+                ensemble=ensemble)
             if os.path.exists(dst):
                 continue
             if not os.path.exists(src):
@@ -193,6 +199,7 @@ def transfer_files(outpath, case, mode, grid, data_paths):
                 print(repr(error))
                 return -1
     return 0
+
 
 def mapfile_gen(basepath, inipath, casename, maxprocesses, event=None):
     """
@@ -232,7 +239,7 @@ def mapfile_gen(basepath, inipath, casename, maxprocesses, event=None):
         return 0
 
 
-def _setup_dst(case, basepath, res_dir, grid, datatype, filename):
+def setup_dst(case, basepath, res_dir, grid, datatype, filename, ensemble):
     """
     Find the destination path for a file
     """
@@ -280,86 +287,6 @@ def _setup_dst(case, basepath, res_dir, grid, datatype, filename):
         dstgrid,
         output_type,
         freq,
-        'ens1',
+        ensemble,
         'v1',
         filename)
-
-if __name__ == "__main__":
-    PARSER = argparse.ArgumentParser()
-    PARSER.add_argument("config", help="Path to configuration file")
-    ARGS = PARSER.parse_args()
-
-    if not ARGS.config:
-        PARSER.print_help()
-        sys.exit(1)
-
-    try:
-        CONFIG = ConfigObj(ARGS.config)
-    except SyntaxError as error:
-        print_message("Unable to parse config file")
-        print(repr(error))
-        sys.exit(1)
-
-    try:
-        BASEOUTPUT = CONFIG['output_path']
-        CASE = CONFIG['case']
-        GRID = CONFIG['non_native_grid']
-        ATMRES = CONFIG['atmospheric_resolution']
-        OCNRES = CONFIG['ocean_resolution']
-        DATA_PATHS = CONFIG['data_paths']
-    except ValueError as error:
-        print_message('Unable to find values in config file')
-        print(repr(error))
-        sys.exit(1)
-
-    try:
-        print_message('Generating ESGF file structure', 'ok')
-        structure_gen(
-            basepath=BASEOUTPUT,
-            casename=CASE,
-            grid=GRID,
-            atmos_res=ATMRES,
-            ocean_res=OCNRES,
-            data_paths=DATA_PATHS)
-    except IOError as error:
-        print_message('Error generating file structure')
-        print(repr(error))
-        sys.exit(1)
-
-    print_message('Transfering files', 'ok')
-    ret = transfer_files(
-        outpath=BASEOUTPUT,
-        case=CASE,
-        grid=GRID,
-        mode=CONFIG.get('transfer_mode', 'copy'),
-        data_paths=DATA_PATHS)
-    if ret == -1:
-        sys.exit(1)
-
-    RUNMAPS = CONFIG.get('mapfiles', False)
-    if not RUNMAPS or RUNMAPS not in [True, 'true', 'True', 1, '1']:
-        print_message('Not running mapfile generation', 'ok')
-        print_message('Publication prep complete', 'ok')
-        sys.exit(0)
-
-    INIPATH = CONFIG['ini_path']
-    NUMWORKERS = CONFIG['num_workers']
-    event = Event()
-
-    try:
-        print_message('Starting mapfile generation', 'ok')
-        res = mapfile_gen(
-            basepath=BASEOUTPUT,
-            inipath=INIPATH,
-            casename=CASE,
-            maxprocesses=NUMWORKERS,
-            event=event)
-    except KeyboardInterrupt as error:
-        print_message('Keyboard interrupt ... exiting')
-        event.set()
-    else:
-        if res == 0:
-            print_message('Publication prep complete', 'ok')
-
-
-

@@ -1,7 +1,6 @@
-export VERSION="0.0.4"
+export VERSION="0.1.0"
 export BUILD_NAME="0"
 export CONDA_BLD_PATH=~/conda-bld
-USER="e3sm"
 PLATFORM="noarch"
 PKG="esgfpub"
 
@@ -19,7 +18,7 @@ else
 fi
 echo "Building" $VERSION"-"$BUILD_NAME "for label:" $TAG
 
-conda build -c conda-forge -c bioconda -c e3sm .
+conda build -c conda-forge -c e3sm .
 
 if [ $? -eq 1 ]; then
     echo "conda build failed"
@@ -27,7 +26,7 @@ if [ $? -eq 1 ]; then
 fi
 
 if [ ! -z "$1" ]; then
-    anaconda upload -u $USER -l "$1" $CONDA_BLD_PATH/$PLATFORM/$PKG-$VERSION-$BUILD_NAME.tar.bz2 
+    anaconda upload -u e3sm -l "$1" $CONDA_BLD_PATH/$PLATFORM/$PKG-$VERSION-$BUILD_NAME.tar.bz2 
 else
-    anaconda upload -u $USER $CONDA_BLD_PATH/$PLATFORM/$PKG-$VERSION-$BUILD_NAME.tar.bz2
+    anaconda upload -u e3sm $CONDA_BLD_PATH/$PLATFORM/$PKG-$VERSION-$BUILD_NAME.tar.bz2
 fi
