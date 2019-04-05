@@ -77,7 +77,7 @@ if __name__ == "__main__":
         res = mapfile_gen(
             basepath=BASEOUTPUT,
             inipath=INIPATH,
-            casename=CASE,
+            experiment=EXPERIMENT_NAME,
             maxprocesses=NUMWORKERS,
             event=event)
     except KeyboardInterrupt as error:
