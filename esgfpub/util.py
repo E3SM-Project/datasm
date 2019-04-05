@@ -4,9 +4,6 @@ Utility functions for esgfpub
 
 import os
 import sys
-import argparse
-from configobj import ConfigObj
-from threading import Event
 from subprocess import call, Popen, PIPE
 from shutil import move, copy
 from time import sleep
@@ -38,101 +35,6 @@ def print_message(message, status='error'):
         print(colors.OKGREEN + '[+] ' + colors.ENDC + str(message))
 
 
-def structure_gen(basepath, casename, grid, atmos_res, ocean_res, data_paths, ensemble):
-    """
-    generate the esgf publication structure
-
-    Parameters
-    ----------
-        casename (str): the name of the run
-        grids (list(str)): any grids in addition to native that are being published
-        atmos_res (str): the atmospheric resolution i.e. 1deg
-        ocean_res (str): the ocean resolution i.e. 60-30km
-        data_paths (dict): a dictionary with keys with the file type name, and values of the
-            path to where those files are stored
-        ensemble (str): the name of the ensemble member (usually ens1, ens2, ect.)
-    """
-
-    # make the top level directories
-    resolution_dir = os.path.join(
-        basepath,
-        casename,
-        '{atm_res}_atm_{ocn_res}_ocean'.format(
-            atm_res=atmos_res,
-            ocn_res=ocean_res))
-
-    # make the list of descrete types to handle
-    dtypes = list()
-    for dtype in list(data_paths.keys()):
-        index = dtype.find('_')
-        if index > 0:
-            new_type = dtype[:index]
-        else:
-            new_type = dtype
-        if new_type not in dtypes:
-            dtypes.append(new_type)
-
-    grids = ['native', grid]
-    new_paths = list()
-    # iterate over the file types and create required subdirectories
-    for dtype in dtypes:
-        # /basedir/resolution_dir/dtype
-        dtype_dir = os.path.join(resolution_dir, dtype)
-        # all data types have a 'native' grid type
-        grid_dir = os.path.join(dtype_dir, 'native')
-        # /basedir/resolution_dir/dtype/native/model-output/mon/ens1/v1
-        new_paths.append(
-            os.path.join(
-                grid_dir,
-                'model-output',
-                'mon',
-                ensemble,
-                'v1'))
-        # atmos and land types should include climos/regrid/ts
-        if dtype in ['atmos', 'land']:
-            for grid in grids:
-                grid_dir = os.path.join(dtype_dir, grid)
-                # /basedir/resolution_dir/dtype/grid/model-output/mon/ens1/v1
-                new_paths.append(
-                    os.path.join(
-                        grid_dir,
-                        'model-output',
-                        'mon',
-                        ensemble,
-                        'v1'))
-                if dtype == 'atmos' and grid != 'native':
-                    # /basedir/resolution_dir/dtype/grid/climo/monClim/ens1/v1
-                    new_paths.append(
-                        os.path.join(
-                            grid_dir,
-                            'climo',
-                            'monClim',
-                            ensemble,
-                            'v1'))
-                    # /basedir/resolution_dir/dtype/grid/climo/seasonClim/ens1/v1
-                    new_paths.append(
-                        os.path.join(
-                            grid_dir,
-                            'climo',
-                            'seasonClim',
-                            ensemble,
-                            'v1'))
-                    # /basedir/resolution_dir/dtype/grid/time-series/mon/ens1/v1
-                    new_paths.append(
-                        os.path.join(
-                            grid_dir,
-                            'time-series',
-                            'mon',
-                            ensemble,
-                            'v1'))
-    for path in tqdm(new_paths):
-        makedir(path)
-
-    # set the permissions so the ESGF server can open the directories
-    cmd = ['chmod', '-R', 'a+rX', os.path.join(basepath, casename)]
-    call(cmd)
-
-
 def makedir(directory):
     """
     Make a directory if it doesnt already exist
@@ -141,7 +43,7 @@ def makedir(directory):
         os.makedirs(directory)
 
 
-def transfer_files(outpath, case, mode, grid, data_paths, ensemble):
+def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwrite):
     """
     Move or copy data into the ESGF publication structure
 
@@ -149,7 +51,7 @@ def transfer_files(outpath, case, mode, grid, data_paths, ensemble):
     ----------
         outpath (str): the base of the ESGF publication structure
         mode (str): either 'move' or 'copy'
-        case (str): the case being published
+        experiment (str): the name of the experiment being published
         grid (str): the non-native grid name
         data_paths (dict): a dictionary with keys with the file type name, and values of the
             path to where those files are stored
@@ -180,18 +82,24 @@ def transfer_files(outpath, case, mode, grid, data_paths, ensemble):
         for item in tqdm(contents, desc=dtype):
             src = os.path.join(path, item)
             dst = setup_dst(
-                case=case,
+                experiment=experiment,
                 basepath=outpath,
                 res_dir=resolution_dir,
                 grid=grid,
                 datatype=dtype,
                 filename=item,
                 ensemble=ensemble)
+            tail, _ = os.path.split(dst)
+            if not os.path.exists(tail):
+                os.makedirs(tail)
             if os.path.exists(dst):
-                continue
+                if overwrite:
+                    os.remove(dst)
+                else:
+                    continue
             if not os.path.exists(src):
                 print_message('{} does not exist'.format(src))
-                return -1
+                continue
             try:
                 transfer(src, dst)
             except OSError as error:
@@ -201,7 +109,7 @@ def transfer_files(outpath, case, mode, grid, data_paths, ensemble):
     return 0
 
 
-def mapfile_gen(basepath, inipath, casename, maxprocesses, event=None):
+def mapfile_gen(basepath, inipath, experiment, maxprocesses, event=None):
     """
     Generate mapfiles for ESGF
 
@@ -209,12 +117,12 @@ def mapfile_gen(basepath, inipath, casename, maxprocesses, event=None):
     ----------
         basepath (str): the base of the data, the case directory should be below this
         inipath (str): path to directory with ini files
-        casename (str): the name of the case to generate mapfiles for
+        experiment (str): the name of the experiment to generate mapfiles for
         maxprocesses (str): the number of processes to use for hashing
         event (threading.Event): an event to terminate the process early
     """
-    outpath = os.path.join(basepath, '{}_mapfiles'.format(casename))
-    datapath = os.path.join(basepath, casename)
+    outpath = os.path.join(basepath, '{}_mapfiles'.format(experiment))
+    datapath = os.path.join(basepath, experiment)
     cmd = ['esgmapfile', 'make',
            '--outdir', outpath,
            '-i', inipath,
@@ -239,15 +147,18 @@ def mapfile_gen(basepath, inipath, casename, maxprocesses, event=None):
         return 0
 
 
-def setup_dst(case, basepath, res_dir, grid, datatype, filename, ensemble):
+def setup_dst(experiment, basepath, res_dir, grid, datatype, filename, ensemble):
     """
     Find the destination path for a file
     """
     freq = 'mon'
     dstgrid = 'native'
-    if datatype in ['atmos', 'atmos_regrid', 'atmos_ts', 'atmos_climo']:
+    if datatype in ['atmos', 'atmos_regrid', 'atmos_ts', 'atmos_daily']:
         type_dir = 'atmos'
         if datatype == 'atmos':
+            output_type = 'model-output'
+        elif datatype == 'atmos_daily':
+            freq = 'day'
             output_type = 'model-output'
         elif datatype == 'atmos_ts':
             output_type = 'time-series'
@@ -255,14 +166,6 @@ def setup_dst(case, basepath, res_dir, grid, datatype, filename, ensemble):
         elif datatype == 'atmos_regrid':
             output_type = 'model-output'
             dstgrid = grid
-        elif datatype == 'atmos_climo':
-            output_type = 'climo'
-            dstgrid = grid
-            freq = 'monClim'
-            for season in ['ANN', 'DJF', 'MAM', 'JJA', 'SON']:
-                if season in filename:
-                    freq = 'seasonClim'
-                    break
     elif datatype in ['land', 'land_regrid']:
         if datatype == 'land_regrid':
             dstgrid = grid
@@ -276,12 +179,25 @@ def setup_dst(case, basepath, res_dir, grid, datatype, filename, ensemble):
         type_dir = 'sea-ice'
         output_type = 'model-output'
         grid = 'native'
+    elif 'atmos_climo_' in datatype:
+        type_dir = 'atmos'
+        output_type = 'climo'
+        dstgrid = grid
+        freq = 'monClim'
+        for season in ['ANN', 'DJF', 'MAM', 'JJA', 'SON']:
+            if season in filename:
+                freq = 'seasonClim'
+                break
+
+        idx = len('atmos_climo_')
+        year_length = datatype[idx:]
+        freq += '-{}'.format(year_length)
     else:
         raise Exception('{} is an invalid data type'.format(datatype))
 
     return os.path.join(
         basepath,
-        case,
+        experiment,
         res_dir,
         type_dir,
         dstgrid,
