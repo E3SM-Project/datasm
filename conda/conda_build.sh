@@ -1,7 +1,7 @@
 export VERSION="0.1.1"
 export BUILD_NAME="0"
 export CONDA_BLD_PATH=~/conda-bld
-PLATFORM="noarch"
+PLATFORM="linux-64"
 PKG="esgfpub"
 
 if [ -d $CONDA_BLD_PATH ]; then
