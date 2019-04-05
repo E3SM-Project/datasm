@@ -2,7 +2,7 @@
 A tool for automating much of the ESGF publication process
 """
 
-from esgfpub.util import structure_gen, transfer_files, mapfile_gen
+from esgfpub.util import transfer_files, mapfile_gen
 import argparse
 import sys
 from threading import Event
