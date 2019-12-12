@@ -66,6 +66,8 @@ def main():
         with open(m, "r") as amaplines:
             aline = amaplines.readline()
             datasetID = aline.split(' ')[0]
+            hash_index = datasetID.find('#')
+            datasetID = datasetID[:hash_index]
             output.append("{id} | {facets}\n".format(
                 id=datasetID, facets=facet_str))
 
