@@ -29,7 +29,7 @@ Quote-protect values having embedded whitespace."""
         help="sequence of var=value pairs")
     parser.add_argument(
         '-o', '--output',
-        default="custom_facets.map"
+        default="custom_facets.map",
         help="output for the new mapfile, defaults to $PWD/custom_facets.map")
     parser.add_argument(
         '--debug',
@@ -48,10 +48,6 @@ def main():
 
     args = parse_args()
 
-    facet_str = ""
-
-    for facet in args.facets:
-
     facet_str = " | ".join(args.facets)
     if args.debug:
         print("facet string")
@@ -67,10 +63,11 @@ def main():
     output = []
 
     for m in maplist:
-        with open(amap, "r") as amaplines:
+        with open(m, "r") as amaplines:
             aline = amaplines.readline()
             datasetID = aline.split(' ')[0]
-            output.append(datasetID + facet_str + '\n')
+            output.append("{id} | {facets}\n".format(
+                id=datasetID, facets=facet_str))
 
     with open(args.output, 'w') as outfile:
         for line in output:
