@@ -50,15 +50,15 @@ def main():
 
     facet_str = " | ".join(args.facets)
     if args.debug:
-        print("facet string")
-        print(facet_str)
+        print("facet string:")
+        print('\t'+facet_str)
 
     maplist = [os.path.join(args.mapdir, f) for f in os.listdir(
         args.mapdir) if os.path.isfile(os.path.join(args.mapdir, f))]
     if args.debug:
+        print("mapfiles:")
         for item in maplist:
-            print("mapfiles")
-            print(item)
+            print('\t'+item)
 
     output = []
 
@@ -71,8 +71,11 @@ def main():
 
     with open(args.output, 'w') as outfile:
         for line in output:
+            if args.debug:
+                print(line)
             outfile.write(line)
 
+    print("Mapfile generation complete")
     return 0
 
 
