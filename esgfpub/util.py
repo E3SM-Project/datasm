@@ -9,7 +9,6 @@ from shutil import move, copy
 from time import sleep
 from tqdm import tqdm
 
-
 class colors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -42,6 +41,84 @@ def makedir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+def get_atm_casename(filename):
+    i = filename.index(".cam.h0")
+    if i == -1:
+        return -1
+    return filename[:i]
+
+def get_lnd_casename(filename):
+    i = filename.index(".clm2.h0")
+    if i == -1:
+        return -1
+    return filename[:i]
+
+def validate_raw(data_paths, start, end):
+    """
+    Checks that the atmos, land, sea-ice, and ocean raw files are present
+    returns True if all files are found, False otherwise
+    """
+    missing = False
+    if 'atmos' in data_paths:
+        files = sorted(os.listdir(data_paths['atmos']))
+        if not files:
+            print("no atm files found")
+        else:
+            casename = get_atm_casename(files[0])
+            if casename == -1:
+                raise ValueError("Unable to find casename from {}".format(files[0]))
+            for year in range(start, end + 1):
+                for month in range(1, 13):
+                    name = "{}.cam.h0.{:04d}-{:02d}.nc".format(casename, year, month)
+                    if name not in files:
+                        print("{} is missing".format(name))
+                        missing = True
+
+    if "land" in data_paths:
+        files = sorted(os.listdir(data_paths['land']))
+        if not files:
+            print("no land files found")
+        else:
+            casename = get_lnd_casename(files[0])
+            if casename == -1:
+                raise ValueError("Unable to find casename from {}".format(files[0]))
+            for year in range(start, end + 1):
+                for month in range(1, 13):
+                    name = "{}.clm2.h0.{:04d}-{:02d}.nc".format(casename, year, month)
+                    if name not in files:
+                        print("{} is missing".format(name))
+                        missing = True
+    
+    if "sea-ice" in data_paths:
+        files = sorted(os.listdir(data_paths['sea-ice']))
+        if not files:
+            print("no ice files found")
+        else:
+            for year in range(start, end + 1):
+                for month in range(1, 13):
+                    name = "mpascice.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc".format(
+                        year, month)
+                    if name not in files:
+                        print("{} is missing".format(name))
+                        missing = True
+    
+    if "ocean" in data_paths:
+        files = sorted(os.listdir(data_paths['ocean']))
+        if not files:
+            print("no ocn files found")
+        else:
+            for year in range(start, end + 1):
+                for month in range(1, 13):
+                    name = "mpaso.hist.am.timeSeriesStatsMonthly.{:04d}-{:02d}-01.nc".format(
+                        year, month)
+                    if name not in files:
+                        print("{} is missing".format(name))
+                        missing = True
+    
+    if missing:
+        return False
+    else:
+        return True
 
 def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwrite):
     """
@@ -57,7 +134,7 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
             path to where those files are stored
     Returns
     -------
-        0 if everything completed successfully
+        number of files transfer if everything completed successfully
         -1 on error
     """
     if mode not in ['copy', 'move', 'link']:
@@ -68,18 +145,15 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
         transfer = os.symlink
     else:
         transfer = copy
-
-    # the first subdirectory is a directory with the name
-    # of the atm resolution and the ocean resolution
-    resolution_dir = os.listdir(
-        os.path.join(outpath,
-                     os.listdir(outpath)[0]))[0]
-    if not resolution_dir:
-        raise Exception('Missing resolution directory')
+    
+    resolution_dir = os.listdir(os.path.join(outpath, experiment))[0]
+    num_transfered = 0
 
     for dtype, path in list(data_paths.items()):
         contents = os.listdir(path)
-        for item in tqdm(contents, desc=dtype):
+
+        for _, item in enumerate(tqdm(contents, desc="{}: ".format(dtype))):
+
             src = os.path.join(path, item)
             dst = setup_dst(
                 experiment=experiment,
@@ -89,6 +163,9 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
                 datatype=dtype,
                 filename=item,
                 ensemble=ensemble)
+            num_transfered += 1
+            if os.path.exists(dst):
+                continue
             tail, _ = os.path.split(dst)
             if not os.path.exists(tail):
                 os.makedirs(tail)
@@ -106,10 +183,11 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
                 print(src, dst)
                 print(repr(error))
                 return -1
-    return 0
+    
+    return num_transfered
 
 
-def mapfile_gen(basepath, inipath, experiment, maxprocesses, event=None):
+def mapfile_gen(basepath, inipath, experiment, maxprocesses, pbar, event=None):
     """
     Generate mapfiles for ESGF
 
@@ -120,6 +198,7 @@ def mapfile_gen(basepath, inipath, experiment, maxprocesses, event=None):
         experiment (str): the name of the experiment to generate mapfiles for
         maxprocesses (str): the number of processes to use for hashing
         event (threading.Event): an event to terminate the process early
+        pbar (tqdm): a tqdm progressbar
     """
     outpath = os.path.join(basepath, '{}_mapfiles'.format(experiment))
     datapath = os.path.join(basepath, experiment)
@@ -128,17 +207,19 @@ def mapfile_gen(basepath, inipath, experiment, maxprocesses, event=None):
            '-i', inipath,
            '--project', 'e3sm',
            '--max-processes', str(maxprocesses),
+           '--debug',
            datapath]
     proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
     while proc.poll() is None:
         if event is not None and event.is_set():
             proc.terminate()
-        lines = proc.stdout.readlines()
-        if lines != b'':
-            for line in lines:
-                print(line)
-        sleep(1)
+        for line in proc.stdout:
+            if "SUCCESS" in line.decode('utf-8'):
+                pbar.update(1)
+        for line in proc.err:
+            print(line.decode('utf-8'))
     err = proc.stderr.readlines()
+    pbar.close()
     if err:
         for line in err:
             print(line)
@@ -195,7 +276,7 @@ def setup_dst(experiment, basepath, res_dir, grid, datatype, filename, ensemble)
     else:
         raise Exception('{} is an invalid data type'.format(datatype))
 
-    return os.path.join(
+    new_path = os.path.join(
         basepath,
         experiment,
         res_dir,
@@ -206,3 +287,4 @@ def setup_dst(experiment, basepath, res_dir, grid, datatype, filename, ensemble)
         ensemble,
         'v1',
         filename)
+    return new_path
