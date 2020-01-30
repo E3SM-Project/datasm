@@ -17,6 +17,11 @@ def main():
         "config", 
         help="Path to configuration file")
     PARSER.add_argument(
+        "-t",
+        "--transfer-mode",
+        default='link',
+        help="the file transfer mode, allowed values are link, move, or copy")
+    PARSER.add_argument(
         '--over-write', 
         help="Over write any existing files", 
         action='store_true')
@@ -60,17 +65,18 @@ def main():
     resdirname = "{}_atm_{}_ocean".format(ATMRES, OCNRES)
     makedir(os.path.join(BASEOUTPUT, EXPERIMENT_NAME, resdirname))
 
-    if CONFIG.get('transfer_mode', 'copy') == 'move':
+    transfer_mode = ARGS.transfer_mode
+    if transfer_mode == 'move':
         print_message('Moving files', 'ok')
-    elif CONFIG.get('transfer_mode', 'copy') == 'copy':
+    elif transfer_mode == 'copy':
         print_message('Copying files', 'ok')
-    elif CONFIG.get('transfer_mode', 'copy') == 'link':
+    elif transfer_mode == 'link':
         print_message('Linking files', 'ok')
     num_moved = transfer_files(
         outpath=BASEOUTPUT,
         experiment=EXPERIMENT_NAME,
         grid=GRID,
-        mode=CONFIG.get('transfer_mode', 'copy'),
+        mode=transfer_mode,
         data_paths=DATA_PATHS,
         ensemble=ENSEMBLE,
         overwrite=overwrite)

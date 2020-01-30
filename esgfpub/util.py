@@ -173,6 +173,7 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
                 if overwrite:
                     os.remove(dst)
                 else:
+                    print("Skipping {}".format(dst))
                     continue
             if not os.path.exists(src):
                 print_message('{} does not exist'.format(src))
