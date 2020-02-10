@@ -138,7 +138,7 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
         -1 on error
     """
     if mode not in ['copy', 'move', 'link']:
-        raise Exception('{} is not a supported mode'.format(mode))
+        raise ValueError('{} is not a supported mode'.format(mode))
     if mode == 'move':
         transfer = move
     elif mode == 'link':
@@ -169,12 +169,14 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
             tail, _ = os.path.split(dst)
             if not os.path.exists(tail):
                 os.makedirs(tail)
-            if os.path.exists(dst):
+
+            if os.path.exists(dst) or os.path.lexists(dst):
                 if overwrite:
                     os.remove(dst)
                 else:
                     print("Skipping {}".format(dst))
                     continue
+
             if not os.path.exists(src):
                 print_message('{} does not exist'.format(src))
                 continue
@@ -188,7 +190,7 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
     return num_transfered
 
 
-def mapfile_gen(basepath, inipath, experiment, maxprocesses, pbar, event=None):
+def mapfile_gen(basepath, inipath, experiment, outpath, maxprocesses, pbar, event=None):
     """
     Generate mapfiles for ESGF
 
@@ -197,11 +199,11 @@ def mapfile_gen(basepath, inipath, experiment, maxprocesses, pbar, event=None):
         basepath (str): the base of the data, the case directory should be below this
         inipath (str): path to directory with ini files
         experiment (str): the name of the experiment to generate mapfiles for
+        outpath (str): the path to were the mapfiles should be stored after generation
         maxprocesses (str): the number of processes to use for hashing
         event (threading.Event): an event to terminate the process early
         pbar (tqdm): a tqdm progressbar
     """
-    outpath = os.path.join(basepath, '{}_mapfiles'.format(experiment))
     datapath = os.path.join(basepath, experiment)
     cmd = ['esgmapfile', 'make',
            '--outdir', outpath,
@@ -224,7 +226,7 @@ def mapfile_gen(basepath, inipath, experiment, maxprocesses, pbar, event=None):
     if err:
         for line in err:
             print(line)
-        return -1
+        return 1
     else:
         return 0
 
