@@ -114,6 +114,70 @@ tables:
     - sftlf
     - orog
 
+time-series:
+  atmos:
+    - TREFHT
+    - TS
+    - PS
+    - PSL
+    - U10
+    - QREFHT
+    - PRECC
+    - PRECL
+    - PRECSC
+    - PRECSL
+    - QFLX
+    - TAUX
+    - TAUY
+    - LHFLX
+    - CLDTOT
+    - SHFLX
+    - CLOUD
+    - CLDLOW
+    - CLDMED
+    - CLDHGH
+    - CLDICE
+    - TGCLDIWP
+    - TGCLDCWP
+    - RELHUM
+    - TMQ
+    - FLUTC
+    - FSDSC
+    - SOLIN
+    - FSUTOA
+    - FSUTOAC
+    - FLNS
+    - FSNS
+    - FLNSC
+    - FSNT
+    - FLNT
+    - FSDSC
+    - FSNSC
+    - FSNT
+    - FLNT
+    - FLDS
+    - FSDS
+    - T
+    - U
+    - V
+    - OMEGA
+    - Z3
+    - Q
+    - O3
+  land:
+    - SOILWATER_10CM
+    - SOILICE
+    - SOILLIQ
+    - QOVER
+    - QRUNOFF
+    - QINTR
+    - QVEGE
+    - QSOIL
+    - QVEGT
+    - TSOI
+    - LAISHA
+    - LAISUN
+
 project:
   CMIP6:
     E3SM-1-0:
@@ -259,12 +323,12 @@ project:
               -
                 grid: native
                 data_types:
-                  mon
+                  - mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  mon
+                  - mon
       -
         experiment: 1950-Control
         start: 26
