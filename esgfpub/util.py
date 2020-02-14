@@ -4,10 +4,107 @@ Utility functions for esgfpub
 
 import os
 import sys
+import argparse
 from subprocess import call, Popen, PIPE
 from shutil import move, copy
 from time import sleep
 from tqdm import tqdm
+from esgfpub import resources
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(prog='esgfpub')
+    subparsers = parser.add_subparsers(
+        title='subcommands',
+        description='valid subcommands',
+        dest='subparser_name')
+
+    parser_publish = subparsers.add_parser(
+        'publish', help='Move data and generate mapfiles')
+    parser_publish.add_argument(
+        "config",
+        help="Path to configuration file")
+    parser_publish.add_argument(
+        "-t",
+        "--transfer-mode",
+        default='link',
+        help="the file transfer mode, allowed values are link, move, or copy")
+    parser_publish.add_argument(
+        '--over-write',
+        help="Over write any existing files",
+        action='store_true')
+    parser_publish.add_argument(
+        '-o',
+        '--output-mapfiles',
+        dest='mapout',
+        help='The output location for mapfiles, defaults to ./mapfiles/',
+        default='./mapfiles')
+    parser_publish.add_argument(
+        '--debug',
+        action="store_true")
+
+    parser_esgf_check = subparsers.add_parser(
+        'check', help='Check the file structure and ESGF database for datasets')
+    parser_esgf_check.add_argument(
+        '-d',
+        '--data-path',
+        help="path to the root data directory containing the data",
+        default='/p/user_pub/work')
+    tail, _ = os.path.split(resources.__file__)
+    parser_esgf_check.add_argument(
+        '--case-spec',
+        default=os.path.join(tail, 'dataset_spec.yaml'),
+        help="path to yaml file containing the case spec")
+    parser_esgf_check.add_argument(
+        '-p',
+        '--project',
+        help='Which project to check for, valid arguments are cmip6 or e3sm. Default is both')
+    parser_esgf_check.add_argument(
+        '-c',
+        '--cases',
+        nargs="+",
+        default=['all'],
+        help="Which case to check the data for, default is all")
+    parser_esgf_check.add_argument(
+        '-v',
+        '--variables',
+        nargs="+",
+        default=['all'],
+        help="Which variables to check for, default is all")
+    parser_esgf_check.add_argument(
+        '-t',
+        '--tables',
+        nargs="+",
+        default=['all'],
+        help="List of CMIP6 tables to search in, default is all")
+    parser_esgf_check.add_argument(
+        '--ens',
+        nargs="+",
+        default=['all'],
+        help="List of ensemble members to check, default all")
+    parser_esgf_check.add_argument(
+        '-s',
+        '--serial',
+        action='store_true',
+        help='Should this be run in serial or parallel')
+    parser_esgf_check.add_argument(
+        '--published',
+        action="store_true",
+        help="Check the LLNL ESGF node to see if the variables have been published")
+    parser_esgf_check.add_argument(
+        '--sproket',
+        help='path to sproket, only needed if --published is turned on')
+    parser_esgf_check.add_argument(
+        '-m',
+        '--max-connections',
+        type=int,
+        default=5,
+        help="Maximum number of simultanious connections to ESGF node")
+    parser_esgf_check.add_argument(
+        '--debug',
+        action="store_true")
+    return parser.parse_args(sys.argv[1:])
+
 
 class colors:
     HEADER = '\033[95m'
@@ -41,17 +138,20 @@ def makedir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+
 def get_atm_casename(filename):
     i = filename.index(".cam.h0")
     if i == -1:
         return -1
     return filename[:i]
 
+
 def get_lnd_casename(filename):
     i = filename.index(".clm2.h0")
     if i == -1:
         return -1
     return filename[:i]
+
 
 def validate_raw(data_paths, start, end):
     """
@@ -66,10 +166,12 @@ def validate_raw(data_paths, start, end):
         else:
             casename = get_atm_casename(files[0])
             if casename == -1:
-                raise ValueError("Unable to find casename from {}".format(files[0]))
+                raise ValueError(
+                    "Unable to find casename from {}".format(files[0]))
             for year in range(start, end + 1):
                 for month in range(1, 13):
-                    name = "{}.cam.h0.{:04d}-{:02d}.nc".format(casename, year, month)
+                    name = "{}.cam.h0.{:04d}-{:02d}.nc".format(
+                        casename, year, month)
                     if name not in files:
                         print("{} is missing".format(name))
                         missing = True
@@ -81,14 +183,16 @@ def validate_raw(data_paths, start, end):
         else:
             casename = get_lnd_casename(files[0])
             if casename == -1:
-                raise ValueError("Unable to find casename from {}".format(files[0]))
+                raise ValueError(
+                    "Unable to find casename from {}".format(files[0]))
             for year in range(start, end + 1):
                 for month in range(1, 13):
-                    name = "{}.clm2.h0.{:04d}-{:02d}.nc".format(casename, year, month)
+                    name = "{}.clm2.h0.{:04d}-{:02d}.nc".format(
+                        casename, year, month)
                     if name not in files:
                         print("{} is missing".format(name))
                         missing = True
-    
+
     if "sea-ice" in data_paths:
         files = sorted(os.listdir(data_paths['sea-ice']))
         if not files:
@@ -101,7 +205,7 @@ def validate_raw(data_paths, start, end):
                     if name not in files:
                         print("{} is missing".format(name))
                         missing = True
-    
+
     if "ocean" in data_paths:
         files = sorted(os.listdir(data_paths['ocean']))
         if not files:
@@ -114,11 +218,12 @@ def validate_raw(data_paths, start, end):
                     if name not in files:
                         print("{} is missing".format(name))
                         missing = True
-    
+
     if missing:
         return False
     else:
         return True
+
 
 def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwrite):
     """
@@ -145,7 +250,7 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
         transfer = os.symlink
     else:
         transfer = copy
-    
+
     resolution_dir = os.listdir(os.path.join(outpath, experiment))[0]
     num_transfered = 0
 
@@ -186,7 +291,7 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
                 print(src, dst)
                 print(repr(error))
                 return -1
-    
+
     return num_transfered
 
 

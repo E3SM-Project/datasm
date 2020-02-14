@@ -2,38 +2,33 @@
 A tool for automating much of the ESGF publication process
 """
 
-from esgfpub.util import transfer_files, mapfile_gen, validate_raw, makedir
-import argparse
+from esgfpub.util import transfer_files, mapfile_gen, validate_raw, makedir, parse_args
+from esgfpub.util import print_message
+from esgfpub.publication_checker import publication_checker
 import sys
 import os
 from threading import Event
-from esgfpub.util import print_message
 from configobj import ConfigObj
 from tqdm import tqdm
 
 
-def main():
-    PARSER = argparse.ArgumentParser()
-    PARSER.add_argument(
-        "config",
-        help="Path to configuration file")
-    PARSER.add_argument(
-        "-t",
-        "--transfer-mode",
-        default='link',
-        help="the file transfer mode, allowed values are link, move, or copy")
-    PARSER.add_argument(
-        '--over-write',
-        help="Over write any existing files",
-        action='store_true')
-    PARSER.add_argument(
-        '-o',
-        '--output-mapfiles',
-        dest='mapout',
-        help='The output location for mapfiles, defaults to ./mapfiles/',
-        default='./mapfiles')
-    ARGS = PARSER.parse_args()
+def check(ARGS):
+    return publication_checker(
+        spec_path=ARGS.case_spec,
+        data_path=ARGS.data_path,
+        cases=ARGS.cases,
+        ens=ARGS.ens,
+        tables=ARGS.tables,
+        variables=ARGS.variables,
+        published=ARGS.published,
+        sproket=ARGS.sproket,
+        max_connections=ARGS.max_connections,
+        serial=ARGS.serial,
+        debug=ARGS.debug,
+        projects=ARGS.project)
 
+
+def publish(ARGS):
     if not ARGS.config:
         PARSER.print_help()
         return 1
@@ -130,6 +125,18 @@ def main():
             print_message(
                 'mapfile generation exited with status: {}'.format(res), 'error')
         return res
+
+
+def main():
+
+    ARGS = parse_args()
+    subcommand = ARGS.subparser_name
+    if subcommand == 'check':
+        return check(ARGS)
+    elif subcommand == 'publish':
+        return publish(ARGS)
+    else:
+        raise ValueError("Unrecognised subcommand")
 
 
 if __name__ == "__main__":
