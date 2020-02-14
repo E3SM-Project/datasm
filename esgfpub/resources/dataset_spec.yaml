@@ -213,57 +213,58 @@ project:
           - siu
           - siv
   E3SM:
-    1_0:
+    '1_0':
       -
         experiment: piControl
         start: 1
         end: 500
         ens:
           - ens1
-        components:
-          land:
-            - 
-              grid: 129x256
-              data_types:
-                - mon
-            - 
-              grid: native
-              data_types:
-                - mon
-          atmos:
-            - 
-              grid: 129x256
-              data_types:
-                - monClim
-                - seasonClim
-                - time-series
-            - 
-              grid: 180x360
-              data_types:
-                - monClim-100yr
-                - monClim-500yr
-                - monClim-50yr
-                - monClim-5yr
-                - seasonClim-100yr
-                - seasonClim-500yr
-                - seasonClim-50yr
-                - seasonClim-5yr
-                - time-series
-            - 
-              grid: native
-              data_types:
-                - day
-                - mon
-          ocean:
-            -
-              grid: native
-              data_types:
-                mon
-          sea-ice:
-            -
-              grid: native
-              data_types:
-                mon
+        resolution:
+          1deg_atm_60-30km_ocean:
+            land:
+              - 
+                grid: 129x256
+                data_types:
+                  - mon
+              - 
+                grid: native
+                data_types:
+                  - mon
+            atmos:
+              - 
+                grid: 129x256
+                data_types:
+                  - monClim
+                  - seasonClim
+                  - time-series
+              - 
+                grid: 180x360
+                data_types:
+                  - monClim-100yr
+                  - monClim-500yr
+                  - monClim-50yr
+                  - monClim-5yr
+                  - seasonClim-100yr
+                  - seasonClim-500yr
+                  - seasonClim-50yr
+                  - seasonClim-5yr
+                  - time-series
+              - 
+                grid: native
+                data_types:
+                  - day
+                  - mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  mon
       -
         experiment: 1950-Control
         start: 26
@@ -271,7 +272,7 @@ project:
         ens:
           - ens1
         resolution:
-          0_25deg:
+          0_25deg_atm_18-6km_ocean:
             atmos:
               -
                 grid: 180x360
@@ -361,7 +362,7 @@ project:
         ens:
           - ens1
         resolution:
-          1deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: 180x360
@@ -402,7 +403,7 @@ project:
         ens:
           - ens1
         resolution:
-          1deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: 180x360
@@ -436,259 +437,259 @@ project:
                 grid: native
                 data_types:
                   - mon
-        -
-          experiment: amip
-          start: 1870
-          end: 2014
-          ens:
-            - ens1
-            - ens2
-            - ens3
-          resolution:
-            1deg:
-              atmos:
-                -
-                  grid: 180x360
-                  data_types:
-                    - monClim-100yr
-                    - monClim-145yr
-                    - monClim-50yr
-                    - monClim-5yr
-                    - seasonClim-100yr
-                    - seasonClim-145yr
-                    - seasonClim-50yr
-                    - seasonClim-5yr
-                    - time-series
-                -
-                  grid: native
-                  data_types:
-                    - mon
-                    - day
-              land:
-                -
-                  grid: native
-                  data_types:
-                    - mon  
-        -
-          experiment: amip_1850_aeroF
-          start: 1870
-          end: 2014
-          ens:
-            - ens1
-            - ens2
-            - ens3
-          resolution:
-            1deg:
-              atmos:
-                -
-                  grid: 180x360
-                  data_types:
-                    - monClim-100yr
-                    - monClim-145yr
-                    - monClim-50yr
-                    - monClim-5yr
-                    - seasonClim-100yr
-                    - seasonClim-145yr
-                    - seasonClim-50yr
-                    - seasonClim-5yr
-                    - time-series
-                -
-                  grid: native
-                  data_types:
-                    - mon
-                    - day
-              land:
-                -
-                  grid: native
-                  data_types:
-                    - mon
-        -
-          experiment: amip_1850_allF
-          start: 1870
-          end: 2014
-          ens:
-            - ens1
-            - ens2
-            - ens3
-          resolution:
-            1deg:
-              atmos:
-                -
-                  grid: 180x360
-                  data_types:
-                    - monClim-100yr
-                    - monClim-145yr
-                    - monClim-50yr
-                    - monClim-5yr
-                    - seasonClim-100yr
-                    - seasonClim-145yr
-                    - seasonClim-50yr
-                    - seasonClim-5yr
-                    - time-series
-                -
-                  grid: native
-                  data_types:
-                    - mon
-                    - day
-              land:
-                -
-                  grid: native
-                  data_types:
-                    - mon
-        -
-          experiment: F2010
-          start: 1
-          end: 5
-          ens:
-            - ens1
-          resolution:
-            0_25deg:
-              atmos:
-                - 
-                  grid: 180x360
-                  data_types:
-                    - mon
-                -
-                  grid: 720x1440
-                  data_types:
-                    - mon
-            1deg:
-              atmos:
-                - 
-                  grid: lowres
-                  data_types:
-                    - mon
-                -
-                  grid: highres
-                  data_types:
-                    - mon
-          -
-            experiment: F2010-nudgeUV
-            start: 2010
-            end: 2010
-            ens:
-              - ens1
-            resolution:
-              0_25deg:
-                atmos:
-                  - 
-                    grid: 180x360
-                    data_types:
-                      - mon
-                  -
-                    grid: 720x1440
-                    data_types:
-                      - mon
-              1deg:
-                atmos:
-                  - 
-                    grid: lowres
-                    data_types:
-                      - mon
-                  -
-                    grid: highres
-                    data_types:
-                      - mon
-          -
-            experiment: F2010-nudgeUV-1850aero
-            start: 2010
-            end: 2010
-            ens:
-              - ens1
-            resolution:
-              0_25deg:
-                atmos:
-                  - 
-                    grid: 180x360
-                    data_types:
-                      - mon
-                  -
-                    grid: 720x1440
-                    data_types:
-                      - mon
-              1deg:
-                atmos:
-                  - 
-                    grid: lowres
-                    data_types:
-                      - mon
-                  -
-                    grid: highres
-                    data_types:
-                      - mon
-          -
-            experiment: F2010plus4k
-            start: 1
-            end: 2
-            ens:
-              - ens1
-            resolution:
-              0_25deg:
-                atmos:
-                  - 
-                    grid: 180x360
-                    data_types:
-                      - mon
-                  -
-                    grid: 720x1440
-                    data_types:
-                      - mon
-              1deg:
-                atmos:
-                  - 
-                    grid: lowres
-                    data_types:
-                      - mon
-                  -
-                    grid: highres
-                    data_types:
-                      - mon
-          -
-            experiment: historical
-            start: 1850
-            end: 2013
-            ens:
-              - ens1
-              - ens2
-              - ens3
-              - ens4
-              - ens5
-            resolution:
-              1deg:
-                atmos:
-                  - 
-                    grid: 180x360
-                    data_types:
-                      - monClim-100yr
-                      - monClim-165yr
-                      - monClim-50yr
-                      - monClim-5yr
-                      - seasonClim-100yr
-                      - seasonClim-165yr
-                      - seasonClim-50yr
-                      - seasonClim-5yr
-                      - time-series
-                  -
-                    grid: native
-                    data_types:
-                      - mon
-                      - day
-                land:
-                  -
-                    grid: native
-                    data_types:
-                      - mon
-                ocean:
-                  -
-                    grid: native
-                    data_types:
-                      - mon
-                sea-ice:
-                  -
-                    grid: native
-                    data_types:
-                      - mon
-    1_1:
+      -
+        experiment: amip
+        start: 1870
+        end: 2014
+        ens:
+          - ens1
+          - ens2
+          - ens3
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: 180x360
+                data_types:
+                  - monClim-100yr
+                  - monClim-145yr
+                  - monClim-50yr
+                  - monClim-5yr
+                  - seasonClim-100yr
+                  - seasonClim-145yr
+                  - seasonClim-50yr
+                  - seasonClim-5yr
+                  - time-series
+              -
+                grid: native
+                data_types:
+                  - mon
+                  - day
+            land:
+              -
+                grid: native
+                data_types:
+                  - mon  
+      -
+        experiment: amip_1850_aeroF
+        start: 1870
+        end: 2014
+        ens:
+          - ens1
+          - ens2
+          - ens3
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: 180x360
+                data_types:
+                  - monClim-100yr
+                  - monClim-145yr
+                  - monClim-50yr
+                  - monClim-5yr
+                  - seasonClim-100yr
+                  - seasonClim-145yr
+                  - seasonClim-50yr
+                  - seasonClim-5yr
+                  - time-series
+              -
+                grid: native
+                data_types:
+                  - mon
+                  - day
+            land:
+              -
+                grid: native
+                data_types:
+                  - mon
+      -
+        experiment: amip_1850_allF
+        start: 1870
+        end: 2014
+        ens:
+          - ens1
+          - ens2
+          - ens3
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: 180x360
+                data_types:
+                  - monClim-100yr
+                  - monClim-145yr
+                  - monClim-50yr
+                  - monClim-5yr
+                  - seasonClim-100yr
+                  - seasonClim-145yr
+                  - seasonClim-50yr
+                  - seasonClim-5yr
+                  - time-series
+              -
+                grid: native
+                data_types:
+                  - mon
+                  - day
+            land:
+              -
+                grid: native
+                data_types:
+                  - mon
+      -
+        experiment: F2010
+        start: 1
+        end: 5
+        ens:
+          - ens1
+        resolution:
+          0_25deg_atm_18-6km_ocean:
+            atmos:
+              - 
+                grid: 180x360
+                data_types:
+                  - mon
+              -
+                grid: 720x1440
+                data_types:
+                  - mon
+          1deg_atm_60-30km_ocean:
+            atmos:
+              - 
+                grid: lowres
+                data_types:
+                  - mon
+              -
+                grid: highres
+                data_types:
+                  - mon
+      -
+        experiment: F2010-nudgeUV
+        start: 2010
+        end: 2010
+        ens:
+          - ens1
+        resolution:
+          0_25deg_atm_18-6km_ocean:
+            atmos:
+              - 
+                grid: 180x360
+                data_types:
+                  - mon
+              -
+                grid: 720x1440
+                data_types:
+                  - mon
+          1deg_atm_60-30km_ocean:
+            atmos:
+              - 
+                grid: lowres
+                data_types:
+                  - mon
+              -
+                grid: highres
+                data_types:
+                  - mon
+      -
+        experiment: F2010-nudgeUV-1850aero
+        start: 2010
+        end: 2010
+        ens:
+          - ens1
+        resolution:
+          0_25deg_atm_18-6km_ocean:
+            atmos:
+              - 
+                grid: 180x360
+                data_types:
+                  - mon
+              -
+                grid: 720x1440
+                data_types:
+                  - mon
+          1deg_atm_60-30km_ocean:
+            atmos:
+              - 
+                grid: lowres
+                data_types:
+                  - mon
+              -
+                grid: highres
+                data_types:
+                  - mon
+      -
+        experiment: F2010plus4k
+        start: 1
+        end: 2
+        ens:
+          - ens1
+        resolution:
+          0_25deg_atm_18-6km_ocean:
+            atmos:
+              - 
+                grid: 180x360
+                data_types:
+                  - mon
+              -
+                grid: 720x1440
+                data_types:
+                  - mon
+          1deg_atm_60-30km_ocean:
+            atmos:
+              - 
+                grid: lowres
+                data_types:
+                  - mon
+              -
+                grid: highres
+                data_types:
+                  - mon
+      -
+        experiment: historical
+        start: 1850
+        end: 2013
+        ens:
+          - ens1
+          - ens2
+          - ens3
+          - ens4
+          - ens5
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              - 
+                grid: 180x360
+                data_types:
+                  - monClim-100yr
+                  - monClim-165yr
+                  - monClim-50yr
+                  - monClim-5yr
+                  - seasonClim-100yr
+                  - seasonClim-165yr
+                  - seasonClim-50yr
+                  - seasonClim-5yr
+                  - time-series
+              -
+                grid: native
+                data_types:
+                  - mon
+                  - day
+            land:
+              -
+                grid: native
+                data_types:
+                  - mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - mon
+    '1_1':
       -
         experiment: piControl
         start: 1850
@@ -696,7 +697,7 @@ project:
         ens:
           - ens1
         resolution:
-          1deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: native
@@ -724,7 +725,7 @@ project:
         ens:
           - ens1
         resolution:
-          1deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: native
@@ -752,7 +753,7 @@ project:
         ens:
           - ens1
         resolution:
-          1deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: native
@@ -780,7 +781,7 @@ project:
         ens:
           - ens1
         resolution:
-          1deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: native
@@ -808,7 +809,7 @@ project:
         ens:
           - ens1
         resolution:
-          1deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: native
@@ -829,7 +830,7 @@ project:
                 grid: native
                 data_types:
                   - mon
-    1_1_ECA:
+    '1_1_ECA':
       -
         experiment: piControl
         start: 1850
@@ -837,7 +838,7 @@ project:
         ens:
           - ens1
         resolution:
-          1deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: native
@@ -865,7 +866,7 @@ project:
         ens:
           - ens1
         resolution:
-          1deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: native
@@ -893,7 +894,7 @@ project:
         ens:
           - ens1
         resolution:
-          1deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: native
@@ -921,7 +922,7 @@ project:
         ens:
           - ens1
         resolution:
-          1deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: native
@@ -949,7 +950,7 @@ project:
         ens:
           - ens1
         resolution:
-          1deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: native
