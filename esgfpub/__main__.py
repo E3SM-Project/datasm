@@ -25,7 +25,9 @@ def check(ARGS):
         max_connections=ARGS.max_connections,
         serial=ARGS.serial,
         debug=ARGS.debug,
-        projects=ARGS.project)
+        dataset_ids=ARGS.dataset_ids,
+        projects=ARGS.project,
+        to_json=ARGS.to_json)
 
 
 def publish(ARGS):

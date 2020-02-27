@@ -350,7 +350,6 @@ project:
                   - 3hr
                   - 6hr_ave
                   - 6hr_snap
-                  - day
                   - mon
                   - monClim
                   - seasonClim
@@ -383,7 +382,7 @@ project:
                 grid: native
                 data_types:
                   - fixed
-          1_0deg:
+          1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: 180x360

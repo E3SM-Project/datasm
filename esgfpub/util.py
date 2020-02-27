@@ -45,16 +45,12 @@ def parse_args():
 
     parser_esgf_check = subparsers.add_parser(
         'check', help='Check the file structure and ESGF database for datasets')
-    parser_esgf_check.add_argument(
-        '-d',
-        '--data-path',
-        help="path to the root data directory containing the data",
-        default='/p/user_pub/work')
     tail, _ = os.path.split(resources.__file__)
     parser_esgf_check.add_argument(
-        '--case-spec',
-        default=os.path.join(tail, 'dataset_spec.yaml'),
-        help="path to yaml file containing the case spec")
+        '-d',
+        '--dataset-ids',
+        nargs='+',
+        help='One or more dataset IDs to check, if this option is turned on only these datasets will be checked')
     parser_esgf_check.add_argument(
         '-p',
         '--project',
@@ -79,6 +75,7 @@ def parse_args():
         help="List of CMIP6 tables to search in, default is all")
     parser_esgf_check.add_argument(
         '--ens',
+        '--ensembles',
         nargs="+",
         default=['all'],
         help="List of ensemble members to check, default all")
@@ -92,14 +89,29 @@ def parse_args():
         action="store_true",
         help="Check the LLNL ESGF node to see if the variables have been published")
     parser_esgf_check.add_argument(
+        '--file-system',
+        action="store_true",
+        help="Check the data is present on the filesystem under the --data-path directory")
+    parser_esgf_check.add_argument(
+        '--data-path',
+        help="path to the root directory containing the local data")
+    parser_esgf_check.add_argument(
         '--sproket',
-        help='path to sproket, only needed if --published is turned on')
+        default='sproket',
+        help='Path to custom sproket binary, only needed if --published is turned on.')
     parser_esgf_check.add_argument(
         '-m',
         '--max-connections',
         type=int,
         default=5,
-        help="Maximum number of simultanious connections to ESGF node")
+        help="Maximum number of simultanious connections to the ESGF node, only needed if --published is turned on. default = 5")
+    parser_esgf_check.add_argument(
+        '--case-spec',
+        default=os.path.join(tail, 'dataset_spec.yaml'),
+        help="Path to custom case specification file")
+    parser_esgf_check.add_argument(
+        '--to-json',
+        help='If set the output will be stored in the given file in json format')
     parser_esgf_check.add_argument(
         '--debug',
         action="store_true")
@@ -129,6 +141,8 @@ def print_message(message, status='error'):
               colors.BOLD + str(message) + colors.ENDC)
     elif status == 'ok':
         print(colors.OKGREEN + '[+] ' + colors.ENDC + str(message))
+    elif status == 'info':
+        print(colors.OKBLUE + '{=} ' + colors.ENDC + str(message))
 
 
 def makedir(directory):
