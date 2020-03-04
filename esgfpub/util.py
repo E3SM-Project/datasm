@@ -44,13 +44,8 @@ def parse_args():
         action="store_true")
 
     parser_esgf_check = subparsers.add_parser(
-        'check', help='Check the file structure and ESGF database for datasets')
+        'check', help='Check the file structure and ESGF database for missing datasets')
     tail, _ = os.path.split(resources.__file__)
-    parser_esgf_check.add_argument(
-        '-d',
-        '--dataset-ids',
-        nargs='+',
-        help='One or more dataset IDs to check, if this option is turned on only these datasets will be checked')
     parser_esgf_check.add_argument(
         '-p',
         '--project',
@@ -72,7 +67,7 @@ def parse_args():
         '--tables',
         nargs="+",
         default=['all'],
-        help="List of CMIP6 tables to search in, default is all")
+        help="List of CMIP6 tables or E3SM data-types to search for, default is all")
     parser_esgf_check.add_argument(
         '--ens',
         '--ensembles',
@@ -80,14 +75,24 @@ def parse_args():
         default=['all'],
         help="List of ensemble members to check, default all")
     parser_esgf_check.add_argument(
-        '-s',
-        '--serial',
-        action='store_true',
-        help='Should this be run in serial or parallel')
+        '-d',
+        '--dataset-ids',
+        nargs='+',
+        help='One or more dataset IDs to check, if this option is turned on only these datasets will be checked')
     parser_esgf_check.add_argument(
         '--published',
         action="store_true",
         help="Check the LLNL ESGF node to see if the variables have been published")
+    parser_esgf_check.add_argument(
+        '-m',
+        '--max-connections',
+        type=int,
+        default=5,
+        help="Maximum number of simultanious connections to the ESGF node, only needed if --published is turned on. default = 5")
+    parser_esgf_check.add_argument(
+        '--sproket',
+        default='sproket',
+        help='Path to custom sproket binary, only needed if --published is turned on.')
     parser_esgf_check.add_argument(
         '--file-system',
         action="store_true",
@@ -96,22 +101,17 @@ def parse_args():
         '--data-path',
         help="path to the root directory containing the local data")
     parser_esgf_check.add_argument(
-        '--sproket',
-        default='sproket',
-        help='Path to custom sproket binary, only needed if --published is turned on.')
-    parser_esgf_check.add_argument(
-        '-m',
-        '--max-connections',
-        type=int,
-        default=5,
-        help="Maximum number of simultanious connections to the ESGF node, only needed if --published is turned on. default = 5")
-    parser_esgf_check.add_argument(
         '--case-spec',
         default=os.path.join(tail, 'dataset_spec.yaml'),
-        help="Path to custom case specification file")
+        help="Path to custom dataset specification file")
     parser_esgf_check.add_argument(
         '--to-json',
-        help='If set the output will be stored in the given file in json format')
+        help='The output will be stored in the given file, json format')
+    parser_esgf_check.add_argument(
+        '-s',
+        '--serial',
+        action='store_true',
+        help='Should this be run in serial, default is parallel.')
     parser_esgf_check.add_argument(
         '--debug',
         action="store_true")
