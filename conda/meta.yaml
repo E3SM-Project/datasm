@@ -23,7 +23,11 @@ requirements:
   
   run:
     - python
-    - configobj
     - esgprep
     - tqdm
+    - yaml
+    - distributed
+    - json
+    - pexpect
+    - getpass
     
