@@ -20,7 +20,7 @@ def parse_args():
         dest='subparser_name')
 
     parser_publish = subparsers.add_parser(
-        'publish', help='Move data and generate mapfiles')
+        'stage', help='Move data and generate mapfiles')
     parser_publish.add_argument(
         "config",
         help="Path to configuration file")
@@ -101,6 +101,16 @@ def parse_args():
         '--data-path',
         help="path to the root directory containing the local data")
     parser_esgf_check.add_argument(
+        '--model-versions',
+        dest='model_versions',
+        nargs='+',
+        default='all',
+        help="versions of the model to add to the search, default is all")
+    parser_esgf_check.add_argument(
+        '--verify',
+        action="store_true",
+        help="Run a std deviation test on global mean for each variable")
+    parser_esgf_check.add_argument(
         '--case-spec',
         default=os.path.join(tail, 'dataset_spec.yaml'),
         help="Path to custom dataset specification file")
@@ -113,6 +123,31 @@ def parse_args():
         action='store_true',
         help='Should this be run in serial, default is parallel.')
     parser_esgf_check.add_argument(
+        '--debug',
+        action="store_true")
+
+    parser_publish = subparsers.add_parser(
+        'publish', help='Publish a directory of mapfiles to ESGF')
+    parser_publish.add_argument(
+        '--maps-in',
+        help="Path to input mapfile directory")
+    parser_publish.add_argument(
+        '--maps-done',
+        help="Path to where complete mapfiles should be moved to")
+    parser_publish.add_argument(
+        '--maps-err',
+        help="Path to where errored mapfiles should be moved to")
+    parser_publish.add_argument(
+        '--ini',
+        help="Path to ini directory")
+    parser_publish.add_argument(
+        '--loop',
+        action="store_true",
+        help="If set, this will cause the publisher to loop continuously and publish any mapfiles placed in the input directory")
+    parser_publish.add_argument(
+        '--username',
+        help="Username for myproxy-logon")
+    parser_publish.add_argument(
         '--debug',
         action="store_true")
     return parser.parse_args(sys.argv[1:])
