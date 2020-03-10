@@ -706,12 +706,13 @@ def publication_check(client, dataset_spec, data_path, ensembles, experiments, t
             'Missing datasets being written to {}'.format(to_json))
         data = {
             'missing': missing,
-            'extra': extra }
+            'extra': extra}
         if os.path.exists(to_json):
             os.remove(to_json)
         with open(to_json, 'w') as op:
             json.dump(data, op, indent=4, sort_keys=True)
     return
+
 
 def facet_filter(facet, facets):
     """
@@ -720,6 +721,7 @@ def facet_filter(facet, facets):
     if facet not in facets and 'all' not in facets:
         return True
     return False
+
 
 def filesystem_check(client, data_path, plot_path, case_spec, projects, model_versions, cases, tables, variables, ens, verify=False, serial=False, to_json=False, debug=False):
     """
@@ -735,10 +737,12 @@ def filesystem_check(client, data_path, plot_path, case_spec, projects, model_ve
         project_path = os.path.join(data_path, project)
         if project == 'CMIP6':
             for cmip_project in os.listdir(project_path):
-                cmip_project_path = os.path.join(project_path, cmip_project, 'E3SM-Project')
+                cmip_project_path = os.path.join(
+                    project_path, cmip_project, 'E3SM-Project')
 
                 for model_version in os.listdir(cmip_project_path):
-                    model_version_path = os.path.join(cmip_project_path, model_version)
+                    model_version_path = os.path.join(
+                        cmip_project_path, model_version)
 
                     for case in os.listdir(model_version_path):
                         if case not in cases and 'all' not in cases:
@@ -759,10 +763,13 @@ def filesystem_check(client, data_path, plot_path, case_spec, projects, model_ve
                                     if v not in variables and 'all' not in variables:
                                         continue
                                     variable_path = os.path.join(table_path, v)
-                                    version = sorted(os.listdir(os.path.join(variable_path, 'gr')))[-1]
-                                    dataset_id = '.'.join([project, cmip_project, 'E3SM-Project', model_version, case, e, table, v, 'gr#'+version])
-                                    
-                                    files = sorted(os.listdir(os.path.join(variable_path, 'gr', version)))
+                                    version = sorted(os.listdir(
+                                        os.path.join(variable_path, 'gr')))[-1]
+                                    dataset_id = '.'.join(
+                                        [project, cmip_project, 'E3SM-Project', model_version, case, e, table, v, 'gr#'+version])
+
+                                    files = sorted(os.listdir(
+                                        os.path.join(variable_path, 'gr', version)))
                                     for experiment in case_spec['project'][project][model_version]:
                                         if experiment['experiment'] == case:
                                             start = experiment['start']
@@ -770,67 +777,81 @@ def filesystem_check(client, data_path, plot_path, case_spec, projects, model_ve
                                             break
                                     futures.append(
                                         client.submit(
-                                            check_files, 
-                                                files, dataset_id, start, end))
+                                            check_files,
+                                            files, dataset_id, start, end))
         elif project == 'E3SM':
-            
+
             project_info = case_spec['project'].get(project)
             for model_version in os.listdir(project_path):
                 if facet_filter(model_version, model_versions):
                     continue
                 if model_version not in project_info.keys():
-                    print_message('Project not found in data spec: {}:{}'.format(project, model_version))
+                    print_message('Project not found in data spec: {}:{}'.format(
+                        project, model_version))
                     continue
                 model_info = project_info[model_version]
                 for casename in os.listdir(os.path.join(project_path, model_version)):
                     if facet_filter(casename, cases):
                         continue
-                    case_info = next((i for i in model_info if i['experiment'] == casename), None)
+                    case_info = next(
+                        (i for i in model_info if i['experiment'] == casename), None)
                     if not case_info:
-                        print_message("Couldnt find case in dataset specifications: {}".format(casename))
+                        print_message(
+                            "Couldnt find case in dataset specifications: {}".format(casename))
                         continue
 
-                    case_path = os.path.join(project_path, model_version, casename)
+                    case_path = os.path.join(
+                        project_path, model_version, casename)
                     for res in os.listdir(case_path):
                         if res not in case_info.get('resolution').keys():
-                            print_message("Couldnt find resolution {} in specification for case {}".format(res, casename))
+                            print_message(
+                                "Couldnt find resolution {} in specification for case {}".format(res, casename))
                             continue
                         res_path = os.path.join(case_path, res)
                         for comp in os.listdir(res_path):
                             if facet_filter(comp, tables):
                                 continue
                             if comp not in case_info['resolution'][res].keys():
-                                print_message("Couldnt find component {} in specification for case {}-{}".format(comp, casename, res))
+                                print_message(
+                                    "Couldnt find component {} in specification for case {}-{}".format(comp, casename, res))
                                 continue
                             comp_path = os.path.join(res_path, comp)
                             for grid in os.listdir(comp_path):
-                                comp_info = next((i for i in case_info['resolution'][res][comp] if i['grid'] == grid), None)
+                                comp_info = next(
+                                    (i for i in case_info['resolution'][res][comp] if i['grid'] == grid), None)
                                 if not comp_info:
-                                    print_message("Couldnt find component {} in specification for case {}-{}-{}".format(grid, casename, res, comp))
+                                    print_message(
+                                        "Couldnt find component {} in specification for case {}-{}-{}".format(grid, casename, res, comp))
                                     continue
                                 for data_type in os.listdir(os.path.join(comp_path, grid)):
                                     for freq in os.listdir(os.path.join(comp_path, grid, data_type)):
                                         if facet_filter(freq, tables):
                                             continue
                                         if freq not in comp_info['data_types']:
-                                            print_message("Couldnt find component {} in specification for case {}-{}-{}-{}".format(freq, casename, res, comp, grid))
+                                            print_message("Couldnt find component {} in specification for case {}-{}-{}-{}".format(
+                                                freq, casename, res, comp, grid))
                                             continue
                                         for ensemble in os.listdir(os.path.join(comp_path, grid, data_type, freq)):
                                             if facet_filter(ensemble, ens):
                                                 continue
                                             if ensemble not in case_info['ens']:
-                                                print_message("Couldnt find component {} in specification for case {}-{}-{}-{}-{}".format(ensemble, casename, res, comp, grid, freq))
+                                                print_message("Couldnt find component {} in specification for case {}-{}-{}-{}-{}".format(
+                                                    ensemble, casename, res, comp, grid, freq))
                                                 continue
 
-                                            version = sorted(os.listdir(os.path.join(comp_path, grid, data_type, freq, ensemble)))[-1]
-                                            files = sorted(os.listdir(os.path.join(comp_path, grid, data_type, freq, ensemble, version)))
-                                            dataset_id = '.'.join(['E3SM', model_version, casename, res, comp, grid, data_type, freq, ensemble, version])
+                                            version = sorted(os.listdir(os.path.join(
+                                                comp_path, grid, data_type, freq, ensemble)))[-1]
+                                            files = sorted(os.listdir(os.path.join(
+                                                comp_path, grid, data_type, freq, ensemble, version)))
+                                            dataset_id = '.'.join(
+                                                ['E3SM', model_version, casename, res, comp, grid, data_type, freq, ensemble, version])
                                             if debug:
-                                                print_message("Checking: {}".format(dataset_id), "info")
+                                                print_message(
+                                                    "Checking: {}".format(dataset_id), "info")
                                             futures.append(
                                                 client.submit(
                                                     check_files, files, dataset_id, case_info['start'], case_info['end']))
-                                            
+
     pbar = tqdm(total=len(futures))
     for f in as_completed(futures):
         m, ex = f.result()
@@ -850,11 +871,7 @@ def filesystem_check(client, data_path, plot_path, case_spec, projects, model_ve
         # APPEND TO THE JSON OUTPUT
         pass
 
-
-    
     return
-
-
 
 
 def data_check(
@@ -890,7 +907,6 @@ def data_check(
     with open(spec_path, 'r') as ip:
         case_spec = yaml.load(ip, Loader=yaml.SafeLoader)
 
-
     if serial:
         client = None
     else:
@@ -906,30 +922,30 @@ def data_check(
 
     if published:
         publication_check(
-            client, 
-            case_spec, 
-            data_path, 
-            ens, 
-            cases, 
-            tables, 
-            variables, 
-            sproket, 
+            client,
+            case_spec,
+            data_path,
+            ens,
+            cases,
+            tables,
+            variables,
+            sproket,
             debug)
-    
+
     if data_path:
         filesystem_check(
             client=client,
-            data_path=data_path, 
-            plot_path='', 
-            case_spec=case_spec, 
+            data_path=data_path,
+            plot_path='',
+            case_spec=case_spec,
             projects=projects,
             model_versions=model_versions,
             cases=cases,
             tables=tables,
-            variables=variables, 
+            variables=variables,
             ens=ens,
             debug=debug)
-    
+
     if client:
         client.close()
         cluster.close()
