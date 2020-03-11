@@ -141,7 +141,6 @@ def check_monthly(files, start=None, end=None):
 
 
 def check_monthly_climos(files, start, end):
-    # FIX ME
     missing = []
     files_found = []
 
@@ -155,27 +154,15 @@ def check_monthly_climos(files, start, end):
     if not start or not end:
         start, end = infer_start_end_climo(files)
 
-    f_start, f_end = get_e3sm_start_end(files[0])
-    freq = f_end - f_start + 1
-    spans = list(range(start, end, freq))
+    start, end = get_e3sm_start_end(files[0])
 
-    for idx, span_start in enumerate(spans):
-        found_span = False
-        if span_start != spans[-1]:
-            span_end = spans[idx + 1] - 1
+    for month in range(1, 13):
+        name = '{prefix}{month:02d}_{start:04d}{month:02d}_{end:04d}{month:02d}_climo.nc'.format(
+            prefix=prefix, month=month, start=start, end=end)
+        if name not in files:
+            missing.append(name)
         else:
-            span_end = end
-
-        found_span = False
-        span_end = spans[idx + 1] - 1
-
-        for month in range(1, 13):
-            name = '{prefix}{month:02d}_{start:04d}{month:02d}_{end:04d}{month:02d}_climo.nc'.format(
-                prefix=prefix, month=month, start=span_start, end=span_end)
-            if name not in files:
-                missing.append(name)
-            else:
-                files_found.append(name)
+            files_found.append(name)
     extra_files = [x for x in files if x not in files_found]
     return missing, extra_files
 
@@ -193,60 +180,51 @@ def check_seasonal_climos(files, start, end):
     if not start or not end:
         start, end = infer_start_end_climo(files)
 
-    f_start, f_end = get_e3sm_start_end(files[0])
-    freq = f_end - f_start + 1
-    spans = list(range(start, end, freq))
+    start, end = get_e3sm_start_end(files[0])
 
-    for idx, span_start in enumerate(spans):
+    found_span = False
+    name = '{prefix}_ANN_{start:04d}01_{end:04d}12_climo.nc'.format(
+        prefix=prefix, start=start, end=end)
+    if name not in files:
+        missing.append(name)
+    else:
+        files_found.append(name)
 
-        if span_start != spans[-1]:
-            span_end = spans[idx + 1] - 1
-        else:
-            span_end = end
+    name = '{prefix}_DJF_{start:04d}01_{end:04d}12_climo.nc'.format(
+        prefix=prefix, start=start, end=end)
+    if name not in files:
+        missing.append(name)
+    else:
+        files_found.append(name)
 
-        found_span = False
-        name = '{prefix}_ANN_{span_start:04d}01_{span_end:04d}12_climo.nc'.format(
-            prefix=prefix, span_start=span_start, span_end=span_end)
-        if name not in files:
-            missing.append(name)
-        else:
-            files_found.append(name)
+    name = '{prefix}_MAM_{start:04d}03_{end:04d}05_climo.nc'.format(
+        prefix=prefix, start=start, end=end)
+    if name not in files:
+        missing.append(name)
+    else:
+        files_found.append(name)
 
-        name = '{prefix}_DJF_{span_start:04d}01_{span_end:04d}12_climo.nc'.format(
-            prefix=prefix, span_start=span_start, span_end=span_end)
-        if name not in files:
-            missing.append(name)
-        else:
-            files_found.append(name)
+    name = '{prefix}_JJA_{start:04d}06_{end:04d}08_climo.nc'.format(
+        prefix=prefix, start=start, end=end)
+    if name not in files:
+        missing.append(name)
+    else:
+        files_found.append(name)
 
-        name = '{prefix}_MAM_{span_start:04d}03_{span_end:04d}05_climo.nc'.format(
-            prefix=prefix, span_start=span_start, span_end=span_end)
-        if name not in files:
-            missing.append(name)
-        else:
-            files_found.append(name)
+    name = '{prefix}_SON_{start:04d}09_{end:04d}11_climo.nc'.format(
+        prefix=prefix, start=start, end=end)
+    if name not in files:
+        missing.append(name)
+    else:
+        files_found.append(name)
 
-        name = '{prefix}_JJA_{span_start:04d}06_{span_end:04d}08_climo.nc'.format(
-            prefix=prefix, span_start=span_start, span_end=span_end)
-        if name not in files:
-            missing.append(name)
-        else:
-            files_found.append(name)
-
-        name = '{prefix}_SON_{span_start:04d}09_{span_end:04d}11_climo.nc'.format(
-            prefix=prefix, span_start=span_start, span_end=span_end)
-        if name not in files:
-            missing.append(name)
-        else:
-            files_found.append(name)
-
-    extra_files = [x for x in files if x not in files_found]
-    return missing, extra_files
+    extra = [x for x in files if x not in files_found]
+    return missing, extra
 
 
 def check_submonthly(files, start, end):
 
-    missing = []
+    missing, extra = list(), list()
     pattern = r'\d{4}-\d{2}.*nc'
     first = files[0]
     idx = re.search(pattern=pattern, string=first)
@@ -267,8 +245,7 @@ def check_submonthly(files, start, end):
             if not res:
                 missing.append(name)
 
-    extra_files = []
-    return missing, prefix, extra_files
+    return missing, extra
 
 
 def check_fixed(files, dataset_id, spec):
@@ -345,11 +322,11 @@ def check_time_series(files, dataset_id, spec, start=None, end=None):
                 if not found_span:
                     missing.append('{dataset}-{var}-{start:04d}-{end:04d}'.format(
                         dataset=dataset_id, var=v, start=span_start, end=span_end))
-    extra_files = [x for x in files if x not in files_found]
+    extra = [x for x in files if x not in files_found]
     return missing, extra
 
 
-def check_files(files, dataset_id, start, end):
+def check_files(files, spec, dataset_id, start, end):
 
     missing = []
     extra = []
@@ -410,7 +387,7 @@ def sproket_with_id(dataset_id, sproket, spec=None, start=None, end=None):
         return [dataset_id], dataset_id, []
 
     files = sorted([i.decode('utf-8') for i in out.split()])
-    missing, extra = check_files(files, dataset_id, start, end)
+    missing, extra = check_files(files, spec, dataset_id, start, end)
     return missing, dataset_id, extra
 
 # The typical CMIP6 path is:
@@ -419,11 +396,9 @@ def sproket_with_id(dataset_id, sproket, spec=None, start=None, end=None):
 # CMIP6.CMIP.E3SM-project.E3SM-1-0.piControl.r1i1p1f1.Amon.ts#20190719
 
 
-def check_cmip(client, dataset_spec, data_path, experiments, ensembles, tables, variables, published, sproket, debug=False):
+def check_cmip(client, dataset_spec, data_path, experiments, ensembles, tables, variables, sproket, debug=False):
 
-    missing = []
-    extra = []
-    futures = []
+    missing, extra, futures = list(), list(), list()
 
     for source in dataset_spec['project']['CMIP6']:
         if debug:
@@ -488,55 +463,31 @@ def check_cmip(client, dataset_spec, data_path, experiments, ensembles, tables, 
                                 dataset_spec,
                                 case['start'],
                                 case['end'])
-                            if missing:
-                                for m in missing:
-                                    print_message(
-                                        'Missing file found: {}'.format(m))
-                            else:
+                            if not missing:
                                 print_message(
                                     'All files found for: {}'.format(dataset_id), 'ok')
-                            if extra:
-                                for e in extra:
-                                    print_message(
-                                        'EXTRA file found: {}'.format(e))
 
     if client:
         pbar = tqdm(
             total=len(futures),
             desc='Contacting ESGF database')
         for f in as_completed(futures):
-            res = f.result()
-            try:
-                m, dataset_id, e = res
-            except:
-                import ipdb
-                ipdb.set_trace()
+            m, dataset_id, e = f.result()
 
-            if m:
-                missing.extend(m)
-            else:
+            missing.extend(m)
+            extra.extend(e)
+            if not m:
                 pbar.set_description(
                     'All files found for: {}'.format(dataset_id))
-
-            if e:
-                extra.extend(e)
 
             pbar.update(1)
         pbar.close()
 
-    if missing:
-        for m in missing:
-            print_message('Missing: {}'.format(m))
-    if extra:
-        for e in extra:
-            print_message('Extra: {}'.format(m))
-
     return missing, extra
 
 
-def check_e3sm(client, dataset_spec, data_path, experiments, ensembles, tables, variables, published, sproket, to_json, debug=False):
-    missing = []
-    futures = []
+def check_e3sm(client, dataset_spec, data_path, experiments, ensembles, tables, variables, sproket, debug=False):
+    missing, extra, futures = list(), list(), list()
 
     for version in dataset_spec['project']['E3SM']:
         if debug:
@@ -584,15 +535,17 @@ def check_e3sm(client, dataset_spec, data_path, experiments, ensembles, tables, 
                                             case['start'],
                                             case['end']))
                                 else:
-                                    missing, dataset_id = sproket_with_id(
+                                    m, dataset_id, e = sproket_with_id(
                                         dataset_id,
                                         sproket,
                                         dataset_spec,
                                         case['start'],
                                         case['end'])
-                                    if not missing:
+                                    missing.extend(m)
+                                    extra.extend(e)
+                                    if not m and debug:
                                         print_message(
-                                            'All files found for: {}'.format(dataset_id), 'ok')
+                                            'All files found for: {}'.format(dataset_id), 'info')
 
     if client:
         pbar = tqdm(
@@ -600,29 +553,22 @@ def check_e3sm(client, dataset_spec, data_path, experiments, ensembles, tables, 
             desc='Contacting ESGF database')
         for f in as_completed(futures):
             res = f.result()
-            m, dataset_id = res
-            if m:
-                missing.extend(m)
-            else:
+            m, dataset_id, e = res
+            missing.extend(m)
+            extra.extend(e)
+            if not m:
                 pbar.set_description(
                     'All files found for: {}'.format(dataset_id))
             pbar.update(1)
         pbar.close()
 
-    if missing:
-        if not to_json:
-            for m in missing:
-                print_message('Missing: {}'.format(m))
-        return True  # true there was an error
-    else:
-        print_message('All files from datasets found', 'ok')
-        return False
+    return missing, extra
 
 
 def check_datasets_by_id(client, sproket, dataset_ids):
+    missing = list()
     if client:
-        futures = []
-        missing = []
+        futures = list()
         for d in dataset_ids:
             futures.append(
                 client.submit(
@@ -641,27 +587,22 @@ def check_datasets_by_id(client, sproket, dataset_ids):
                     'All files found for: {}'.format(dataset_id))
             pbar.update(1)
         pbar.close()
-        if missing:
-            for m in missing:
-                print_message('Missing file found: {}'.format(m))
+
     else:
         for d in dataset_ids:
-            missing, dataset_id = sproket_with_id(d, sproket)
-            if missing:
-                for m in missing:
-                    print_message('Missing file found: {}'.format(m))
-            else:
-                print_message(
-                    'All files found for: {}'.format(dataset_id), 'ok')
+            m, dataset_id = sproket_with_id(d, sproket)
+            missing.append(m)
+
+    return missing
 
 
-def publication_check(client, dataset_spec, data_path, ensembles, experiments, tables, variables, sproket, debug):
+def publication_check(client, case_spec, data_path, projects, ensembles, experiments, tables, variables, sproket, dataset_ids=None, debug=None):
     missing, extra = list(), list()
     if dataset_ids:
         if isinstance(dataset_ids, str):
             dataset_ids = [dataset_ids]
-        check_datasets_by_id(client, sproket, dataset_ids)
-        return
+        missing = check_datasets_by_id(client, sproket, dataset_ids)
+        return missing, extra
 
     if not projects or ('cmip6' in projects or 'CMIP6' in projects):
         print_message("Checking for CMIP6 project data", 'ok')
@@ -669,8 +610,8 @@ def publication_check(client, dataset_spec, data_path, ensembles, experiments, t
             client=client,
             dataset_spec=case_spec,
             data_path=data_path,
-            ensembles=ens,
-            experiments=cases,
+            ensembles=ensembles,
+            experiments=experiments,
             tables=tables,
             variables=variables,
             sproket=sproket,
@@ -686,12 +627,11 @@ def publication_check(client, dataset_spec, data_path, ensembles, experiments, t
             client=client,
             dataset_spec=case_spec,
             data_path=data_path,
-            ensembles=ens,
-            experiments=cases,
+            ensembles=ensembles,
+            experiments=experiments,
             tables=tables,
             variables=variables,
             sproket=sproket,
-            to_json=to_json,
             debug=debug)
         missing.extend(m)
         extra.extend(e)
@@ -701,17 +641,7 @@ def publication_check(client, dataset_spec, data_path, ensembles, experiments, t
     else:
         print_message('Skipping E3SM project datasets', 'ok')
 
-    if to_json:
-        print_message(
-            'Missing datasets being written to {}'.format(to_json))
-        data = {
-            'missing': missing,
-            'extra': extra}
-        if os.path.exists(to_json):
-            os.remove(to_json)
-        with open(to_json, 'w') as op:
-            json.dump(data, op, indent=4, sort_keys=True)
-    return
+    return missing, extra
 
 
 def facet_filter(facet, facets):
@@ -778,7 +708,7 @@ def filesystem_check(client, data_path, plot_path, case_spec, projects, model_ve
                                     futures.append(
                                         client.submit(
                                             check_files,
-                                            files, dataset_id, start, end))
+                                            files, case_spec, dataset_id, start, end))
         elif project == 'E3SM':
 
             project_info = case_spec['project'].get(project)
@@ -850,7 +780,7 @@ def filesystem_check(client, data_path, plot_path, case_spec, projects, model_ve
                                                     "Checking: {}".format(dataset_id), "info")
                                             futures.append(
                                                 client.submit(
-                                                    check_files, files, dataset_id, case_info['start'], case_info['end']))
+                                                    check_files, case_spec, files, dataset_id, case_info['start'], case_info['end']))
 
     pbar = tqdm(total=len(futures))
     for f in as_completed(futures):
@@ -859,19 +789,8 @@ def filesystem_check(client, data_path, plot_path, case_spec, projects, model_ve
         extra.extend(ex)
         pbar.update()
     pbar.close()
-    if missing:
-        for m in missing:
-            print_message("Missing file: {}".format(m))
-    else:
-        print_message("Found all files", 'ok')
-    if extra:
-        for e in extra:
-            print_message("Extra file: {}".format(e))
-    if to_json:
-        # APPEND TO THE JSON OUTPUT
-        pass
 
-    return
+    return missing, extra
 
 
 def data_check(
@@ -920,34 +839,69 @@ def data_check(
         if debug:
             print_message('... worker setup complete', 'info')
 
-    if published:
-        publication_check(
-            client,
-            case_spec,
-            data_path,
-            ens,
-            cases,
-            tables,
-            variables,
-            sproket,
-            debug)
+    missing, extra = list(), list()
+    try:
+        if published:
+            m, e = publication_check(
+                client=client,
+                case_spec=case_spec,
+                data_path=data_path,
+                dataset_ids=dataset_ids,
+                projects=projects,
+                ensembles=ens,
+                experiments=cases,
+                tables=tables,
+                variables=variables,
+                sproket=sproket,
+                debug=debug)
+            missing.extend(m)
+            extra.extend(e)
 
-    if data_path:
-        filesystem_check(
-            client=client,
-            data_path=data_path,
-            plot_path='',
-            case_spec=case_spec,
-            projects=projects,
-            model_versions=model_versions,
-            cases=cases,
-            tables=tables,
-            variables=variables,
-            ens=ens,
-            debug=debug)
+        if data_path:
+            m, e = filesystem_check(
+                client=client,
+                data_path=data_path,
+                plot_path='',
+                case_spec=case_spec,
+                projects=projects,
+                model_versions=model_versions,
+                cases=cases,
+                tables=tables,
+                variables=variables,
+                ens=ens,
+                debug=debug)
+            missing.extend(m)
+            extra.extend(e)
+    finally:
+        if client:
+            client.close()
+            cluster.close()
 
-    if client:
-        client.close()
-        cluster.close()
+    if to_json:
+        print_message(
+            'Missing datasets being written to {}'.format(to_json))
+        data = {
+            'missing': missing,
+            'extra': extra}
+        if os.path.exists(to_json):
+            os.remove(to_json)
+        with open(to_json, 'w') as op:
+            json.dump(data, op, indent=4, sort_keys=True)
+    else:
+        if missing:
+            print_message("Missing files:")
+            for m in missing:
+                print_message("\t{}".format(m))
+            print('-----------------------------------')
+        else:
+            print_message("No missing files", 'ok')
+
+        if extra:
+            print_message("Extra files:")
+            for e in extra:
+                print_message("\t{}".format(e))
+            print('-----------------------------------')
+        else:
+            print_message("No extra files", 'ok')
 
     return 0
