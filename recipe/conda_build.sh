@@ -1,4 +1,3 @@
-#!/bin/bash
 export VERSION="0.1.1"
 export BUILD_NAME="0"
 export CONDA_BLD_PATH=~/conda-bld

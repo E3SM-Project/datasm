@@ -100,7 +100,7 @@ optional arguments:
 
 The "check" subcommand is used to check the consistancy of published datasets. Its two modes are used to a) check that every file that should be present in the selected datasets is present, b) check that no extra files are included, and optionally c) run a simple squared deviance check on CMIP6 time-series data to detect inconsistancies in the data.
 
-The publication checks use the [sproket](https://github.com/ESGF/sproket) tool to interact with the ESGF search API.
+The publication checks use the [sproket](https://github.com/ESGF/sproket) tool to interact with the ESGF search API. Download the binary and put it somewhere in your $PATH, or specify its location with the `--sproket` command.
 
 ```bash
 >>> esgfpub check -h

@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="esgfpub",
-    version="0.1.2",
+    version="0.2.0",
     author="Sterling Baldwin",
     author_email="baldwin32@llnl.gov",
     description="Automated publication tools for ESGF",
