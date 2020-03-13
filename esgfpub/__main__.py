@@ -34,6 +34,7 @@ def main():
             debug=ARGS.debug,
             dataset_ids=ARGS.dataset_ids,
             projects=ARGS.project,
+            cluster_address=ARGS.local_cluster,
             to_json=ARGS.to_json)
     elif subcommand == 'stage':
         return stage(ARGS)

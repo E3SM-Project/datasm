@@ -131,6 +131,9 @@ def parse_args():
         action='store_true',
         help='Should this be run in serial, default is parallel.')
     parser_esgf_check.add_argument(
+        '--local-cluster',
+        help='The port number for the local cluster to connect to, if not given a new cluster is created')
+    parser_esgf_check.add_argument(
         '--debug',
         action="store_true")
 

@@ -897,6 +897,7 @@ def data_check(
         num_workers=4,
         debug=False,
         serial=False,
+        cluster_address=None,
         to_json=False):
 
     if debug:
@@ -921,11 +922,14 @@ def data_check(
     else:
         if debug:
             print_message('Setting up dask cluster with {} workers'.format(num_workers), 'info')
-        cluster = LocalCluster(
-            n_workers=num_workers,
-            processes=True,
-            local_dir='dask-worker-space')
-        client = Client(cluster)
+        if not cluster_address:
+            cluster = LocalCluster(
+                n_workers=num_workers,
+                processes=True,
+                local_dir='dask-worker-space')
+            client = Client(cluster)
+        else:
+            client = Client(cluster_address)
         if debug:
             print_message('... worker setup complete', 'info')
 
