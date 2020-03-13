@@ -85,10 +85,10 @@ def parse_args():
         help="Check the LLNL ESGF node to see if the variables have been published")
     parser_esgf_check.add_argument(
         '-m',
-        '--max-connections',
+        '--num-workers',
         type=int,
-        default=5,
-        help="Maximum number of simultanious connections to the ESGF node, only needed if --published is turned on. default = 5")
+        default=4,
+        help="The number of dask workers used in the localCluster, default: 4")
     parser_esgf_check.add_argument(
         '--sproket',
         default='sproket',
@@ -110,6 +110,14 @@ def parse_args():
         '--verify',
         action="store_true",
         help="Run a std deviation test on global mean for each variable")
+    parser_esgf_check.add_argument(
+        '--plot-path',
+        default='/var/www/e3sm/public/pngs/',
+        help="Path for verification plot output")
+    parser_esgf_check.add_argument(
+        '--only-plots',
+        action="store_true",
+        help="Only produce verification plots, dont run the variance analysis")
     parser_esgf_check.add_argument(
         '--case-spec',
         default=os.path.join(tail, 'dataset_spec.yaml'),
@@ -445,3 +453,8 @@ def setup_dst(experiment, basepath, res_dir, grid, datatype, filename, ensemble)
         'v1',
         filename)
     return new_path
+
+def path_to_dataset_id(path):
+    p = path.split(os.sep)
+    dataset_id =  '.'.join(p[p.index('CMIP6'):-2])
+    return dataset_id

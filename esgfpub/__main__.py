@@ -1,6 +1,9 @@
 """
 A tool for automating much of the ESGF publication process
 """
+import warnings
+warnings.simplefilter('ignore')
+
 from sys import exit as sysexit
 from esgfpub.checker import data_check
 from esgfpub.publisher import publish
@@ -22,9 +25,11 @@ def main():
             variables=ARGS.variables,
             published=ARGS.published,
             verify=ARGS.verify,
+            plot_path=ARGS.plot_path,
             model_versions=ARGS.model_versions,
             sproket=ARGS.sproket,
-            max_connections=ARGS.max_connections,
+            only_plots=ARGS.only_plots,
+            num_workers=ARGS.num_workers,
             serial=ARGS.serial,
             debug=ARGS.debug,
             dataset_ids=ARGS.dataset_ids,
