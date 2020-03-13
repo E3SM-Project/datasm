@@ -12,6 +12,6 @@ setup(
     entry_points={
         'console_scripts':
             ['esgfpub = esgfpub.__main__:main']},
-    packages=['esgfpub', 'esgfpub.util', 'esgfpub.publiction_checker'],
+    packages=['esgfpub'],
     package_dir={'esgfpub': 'esgfpub'},
     include_package_data=True)
