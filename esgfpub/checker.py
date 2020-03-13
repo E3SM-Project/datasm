@@ -983,7 +983,6 @@ def data_check(
     finally:
         if client:
             client.close()
-            cluster.close()        
 
     if to_json:
         print_message(
