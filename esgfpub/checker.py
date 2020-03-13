@@ -932,6 +932,7 @@ def data_check(
             client = Client(cluster_address)
         if debug:
             print_message('... worker setup complete', 'info')
+            print_message(str(client), 'info')
 
     missing, extra, issues = list(), list(), list()
     try:
