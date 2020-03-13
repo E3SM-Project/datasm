@@ -924,7 +924,7 @@ def data_check(
         cluster = LocalCluster(
             n_workers=num_workers,
             processes=True,
-            local_dir='/export/baldwin32/dask-worker-space')
+            local_dir='dask-worker-space')
         client = Client(cluster)
         if debug:
             print_message('... worker setup complete', 'info')
