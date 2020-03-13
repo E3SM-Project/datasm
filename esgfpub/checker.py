@@ -926,6 +926,7 @@ def data_check(
             cluster = LocalCluster(
                 n_workers=num_workers,
                 processes=True,
+                threads_per_worker=2,
                 local_dir='dask-worker-space')
             client = Client(cluster)
         else:
