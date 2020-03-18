@@ -2,26 +2,11 @@ import os
 import stat
 import pexpect
 import getpass
+import json
 from os import remove
 from time import sleep
-from subprocess import Popen, PIPE, CalledProcessError
-from tempfile import NamedTemporaryFile
+from subprocess import call
 from esgfpub.util import print_message
-
-
-def execute(cmd):
-    proc = Popen(cmd, shell=True, stdout=PIPE,
-                 stderr=PIPE, universal_newlines=True)
-    while proc.poll() is None:
-        line = proc.stdout.readline()
-        if line != "":
-            print_message(line, 'ok')
-
-        line = proc.stderr.readline()
-        if line != "" and 'psycopg2' not in line and ' """)' not in line:
-            print_message(line)
-    if proc.returncode:
-        raise CalledProcessError(proc.returncode)
 
 
 def publish_maps(mapfiles, ini, mapsin, mapsout, mapserr, username, password, debug=False):
@@ -43,7 +28,7 @@ def publish_maps(mapfiles, ini, mapsin, mapsout, mapserr, username, password, de
         cmd = 'myproxy-logon -s esgf-node.llnl.gov -l {} -t 72 -o ~/.globus/certificate-file'.format(
             username)
         if debug:
-            print_message(cmd, 'info')
+            print_message("Running myproxy-logon with stored credentials", 'info')
         proc = pexpect.spawn(cmd)
         proc.expect('Enter MyProxy pass phrase:')
         proc.sendline(password)
@@ -57,22 +42,23 @@ esgpublish -i {ini} --project {project} --map {map} --service fileservice --nosc
 """.format(
             ini=ini, map=os.path.join(mapsin, m), project=project, username=username, password=password)
 
-        tempfile = NamedTemporaryFile(delete=False)
+        tempfile = "pub_script.sh"
+        if os.path.exists(tempfile):
+            os.remove(tempfile)
 
-        with open(tempfile.name, 'w') as fp:
+        with open(tempfile, 'w') as fp:
             fp.write(script)
-        st = os.stat(tempfile.name)
-        os.chmod(tempfile.name, st.st_mode | stat.S_IEXEC)
+        st = os.stat(tempfile)
+        os.chmod(tempfile, st.st_mode | stat.S_IEXEC)
 
         if debug:
             print_message('Running publication script: {}'.format(
-                tempfile.name), 'info')
+                tempfile), 'info')
             print_message(script, 'info')
 
         try:
-            cmd = ['bash', tempfile.name]
             try:
-                execute(cmd)
+                call('./' + tempfile)
             except Exception as e:
                 print_message(
                     "Error in publication, moving {} to {}".format(m, mapserr))
@@ -83,7 +69,7 @@ esgpublish -i {ini} --project {project} --map {map} --service fileservice --nosc
             else:
                 if debug:
                     print_message(
-                        "Publication success, moving {} to ".format(m, mapsout), "info")
+                        "Publication success, moving {} to {}".format(m, mapsout), "info")
                 os.rename(
                     os.path.join(mapsin, m),
                     os.path.join(mapsout, m))
@@ -92,22 +78,28 @@ esgpublish -i {ini} --project {project} --map {map} --service fileservice --nosc
                 fp.close()
 
 
-def publish(mapsin, mapsout, mapserr, ini, loop, username, debug=False):
+def publish(mapsin, mapsout, mapserr, ini, loop, cred_file, debug=False):
 
-    # password = getpass.getpass("Please enter my-proxy logon password: ")
-    password = 'Ab1-B4sCkxaW'
-    if loop:
-        if debug:
-            print_message("Entering publication loop", "info")
-        while True:
-            mapfiles = os.listdir(mapsin)
-            if not mapfiles:
-                sleep(30)
-            else:
-                publish_maps(mapfiles, ini, mapsin, mapsout,
-                             mapserr, username, password, debug)
-    else:
-        mapfiles = os.listdir(mapsin)
+    if not os.path.exists(cred_file):
+        raise ValueError('The given credential file does not exist')
+
+    with open(cred_file, 'r') as ip:
+        creds = json.load(ip)
+        try:
+            username = creds['username']
+        except:
+            raise ValueError("Missing username from credetial file")
+        try:
+            password = creds['password']
+        except:
+            raise ValueError("Missing password from credential file")
+
+    while True:
+        mapfiles = [x for x in os.listdir(mapsin) if x.endsWith('.map')]
         publish_maps(mapfiles, ini, mapsin, mapsout,
                      mapserr, username, password, debug)
+        if not loop:
+            break
+        sleep(30)
+
     return 0
