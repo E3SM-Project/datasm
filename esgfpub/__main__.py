@@ -47,6 +47,15 @@ def main():
             loop=ARGS.loop,
             username=ARGS.username,
             debug=ARGS.debug)
+    elif subcommand == 'custom':
+        from esgfpub.custom_facets import update_custom
+        update_custom(
+            facets=ARGS.facets,
+            outpath=ARGS.output,
+            generate_only=ARGS.generate_only,
+            mapdir=ARGS.mapdir,
+            datadir=ARGS.datadir,
+            debug=ARGS.debug)
     else:
         raise ValueError("Unrecognised subcommand")
 

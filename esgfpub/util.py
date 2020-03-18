@@ -107,6 +107,11 @@ def parse_args():
         default='all',
         help="versions of the model to add to the search, default is all")
     parser_esgf_check.add_argument(
+        '--exclude',
+        nargs='+',
+        default=['none'],
+        help="A list of any variables, tables, model_versions, or projects to skip")
+    parser_esgf_check.add_argument(
         '--verify',
         action="store_true",
         help="Run a std deviation test on global mean for each variable")
@@ -156,11 +161,45 @@ def parse_args():
         action="store_true",
         help="If set, this will cause the publisher to loop continuously and publish any mapfiles placed in the input directory")
     parser_publish.add_argument(
-        '--username',
-        help="Username for myproxy-logon")
+        '-c',
+        '--credentials',
+        required=True,
+        help="JSON file containing myproxy-logon username and password")
     parser_publish.add_argument(
         '--debug',
         action="store_true")
+
+    parser_custom = subparsers.add_parser(
+        'custom', help='Update the custom facets for a list of datasets')
+    parser_custom.add_argument(
+        "-v", "--version",
+        action="store_true",
+        help="show program version")
+    parser_custom.add_argument(
+        "-m", '--map-dir',
+        dest='mapdir',
+        help="directory of map files")
+    parser_custom.add_argument(
+        "-d", '--data-dir',
+        dest='datadir',
+        help="root of data directory")
+    parser_custom.add_argument(
+        '--facets',
+        nargs='+',
+        required=True,
+        help="sequence of var=value pairs")
+    parser_custom.add_argument(
+        '-o', '--output',
+        default="./custom_facets.map",
+        help="output for the new mapfile, defaults to $PWD/custom_facets.map")
+    parser_custom.add_argument(
+        '--generate-only',
+        action="store_true",
+        help="Only generate the custom facet mapfile and dont run the update command, usefull if not running on the ESGF node")
+    parser_custom.add_argument(
+        '--debug',
+        action="store_true",
+        help="turn on debug prints")
     return parser.parse_args(sys.argv[1:])
 
 
@@ -457,7 +496,8 @@ def setup_dst(experiment, basepath, res_dir, grid, datatype, filename, ensemble)
         filename)
     return new_path
 
+
 def path_to_dataset_id(path):
     p = path.split(os.sep)
-    dataset_id =  '.'.join(p[p.index('CMIP6'):-2])
+    dataset_id = '.'.join(p[p.index('CMIP6'):-2])
     return dataset_id
