@@ -1,16 +1,15 @@
 import warnings
 warnings.simplefilter('ignore')
-
-import os
-import yaml
-import json
-import re
-from tqdm import tqdm
-from subprocess import Popen, PIPE
-from tempfile import NamedTemporaryFile
-from esgfpub.util import print_message
-from esgfpub.verify import verify_dataset
 from distributed import Client, as_completed, LocalCluster
+from esgfpub.verify import verify_dataset
+from esgfpub.util import print_message
+from tempfile import NamedTemporaryFile
+from subprocess import Popen, PIPE
+from tqdm import tqdm
+import re
+import json
+import yaml
+import os
 
 
 def get_cmip_start_end(filename):
@@ -71,7 +70,7 @@ def infer_start_end_cmip(files):
     A typical CMIP6 file will have a name like:
     pbo_Omon_E3SM-1-1-ECA_hist-bgc_r1i1p1f1_gr_185001-185412.nc' 
     """
-    f = sorted(files)
+    files = sorted(files)
     first, last = files[0], files[-1]
     p = r'\d{6}-\d{6}'
     idx = re.search(pattern=p, string=first)
@@ -186,7 +185,6 @@ def check_seasonal_climos(files, start, end):
 
     start, end = get_e3sm_start_end(files[0])
 
-    found_span = False
     name = '{prefix}_ANN_{start:04d}01_{end:04d}12_climo.nc'.format(
         prefix=prefix, start=start, end=end)
     if name not in files:
@@ -238,7 +236,6 @@ def check_submonthly(files, start, end):
         start, end = infer_start_end_e3sm(files)
 
     prefix = first[:idx.start()]
-    suffix = first[idx.start() + 7:]
     for year in range(start, end + 1):
         for month in range(1, 13):
             if month == 2:
@@ -648,18 +645,19 @@ def publication_check(client, case_spec, data_path, projects, ensembles, experim
     return missing, extra
 
 
-def facet_filter(facet, facets):
+def facet_filter(facet, facets, exclude=None):
     """
     Return True if the given facet should be filtered out
     """
-    if facet not in facets and 'all' not in facets:
+    if (facet not in facets and 'all' not in facets) or (exclude and facet in exclude):
         return True
     return False
 
-def collect_paths(data_path, case_spec, projects, model_versions, cases, tables, variables, ens, debug=False):
+
+def collect_paths(data_path, case_spec, projects, model_versions, cases, tables, variables, ens, exclude=None, debug=False):
     dataset_paths, dataset_ids = list(), list()
     for project in os.listdir(data_path):
-        if facet_filter(project, projects):
+        if facet_filter(project, projects, exclude):
             continue
         if debug:
             print_message('checking project: ' + project, 'info')
@@ -670,54 +668,62 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
                 cmip_project_path = os.path.join(
                     project_path, cmip_project, 'E3SM-Project')
                 if debug:
-                    print_message('  checking cmip-project: ' + cmip_project, 'info')
+                    print_message('  checking cmip-project: ' +
+                                  cmip_project, 'info')
                 for model_version in os.listdir(cmip_project_path):
-                    if facet_filter(model_version, model_versions):
+                    if facet_filter(model_version, model_versions, exclude):
                         continue
                     model_version_path = os.path.join(
                         cmip_project_path, model_version)
                     if debug:
-                        print_message('    checking model_version: ' + model_version, 'info')
+                        print_message(
+                            '    checking model_version: ' + model_version, 'info')
                     for case in os.listdir(model_version_path):
-                        if facet_filter(case, cases):
+                        if facet_filter(case, cases, exclude):
                             continue
                         if debug:
-                            print_message('      checking experiment: ' + case, 'info')
+                            print_message(
+                                '      checking experiment: ' + case, 'info')
                         case_path = os.path.join(model_version_path, case)
 
                         for e in os.listdir(case_path):
-                            if facet_filter(e, ens):
+                            if facet_filter(e, ens, exclude):
                                 continue
                             if debug:
-                                print_message('      checking ensemble: ' + e, 'info')
+                                print_message(
+                                    '      checking ensemble: ' + e, 'info')
                             ensemble_path = os.path.join(case_path, e)
 
                             for table in os.listdir(ensemble_path):
-                                if facet_filter(table, tables):
+                                if facet_filter(table, tables, exclude):
                                     continue
                                 table_path = os.path.join(ensemble_path, table)
                                 if debug:
-                                    print_message('        checking table: ' + table, 'info')
+                                    print_message(
+                                        '        checking table: ' + table, 'info')
                                 for v in os.listdir(table_path):
-                                    if facet_filter(v, variables):
+                                    if facet_filter(v, variables, exclude):
                                         continue
                                     if debug:
-                                        print_message('          checking variable: ' + v, 'info')
+                                        print_message(
+                                            '          checking variable: ' + v, 'info')
                                     variable_path = os.path.join(table_path, v)
 
                                     # pick just the last version
-                                    versions = os.listdir(os.path.join(variable_path, 'gr'))
+                                    versions = os.listdir(
+                                        os.path.join(variable_path, 'gr'))
                                     version = sorted(versions)[-1]
 
                                     dataset_id = '.'.join(
                                         [project, cmip_project, 'E3SM-Project', model_version, case, e, table, v, 'gr#'+version])
-                                    dataset_path = os.path.join(variable_path, 'gr', version)
+                                    dataset_path = os.path.join(
+                                        variable_path, 'gr', version)
                                     dataset_paths.append(dataset_path)
                                     dataset_ids.append(dataset_id)
         elif project == 'E3SM':
             project_info = case_spec['project'].get(project)
             for model_version in os.listdir(project_path):
-                if facet_filter(model_version, model_versions):
+                if facet_filter(model_version, model_versions, exclude):
                     continue
                 if model_version not in project_info.keys():
                     print_message('Project not found in data spec: {}:{}'.format(
@@ -725,7 +731,7 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
                     continue
                 model_info = project_info[model_version]
                 for casename in os.listdir(os.path.join(project_path, model_version)):
-                    if facet_filter(casename, cases):
+                    if facet_filter(casename, cases, exclude):
                         continue
                     case_info = next(
                         (i for i in model_info if i['experiment'] == casename), None)
@@ -743,7 +749,7 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
                             continue
                         res_path = os.path.join(case_path, res)
                         for comp in os.listdir(res_path):
-                            if facet_filter(comp, tables):
+                            if facet_filter(comp, tables, exclude):
                                 continue
                             if comp not in case_info['resolution'][res].keys():
                                 print_message(
@@ -759,14 +765,14 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
                                     continue
                                 for data_type in os.listdir(os.path.join(comp_path, grid)):
                                     for freq in os.listdir(os.path.join(comp_path, grid, data_type)):
-                                        if facet_filter(freq, tables):
+                                        if facet_filter(freq, tables, exclude):
                                             continue
                                         if freq not in comp_info['data_types']:
                                             print_message("Couldnt find component {} in specification for case {}-{}-{}-{}".format(
                                                 freq, casename, res, comp, grid))
                                             continue
                                         for ensemble in os.listdir(os.path.join(comp_path, grid, data_type, freq)):
-                                            if facet_filter(ensemble, ens):
+                                            if facet_filter(ensemble, ens, exclude):
                                                 continue
                                             if ensemble not in case_info['ens']:
                                                 print_message("Couldnt find component {} in specification for case {}-{}-{}-{}-{}".format(
@@ -775,19 +781,17 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
 
                                             version = sorted(os.listdir(os.path.join(
                                                 comp_path, grid, data_type, freq, ensemble)))[-1]
-                                            
+
                                             dataset_path = os.path.join(
                                                 comp_path, grid, data_type, freq, ensemble, version)
-                                            files = sorted(os.listdir(dataset_path))
                                             dataset_id = '.'.join(
                                                 ['E3SM', model_version, casename, res, comp, grid, data_type, freq, ensemble, version])
                                             dataset_paths.append(dataset_path)
                                             dataset_ids.append(dataset_id)
     return dataset_paths, dataset_ids
-                                            
 
 
-def filesystem_check(client, data_path, case_spec, projects, model_versions, cases, tables, variables, ens, debug=False):
+def filesystem_check(client, data_path, case_spec, projects, model_versions, cases, tables, variables, ens, exclude=False, debug=False):
     """
     Walk down directories on the filesystem checking that every dataset that should be there is, and that there
     are no extra files. If verify is turned on, run a square variance check and plot suspicious time steps.
@@ -795,7 +799,8 @@ def filesystem_check(client, data_path, case_spec, projects, model_versions, cas
 
     missing, extra, futures = list(), list(), list()
     print_message("Starting file-system check", 'ok')
-    dataset_paths, dataset_ids = collect_paths(data_path, case_spec, projects, model_versions, cases, tables, variables, ens, debug)
+    dataset_paths, dataset_ids = collect_paths(
+        data_path, case_spec, projects, model_versions, cases, tables, variables, ens, exclude, debug)
     for idx, dataset_path in enumerate(dataset_paths):
         dataset_id = dataset_ids[idx]
         files = sorted(os.listdir(dataset_path))
@@ -812,12 +817,13 @@ def filesystem_check(client, data_path, case_spec, projects, model_versions, cas
                 end = experiment['end']
                 break
         if not start or not end:
-            raise ValueError("No start and/or end found in the dataset_spec for {}".format(dataset_id))
+            raise ValueError(
+                "No start and/or end found in the dataset_spec for {}".format(dataset_id))
         if client:
             futures.append(
                 client.submit(
                     check_files,
-                        files, case_spec, dataset_id, start, end))
+                    files, case_spec, dataset_id, start, end))
         else:
             m, e = check_files(files, case_spec, dataset_id, start, end)
             missing.extend(m)
@@ -827,7 +833,7 @@ def filesystem_check(client, data_path, case_spec, projects, model_versions, cas
         pbar = tqdm(total=len(futures))
         for f in as_completed(futures):
             res = f.result()
-            m, ex = res[0], res[1] 
+            m, ex = res[0], res[1]
             missing.extend(m)
             extra.extend(ex)
             pbar.update()
@@ -836,44 +842,29 @@ def filesystem_check(client, data_path, case_spec, projects, model_versions, cas
     print_message("File-system check complete", 'ok')
     return missing, extra
 
-def verification(client, data_path, plot_path, case_spec, projects, model_versions, cases, tables, variables, ens, only_plots=False, debug=False):
-    issues, futures = list(), list()
+
+def verification(data_path, plot_path, case_spec, projects, model_versions, cases, tables, variables, ens, exclude=None, only_plots=False, debug=False):
+    issues = list()
     print_message("Starting dataset verification", 'ok')
-    dataset_paths, dataset_ids = collect_paths(data_path, case_spec, projects, model_versions, cases, tables, variables, ens)
+    dataset_paths, dataset_ids = collect_paths(
+        data_path, case_spec, projects, model_versions, cases, tables, variables, ens, exclude, debug)
+    pbar = tqdm(total=len(dataset_paths))
     for idx, dataset_path in enumerate(dataset_paths):
         dataset_id = dataset_ids[idx]
 
         # sample id: CMIP6.CMIP.E3SM-Project.E3SM-1-1.historical.r1i1p1f1.Amon.clivi.gr#v20191211
         id_split = dataset_id.split('.')
         variable = id_split[7]
-
-        if client:
-            futures.append(
-                client.submit(
-                    verify_dataset,
-                        dataset_path,
-                        dataset_id,
-                        variable,
-                        plot_path,
-                        only_plots,
-                        debug))
-        else:
-            issues.extend(
-                verify_dataset(
-                    dataset_path,
-                    dataset_id,
-                    variable,
-                    plot_path,
-                    only_plots,
-                    debug))
-    if client:
-        pbar = tqdm(total=len(futures))
-        for f in as_completed(futures):
-            i, dataset_id = f.result()
-            issues.extend(i)
-            pbar.update()
-            pbar.set_description('Verification complete: {}'.format(dataset_id))
-        pbar.close()
+        pbar.set_description("Running verification for {}".format(variable))
+        i, _ = verify_dataset(
+            dataset_path,
+            dataset_id,
+            variable,
+            plot_path,
+            only_plots,
+            debug)
+        issues.extend(i)
+        pbar.update(1)
 
     print_message("Dataset verification complete", 'ok')
     return issues
@@ -894,6 +885,7 @@ def data_check(
         only_plots=False,
         dataset_ids=None,
         sproket=None,
+        exclude=None,
         num_workers=4,
         debug=False,
         serial=False,
@@ -912,7 +904,8 @@ def data_check(
     if not os.path.exists(spec_path):
         raise ValueError("Given case spec file does not exist")
     if verify and not data_path:
-        raise ValueError("--data-path must be set if dataset verification is turned on")
+        raise ValueError(
+            "--data-path must be set if dataset verification is turned on")
 
     with open(spec_path, 'r') as ip:
         case_spec = yaml.load(ip, Loader=yaml.SafeLoader)
@@ -921,7 +914,8 @@ def data_check(
         client = None
     else:
         if debug:
-            print_message('Setting up dask cluster with {} workers'.format(num_workers), 'info')
+            print_message('Setting up dask cluster with {} workers'.format(
+                num_workers), 'info')
         if not cluster_address:
             cluster = LocalCluster(
                 n_workers=num_workers,
@@ -932,7 +926,7 @@ def data_check(
         else:
             client = Client(cluster_address)
         if debug:
-            print_message('... worker setup complete', 'info')
+            print_message('Cluster setup complete', 'info')
             print_message(str(client), 'info')
 
     missing, extra, issues = list(), list(), list()
@@ -964,13 +958,13 @@ def data_check(
                 tables=tables,
                 variables=variables,
                 ens=ens,
+                exclude=exclude,
                 debug=debug)
             missing.extend(m)
             extra.extend(e)
 
         if verify:
             issues = verification(
-                client=client,
                 data_path=data_path,
                 plot_path=plot_path,
                 case_spec=case_spec,
@@ -979,6 +973,7 @@ def data_check(
                 cases=cases,
                 tables=tables,
                 variables=variables,
+                exclude=exclude,
                 ens=ens,
                 only_plots=only_plots,
                 debug=debug)
@@ -1014,7 +1009,7 @@ def data_check(
             print('-----------------------------------')
         else:
             print_message("No extra files", 'ok')
-        
+
         if issues and len(issues) > 0:
             print_message("File issues:")
             for i in issues:
