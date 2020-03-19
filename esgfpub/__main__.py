@@ -45,7 +45,7 @@ def main():
             mapserr=ARGS.maps_err,
             ini=ARGS.ini,
             loop=ARGS.loop,
-            username=ARGS.username,
+            cred_file=ARGS.credentials,
             debug=ARGS.debug)
     elif subcommand == 'custom':
         from esgfpub.custom_facets import update_custom
