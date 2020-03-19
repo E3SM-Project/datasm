@@ -182,6 +182,7 @@ def parse_args():
     parser_custom.add_argument(
         "-d", '--data-dir',
         dest='datadir',
+        nargs="+",
         help="root of data directory")
     parser_custom.add_argument(
         '--facets',

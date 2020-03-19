@@ -73,10 +73,13 @@ def generate_custom(facets, outpath='./custom_facets.map', mapdir=None, datadir=
         if not datadir:
             raise ValueError(
                 "If no mapfile directory is given, a datadir must be used")
-        dataset_ids, project = collect_dataset_ids(datadir)
-        for dataset in dataset_ids:
-            output.append("{id} | {facets}\n".format(
-                id=dataset, facets=facet_str))
+        if isinstance(datadir, str):
+            datadir = [datadir]
+        for p in datadir:
+            dataset_ids, project = collect_dataset_ids(p)
+            for dataset in dataset_ids:
+                output.append("{id} | {facets}\n".format(
+                    id=dataset, facets=facet_str))
 
     with open(outpath, 'w') as outfile:
         for line in output:
