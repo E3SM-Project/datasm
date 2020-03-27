@@ -1,12 +1,11 @@
 import os
 import stat
 from tqdm import tqdm
-from subprocess import call
+from subprocess import Popen, PIPE
 from esgfpub.util import print_message, colors
 
 
 def yield_leaf_dirs(folder):
-    """Walk through every files in a directory"""
     for dirpath, dirs, files in tqdm(os.walk(folder), desc=colors.OKGREEN + '[+] ' + colors.ENDC + "Walking directory tree"):
         if dirs:
             continue
@@ -89,6 +88,9 @@ def generate_custom(facets, outpath='./custom_facets.map', mapdir=None, datadir=
 
     return project
 
+def run_cmd(command):    
+    popen = Popen(command, stdout=PIPE)
+    return iter(popen.stdout.readline, b"")
 
 def update_custom(facets, outpath='./custom_facets.map', generate_only=False, mapdir=None, datadir=None, debug=False):
 
@@ -111,18 +113,21 @@ esgadd_facetvalues --project {project} --map {map} --noscan --thredds --service 
         project=project, map=outpath)
     if debug:
         print_message(facet_update_string, 'info')
-    update_script = './update_custom.sh'
+    update_script = 'update_custom.sh'
     with open(update_script, 'w') as op:
         op.write(facet_update_string)
     st = os.stat(update_script)
     os.chmod(update_script, st.st_mode | stat.S_IEXEC)
-    retcode = call(update_script)
-    if retcode == 0:
-        print_message("Custom facet update complete", 'ok')
-        if debug:
-            print_message("Cleaning up custom facet script", 'info')
-        os.remove(update_script)
-    else:
-        print_message("Error during custom facet update")
-    return retcode
+
+    proc = Popen(['./' + update_script], shell=True, stdout=PIPE, stderr=PIPE)
+    out, err = proc.communicate()
+    for line in err.split('\n'):
+        if "Writing THREDDS catalog" in line:
+            search_string = "/esg/content/thredds/esgcet/"
+            idx = line.index(search_string)
+            xml_path = line[idx + len(search_string):]
+            cmd = """wget --no-check-certificate --ca-certificate ~/.globus/certificate-file --certificate ~/.globus/certificate-file --private-key ~/.globus/certificate-file --verbose --post-data="uri=https://aims3.llnl.gov/thredds/catalog/esgcet/{path}&metadataRepositoryType=THREDDS" https://esgf-node.llnl.gov/esg-search/ws/harvest""".format(path=xml_path)
+            print(cmd)
+            os.popen(cmd)
+    return 0
     
