@@ -15,6 +15,7 @@ def main():
         from esgfpub.checker import data_check
         return data_check(
             spec_path=ARGS.case_spec,
+            file_system=ARGS.file_system,
             data_path=ARGS.data_path,
             cases=ARGS.cases,
             ens=ARGS.ens,
