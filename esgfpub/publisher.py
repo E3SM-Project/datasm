@@ -38,10 +38,10 @@ echo '{password}' | myproxy-logon -S -s esgf-node.llnl.gov -l {username} -t 72 -
         st = os.stat(tempfile)
         os.chmod(tempfile, st.st_mode | stat.S_IEXEC)
         retcode = call('./' + tempfile)
-        os.remove(tempfile)
         if retcode != 0:
             print_message("Error while creating myproxy-logon certificate")
             return retcode
+        os.remove(tempfile)
 
         script = """#!/bin/sh
 source /usr/local/conda/bin/activate esgf-pub

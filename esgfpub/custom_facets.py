@@ -16,6 +16,8 @@ def yield_leaf_dirs(folder):
 
 def collect_dataset_ids(data_path):
     dataset_ids = list()
+    if not os.path.exists(data_path):
+        raise ValueError("Directory does not exist: {}".format(data_path))
     dirs = [x for x in yield_leaf_dirs(data_path)]
     for d in dirs:
         tail, head = os.path.split(d)
@@ -121,6 +123,9 @@ esgadd_facetvalues --project {project} --map {map} --noscan --thredds --service 
 
     proc = Popen(['./' + update_script], shell=True, stdout=PIPE, stderr=PIPE)
     out, err = proc.communicate()
+    if debug:
+        print_message(out)
+        print_message(err)
     for line in err.split('\n'):
         if "Writing THREDDS catalog" in line:
             search_string = "/esg/content/thredds/esgcet/"
