@@ -288,47 +288,35 @@ project:
           1deg_atm_60-30km_ocean:
             land:
               - 
-                grid: 129x256
+                grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
+            river:
               - 
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             atmos:
-              - 
-                grid: 129x256
-                data_types:
-                  - monClim
-                  - seasonClim
-                  - time-series
               - 
                 grid: 180x360
                 data_types:
-                  - monClim-100yr
-                  - monClim-500yr
-                  - monClim-50yr
-                  - monClim-5yr
-                  - seasonClim-100yr
-                  - seasonClim-500yr
-                  - seasonClim-50yr
-                  - seasonClim-5yr
-                  - time-series
+                  - climo.mon
+                  - time-series.mon
               - 
                 grid: native
                 data_types:
-                  - day
-                  - mon
+                  - model-output.day
+                  - model-output.mon
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: 1950-Control
         start: 26
@@ -341,83 +329,87 @@ project:
               -
                 grid: 180x360
                 data_types:
-                  - mon
-                  - monClim
-                  - seasonClim
+                  - model-output.mon
+                  - climo.mon
               -
                 grid: 720x1440
                 data_types:
-                  - 3hr
-                  - 6hr_ave
-                  - 6hr_snap
-                  - mon
-                  - monClim
-                  - seasonClim
+                  - model-output.3hr
+                  - model-output.6hr_ave
+                  - model-output.6hr_snap
+                  - model-output.mon
+                  - climo.mon
             land:
               -
                 grid: 180x360
                 data_types:
-                  - mon
+                  - model-output.mon
               -
                 grid: 720x1440
                 data_types:
-                  - mon
-            ocean:
-              -
-                grid: native
-                data_types:
-                  - mon
-            sea-ice:
-              -
-                grid: native
-                data_types:
-                  - mon
+                  - model-output.mon
             river:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
             misc:
               -
                 grid: native
                 data_types:
-                  - fixed
+                  - mapping.fixed
+            
           1deg_atm_60-30km_ocean:
             atmos:
               -
                 grid: 180x360
                 data_types:
-                  - mon
-                  - monClim
-                  - 3hr
-                  - 6hr_ave
-                  - 6hr_snap
-                  - day
+                  - climo.mon
+                  - model-output.mon
+                  - model-output.3hr
+                  - model-output.6hr_ave
+                  - model-output.6hr_snap
+                  - model-output.day
             land:
               -
                 grid: 180x360
                 data_types:
-                  - mon
+                  - model-output.mon
+            river:
+              - 
+                grid: native
+                data_types:
+                  - model-output.mon
             misc:
               -
                 grid: native
                 data_types:
-                  - fixed
+                  - model-output.fixed
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             river:
               -
                 grid: 360x720
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: 1pctCO2
         start: 1
@@ -430,35 +422,28 @@ project:
               -
                 grid: 180x360
                 data_types:
-                  - monClim-100yr
-                  - monClim-150yr
-                  - monClim-50yr
-                  - monClim-5yr
-                  - seasonClim-100yr
-                  - seasonClim-150yr
-                  - seasonClim-50yr
-                  - seasonClim-5yr
-                  - time-series
+                  - climo.mon
+                  - time-series.mon
               -
                 grid: native
                 data_types:
-                  - mon
-                  - day
+                  - model-output.mon
+                  - model-output.day
             land:
               -
                 grid: native
                 data_types:
-                  - mon  
+                  - model-output.mon  
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: abrupt-4xCO2
         start: 1
@@ -471,35 +456,28 @@ project:
               -
                 grid: 180x360
                 data_types:
-                  - monClim-100yr
-                  - monClim-150yr
-                  - monClim-50yr
-                  - monClim-5yr
-                  - seasonClim-100yr
-                  - seasonClim-150yr
-                  - seasonClim-50yr
-                  - seasonClim-5yr
-                  - time-series
+                  - climo.mon
+                  - time-series.mon
               -
                 grid: native
                 data_types:
-                  - mon
-                  - day
+                  - model-output.mon
+                  - model-output.day
             land:
               -
                 grid: native
                 data_types:
-                  - mon  
+                  - model-output.mon  
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: amip
         start: 1870
@@ -514,25 +492,18 @@ project:
               -
                 grid: 180x360
                 data_types:
-                  - monClim-100yr
-                  - monClim-145yr
-                  - monClim-50yr
-                  - monClim-5yr
-                  - seasonClim-100yr
-                  - seasonClim-145yr
-                  - seasonClim-50yr
-                  - seasonClim-5yr
-                  - time-series
+                  - climo.mon
+                  - time-series.mon
               -
                 grid: native
                 data_types:
-                  - mon
-                  - day
+                  - model-output.mon
+                  - model-output.day
             land:
               -
                 grid: native
                 data_types:
-                  - mon  
+                  - model-output.mon  
       -
         experiment: amip_1850_aeroF
         start: 1870
@@ -547,25 +518,18 @@ project:
               -
                 grid: 180x360
                 data_types:
-                  - monClim-100yr
-                  - monClim-145yr
-                  - monClim-50yr
-                  - monClim-5yr
-                  - seasonClim-100yr
-                  - seasonClim-145yr
-                  - seasonClim-50yr
-                  - seasonClim-5yr
-                  - time-series
+                  - climo.mon
+                  - time-series.mon
               -
                 grid: native
                 data_types:
-                  - mon
-                  - day
+                  - model-output.mon
+                  - model-output.day
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: amip_1850_allF
         start: 1870
@@ -580,25 +544,18 @@ project:
               -
                 grid: 180x360
                 data_types:
-                  - monClim-100yr
-                  - monClim-145yr
-                  - monClim-50yr
-                  - monClim-5yr
-                  - seasonClim-100yr
-                  - seasonClim-145yr
-                  - seasonClim-50yr
-                  - seasonClim-5yr
-                  - time-series
+                  - climo.mon
+                  - time-series.mon
               -
                 grid: native
                 data_types:
-                  - mon
-                  - day
+                  - model-output.mon
+                  - model-output.day
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: F2010
         start: 1
@@ -607,25 +564,21 @@ project:
           - ens1
         resolution:
           0_25deg_atm_18-6km_ocean:
-            atmos:
+            highres.atmos:
               - 
                 grid: 180x360
                 data_types:
-                  - mon
+                  - model-output.mon
               -
                 grid: 720x1440
                 data_types:
-                  - mon
+                  - model-output.mon
           1deg_atm_60-30km_ocean:
-            atmos:
+            lowres.atmos:
               - 
-                grid: lowres
+                grid: 180x360
                 data_types:
-                  - mon
-              -
-                grid: highres
-                data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: F2010-nudgeUV
         start: 2010
@@ -634,25 +587,21 @@ project:
           - ens1
         resolution:
           0_25deg_atm_18-6km_ocean:
-            atmos:
+            highres.atmos:
               - 
                 grid: 180x360
                 data_types:
-                  - mon
+                  - model-output.mon
               -
                 grid: 720x1440
                 data_types:
-                  - mon
+                  - model-output.mon
           1deg_atm_60-30km_ocean:
-            atmos:
+            lowres.atmos:
               - 
-                grid: lowres
+                grid: 180x360
                 data_types:
-                  - mon
-              -
-                grid: highres
-                data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: F2010-nudgeUV-1850aero
         start: 2010
@@ -661,56 +610,48 @@ project:
           - ens1
         resolution:
           0_25deg_atm_18-6km_ocean:
-            atmos:
+            highres.atmos:
               - 
                 grid: 180x360
                 data_types:
-                  - mon
+                  - model-output.mon
               -
                 grid: 720x1440
                 data_types:
-                  - mon
+                  - model-output.mon
           1deg_atm_60-30km_ocean:
-            atmos:
+            lowres.atmos:
               - 
-                grid: lowres
+                grid: 180x360
                 data_types:
-                  - mon
-              -
-                grid: highres
-                data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: F2010plus4k
         start: 1
-        end: 2
+        end: 5
         ens:
           - ens1
         resolution:
           0_25deg_atm_18-6km_ocean:
-            atmos:
+            highres.atmos:
               - 
                 grid: 180x360
                 data_types:
-                  - mon
+                  - model-output.mon
               -
                 grid: 720x1440
                 data_types:
-                  - mon
+                  - model-output.mon
           1deg_atm_60-30km_ocean:
-            atmos:
+            lowres.atmos:
               - 
-                grid: lowres
+                grid: 180x360
                 data_types:
-                  - mon
-              -
-                grid: highres
-                data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: historical
         start: 1850
-        end: 2013
+        end: 2014
         ens:
           - ens1
           - ens2
@@ -723,35 +664,28 @@ project:
               - 
                 grid: 180x360
                 data_types:
-                  - monClim-100yr
-                  - monClim-165yr
-                  - monClim-50yr
-                  - monClim-5yr
-                  - seasonClim-100yr
-                  - seasonClim-165yr
-                  - seasonClim-50yr
-                  - seasonClim-5yr
-                  - time-series
+                  - climo.mon
+                  - time-series.mon
               -
                 grid: native
                 data_types:
-                  - mon
-                  - day
+                  - model-output.mon
+                  - model-output.day
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
     '1_1':
       -
         experiment: piControl
@@ -765,22 +699,27 @@ project:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: hist-BDRD
         start: 1850
@@ -793,22 +732,27 @@ project:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: hist-BDRC
         start: 1850
@@ -821,22 +765,27 @@ project:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: hist-BCRD
         start: 1850
@@ -849,22 +798,27 @@ project:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: hist-BCRC
         start: 1850
@@ -877,22 +831,27 @@ project:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
     '1_1_ECA':
       -
         experiment: piControl
@@ -906,22 +865,27 @@ project:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: hist-BDRD
         start: 1850
@@ -934,22 +898,27 @@ project:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: hist-BDRC
         start: 1850
@@ -962,22 +931,27 @@ project:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: hist-BCRD
         start: 1850
@@ -990,22 +964,27 @@ project:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
       -
         experiment: hist-BCRC
         start: 1850
@@ -1018,19 +997,24 @@ project:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
             land:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             ocean:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
             sea-ice:
               -
                 grid: native
                 data_types:
-                  - mon
+                  - model-output.mon
