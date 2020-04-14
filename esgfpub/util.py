@@ -49,6 +49,7 @@ def parse_args():
     parser_esgf_check.add_argument(
         '-p',
         '--project',
+        default=['CMIP6', 'E3SM'],
         help='Which project to check for, valid arguments are cmip6 or e3sm. Default is both')
     parser_esgf_check.add_argument(
         '-c',
@@ -468,19 +469,21 @@ def setup_dst(experiment, basepath, res_dir, grid, datatype, filename, ensemble)
         type_dir = 'sea-ice'
         output_type = 'model-output'
         grid = 'native'
-    elif 'atmos_climo_' in datatype:
+    elif datatype == 'climo':
         type_dir = 'atmos'
         output_type = 'climo'
         dstgrid = grid
-        freq = 'monClim'
-        for season in ['ANN', 'DJF', 'MAM', 'JJA', 'SON']:
-            if season in filename:
-                freq = 'seasonClim'
-                break
-
-        idx = len('atmos_climo_')
-        year_length = datatype[idx:]
-        freq += '-{}'.format(year_length)
+        freq = 'mon'
+    elif datatype == 'timeseries_atm':
+        type_dir = 'atmos'
+        output_type = 'time-series'
+        dstgrid = grid
+        freq = 'mon'
+    elif datatype == 'timeseries_lnd':
+        type_dir = 'land'
+        output_type = 'time-series'
+        dstgrid = grid
+        freq = 'mon'
     else:
         raise Exception('{} is an invalid data type'.format(datatype))
 
