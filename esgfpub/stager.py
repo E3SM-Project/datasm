@@ -1,6 +1,6 @@
 import os
+import yaml
 from threading import Event
-from configobj import ConfigObj
 from tqdm import tqdm
 from esgfpub.util import print_message
 from esgfpub.util import transfer_files, mapfile_gen, validate_raw, makedir
@@ -17,14 +17,16 @@ def stage(ARGS):
         overwrite = False
 
     try:
-        CONFIG = ConfigObj(ARGS.config)
+        with open(ARGS.config, 'r') as ip:
+            CONFIG = yaml.load(ip, Loader=yaml.SafeLoader)
     except SyntaxError as error:
-        print_message("Unable to parse config file")
+        print_message("Unable to parse config file, is it valid yaml?")
         print(repr(error))
         return 1
 
     try:
         BASEOUTPUT = CONFIG['output_path']
+        MODEL_VERSION = CONFIG['model_version']
         ATMRES = CONFIG['atmospheric_resolution']
         OCNRES = CONFIG['ocean_resolution']
         DATA_PATHS = CONFIG['data_paths']
@@ -42,8 +44,10 @@ def stage(ARGS):
     if not validate_raw(DATA_PATHS, START, END):
         return 1
 
+    base_path = os.path.join(BASEOUTPUT, MODEL_VERSION)
+
     resdirname = "{}_atm_{}_ocean".format(ATMRES, OCNRES)
-    makedir(os.path.join(BASEOUTPUT, EXPERIMENT_NAME, resdirname))
+    makedir(os.path.join(base_path, EXPERIMENT_NAME, resdirname))
 
     transfer_mode = ARGS.transfer_mode
     if transfer_mode == 'move':
@@ -53,7 +57,7 @@ def stage(ARGS):
     elif transfer_mode == 'link':
         print_message('Linking files', 'ok')
     num_moved = transfer_files(
-        outpath=BASEOUTPUT,
+        outpath=base_path,
         experiment=EXPERIMENT_NAME,
         grid=GRID,
         mode=transfer_mode,
@@ -85,7 +89,7 @@ def stage(ARGS):
         total=num_moved)
     try:
         res = mapfile_gen(
-            basepath=BASEOUTPUT,
+            basepath=base_path,
             inipath=INIPATH,
             experiment=EXPERIMENT_NAME,
             outpath=MAPOUT,
