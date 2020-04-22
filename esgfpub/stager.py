@@ -7,9 +7,8 @@ from esgfpub.util import transfer_files, mapfile_gen, validate_raw, makedir
 
 
 def stage(ARGS):
-    if not ARGS.config:
-        PARSER.print_help()
-        return 1
+
+    debug = ARGS.debug
 
     if ARGS.over_write:
         overwrite = True
@@ -56,7 +55,7 @@ def stage(ARGS):
         print_message('Copying files', 'ok')
     elif transfer_mode == 'link':
         print_message('Linking files', 'ok')
-    num_moved = transfer_files(
+    num_moved, paths = transfer_files(
         outpath=base_path,
         experiment=EXPERIMENT_NAME,
         grid=GRID,
@@ -87,17 +86,21 @@ def stage(ARGS):
     pbar = tqdm(
         desc="Generating mapfiles",
         total=num_moved)
+    res = -1
     try:
-        res = mapfile_gen(
-            basepath=base_path,
-            inipath=INIPATH,
-            experiment=EXPERIMENT_NAME,
-            outpath=MAPOUT,
-            maxprocesses=NUMWORKERS,
-            event=event,
-            pbar=pbar)
+        for path in paths:
+            res = mapfile_gen(
+                basepath=path,
+                inipath=INIPATH,
+                outpath=MAPOUT,
+                maxprocesses=NUMWORKERS,
+                env_name=ARGS.mapfile_env,
+                debug=debug,
+                event=event,
+                pbar=pbar)
+        pbar.close()
     except KeyboardInterrupt as error:
-        print_message('Keyboard interrupt ... exiting')
+        print_message('Keyboard interrupt caught, exiting')
         event.set()
         return 1
     else:
