@@ -34,7 +34,9 @@ def main():
             dataset_ids=ARGS.dataset_ids,
             projects=ARGS.project,
             cluster_address=ARGS.local_cluster,
-            to_json=ARGS.to_json)
+            to_json=ARGS.to_json,
+            digest=ARGS.digest,
+            data_types=ARGS.data_types)
     elif subcommand == 'stage':
         from esgfpub.stager import stage
         return stage(ARGS)
