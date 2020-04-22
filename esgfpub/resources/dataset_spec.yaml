@@ -307,6 +307,9 @@ project:
                 data_types:
                   - model-output.day
                   - model-output.mon
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
             ocean:
               -
                 grid: native
@@ -334,6 +337,7 @@ project:
               -
                 grid: 720x1440
                 data_types:
+                  - model-output.5day_snap
                   - model-output.3hr
                   - model-output.6hr_ave
                   - model-output.6hr_snap
@@ -429,6 +433,9 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
             land:
               -
                 grid: native
@@ -463,6 +470,9 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
             land:
               -
                 grid: native
@@ -499,6 +509,9 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
             land:
               -
                 grid: native
@@ -551,6 +564,9 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
             land:
               -
                 grid: native
@@ -671,6 +687,9 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
             land:
               -
                 grid: native
@@ -700,6 +719,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -733,6 +756,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -766,6 +793,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -799,6 +830,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -832,6 +867,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -866,6 +905,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -899,6 +942,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -932,6 +979,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -965,6 +1016,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -998,6 +1053,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.day
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
