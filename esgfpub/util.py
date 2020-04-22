@@ -4,6 +4,7 @@ Utility functions for esgfpub
 
 import os
 import sys
+import stat
 import argparse
 from subprocess import call, Popen, PIPE
 from shutil import move, copy
@@ -24,6 +25,10 @@ def parse_args():
     parser_publish.add_argument(
         "config",
         help="Path to configuration file")
+    parser_publish.add_argument(
+        "--mapfile-env",
+        required=True,
+        help="The name of the conda env with the esgmapfile utility installed")
     parser_publish.add_argument(
         "-t",
         "--transfer-mode",
@@ -108,6 +113,12 @@ def parse_args():
         default='all',
         help="versions of the model to add to the search, default is all")
     parser_esgf_check.add_argument(
+        '--data-types',
+        dest='data_types',
+        nargs='+',
+        default=['all'],
+        help="which data-types to search for, default is all")
+    parser_esgf_check.add_argument(
         '--exclude',
         nargs='+',
         default=['none'],
@@ -131,6 +142,10 @@ def parse_args():
     parser_esgf_check.add_argument(
         '--to-json',
         help='The output will be stored in the given file, json format')
+    parser_esgf_check.add_argument(
+        '--digest',
+        action="store_true",
+        help='Only report one line per dataset with missing files')
     parser_esgf_check.add_argument(
         '-s',
         '--serial',
@@ -354,6 +369,7 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
 
     resolution_dir = os.listdir(os.path.join(outpath, experiment))[0]
     num_transfered = 0
+    dataset_paths = list()
 
     for dtype, path in list(data_paths.items()):
         contents = os.listdir(path)
@@ -369,12 +385,14 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
                 datatype=dtype,
                 filename=item,
                 ensemble=ensemble)
-            num_transfered += 1
-            if os.path.exists(dst):
+            if os.path.exists(dst) and not overwrite:
                 continue
+            num_transfered += 1
             tail, _ = os.path.split(dst)
             if not os.path.exists(tail):
                 os.makedirs(tail)
+            if tail not in dataset_paths:
+                dataset_paths.append(tail)
 
             if os.path.exists(dst) or os.path.lexists(dst):
                 if overwrite:
@@ -393,10 +411,10 @@ def transfer_files(outpath, experiment, mode, grid, data_paths, ensemble, overwr
                 print(repr(error))
                 return -1
 
-    return num_transfered
+    return num_transfered, dataset_paths
 
 
-def mapfile_gen(basepath, inipath, experiment, outpath, maxprocesses, pbar, event=None):
+def mapfile_gen(basepath, inipath, outpath, maxprocesses, pbar, env_name, event=None, debug=False):
     """
     Generate mapfiles for ESGF
 
@@ -410,25 +428,48 @@ def mapfile_gen(basepath, inipath, experiment, outpath, maxprocesses, pbar, even
         event (threading.Event): an event to terminate the process early
         pbar (tqdm): a tqdm progressbar
     """
-    datapath = os.path.join(basepath, experiment)
-    cmd = ['esgmapfile', 'make',
-           '--outdir', outpath,
-           '-i', inipath,
-           '--project', 'e3sm',
-           '--max-processes', str(maxprocesses),
-           '--debug',
-           datapath]
-    proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    pbar.set_description("Hashing files for {}".format(path_to_dataset_id(basepath)))
+    run_mapfile_string = """#!/bin/bash
+source ~/anaconda3/etc/profile.d/conda.sh
+conda activate {env} 
+esgmapfile make --debug --outdir {out} -i {ini} --project e3sm --max-processes {procs} {data}
+""".format(
+        out=outpath, 
+        env=env_name,
+        procs=maxprocesses,
+        ini=inipath,
+        data=basepath)
+    if debug:
+        print_message(run_mapfile_string, 'info')
+    script = 'run_mapfiles.sh'
+    if os.path.exists(script):
+        os.remove(script)
+    with open(script, 'w') as op:
+        op.write(run_mapfile_string)
+    st = os.stat(script)
+    os.chmod(script, st.st_mode | stat.S_IEXEC)
+
+    proc = Popen(['./' + script], stdout=PIPE, stderr=PIPE)
+
+    # cmd = ['esgmapfile', 'make',
+    #        '--outdir', outpath,
+    #        '-i', inipath,
+    #        '--project', 'e3sm',
+    #        '--max-processes', str(maxprocesses),
+    #        '--debug',
+    #        datapath]
+    # proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
     while proc.poll() is None:
         if event is not None and event.is_set():
             proc.terminate()
         for line in proc.stdout:
             if "SUCCESS" in line.decode('utf-8'):
                 pbar.update(1)
-        for line in proc.err:
+            if debug:
+                print_message(line, 'info')
+        for line in proc.stderr:
             print(line.decode('utf-8'))
     err = proc.stderr.readlines()
-    pbar.close()
     if err:
         for line in err:
             print(line)
@@ -502,6 +543,11 @@ def setup_dst(experiment, basepath, res_dir, grid, datatype, filename, ensemble)
 
 
 def path_to_dataset_id(path):
-    p = path.split(os.sep)
-    dataset_id = '.'.join(p[p.index('CMIP6'):-2])
-    return dataset_id
+    if 'CMIP6' in path:
+        p = path.split(os.sep)
+        dataset_id = '.'.join(p[p.index('CMIP6'):-2])
+        return dataset_id
+    else:
+        p = path.split(os.sep)
+        dataset_id = '.'.join(p[p.index('E3SM'):-2])
+        return dataset_id

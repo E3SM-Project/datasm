@@ -1,15 +1,15 @@
 import warnings
 warnings.simplefilter('ignore')
-import os
-import yaml
-import json
-import re
-from tqdm import tqdm
-from subprocess import Popen, PIPE
-from tempfile import NamedTemporaryFile
-from esgfpub.util import print_message
-from esgfpub.verify import verify_dataset
 from distributed import Client, as_completed, LocalCluster, get_client
+from esgfpub.verify import verify_dataset
+from esgfpub.util import print_message
+from tempfile import NamedTemporaryFile
+from subprocess import Popen, PIPE
+from tqdm import tqdm
+import re
+import json
+import yaml
+import os
 
 SEASONS = [{
     'name': 'ANN',
@@ -145,7 +145,8 @@ def check_monthly(files, start=None, end=None):
     pattern = r'\d{4}-\d{2}.*nc'
     idx = re.search(pattern=pattern, string=files[0])
     if not idx:
-        raise ValueError('Unexpected file format: {}'.format(files[0]))
+        print_message('Unexpected file format: {}'.format(files[0]), 'error')
+        return [], []
     prefix = files[0][:idx.start()]
     suffix = files[0][idx.start() + 7:]
 
@@ -209,7 +210,7 @@ def check_climos(files, start, end):
     return missing, extra_files
 
 
-def check_submonthly(files, start, end):
+def check_submonthly(files, start, end, debug=False):
 
     missing, extra = list(), list()
     pattern = r'\d{4}-\d{2}.*nc'
@@ -224,6 +225,8 @@ def check_submonthly(files, start, end):
     for year in range(start, end + 1):
         for month in range(1, 13):
             if month == 2:
+                # for some weird reason having to do with the frequency at which the mode
+                # outputs highfrequency files, feb gets left off _sometimes_
                 continue
             name = '{prefix}{year:04d}-{month:02d}'.format(
                 prefix=prefix, year=year, month=month)
@@ -231,6 +234,9 @@ def check_submonthly(files, start, end):
             if not res:
                 missing.append(name)
 
+    if not missing and debug:
+        msg = 'Found {} files for submonthly dataset'.format(len(files))
+        print_message(msg, 'info')
     return missing, extra
 
 
@@ -270,8 +276,7 @@ def check_time_series(files, dataset_id, spec, start=None, end=None):
     else:
         ens = case_info[6][1:]
 
-    case_spec = [x for x in spec['project']['E3SM']
-                 [model_version] if x['experiment'] == casename].pop()
+    case_spec = [x for x in spec['project']['E3SM'][model_version] if x['experiment'] == casename].pop()
 
     if case_spec.get('except'):
         expected_vars = [x for x in spec['time-series'][realm]
@@ -282,7 +287,7 @@ def check_time_series(files, dataset_id, spec, start=None, end=None):
     for v in expected_vars:
         v_files = [
             x for x in files if v in x and '_' in x and x[:x.index('_')] == v]
-        
+
         if not v_files:
             missing.append('{dataset}-{var}-{start:04d}-{end:04d}'.format(
                 dataset=dataset_id, var=v, start=start, end=end))
@@ -323,8 +328,12 @@ def check_time_series(files, dataset_id, spec, start=None, end=None):
     return missing, extra
 
 
-def check_files(files, spec, dataset_id, start, end):
-    
+def check_files(files, spec, dataset_id, start, end, debug=False):
+    """
+    Checks a set of files for missing or extras
+
+    returns: missing (list), dataset_id (str), extra (list)
+    """
     missing = []
     extra = []
     if '.fx.' in dataset_id and files:
@@ -345,7 +354,7 @@ def check_files(files, spec, dataset_id, start, end):
         elif 'fixed' in dataset_id:
             missing, extra = check_fixed(files, dataset_id, spec)
         else:
-            missing, extra = check_submonthly(files, start, end)
+            missing, extra = check_submonthly(files, start, end, debug)
 
     for idx, item in enumerate(missing):
         missing[idx] = dataset_id + ': ' + item
@@ -354,7 +363,7 @@ def check_files(files, spec, dataset_id, start, end):
     return missing, dataset_id, extra
 
 
-def sproket_with_id(dataset_id, sproket, spec=None, start=None, end=None):
+def sproket_with_id(dataset_id, sproket, spec, *args, start=False, end=False, debug=False, **kwargs):
 
     # create the path to the config, write it out
     tempfile = NamedTemporaryFile(suffix='.json')
@@ -369,7 +378,12 @@ def sproket_with_id(dataset_id, sproket, spec=None, start=None, end=None):
 
         tmp.write(config_string)
         tmp.seek(0)
+
         cmd = [sproket, '-config', tempfile.name, '-y', '-urls.only']
+        if debug:
+            msg = 'Running sproket command: {}'.format(cmd)
+            print_message(msg, 'info')
+
         proc = Popen(cmd, shell=False, stdout=PIPE, stderr=PIPE)
         out, err = proc.communicate()
     if err:
@@ -377,10 +391,13 @@ def sproket_with_id(dataset_id, sproket, spec=None, start=None, end=None):
         return [], dataset_id, []
 
     if not out:
-        return [dataset_id], dataset_id, []
+        if debug:
+            msg = 'No dataset found: {}'.format(dataset_id)
+            print_message(msg, 'info')
+        return ['No dataset: ' + dataset_id], dataset_id, []
 
     files = sorted([i.decode('utf-8') for i in out.split()])
-    return check_files(files, spec, dataset_id, start, end)
+    return check_files(files, spec, dataset_id, start, end, debug)
 
 # The typical CMIP6 path is:
 # /CMIP6/CMIP/E3SM-Project/E3SM-1-0/piControl/r1i1p1f1/Amon/ts/gr/v20190719/ts_Amon_E3SM-1-0_piControl_r1i1p1f1_gr_042601-045012.nc
@@ -478,10 +495,11 @@ def check_cmip(client, dataset_spec, data_path, experiments, ensembles, tables, 
     return missing, extra
 
 
-def check_e3sm(client, dataset_spec, data_path, experiments, ensembles, tables, variables, sproket, debug=False):
+def check_e3sm(client, dataset_spec, data_path, data_types, experiments, ensembles, tables, variables, sproket, debug=False):
     dataset_ids, missing, extra, futures = list(), list(), list(), list()
 
-    for version in tqdm(dataset_spec['project']['E3SM'], desc="Collecting dataset ids"):
+    print_message("Collecting dataset ids", 'ok')
+    for version in dataset_spec['project']['E3SM']:
         if debug:
             print_message('checking version: ' + version, 'info')
         for case in dataset_spec['project']['E3SM'][version]:
@@ -509,6 +527,8 @@ def check_e3sm(client, dataset_spec, data_path, experiments, ensembles, tables, 
                             for data_type in item['data_types']:
                                 if item.get('except') and data_type in item['except']:
                                     continue
+                                if data_type not in data_types and 'all' not in data_types:
+                                    continue
                                 dataset_id = "E3SM.{version}.{case}.{res}.{comp}.{grid}.{data_type}.{ens}.*".format(
                                     version=version,
                                     case=case['experiment'],
@@ -520,10 +540,14 @@ def check_e3sm(client, dataset_spec, data_path, experiments, ensembles, tables, 
                                 dataset_ids.append({
                                     'id': dataset_id,
                                     'start': case['start'],
-                                    'end': case['end'] 
+                                    'end': case['end']
                                 })
-                                
-    
+
+    msg = 'Found {} dataset ids'.format(len(dataset_ids))
+    print_message(msg, 'ok')
+    if debug:
+        for d in dataset_ids:
+            print_message(d, 'info')
     if not client:
         pbar = tqdm(total=len(dataset_ids), desc="Looking up datasets")
 
@@ -551,7 +575,6 @@ def check_e3sm(client, dataset_spec, data_path, experiments, ensembles, tables, 
                 print_message(
                     'All files found for: {}'.format(info['id']), 'info')
             pbar.update(1)
-            
 
     if client:
         pbar = tqdm(
@@ -571,22 +594,22 @@ def check_e3sm(client, dataset_spec, data_path, experiments, ensembles, tables, 
     return missing, extra
 
 
-def check_datasets_by_id(client, sproket, dataset_ids, debug=False):
+def check_datasets_by_id(client, sproket, dataset_ids, *args, **kwargs):
     missing = list()
+    extra = list()
     if client:
-        futures = list()
-        for d in dataset_ids:
-            futures.append(
-                client.submit(
-                    sproket_with_id,
-                    d,
-                    sproket))
+
         pbar = tqdm(
-            total=len(futures),
+            total=len(dataset_ids),
             desc='Contacting ESGF database')
+        futures = [client.submit(
+            sproket_with_id,
+            d,
+            sproket,
+            **kwargs) for d in dataset_ids]
         for f in as_completed(futures):
-            m, dataset_id = f.result()
-            if debug:
+            m, dataset_id, e = f.result()
+            if kwargs.get('debug'):
                 msg = 'Checking: {}'.format(dataset_id)
                 print_message(msg, 'info')
             if m:
@@ -599,23 +622,26 @@ def check_datasets_by_id(client, sproket, dataset_ids, debug=False):
 
     else:
         for d in dataset_ids:
-            if debug:
+            if kwargs.get('debug'):
                 msg = 'Checking: {}'.format(d)
                 print_message(msg, 'info')
-            m, dataset_id = sproket_with_id(d, sproket)
+
+            m, dataset_id, e = sproket_with_id(d, sproket, **kwargs)
             missing.append(m)
 
-    return missing
+    return missing, extra
 
 
-def publication_check(client, case_spec, data_path, projects, ensembles, experiments, tables, variables, sproket, dataset_ids=None, debug=None):
-    missing, extra = list(), list()
+def publication_check(client, case_spec, data_path, projects, ensembles, experiments, tables, variables, sproket, dataset_ids=False, debug=False, data_types=None):
+
     if dataset_ids:
         if isinstance(dataset_ids, str):
             dataset_ids = [dataset_ids]
-        missing = check_datasets_by_id(client, sproket, dataset_ids)
+        missing, extra = check_datasets_by_id(
+            client, sproket, dataset_ids, debug=debug)
         return missing, extra
 
+    missing, extra = list(), list()
     if not projects or ('cmip6' in projects or 'CMIP6' in projects):
         print_message("Checking for CMIP6 project data", 'ok')
         missing, extra = check_cmip(
@@ -639,6 +665,7 @@ def publication_check(client, case_spec, data_path, projects, ensembles, experim
             client=client,
             dataset_spec=case_spec,
             data_path=data_path,
+            data_types=data_types,
             ensembles=ensembles,
             experiments=experiments,
             tables=tables,
@@ -770,13 +797,15 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
                                 for comp in os.listdir(os.path.join(res_path, tuning)):
                                     comp_path = os.path.join(
                                         res_path, tuning, comp)
-                                    comp_name = next((i for i in case_info['resolution'][res].keys() if comp in i), None)
+                                    comp_name = next(
+                                        (i for i in case_info['resolution'][res].keys() if comp in i), None)
                                     for grid in os.listdir(comp_path):
                                         try:
                                             comp_info = next(
                                                 (i for i in case_info['resolution'][res][comp_name] if i['grid'] == grid), None)
                                         except:
-                                            import ipdb; ipdb.set_trace()
+                                            import ipdb
+                                            ipdb.set_trace()
                                         if not comp_info:
                                             msg = "Grid {} is present on filesystem but not in case specification: {}-{}-{}".format(
                                                 grid, casename, res, comp)
@@ -786,9 +815,11 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
                                             for freq in os.listdir(os.path.join(comp_path, grid, data_type)):
                                                 if facet_filter(freq, tables, exclude):
                                                     continue
-                                                freq_type = "{}.{}".format(data_type, freq)
+                                                freq_type = "{}.{}".format(
+                                                    data_type, freq)
                                                 if freq_type not in comp_info['data_types']:
-                                                    import ipdb; ipdb.set_trace()
+                                                    import ipdb
+                                                    ipdb.set_trace()
                                                     msg = "Frequency {} is present on filesystem but not in case specification: {}-{}-{}-{}".format(
                                                         freq, casename, res, comp, grid)
                                                     extra.append(msg)
@@ -838,9 +869,11 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
                                         for freq in os.listdir(os.path.join(comp_path, grid, data_type)):
                                             if facet_filter(freq, tables, exclude):
                                                 continue
-                                            freq_type = "{}.{}".format(data_type, freq)
+                                            freq_type = "{}.{}".format(
+                                                data_type, freq)
                                             if freq_type not in comp_info['data_types']:
-                                                import ipdb; ipdb.set_trace()
+                                                import ipdb
+                                                ipdb.set_trace()
                                                 msg = "Frequency {} is present on filesystem but not in case specification: {}-{}-{}-{}".format(
                                                     freq, casename, res, comp, grid)
                                                 extra.append(msg)
@@ -1014,7 +1047,9 @@ def data_check(
         debug=False,
         serial=False,
         cluster_address=None,
-        to_json=False):
+        to_json=False,
+        digest=False,
+        data_types=None):
 
     if debug:
         print_message("Running in debug mode", 'info')
@@ -1056,7 +1091,6 @@ def data_check(
 
             client = Client(cluster)
         else:
-            # cluster = LocalCluster(scheduler_port=int(cluster_address))
             client = Client(cluster_address)
 
         if debug:
@@ -1065,7 +1099,6 @@ def data_check(
 
     if dataset_ids:
         published = True
-
     missing, extra, issues = list(), list(), list()
     try:
         if published:
@@ -1073,6 +1106,7 @@ def data_check(
                 client=client,
                 case_spec=case_spec,
                 data_path=data_path,
+                data_types=data_types,
                 dataset_ids=dataset_ids,
                 projects=projects,
                 ensembles=ens,
@@ -1117,6 +1151,25 @@ def data_check(
     finally:
         if client:
             client.close()
+            cluster.close()
+    
+    if digest:
+        filtered_extra, filtered_missing = list(), list()
+
+        for m in missing:
+            idx = m.index(':')
+            if m[:idx] == 'No dataset':
+                filtered_missing.append(m)
+            else:
+                if m[:idx] not in filtered_missing:
+                    filtered_missing.append(m[:idx])
+        missing = filtered_missing
+
+        for e in extra:
+            idx = e.index(':')
+            if e[:idx] not in filtered_extra:
+                filtered_extra.append(e[:idx])
+        extra = filtered_extra
 
     if to_json:
         print_message(
