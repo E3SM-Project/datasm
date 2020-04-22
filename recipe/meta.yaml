@@ -23,11 +23,11 @@ requirements:
   
   run:
     - python
-    - esgprep
     - tqdm
     - yaml
     - distributed
-    - json
     - pexpect
-    - getpass
+    - xarray
+    - netcdf4
+    - vcs
     
