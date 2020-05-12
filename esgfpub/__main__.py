@@ -49,6 +49,7 @@ def main():
             ini=ARGS.ini,
             loop=ARGS.loop,
             cred_file=ARGS.credentials,
+            sproket=ARGS.sproket,
             debug=ARGS.debug)
     elif subcommand == 'custom':
         from esgfpub.custom_facets import update_custom

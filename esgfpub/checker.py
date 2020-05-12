@@ -1,8 +1,8 @@
 import warnings
 warnings.simplefilter('ignore')
 from distributed import Client, as_completed, LocalCluster, get_client
-from esgfpub.verify import verify_dataset
 from esgfpub.util import print_message
+from esgfpub.verify import verify_dataset
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
 from tqdm import tqdm
@@ -328,7 +328,29 @@ def check_time_series(files, dataset_id, spec, start=None, end=None):
     return missing, extra
 
 
-def check_files(files, spec, dataset_id, start, end, debug=False):
+def get_version(filename):
+    tail, head = os.path.split(filename)
+    path_split = tail.split('/')
+    if 'v' in path_split[-1]:
+        return int(path_split[-1][1:])
+    else:
+        print_message('Unable to determine version for {}'.format(filename))
+        return 0
+
+
+def filename_to_datasetid(filename):
+    tail, head = os.path.split(filename)
+    if 'CMIP6' in tail:
+        tail = tail.split('/')
+        idx = tail.index('CMIP6')
+    else:
+        tail = tail.split('/')
+        idx = tail.index('E3SM')
+    
+    return '.'.join(tail[idx:])
+
+
+def check_files(files, spec, start, end, debug=False):
     """
     Checks a set of files for missing or extras
 
@@ -336,8 +358,21 @@ def check_files(files, spec, dataset_id, start, end, debug=False):
     """
     missing = []
     extra = []
+    dataset_id = filename_to_datasetid(files[0])
+    if debug:
+        print_message(f"Found dataset: {dataset_id}", 'info')
+
     if '.fx.' in dataset_id and files:
         return [], dataset_id, []
+
+    
+    new_files = list()
+    for f in files:
+        split = f.split('/')
+        if split[-1] not in new_files:
+            new_files.append(split[-1])
+    files = new_files
+
 
     if dataset_id[:5] == 'CMIP6':
         missing, extra = check_spans(files, start, end, dataset_id)
@@ -365,14 +400,18 @@ def check_files(files, spec, dataset_id, start, end, debug=False):
 
 def sproket_with_id(dataset_id, sproket, spec, *args, start=False, end=False, debug=False, **kwargs):
 
+    if debug:
+        print_message(f"Searching for: {dataset_id}", 'info')
+
     # create the path to the config, write it out
     tempfile = NamedTemporaryFile(suffix='.json')
     with open(tempfile.name, mode='w') as tmp:
         config_string = json.dumps({
             'search_api': "https://esgf-node.llnl.gov/esg-search/search/",
-            'data_node_priority': ["aims3.llnl.gov", "esgf-data1.llnl.gov"],
+            'data_node_priority': ["aims3.llnl.gov", "esgf-data1.llnl.gov", "esgf-data2.llnl.gov"],
             'fields': {
-                'dataset_id': dataset_id + '*'
+                'dataset_id': dataset_id + '*',
+                'latest': 'true'
             }
         })
 
@@ -380,9 +419,6 @@ def sproket_with_id(dataset_id, sproket, spec, *args, start=False, end=False, de
         tmp.seek(0)
 
         cmd = [sproket, '-config', tempfile.name, '-y', '-urls.only']
-        if debug:
-            msg = 'Running sproket command: {}'.format(cmd)
-            print_message(msg, 'info')
 
         proc = Popen(cmd, shell=False, stdout=PIPE, stderr=PIPE)
         out, err = proc.communicate()
@@ -390,14 +426,21 @@ def sproket_with_id(dataset_id, sproket, spec, *args, start=False, end=False, de
         print(err.decode('utf-8'))
         return [], dataset_id, []
 
+    nothing_found = False
     if not out:
+        nothing_found = True
+
+    files = sorted([i.decode('utf-8') for i in out.split()])
+    if not files:
+        nothing_found = True
+    
+    if nothing_found:
         if debug:
             msg = 'No dataset found: {}'.format(dataset_id)
             print_message(msg, 'info')
         return ['No dataset: ' + dataset_id], dataset_id, []
-
-    files = sorted([i.decode('utf-8') for i in out.split()])
-    return check_files(files, spec, dataset_id, start, end, debug)
+    else:
+        return check_files(files, spec, start, end, debug)
 
 # The typical CMIP6 path is:
 # /CMIP6/CMIP/E3SM-Project/E3SM-1-0/piControl/r1i1p1f1/Amon/ts/gr/v20190719/ts_Amon_E3SM-1-0_piControl_r1i1p1f1_gr_042601-045012.nc
@@ -405,19 +448,20 @@ def sproket_with_id(dataset_id, sproket, spec, *args, start=False, end=False, de
 # CMIP6.CMIP.E3SM-project.E3SM-1-0.piControl.r1i1p1f1.Amon.ts#20190719
 
 
-def check_cmip(client, dataset_spec, data_path, experiments, ensembles, tables, variables, sproket, debug=False):
+def check_cmip(client, dataset_spec, data_path, model_versions, experiments, ensembles, tables, variables, sproket, exclude=False, debug=False):
 
     missing, extra, futures = list(), list(), list()
 
     for source in dataset_spec['project']['CMIP6']:
+        if facet_filter(source, model_versions, exclude):
+            continue
         if debug:
             print_message('checking model version: ' + source, 'info')
         for case in dataset_spec['project']['CMIP6'][source]:
 
             # Check this case if its explicitly given by the user, or if default is set
-            if 'all' not in experiments and case['experiment'] not in experiments:
+            if facet_filter(case['experiment'], experiments, exclude):
                 continue
-
             if debug:
                 print_message('  checking case: ' + case['experiment'], 'info')
 
@@ -435,7 +479,7 @@ def check_cmip(client, dataset_spec, data_path, experiments, ensembles, tables, 
                 for table in dataset_spec['tables']:
                     # skip this table if its not in the user list
                     # and the default isnt set
-                    if table not in tables and 'all' not in tables:
+                    if facet_filter(table, tables, exclude):
                         continue
 
                     if table in case.get('except', []):
@@ -444,7 +488,7 @@ def check_cmip(client, dataset_spec, data_path, experiments, ensembles, tables, 
                     for variable in dataset_spec['tables'][table]:
                         # skip this varible if its not in the user list
                         # and the default isnt set
-                        if variable not in variables and 'all' not in variables:
+                        if facet_filter(variable, variables, exclude):
                             continue
 
                         if variable in case.get('except', []):
@@ -464,14 +508,16 @@ def check_cmip(client, dataset_spec, data_path, experiments, ensembles, tables, 
                                     sproket,
                                     dataset_spec,
                                     case['start'],
-                                    case['end']))
+                                    case['end'],
+                                    debug))
                         else:
                             missing, dataset_id, extra = sproket_with_id(
                                 dataset_id,
                                 sproket,
                                 dataset_spec,
                                 case['start'],
-                                case['end'])
+                                case['end'],
+                                debug=debug)
                             if not missing:
                                 print_message(
                                     'All files found for: {}'.format(dataset_id), 'ok')
@@ -495,17 +541,21 @@ def check_cmip(client, dataset_spec, data_path, experiments, ensembles, tables, 
     return missing, extra
 
 
-def check_e3sm(client, dataset_spec, data_path, data_types, experiments, ensembles, tables, variables, sproket, debug=False):
+def check_e3sm(client, dataset_spec, data_path, data_types, model_versions, experiments, ensembles, tables, variables, sproket, exclude=False, debug=False):
     dataset_ids, missing, extra, futures = list(), list(), list(), list()
 
     print_message("Collecting dataset ids", 'ok')
     for version in dataset_spec['project']['E3SM']:
+        if version not in model_versions and 'all' not in model_versions:
+            continue
+        if facet_filter(version, model_versions, exclude):
+            continue
         if debug:
             print_message('checking version: ' + version, 'info')
         for case in dataset_spec['project']['E3SM'][version]:
 
             # Check this case if its explicitly given by the user, or if default is set
-            if 'all' not in experiments and case['experiment'] not in experiments:
+            if facet_filter(case['experiment'], experiments, exclude):
                 continue
             if debug:
                 print_message('  checking case: ' + case['experiment'], 'info')
@@ -527,7 +577,7 @@ def check_e3sm(client, dataset_spec, data_path, data_types, experiments, ensembl
                             for data_type in item['data_types']:
                                 if item.get('except') and data_type in item['except']:
                                     continue
-                                if data_type not in data_types and 'all' not in data_types:
+                                if facet_filter(data_type, data_types, exclude):
                                     continue
                                 dataset_id = "E3SM.{version}.{case}.{res}.{comp}.{grid}.{data_type}.{ens}.*".format(
                                     version=version,
@@ -594,7 +644,7 @@ def check_e3sm(client, dataset_spec, data_path, data_types, experiments, ensembl
     return missing, extra
 
 
-def check_datasets_by_id(client, sproket, dataset_ids, *args, **kwargs):
+def check_datasets_by_id(client, sproket, dataset_ids, spec, *args, **kwargs):
     missing = list()
     extra = list()
     if client:
@@ -606,6 +656,7 @@ def check_datasets_by_id(client, sproket, dataset_ids, *args, **kwargs):
             sproket_with_id,
             d,
             sproket,
+            spec,
             **kwargs) for d in dataset_ids]
         for f in as_completed(futures):
             m, dataset_id, e = f.result()
@@ -626,19 +677,19 @@ def check_datasets_by_id(client, sproket, dataset_ids, *args, **kwargs):
                 msg = 'Checking: {}'.format(d)
                 print_message(msg, 'info')
 
-            m, dataset_id, e = sproket_with_id(d, sproket, **kwargs)
+            m, dataset_id, e = sproket_with_id(d, sproket, spec, **kwargs)
             missing.append(m)
 
     return missing, extra
 
 
-def publication_check(client, case_spec, data_path, projects, ensembles, experiments, tables, variables, sproket, dataset_ids=False, debug=False, data_types=None):
+def publication_check(client, case_spec, data_path, projects, ensembles, model_versions, experiments, tables, variables, sproket, dataset_ids=False, debug=False, exclude=False, data_types=None):
 
     if dataset_ids:
         if isinstance(dataset_ids, str):
             dataset_ids = [dataset_ids]
         missing, extra = check_datasets_by_id(
-            client, sproket, dataset_ids, debug=debug)
+            client, sproket, dataset_ids, spec=case_spec, debug=debug)
         return missing, extra
 
     missing, extra = list(), list()
@@ -649,10 +700,12 @@ def publication_check(client, case_spec, data_path, projects, ensembles, experim
             dataset_spec=case_spec,
             data_path=data_path,
             ensembles=ensembles,
+            model_versions=model_versions,
             experiments=experiments,
             tables=tables,
             variables=variables,
             sproket=sproket,
+            exclude=exclude,
             debug=debug)
         if not missing:
             print_message('All CMIP6 files found', 'ok')
@@ -666,10 +719,12 @@ def publication_check(client, case_spec, data_path, projects, ensembles, experim
             dataset_spec=case_spec,
             data_path=data_path,
             data_types=data_types,
+            model_versions=model_versions,
             ensembles=ensembles,
             experiments=experiments,
             tables=tables,
             variables=variables,
+            exclude=exclude,
             sproket=sproket,
             debug=debug)
         missing.extend(m)
@@ -694,7 +749,6 @@ def facet_filter(facet, facets, exclude=None):
 
 def collect_paths(data_path, case_spec, projects, model_versions, cases, tables, variables, ens, exclude=None, debug=False):
     dataset_paths, dataset_ids, extra = list(), list(), list()
-
     for project in os.listdir(data_path):
         if facet_filter(project, projects, exclude):
             continue
@@ -941,9 +995,12 @@ def filesystem_check(client, data_path, case_spec, projects, model_versions, cas
             futures.append(
                 client.submit(
                     check_files,
-                    files, case_spec, dataset_id, start, end))
+                    files, 
+                    case_spec, 
+                    start, 
+                    end))
         else:
-            m, d, e = check_files(files, case_spec, dataset_id, start, end)
+            m, d, e = check_files(files, case_spec, start, end)
             pbar.update(1)
             for idx, item in enumerate(e):
                 e[idx] = '{}: {}'.format(d, item)
@@ -976,9 +1033,12 @@ def verification(data_path, plot_path, case_spec, projects, model_versions, case
     dataset_paths, dataset_ids, _ = collect_paths(
         data_path, case_spec, projects, model_versions, cases, tables, variables, ens, exclude, debug)
 
-    pbar = tqdm(total=len(dataset_paths))
+    pbar = tqdm()
     client = get_client()
     futures = list()
+
+    num_done = 0
+    num_total = len(dataset_paths)
 
     for idx, dataset_path in enumerate(dataset_paths):
         dataset_id = dataset_ids[idx]
@@ -986,40 +1046,27 @@ def verification(data_path, plot_path, case_spec, projects, model_versions, case
         # sample id: CMIP6.CMIP.E3SM-Project.E3SM-1-1.historical.r1i1p1f1.Amon.clivi.gr#v20191211
         id_split = dataset_id.split('.')
         variable = id_split[7]
-        # pbar.set_description("Submiting {}".format(variable))
-        # futures.append(
-        #     client.submit(
-        #         verify_dataset,
-        #             dataset_path,
-        #             dataset_id,
-        #             variable,
-        #             plot_path,
-        #             only_plots,
-        #             debug))
+        pbar.set_description(f"Validating dataset {num_done}/{num_total} : {dataset_id}")
+
         try:
-            issue, _ = verify_dataset(
+            issue = verify_dataset(
                 dataset_path,
                 dataset_id,
                 variable,
                 plot_path,
-                only_plots,
+                pbar,
                 debug)
+            num_done += 1
         except Exception as e:
             issue = []
             print(repr(e))
             print("Error while checking {}".format(dataset_id))
-        # else:
+            raise(e)
+        except KeyboardInterrupt:
+            print("Got CTRL-C closing down")
+            return []
         issues.extend(issue)
         pbar.update(1)
-    pbar.close()
-
-    # pbar = tqdm(total=len(futures))
-    # for f in as_completed(futures):
-    #     issue = client.gather(f.result())
-    #     issue, dataset_id = f.result()
-    #     issues.extend(issue)
-    #     pbar.set_description("Finished: {}".format(dataset_id))
-    #     pbar.update(1)
     pbar.close()
 
     print_message("Dataset verification complete", 'ok')
@@ -1108,12 +1155,14 @@ def data_check(
                 data_path=data_path,
                 data_types=data_types,
                 dataset_ids=dataset_ids,
+                model_versions=model_versions,
                 projects=projects,
                 ensembles=ens,
                 experiments=cases,
                 tables=tables,
                 variables=variables,
                 sproket=sproket,
+                exclude=exclude,
                 debug=debug)
             missing.extend(m)
             extra.extend(e)
@@ -1135,6 +1184,7 @@ def data_check(
             extra.extend(e)
 
         if verify and data_path:
+            from esgfpub.verify import verify_dataset
             issues = verification(
                 data_path=data_path,
                 plot_path=plot_path,

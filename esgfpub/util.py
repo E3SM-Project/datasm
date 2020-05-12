@@ -6,11 +6,14 @@ import os
 import sys
 import stat
 import argparse
+import json
 from subprocess import call, Popen, PIPE
 from shutil import move, copy
 from time import sleep
 from tqdm import tqdm
 from esgfpub import resources
+from tempfile import NamedTemporaryFile
+
 
 
 def parse_args():
@@ -181,6 +184,10 @@ def parse_args():
         '--credentials',
         required=True,
         help="JSON file containing myproxy-logon username and password")
+    parser_publish.add_argument(
+        '--sproket',
+        default='sproket',
+        help="path to sproket binary if its not in your PATH")
     parser_publish.add_argument(
         '--debug',
         action="store_true")
@@ -551,3 +558,41 @@ def path_to_dataset_id(path):
         p = path.split(os.sep)
         dataset_id = '.'.join(p[p.index('E3SM'):-2])
         return dataset_id
+
+
+def check_ds_exists(dataset_id, debug=False, sproket='sproket', **kwargs):
+    """
+    Use sproket to lookup a dataset by its ID, if the dataset exists
+    return True, else returns False
+    """
+    # create the path to the config, write it out
+    tempfile = NamedTemporaryFile(suffix='.json')
+    with open(tempfile.name, mode='w') as tmp:
+        config_string = json.dumps({
+            'search_api': "https://esgf-node.llnl.gov/esg-search/search/",
+            'data_node_priority': ["aims3.llnl.gov", "esgf-data1.llnl.gov", "esgf-data2.llnl.gov"],
+            'fields': {
+                'dataset_id': dataset_id
+            }
+        })
+
+        tmp.write(config_string)
+        tmp.seek(0)
+
+        cmd = [sproket, '-config', tempfile.name, '-y', '-urls.only']
+        # if debug:
+        #     msg = 'Running sproket command: {}'.format(cmd)
+        #     print_message(msg, 'info')
+
+        proc = Popen(cmd, shell=False, stdout=PIPE, stderr=PIPE)
+        out, err = proc.communicate()
+    if err:
+        print(err.decode('utf-8'))
+        return False
+    else:
+        if debug:
+            print_message(out, 'info')
+        if out:
+            return True
+        else:
+            return False
