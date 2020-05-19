@@ -67,9 +67,10 @@ def plot_minmaxmean(outpath, ds, vmax, dataset_id, debug=False):
 def run_chunk(ds, dataset_id, maxrollingvar, maxrollingstd, segment, index):
     issues = list()
     vmax = np.ndarray(shape=(len(ds['time'])))
-    idx = 0
+    idx = -1
     for step in ds['time']:
-        
+        idx += 1
+
         mean = ds.sel(time=step)['means'].values
         if not isinstance(mean, int) and not isinstance(mean, float) and mean.size > 1:
             mean = max(mean)
@@ -77,19 +78,23 @@ def run_chunk(ds, dataset_id, maxrollingvar, maxrollingstd, segment, index):
         if mean == 0.0:
             issues.append(
                 f"\tZero data issue found for {dataset_id} at {str(step['time'].item())[:7]}")
-            vmax.append(0)
+            vmax[idx] = 0
             continue
 
         max_rolling_var = maxrollingvar.sel(time=step)
         mx_rolling_std = maxrollingstd.sel(time=step)
         # if there's a NAN in the array skip it
         if np.isnan(max_rolling_var) or np.isnan(mx_rolling_std) or np.isnan(mean):
-            vmax.append(0)
+            vmax[idx] = 0
+            continue
+        if not mx_rolling_std.any():
+            vmax[idx] = 0
             continue
 
+        # import ipdb; ipdb.set_trace()
         max_variance = pow((mean - max_rolling_var)/mx_rolling_std, 2).values.item()
         vmax[idx] = max_variance
-        idx += 1
+        
 
     # if the variance is greater then 3x the variance std mark it as an issue
     threshold = 3 * vmax.std() + vmax.mean()
@@ -103,7 +108,7 @@ def check_sq_variance(dataset_path, dataset_id, variable, pngpath, pbar, debug=F
     issues = []
     client = get_client()
     num_segments = 10
-    pbar.total = num_segments + 3
+    pbar.total = num_segments + 2
     if pbar.n != 0:
         pbar.n = 0
         pbar.last_print_n = 0
@@ -127,23 +132,23 @@ def check_sq_variance(dataset_path, dataset_id, variable, pngpath, pbar, debug=F
                     dims.append('basin')
                 else:
                     dims.append(i)
+        
         dims = tuple(dims)
         if 'lat' not in dims and 'lon' not in dims:
             ds['means'] = ds[variable]
+            # maxrollingstd = client.compute( ds['means'].std ).result()
+            # maxrollingvar = client.compute( ds['means'].mean ).result()
         else:
             ds['means'] = client.compute( ds[variable].mean(dim=dims) ).result()
-
-        pbar.update(1)
-        maxrollingstd = ds['means'].std.compute()
-        pbar.update(1)
-        maxrollingvar = ds['means'].mean.compute()
+            # maxrollingstd = ds['means'].std().compute()
+            # maxrollingvar = ds['means'].mean().compute()
+            # maxrollingstd = client.compute( ds['means'].std ).result()
+            # maxrollingvar = client.compute( ds['means'].mean ).result()
+        
         pbar.update(1)
            
-        # maxrollingvar = client.compute(
-        #         ds['means'].rolling({'time':24}, min_periods=0).mean()
-        #     ).result()
-        # minrollingstd = client.compute(ds['mins'].rolling({'time':12}).std()).result()
-
+        maxrollingvar = client.compute( ds['means'].rolling({'time':24}, min_periods=1).mean() )
+        maxrollingstd = client.compute( ds['means'].rolling({'time':24}, min_periods=1).std() )
         for idx, seg in enumerate(segments):
             if idx == num_segments - 1:
                 seg_end = ds['time'].size
