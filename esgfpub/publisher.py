@@ -13,7 +13,7 @@ from datetime import datetime
 def publish_maps(mapfiles, ini, mapsin, mapsout, mapserr, username=None, password=None, sproket='spoket', debug=False):
     for m in mapfiles:
         if debug:
-            print_message('Starting mapfile: {}'.format(m), 'info')
+            print_message(f'Starting mapfile: {m}', 'info')
         if m[-4:] != '.map':
             msg = "Unrecognized file type, this doesnt appear to be an ESGF mapfile. Moving to the err directory {}".format(m)
             print_message(msg)
@@ -22,7 +22,7 @@ def publish_maps(mapfiles, ini, mapsin, mapsout, mapserr, username=None, passwor
                 os.path.join(mapserr, m))
             continue
         if check_ds_exists(m[:-4], debug=debug, sproket=sproket):
-            msg = "Dataset {} already exists".format(m[:-4])
+            msg = f"Dataset {m[:-4]} already exists"
             print_message(msg, 'err')
             os.rename(
                 os.path.join(mapsin, m),
@@ -38,10 +38,11 @@ def publish_maps(mapfiles, ini, mapsin, mapsout, mapserr, username=None, passwor
 
         if debug:
             print_message("Running myproxy-logon with stored credentials", 'info')
-        script = """#!/bin/sh
+
+        script = f"""#!/bin/sh
 source /usr/local/conda/bin/activate esgf-pub
-echo '{password}' | myproxyclient logon -S -s esgf-node.llnl.gov -l {username} -t 72 -o ~/.globus/certificate-file""".format(
-            username=username, password=password)
+echo {password} | myproxyclient logon -S -s esgf-node.llnl.gov -l {username} -t 72 -o ~/.globus/certificate-file"""
+
         tempfile = "login.sh"
         if os.path.exists(tempfile):
             os.remove(tempfile)
@@ -56,17 +57,17 @@ echo '{password}' | myproxyclient logon -S -s esgf-node.llnl.gov -l {username} -
             print_message("Error while creating myproxy-logon certificate")
             return error.returncode
         os.remove(tempfile)
-
-        script = """#!/bin/sh
+        map_path = os.path.join(mapsin, m)
+        script = f"""#!/bin/sh
 source /usr/local/conda/bin/activate esgf-pub
-esgpublish -i {ini} --project {project} --map {map} --no-thredds-reinit #--commit-every 100
+esgpublish -i {ini} --project {project} --map {map_path} --no-thredds-reinit --commit-every 100
 if [ $? -ne  0 ]; then exit $?; fi
-esgpublish -i {ini} --project {project} --map {map} --service fileservice --noscan --thredds  --no-thredds-reinit
+esgpublish -i {ini} --project {project} --map {map_path} --service fileservice --noscan --thredds  --no-thredds-reinit
 if [ $? -ne  0 ]; then exit $?; fi
 esgpublish --project {project} --thredds-reinit
-esgpublish -i {ini} --project {project} --map {map} --service fileservice --noscan --publish
+esgpublish -i {ini} --project {project} --map {map_path} --service fileservice --noscan --publish
 if [ $? -ne  0 ]; then exit $?; fi
-""".format(ini=ini, map=os.path.join(mapsin, m), project=project, username=username, password=password)
+"""
 
         tempfile = "pub_script.sh"
         if os.path.exists(tempfile):
@@ -78,8 +79,7 @@ if [ $? -ne  0 ]; then exit $?; fi
         os.chmod(tempfile, st.st_mode | stat.S_IEXEC)
 
         if debug:
-            print_message('Running publication script: {}'.format(
-                tempfile), 'info')
+            print_message(f'Running publication script: {tempfile}', 'info')
             print_message(script, 'info')
 
         try:
@@ -88,13 +88,13 @@ if [ $? -ne  0 ]; then exit $?; fi
             end = datetime.now()
         except  CalledProcessError as error:
             print_message(
-                "Error in publication, moving {} to {}".format(m, mapserr))
+                f"Error in publication, moving {m} to {mapserr}", "error")
             os.rename(
                 os.path.join(mapsin, m),
                 os.path.join(mapserr, m))
         else:
             print_message(
-                "Publication success, runtime: {}".format(end - start), "info")
+                f"Publication success, runtime: {end - start}", "info")
             os.rename(
                 os.path.join(mapsin, m),
                 os.path.join(mapsout, m))
