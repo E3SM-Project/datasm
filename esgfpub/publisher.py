@@ -5,15 +5,28 @@ import getpass
 import json
 from os import remove
 from time import sleep
-from subprocess import call
-from esgfpub.util import print_message
+from subprocess import check_call, CalledProcessError
+from esgfpub.util import print_message, check_ds_exists
+from datetime import datetime
 
 
-def publish_maps(mapfiles, ini, mapsin, mapsout, mapserr, username=None, password=None, debug=False):
+def publish_maps(mapfiles, ini, mapsin, mapsout, mapserr, username=None, password=None, sproket='spoket', debug=False):
     for m in mapfiles:
         if debug:
-            print_message('Starting mapfile: {}'.format(m), 'info')
+            print_message(f'Starting mapfile: {m}', 'info')
         if m[-4:] != '.map':
+            msg = "Unrecognized file type, this doesnt appear to be an ESGF mapfile. Moving to the err directory {}".format(m)
+            print_message(msg)
+            os.rename(
+                os.path.join(mapsin, m),
+                os.path.join(mapserr, m))
+            continue
+        if check_ds_exists(m[:-4], debug=debug, sproket=sproket):
+            msg = f"Dataset {m[:-4]} already exists"
+            print_message(msg, 'err')
+            os.rename(
+                os.path.join(mapsin, m),
+                os.path.join(mapserr, m))
             continue
         if m[:5] == 'CMIP6':
             project = 'cmip6'
@@ -25,10 +38,11 @@ def publish_maps(mapfiles, ini, mapsin, mapsout, mapserr, username=None, passwor
 
         if debug:
             print_message("Running myproxy-logon with stored credentials", 'info')
-        script = """#!/bin/sh
+
+        script = f"""#!/bin/sh
 source /usr/local/conda/bin/activate esgf-pub
-echo '{password}' | myproxy-logon -S -s esgf-node.llnl.gov -l {username} -t 72 -o ~/.globus/certificate-file""".format(
-            username=username, password=password)
+echo {password} | myproxyclient logon -S -s esgf-node.llnl.gov -l {username} -t 72 -o ~/.globus/certificate-file"""
+
         tempfile = "login.sh"
         if os.path.exists(tempfile):
             os.remove(tempfile)
@@ -37,20 +51,23 @@ echo '{password}' | myproxy-logon -S -s esgf-node.llnl.gov -l {username} -t 72 -
             fp.write(script)
         st = os.stat(tempfile)
         os.chmod(tempfile, st.st_mode | stat.S_IEXEC)
-        retcode = call('./' + tempfile)
-        if retcode != 0:
+        try:
+            check_call('./' + tempfile)
+        except CalledProcessError as error:
             print_message("Error while creating myproxy-logon certificate")
-            return retcode
+            return error.returncode
         os.remove(tempfile)
-
-        script = """#!/bin/sh
+        map_path = os.path.join(mapsin, m)
+        script = f"""#!/bin/sh
 source /usr/local/conda/bin/activate esgf-pub
-esgpublish -i {ini} --project {project} --map {map} --commit-every 100 --no-thredds-reinit
-esgpublish -i {ini} --project {project} --map {map} --service fileservice --noscan --thredds  --no-thredds-reinit
+esgpublish -i {ini} --project {project} --map {map_path} --no-thredds-reinit --commit-every 100
+if [ $? -ne  0 ]; then exit $?; fi
+esgpublish -i {ini} --project {project} --map {map_path} --service fileservice --noscan --thredds  --no-thredds-reinit
+if [ $? -ne  0 ]; then exit $?; fi
 esgpublish --project {project} --thredds-reinit
-esgpublish -i {ini} --project {project} --map {map} --service fileservice --noscan --publish
-""".format(
-            ini=ini, map=os.path.join(mapsin, m), project=project, username=username, password=password)
+esgpublish -i {ini} --project {project} --map {map_path} --service fileservice --noscan --publish
+if [ $? -ne  0 ]; then exit $?; fi
+"""
 
         tempfile = "pub_script.sh"
         if os.path.exists(tempfile):
@@ -62,33 +79,29 @@ esgpublish -i {ini} --project {project} --map {map} --service fileservice --nosc
         os.chmod(tempfile, st.st_mode | stat.S_IEXEC)
 
         if debug:
-            print_message('Running publication script: {}'.format(
-                tempfile), 'info')
+            print_message(f'Running publication script: {tempfile}', 'info')
             print_message(script, 'info')
 
         try:
-            try:
-                call('./' + tempfile)
-            except Exception as e:
-                print_message(
-                    "Error in publication, moving {} to {}".format(m, mapserr))
-                os.rename(
-                    os.path.join(mapsin, m),
-                    os.path.join(mapserr, m))
-                raise(e)
-            else:
-                if debug:
-                    print_message(
-                        "Publication success, moving {} to {}".format(m, mapsout), "info")
-                os.rename(
-                    os.path.join(mapsin, m),
-                    os.path.join(mapsout, m))
-        finally:
-            if not fp.closed:
-                fp.close()
+            start = datetime.now()
+            check_call('./' + tempfile)
+            end = datetime.now()
+        except  CalledProcessError as error:
+            print_message(
+                f"Error in publication, moving {m} to {mapserr}", "error")
+            os.rename(
+                os.path.join(mapsin, m),
+                os.path.join(mapserr, m))
+        else:
+            print_message(
+                f"Publication success, runtime: {end - start}", "info")
+            os.rename(
+                os.path.join(mapsin, m),
+                os.path.join(mapsout, m))
 
 
-def publish(mapsin, mapsout, mapserr, ini, loop, cred_file=None, debug=False):
+
+def publish(mapsin, mapsout, mapserr, ini, loop, sproket='sproket', cred_file=None, debug=False):
 
     if not os.path.exists(cred_file):
         raise ValueError('The given credential file does not exist')
@@ -116,7 +129,8 @@ def publish(mapsin, mapsout, mapserr, ini, loop, cred_file=None, debug=False):
         mapfiles = [x for x in os.listdir(mapsin) if x.endswith('.map')]
         if mapfiles:
             publish_maps(mapfiles, ini, mapsin, mapsout,
-                        mapserr, username, password, debug)
+                        mapserr, username, password, 
+                        debug=debug, sproket=sproket)
         if not loop:
             break
         sleep(30)

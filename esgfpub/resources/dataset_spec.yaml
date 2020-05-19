@@ -69,6 +69,16 @@ tables:
     - tran
     - tsl
     - lai
+    - cLitter 
+    - cProduct
+    - cSoil
+    - fFire
+    - fHarvest
+    - cVeg
+    - nbp
+    - gpp
+    - rh
+    - ra
   Omon:
     - masso
     - pbo
@@ -140,8 +150,16 @@ time-series:
     - TGCLDIWP
     - TGCLDCWP
     - RELHUM
+    - FSNTOA
+    - ICEFRAC
+    - LANDFRAC
+    - OCNFRAC
+    - PHIS
+    - LWCF
+    - SWCF
     - TMQ
     - FLUTC
+    - FLUT
     - FSDSC
     - SOLIN
     - FSUTOA
@@ -187,18 +205,51 @@ project:
         end: 500
         ens:
           - r1i1p1f1
+        except:
+          - cLitter 
+          - cProduct
+          - cSoil
+          - fFire
+          - fHarvest
+          - cVeg
+          - nbp
+          - gpp
+          - rh
+          - ra
       -
         experiment: 1pctCO2
         start: 1
         end: 150
         ens:
           - r1i1p1f1
+        except:
+          - cLitter 
+          - cProduct
+          - cSoil
+          - fFire
+          - fHarvest
+          - cVeg
+          - nbp
+          - gpp
+          - rh
+          - ra
       -
         experiment: abrupt-4xCO2
         start: 1
         end: 150
         ens:
           - r1i1p1f1
+        except:
+          - cLitter 
+          - cProduct
+          - cSoil
+          - fFire
+          - fHarvest
+          - cVeg
+          - nbp
+          - gpp
+          - rh
+          - ra
       -
         experiment: amip
         start: 1870
@@ -210,6 +261,16 @@ project:
         except:
           - Omon
           - SImon
+          - cLitter 
+          - cProduct
+          - cSoil
+          - fFire
+          - fHarvest
+          - cVeg
+          - nbp
+          - gpp
+          - rh
+          - ra
       -
         experiment: historical
         start: 1850
@@ -220,6 +281,18 @@ project:
           - r3i1p1f1
           - r4i1p1f1
           - r5i1p1f1
+        except:
+          - cLitter 
+          - cProduct
+          - cSoil
+          - fFire
+          - fHarvest
+          - cVeg
+          - nbp
+          - gpp
+          - rh
+          - ra
+          
     E3SM-1-1:
       -
         experiment: piControl
@@ -230,6 +303,7 @@ project:
         except:
           - siu
           - siv
+          - clcalipso
       -
         experiment: hist-bgc
         start: 1850
@@ -239,6 +313,7 @@ project:
         except:
           - siu
           - siv
+          - clcalipso
       -
         experiment: historical
         start: 1850
@@ -248,6 +323,8 @@ project:
         except:
           - siu
           - siv
+          - clcalipso
+
     E3SM-1-1-ECA:
       -
         experiment: piControl
@@ -258,6 +335,7 @@ project:
         except:
           - siu
           - siv
+          - clcalipso
       -
         experiment: hist-bgc
         start: 1850
@@ -267,6 +345,7 @@ project:
         except:
           - siu
           - siv
+          - clcalipso
       -
         experiment: historical
         start: 1850
@@ -276,6 +355,8 @@ project:
         except:
           - siu
           - siv
+          - clcalipso
+
   E3SM:
     '1_0':
       -
@@ -307,6 +388,7 @@ project:
                 data_types:
                   - model-output.day
                   - model-output.mon
+                  - model-output.day_cosp
                   - model-output.6hr_snap
                   - model-output.3hr
                   - model-output.6hr
@@ -433,6 +515,7 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
+                  - model-output.day_cosp
                   - model-output.6hr_snap
                   - model-output.3hr
                   - model-output.6hr
@@ -470,6 +553,7 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
+                  - model-output.day_cosp
                   - model-output.6hr_snap
                   - model-output.3hr
                   - model-output.6hr
@@ -509,6 +593,7 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
+                  - model-output.day_cosp
                   - model-output.6hr_snap
                   - model-output.3hr
                   - model-output.6hr
@@ -538,6 +623,10 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
+                  - model-output.day_cosp
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
             land:
               -
                 grid: native
@@ -564,6 +653,7 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
+                  - model-output.day_cosp
                   - model-output.6hr_snap
                   - model-output.3hr
                   - model-output.6hr
@@ -687,6 +777,7 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
+                  - model-output.day_cosp
                   - model-output.6hr_snap
                   - model-output.3hr
                   - model-output.6hr
@@ -720,6 +811,7 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
+                  - model-output.day_cosp
                   - model-output.6hr_snap
                   - model-output.3hr
                   - model-output.6hr
@@ -733,6 +825,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native
@@ -770,6 +866,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native
@@ -807,6 +907,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native
@@ -844,6 +948,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native
@@ -881,6 +989,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native
@@ -919,6 +1031,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native
@@ -956,6 +1072,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native
@@ -993,6 +1113,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native
@@ -1030,6 +1154,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native
@@ -1067,6 +1195,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native

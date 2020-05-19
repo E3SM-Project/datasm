@@ -30,4 +30,5 @@ requirements:
     - xarray
     - netcdf4
     - vcs
+    - myproxyclient
     
