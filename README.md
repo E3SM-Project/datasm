@@ -6,15 +6,19 @@ The esgfpub tool consists of three main commands: [stage](#Stage), [publish](#Pu
 ## Installation
 
 Installation can be done either through conda, or directly from source
+
+conda:
 ```bash
 conda create -n pub -c conda-forge -e e3sm esgfpub
 ```
 
+source:
 ```bash
 git clone https://github.com/E3SM-Project/esgfpub.git
 cd esgfpub
 python setup.py install
 ```
+Note that installation from source will not automatically pull down package dependencies.
 
 ## Usage
 
