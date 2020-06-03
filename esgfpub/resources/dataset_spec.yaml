@@ -552,6 +552,9 @@ project:
         end: 150
         ens:
           - ens1
+        except:
+          - PRECSCS
+          - PRECSCL
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
