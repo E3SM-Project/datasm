@@ -2,6 +2,22 @@
 
 The esgfpub tool consists of three main commands: [stage](#Stage), [publish](#Publish) and [check](#Check). 
 
+
+## Installation
+
+Installation can be done either through conda, or directly from source
+```bash
+conda create -n pub -c conda-forge -e e3sm esgfpub
+```
+
+```bash
+git clone https://github.com/E3SM-Project/esgfpub.git
+cd esgfpub
+python setup.py install
+```
+
+## Usage
+
 ```bash
 >>> esgfpub -h
 usage: esgfpub [-h] {stage,check,publish} ...
@@ -20,7 +36,7 @@ subcommands:
 
 ```
 
-## Stage
+### Stage
 
 The "stage" subcommand is used to move data from holding directories into the correct ESGF directory structure given the facets of the case. This tool is expected to be used on a per-case basis, and currently only supports staging data from a single case at once. 
 
@@ -72,7 +88,7 @@ data_paths:
     ocean: /path/to/ocean/data
 ```
 
-## Publish
+### Publish
 
 The "publish" subcommand is used to publish a directory full of mapfiles.
 
@@ -96,7 +112,7 @@ optional arguments:
   --debug
 ```
 
-## Check
+### Check
 
 The "check" subcommand is used to check the consistancy of published datasets. Its two modes are used to a) check that every file that should be present in the selected datasets is present, b) check that no extra files are included, and optionally c) run a simple squared deviance check on CMIP6 time-series data to detect inconsistancies in the data.
 
