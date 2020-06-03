@@ -2,10 +2,11 @@
 Setup for esgfpub
 """
 from setuptools import find_packages, setup
+from esgfpub.version import __version__
 
 setup(
     name="esgfpub",
-    version="0.2.0",
+    version=__version__,
     author="Sterling Baldwin",
     author_email="baldwin32@llnl.gov",
     description="Automated publication tools for ESGF",

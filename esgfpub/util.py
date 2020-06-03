@@ -12,6 +12,7 @@ from shutil import move, copy
 from time import sleep
 from tqdm import tqdm
 from esgfpub import resources
+from esgfpub.version import __version__
 from tempfile import NamedTemporaryFile
 
 
@@ -195,9 +196,10 @@ def parse_args():
     parser_custom = subparsers.add_parser(
         'custom', help='Update the custom facets for a list of datasets')
     parser_custom.add_argument(
-        "-v", "--version",
-        action="store_true",
-        help="show program version")
+        "--version",
+        action="version",
+        version='%(prog)s' + f'{__version__}',
+        help="show program version and exit")
     parser_custom.add_argument(
         "-m", '--map-dir',
         dest='mapdir',
