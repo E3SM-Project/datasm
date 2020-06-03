@@ -213,7 +213,7 @@ def check_submonthly(files, start, end, debug=False):
         start, end = infer_start_end_e3sm(files)
 
     prefix = first[:idx.start()]
-    for year in range(start, end + 1):
+    for year in range(start, end):
         for month in range(1, 13):
             if month == 2:
                 # for some weird reason having to do with the frequency at which the mode
@@ -274,9 +274,10 @@ def check_time_series(files, dataset_id, spec, start=None, end=None):
     else:
         expected_vars = spec['time-series'][realm]
 
+    # import ipdb; ipdb.set_trace()
     for v in expected_vars:
         v_files = [
-            x for x in files if v in x and '_' in x and x[:x.index('_')] == v]
+            x for x in files if v in x and '_' in x and x[:-17] == v]
 
         if not v_files:
             missing.append(f'{dataset_id}-{v}-{start:04d}-{end:04d}')
@@ -578,12 +579,16 @@ def check_e3sm(client, dataset_spec, data_path, data_types, model_versions, expe
                     ens = f'ens{ensembles}'
                 elif isinstance(ensembles, list) and isinstance(ensembles[0], int):
                     ens = [f'ens{e}' for e in ensembles]
+                else:
+                    ens = ensembles
 
             for ensemble in ens:
                 if debug:
                     print_message(f'\t\tchecking ensemble: {ensemble}', 'info')
                 for res in case['resolution']:
                     for comp in case['resolution'][res]:
+                        if facet_filter(comp, tables, exclude):
+                            continue
                         for item in case['resolution'][res][comp]:
                             for data_type in item['data_types']:
                                 if item.get('except') and data_type in item['except']:
