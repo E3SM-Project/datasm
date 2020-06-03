@@ -5,8 +5,8 @@ from subprocess import Popen, PIPE
 from esgfpub.util import print_message, colors
 
 
-def yield_leaf_dirs(folder):
-    for dirpath, dirs, files in tqdm(os.walk(folder), desc=colors.OKGREEN + '[+] ' + colors.ENDC + "Walking directory tree"):
+def yield_leaf_dirs(path):
+    for dirpath, dirs, files in tqdm(os.walk(path), desc=f'{colors.OKGREEN}[+]{colors.ENDC} Walking directory tree'):
         if dirs:
             continue
         if not files:
@@ -20,7 +20,7 @@ def collect_dataset_ids(data_path):
         raise ValueError("Directory does not exist: {}".format(data_path))
     dirs = [x for x in yield_leaf_dirs(data_path)]
     for d in dirs:
-        tail, head = os.path.split(d)
+        tail, _ = os.path.split(d)
         cmip = False
         if "CMIP6" in tail:
             cmip = True
@@ -64,8 +64,7 @@ def generate_custom(facets, outpath='./custom_facets.map', mapdir=None, datadir=
                 dataset_id = aline.split(' ')[0]
                 hash_index = dataset_id.find('#')
                 dataset_id = dataset_id[:hash_index]
-                output.append("{id} | {facets}\n".format(
-                    id=dataset_id, facets=facet_str))
+                output.append(f"{dataset_id} | {facet_str}\n")
         if 'CMIP6' in output[0].split('|')[0]:
             project = 'cmip6'
         else:
@@ -79,8 +78,7 @@ def generate_custom(facets, outpath='./custom_facets.map', mapdir=None, datadir=
         for p in datadir:
             dataset_ids, project = collect_dataset_ids(p)
             for dataset in dataset_ids:
-                output.append("{id} | {facets}\n".format(
-                    id=dataset, facets=facet_str))
+                output.append(f"{dataset_id} | {facet_str}\n")
 
     with open(outpath, 'w') as outfile:
         for line in output:
@@ -109,10 +107,9 @@ def update_custom(facets, outpath='./custom_facets.map', generate_only=False, ma
         return 0
 
     print_message("Sending custom facets to the ESGF node", 'ok')
-    facet_update_string = """#!/bin/sh
+    facet_update_string = f"""#!/bin/sh
 source /usr/local/conda/bin/activate esgf-pub
-esgadd_facetvalues --project {project} --map {map} --noscan --thredds --service fileservice""".format(
-        project=project, map=outpath)
+esgadd_facetvalues --project {project} --map {outpath} --noscan --thredds --service fileservice"""
     if debug:
         print_message(facet_update_string, 'info')
     update_script = 'update_custom.sh'
@@ -131,7 +128,7 @@ esgadd_facetvalues --project {project} --map {map} --noscan --thredds --service 
             search_string = "/esg/content/thredds/esgcet/"
             idx = line.index(search_string)
             xml_path = line[idx + len(search_string):]
-            cmd = """wget --no-check-certificate --ca-certificate ~/.globus/certificate-file --certificate ~/.globus/certificate-file --private-key ~/.globus/certificate-file --verbose --post-data="uri=https://aims3.llnl.gov/thredds/catalog/esgcet/{path}&metadataRepositoryType=THREDDS" https://esgf-node.llnl.gov/esg-search/ws/harvest""".format(path=xml_path)
+            cmd = f"""wget --no-check-certificate --ca-certificate ~/.globus/certificate-file --certificate ~/.globus/certificate-file --private-key ~/.globus/certificate-file --verbose --post-data="uri=https://aims3.llnl.gov/thredds/catalog/esgcet/{xml_path}&metadataRepositoryType=THREDDS" https://esgf-node.llnl.gov/esg-search/ws/harvest"""
             print(cmd)
             os.popen(cmd)
     return 0
