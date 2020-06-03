@@ -71,7 +71,7 @@ tables:
     - lai
     - cLitter 
     - cProduct
-    - cSoil
+    # - cSoil
     - fFire
     - fHarvest
     - cVeg
@@ -151,9 +151,9 @@ time-series:
     - TGCLDCWP
     - RELHUM
     - FSNTOA
-    - ICEFRAC
-    - LANDFRAC
-    - OCNFRAC
+    # - ICEFRAC
+    # - LANDFRAC
+    # - OCNFRAC
     - PHIS
     - LWCF
     - SWCF
@@ -171,8 +171,6 @@ time-series:
     - FLNT
     - FSDSC
     - FSNSC
-    - FSNT
-    - FLNT
     - FLDS
     - FSDS
     - T
@@ -365,6 +363,9 @@ project:
         end: 500
         ens:
           - ens1
+        except:
+        - PRECSCS
+        - PRECSCL
         resolution:
           1deg_atm_60-30km_ocean:
             land:
@@ -372,6 +373,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             river:
               - 
                 grid: native
@@ -502,6 +507,9 @@ project:
         end: 150
         ens:
           - ens1
+        except:
+          - PRECSCS
+          - PRECSCL
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -523,7 +531,11 @@ project:
               -
                 grid: native
                 data_types:
-                  - model-output.mon  
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native
@@ -561,7 +573,11 @@ project:
               -
                 grid: native
                 data_types:
-                  - model-output.mon  
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native
@@ -601,7 +617,11 @@ project:
               -
                 grid: native
                 data_types:
-                  - model-output.mon  
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
       -
         experiment: amip_1850_aeroF
         start: 1870
@@ -632,6 +652,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
       -
         experiment: amip_1850_allF
         start: 1870
@@ -662,6 +686,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
       -
         experiment: F2010
         start: 1
@@ -786,6 +814,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               -
                 grid: native

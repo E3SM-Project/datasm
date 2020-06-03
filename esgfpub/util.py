@@ -76,7 +76,7 @@ def parse_args():
         '--tables',
         nargs="+",
         default=['all'],
-        help="List of CMIP6 tables or E3SM data-types to search for, default is all")
+        help="List of CMIP6 tables or E3SM components to search for, default is all")
     parser_esgf_check.add_argument(
         '--ens',
         '--ensembles',
