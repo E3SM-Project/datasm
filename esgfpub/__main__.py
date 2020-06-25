@@ -3,7 +3,9 @@ A tool for automating much of the ESGF publication process
 """
 import warnings
 warnings.simplefilter('ignore')
+from shutil import rmtree
 from esgfpub.util import parse_args
+import os
 from sys import exit as sysexit
 
 
@@ -62,6 +64,9 @@ def main():
             debug=ARGS.debug)
     else:
         raise ValueError("Unrecognised subcommand")
+
+    if os.path.exists('dask-worker-space'):
+        rmtree('dask-worker-space')
 
 
 if __name__ == "__main__":

@@ -4,12 +4,15 @@ warnings.simplefilter('ignore')
 from esgfpub.util import path_to_dataset_id, print_message
 from dask.distributed import get_client, worker_client, as_completed
 from dask.diagnostics import ProgressBar
-import vcs
+# import vcs
 import xarray as xr
 import numpy as np
 from datetime import datetime
 import os
 from tqdm import tqdm
+
+from matplotlib import pyplot as plt
+
 
 import logging
 logger = logging.getLogger("distributed.worker")
@@ -18,49 +21,25 @@ logger.setLevel(logging.ERROR)
 
 def plot_minmaxmean(outpath, ds, vmax, dataset_id, debug=False):
 
-    times = {}
-    for i, t in enumerate(ds['time']):
-        if i % (12 * 10) == 0:  # a tick every 10 years
-            v = str(t.values)
-            times[i] = v[:4]
-
-    vmax = [x for x in vmax if not np.isnan(x)]
-
-    canvas = vcs.init(geometry=(1800, 1200))
-    template = vcs.createtemplate()
-
-    line = vcs.create1d()
-
-    template.blank(["mean", "crdate", "crtime", "min", "dataname"])
-    mx = max(vmax)
-    mn = min(vmax)
-    line.linecolor = "red"
-    diff = (mx - mn)/20
-    line.datawc_y2 = mx + diff
-    line.datawc_y1 = mn - diff
-    line.linewidth = 1.
-    line.marker = None
-    line.xticlabels1 = times
+    fig, ax1 = plt.subplots()
+    fig.set_size_inches(18.5, 10.5)
+    plt.title(dataset_id)
     
-    canvas.clear()
-    canvas.plot(vmax, template, line)
-    
-    template.blank(["mean", "crdate", "crtime", "min", "max", "dataname"])
-    line.yticlabels1 = {}
-    line.xticlabels1 = {}
-    line.marker = None
-    mx = ds['means'].max().compute().values.item()
-    mn = ds['means'].min().compute().values.item()
-    std = ds['means'].std().compute().values.item()
-    diff = (mx - mn)/20
-    line.linecolor = "black"
-    line.datawc_y2 = mx + std * 3
-    line.datawc_y1 = mn - std * 3
-    line.linewidth = 1.5
-    
-    canvas.plot(ds['means'], template, line, id="", title=dataset_id)
-    canvas.png(outpath)
-    canvas.close()
+    xtick_positions = [i for i, t in enumerate(ds['time']) if i % (120) == 0]
+    xtick_values = [t.values.item().strftime('%Y') for i, t in enumerate(ds['time']) if i % (120) == 0]
+    plt.xticks(xtick_positions, xtick_values)
+
+
+    ax1.set_xlabel('year')
+    var = next(filter(lambda x: 'bnds' not in x, ds.data_vars))
+    ax1.set_ylabel(ds[var].units)
+
+    ax1.plot(ds['means'], color='tab:blue')
+
+    ax2 = ax1.twinx()
+    ax2.plot(vmax, color='tab:red')
+
+    plt.savefig(outpath, dpi=100)
     return
 
 
@@ -127,7 +106,7 @@ def check_sq_variance(dataset_path, dataset_id, variable, pngpath, pbar, debug=F
         dims = list()
         possible_dims = ['depth', 'lat', 'lon', 'plev', 'tau', 'lev', 'sector']
         for i in possible_dims:
-            if i in ds.coords:
+            if i in ds.dims:
                 if i == 'sector':
                     dims.append('basin')
                 else:
@@ -144,11 +123,12 @@ def check_sq_variance(dataset_path, dataset_id, variable, pngpath, pbar, debug=F
             # maxrollingvar = ds['means'].mean().compute()
             # maxrollingstd = client.compute( ds['means'].std ).result()
             # maxrollingvar = client.compute( ds['means'].mean ).result()
-        
+        # import ipdb; ipdb.set_trace()
+        ds['means'] = ds['means'][~np.isnan(ds['means'])]
         pbar.update(1)
            
-        maxrollingvar = client.compute( ds['means'].rolling({'time':24}, min_periods=1).mean() )
-        maxrollingstd = client.compute( ds['means'].rolling({'time':24}, min_periods=1).std() )
+        maxrollingvar = client.compute( ds['means'].rolling({'time':120}, min_periods=1).mean() )
+        maxrollingstd = client.compute( ds['means'].rolling({'time':120}, min_periods=1).std() )
         for idx, seg in enumerate(segments):
             if idx == num_segments - 1:
                 seg_end = ds['time'].size
@@ -179,5 +159,8 @@ def check_sq_variance(dataset_path, dataset_id, variable, pngpath, pbar, debug=F
 def verify_dataset(dataset_path, dataset_id, variable, output, pbar, debug=False):
 
     issues = list()
+    if not os.path.exists(output):
+        os.makedirs(output)
+
     pngpath = os.path.join(output, f"{dataset_id}.png")
     return check_sq_variance(dataset_path, dataset_id, variable, pngpath, pbar, debug)

@@ -385,7 +385,7 @@ def check_files(files, spec, start, end, debug=False):
     return missing, dataset_id, extra
 
 
-def sproket_with_id(dataset_id, sproket, spec, *args, start=False, end=False, debug=False, **kwargs):
+def sproket_with_id(dataset_id, sproket, spec, start=False, end=False, debug=False, **kwargs):
 
     if debug:
         print_message(f"Searching for: {dataset_id}", 'info')
@@ -626,8 +626,9 @@ def check_e3sm(client, dataset_spec, data_path, data_types, model_versions, expe
                 info['id'],
                 sproket,
                 dataset_spec,
-                info['start'],
-                info['end'])
+                start=info['start'],
+                end=info['end'],
+                debug=debug)
             missing.extend(m)
             extra.extend(e)
             if not m and debug:
@@ -767,7 +768,7 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
                 cmip_project_path = os.path.join(
                     project_path, cmip_project, 'E3SM-Project')
                 if debug:
-                    print_message(' checking cmip-project: {cmip_project}', 'info')
+                    print_message(f' checking cmip-project: {cmip_project}', 'info')
                 for model_version in os.listdir(cmip_project_path):
                     if facet_filter(model_version, model_versions, exclude):
                         continue
@@ -803,7 +804,10 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
                                     # pick just the last version
                                     versions = os.listdir(
                                         os.path.join(variable_path, 'gr'))
-                                    version = sorted(versions)[-1]
+                                    try:
+                                        version = sorted(versions)[-1]
+                                    except IndexError as e:
+                                        raise ValueError(f'Unable to find version for {v}') from e
                                     if debug:
                                         print_message(f'      checking variable-{version}: {v}', 'info')
 

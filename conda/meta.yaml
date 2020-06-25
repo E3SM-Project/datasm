@@ -29,7 +29,7 @@ requirements:
     - pexpect
     - xarray
     - netcdf4
-    - vcs
+    - matplotlib
     - myproxyclient
   
 test:
