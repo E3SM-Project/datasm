@@ -4,3 +4,4 @@ tmp
 config\.json
 \.vscode/*
 .coverage*
+dask-worker-space

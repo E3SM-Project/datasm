@@ -1,0 +1,65 @@
+project: e3sm
+required_catagories:
+  - project
+  - source_id
+  - source
+  - experiment
+  - realm
+  - model_version
+  - regridding
+  - time_frequency
+  - data_type
+  - ensemble_member
+
+optional_catagories:
+  - science_driver
+  - period
+  - atmos_grid_resolution
+  - land_grid_resolution
+  - seaice_grid_resolution
+  - ocean_grid_resolution
+  - landice_grid_resolution
+  - doi
+  - campaign
+  - tuning
+
+directory_format: (root)/(source)/(model_version)/(experiment)/(atmos_grid_resolution)_atm_(ocean_grid_resolution)_ocean/(realm)/(regridding)/(data_type)/(time_frequency)/(ensemble_member)/(version)
+
+dataset_id: (source).(model_version).(experiment).(atmos_grid_resolution)s_atm_(ocean_grid_resolution)_ocean.(realm).(regridding).(data_type).(time_frequency).(ensemble_member)
+
+catagory_options:
+  source: 
+    - E3SM
+  model_version:
+    - "0_0"
+    - "1_0"
+    - "1_1"
+    - "1_1_ECA"
+  experiment:
+    - piControl
+    - 1pctCO2
+    - abrupt-4xCO2
+    - amip
+    - amip_1850_aeroF
+    - amip_1850_allF
+    - historical
+    - 1950-Control
+    - F2010
+    - F2010plus4k
+    - F2010-nudgeUV
+    - F2010-nudgeUV-1850aero
+    - hist-BCRC
+    - hist-BCRD
+    - hist-BDRC
+    - hist-BDRD
+  regridding:
+    - native
+    - 129x256
+    - 180x360
+    - 360x720
+    - 720x1440
+  atmos_grid_resolution: [1deg, 0_25deg]
+  ocean_grid_resolution: [60-30km, 18-6km]
+  tuning: [highres, lowres]
+  time_frequency: [mon, day, 5day_snap, 6hr, 6hr_ave, 6hr_snap, 3hr, day_cosp, fixed]
+
