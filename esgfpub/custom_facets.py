@@ -44,6 +44,18 @@ def collect_dataset_ids(data_path):
 
 
 def generate_custom(facets, outpath='./custom_facets.map', mapdir=None, datadir=None, debug=False):
+    """
+    Create a custom facet mapfile, and returns the project that the datasets belong to
+    
+    Params:
+        facets (list): a list of strings containing '=' seperated key, value pairs
+        outpath (str): a path to where the new custom facet mapfile should be saved
+        mapdir (str):  (optional) if supplied, will use a directory of esgf mapfiles as a source
+        datadir (str): (optional) if supplied, will walk down the directory tree collecting dataset ids
+        debug (bool): (optional) will print debug info
+    Returns:
+        str: the project (CMIP6/E3SM) the datasets belong to
+    """
     for facet in facets:
         if facet.index('=') == -1:
             raise ValueError(
@@ -107,6 +119,8 @@ def update_custom(facets, outpath='./custom_facets.map', generate_only=False, ma
         return 0
 
     print_message("Sending custom facets to the ESGF node", 'ok')
+
+    # render out a shell script so that the esgf-pub environment can be loaded
     facet_update_string = f"""#!/bin/sh
 source /usr/local/conda/bin/activate esgf-pub
 esgadd_facetvalues --project {project} --map {outpath} --noscan --thredds --service fileservice"""
@@ -123,6 +137,8 @@ esgadd_facetvalues --project {project} --map {outpath} --noscan --thredds --serv
     if debug:
         print_message(out)
         print_message(err)
+    
+    # the esgadd_facetvalues tool sends all of its output to stderr
     for line in err.split('\n'):
         if "Writing THREDDS catalog" in line:
             search_string = "/esg/content/thredds/esgcet/"

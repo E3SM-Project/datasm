@@ -7,6 +7,7 @@ import numpy as np
 import netCDF4
 from tqdm import tqdm
 from datetime import datetime
+from shutil import copyfile
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
@@ -121,7 +122,7 @@ def check_indices(f1, f2):
         return msg
     return False
 
-def deoverlap(segments, streams, inpath, outpath):
+def deoverlap(segments, streams, inpath, outpath, copy=None):
     """
     First copy/link over all the files without overlaps from the correct file streams
     
@@ -129,6 +130,8 @@ def deoverlap(segments, streams, inpath, outpath):
     """
     os.makedirs(outpath, exist_ok=True)
     index = 0
+    
+    pathpairs = []
     for file in os.listdir(inpath):
         should_continue = False
         for segment in segments:
@@ -142,9 +145,21 @@ def deoverlap(segments, streams, inpath, outpath):
             continue
 
         if streams[index] in file:
-            os.symlink(
-                os.path.join(os.path.abspath(inpath), file), 
-                os.path.join(outpath, file))
+            src = os.path.join(os.path.abspath(inpath), file)
+            dst = os.path.join(outpath, file)
+            pathpairs.append((src, dst))
+    
+    # move the files over in parallel
+    if copy:
+        desc = "Copying files into output directory"
+        move = copyfile
+    else:
+        desc = "Linking files into output directory"
+        move = os.symlink
+    with ProcessPoolExecutor(max_workers=8) as pool:
+        futures = [pool.submit(move, src, dst) for src, dst in pathpairs]
+        for _ in tqdm(as_completed(futures), total=len(futures), desc=desc):
+            pass
 
     for segment in segments:
 
@@ -176,6 +191,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('input', help="The directory to check for time index issues, should only contain a single time-frequency from a single case")
     parser.add_argument('--output', default="output", required=False, help=f"output directory for rectified dataset, default is {os.environ['PWD']}/output")
+    parser.add_argument('--copy', action="store_true", required=False, help="create a copy of the files in the output directory instead of symlinks")
     parser.add_argument('-j', '--jobs', default=8, type=int, help="the number of processes, default is 8")
     args = parser.parse_args()
     inpath = args.input
@@ -240,7 +256,7 @@ def main():
     segpairs = [x for x in zip(segments[:-1], segments[1:])]
     if not segpairs:
         print("There is only one overlapping segment")
-        deoverlap(segments, streams, inpath, outpath)
+        deoverlap(segments, streams, inpath, outpath, copy=args.copy)
         return 0
 
     overlap_segments = [segments[0]]
@@ -257,7 +273,7 @@ def main():
             overlap_segments.append(segpair[0])
             is_continuing = True
     print(f"segment ends at {segpairs[-1][-1][-1]}")
-    deoverlap(overlap_segments, streams, inpath, outpath)
+    deoverlap(overlap_segments, streams, inpath, outpath, copy=args.copy)
 
     return 0
 
