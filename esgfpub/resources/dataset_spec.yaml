@@ -407,6 +407,11 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+            misc:
+              -
+                grid: native
+                data_types:
+                  - mapping.fixed
       -
         experiment: 1950-Control
         start: 26
@@ -420,7 +425,6 @@ project:
                 grid: 180x360
                 data_types:
                   - model-output.mon
-                  - climo.mon
               -
                 grid: 720x1440
                 data_types:
@@ -846,10 +850,8 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
-                  - model-output.day_cosp
-                  - model-output.6hr_snap
+                  - model-output.3hr_snap
                   - model-output.3hr
-                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -888,9 +890,8 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
-                  - model-output.6hr_snap
+                  - model-output.3hr_snap
                   - model-output.3hr
-                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -929,9 +930,8 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
-                  - model-output.6hr_snap
+                  - model-output.3hr_snap
                   - model-output.3hr
-                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -970,9 +970,8 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
-                  - model-output.6hr_snap
+                  - model-output.3hr_snap
                   - model-output.3hr
-                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -1011,9 +1010,8 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
-                  - model-output.6hr_snap
+                  - model-output.3hr_snap
                   - model-output.3hr
-                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -1053,9 +1051,8 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
-                  - model-output.6hr_snap
+                  - model-output.3hr_snap
                   - model-output.3hr
-                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -1094,9 +1091,8 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
-                  - model-output.6hr_snap
+                  - model-output.3hr_snap
                   - model-output.3hr
-                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -1135,9 +1131,8 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
-                  - model-output.6hr_snap
+                  - model-output.3hr_snap
                   - model-output.3hr
-                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -1176,9 +1171,8 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
-                  - model-output.6hr_snap
+                  - model-output.3hr_snap
                   - model-output.3hr
-                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
@@ -1217,9 +1211,8 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.day
-                  - model-output.6hr_snap
+                  - model-output.3hr_snap
                   - model-output.3hr
-                  - model-output.6hr
               - 
                 grid: 180x360
                 data_types:
