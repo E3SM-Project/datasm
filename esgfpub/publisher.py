@@ -93,11 +93,12 @@ def publish_maps(mapfiles, mapsin, mapsout, mapserr, sproket='spoket', debug=Fal
         #     print_message(script, 'info')
         print(f"Running publication for {map_path}")
         cmd = f"esgpublish --project {project} --map {map_path}".split()
-        out, err = Popen(cmd, stdout=PIPE, stderr=PIPE).communicate()
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        out, err = proc.communicate()
         out = out.decode('utf-8')
         err = err.decode('utf-8')
         print(out)
-        if err:
+        if proc.returncode != 0:
             print(err)
             print_message(
                 f"Error in publication, moving {m} to {mapserr}", "error")
