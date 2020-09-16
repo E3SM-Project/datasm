@@ -177,9 +177,6 @@ def parse_args():
         '--maps-err',
         help="Path to where errored mapfiles should be moved to")
     parser_publish.add_argument(
-        '--ini',
-        help="Path to ini directory")
-    parser_publish.add_argument(
         '--loop',
         action="store_true",
         help="If set, this will cause the publisher to loop continuously and publish any mapfiles placed in the input directory")

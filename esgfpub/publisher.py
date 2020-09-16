@@ -9,7 +9,7 @@ from datetime import datetime
 
 
 
-def publish_maps(mapfiles, ini, mapsin, mapsout, mapserr, username=None, password=None, sproket='spoket', debug=False):
+def publish_maps(mapfiles, mapsin, mapsout, mapserr, sproket='spoket', debug=False):
     for m in mapfiles:
         if debug:
             print_message(f'Starting mapfile: {m}', 'info')
@@ -94,8 +94,11 @@ def publish_maps(mapfiles, ini, mapsin, mapsout, mapserr, username=None, passwor
         print(f"Running publication for {map_path}")
         cmd = f"esgpublish --project {project} --map {map_path}".split()
         out, err = Popen(cmd, stdout=PIPE, stderr=PIPE).communicate()
-
+        out = out.decode('utf-8')
+        err = err.decode('utf-8')
+        print(out)
         if err:
+            print(err)
             print_message(
                 f"Error in publication, moving {m} to {mapserr}", "error")
             os.rename(
@@ -109,8 +112,7 @@ def publish_maps(mapfiles, ini, mapsin, mapsout, mapserr, username=None, passwor
                 os.path.join(mapsout, m))
 
 
-
-def publish(mapsin, mapsout, mapserr, ini, loop, sproket='sproket', debug=False):
+def publish(mapsin, mapsout, mapserr, loop, sproket='sproket', debug=False):
 
     # if not os.path.exists(cred_file):
     #     raise ValueError('The given credential file does not exist')
@@ -137,9 +139,8 @@ def publish(mapsin, mapsout, mapserr, ini, loop, sproket='sproket', debug=False)
     while True:
         mapfiles = [x for x in os.listdir(mapsin) if x.endswith('.map')]
         if mapfiles:
-            publish_maps(mapfiles, ini, mapsin, mapsout,
-                        mapserr, username, password, 
-                        debug=debug, sproket=sproket)
+            publish_maps(mapfiles, mapsin, mapsout,
+                        mapserr, debug=debug, sproket=sproket)
         if not loop:
             break
         sleep(30)

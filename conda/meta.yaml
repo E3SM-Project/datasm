@@ -26,11 +26,9 @@ requirements:
     - tqdm
     - yaml
     - distributed
-    - pexpect
     - xarray
     - netcdf4
     - matplotlib
-    - myproxyclient
   
 test:
   imports:

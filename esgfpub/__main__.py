@@ -28,7 +28,6 @@ def main():
             mapsin=ARGS.maps_in,
             mapsout=ARGS.maps_done,
             mapserr=ARGS.maps_err,
-            ini=ARGS.ini,
             loop=ARGS.loop,
             sproket=ARGS.sproket,
             debug=ARGS.debug)
