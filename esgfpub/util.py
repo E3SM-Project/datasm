@@ -54,15 +54,15 @@ def parse_args():
 
     parser_esgf_check = subparsers.add_parser(
         'check', help='Check the file structure and ESGF database for missing datasets')
-    tail, _ = os.path.split(resources.__file__)
+    resource_path, _ = os.path.split(resources.__file__)
     parser_esgf_check.add_argument(
         '-p',
-        '--project',
+        '--projects',
         default=['CMIP6', 'E3SM'],
-        help='Which project to check for, valid arguments are cmip6 or e3sm. Default is both')
+        help='Which projects to check for, valid arguments are cmip6 or e3sm. Default is both CMIP6 and E3SM')
     parser_esgf_check.add_argument(
-        '-c',
-        '--cases',
+        '-e',
+        '--experiments',
         nargs="+",
         default=['all'],
         help="Which case to check the data for, default is all")
@@ -123,6 +123,11 @@ def parse_args():
         default=['all'],
         help="which data-types to search for, default is all")
     parser_esgf_check.add_argument(
+        '--data-version',
+        dest='data_version',
+        default='latest',
+        help="version of the data to search for, default is the latest")
+    parser_esgf_check.add_argument(
         '--exclude',
         nargs='+',
         default=['none'],
@@ -133,19 +138,17 @@ def parse_args():
         help="Run a std deviation test on global mean for each variable")
     parser_esgf_check.add_argument(
         '--plot-path',
-        default='/var/www/e3sm/public/pngs/',
-        help="Path for verification plot output")
+        help="Where to store verification plots")
     parser_esgf_check.add_argument(
-        '--only-plots',
-        action="store_true",
-        help="Only produce verification plots, dont run the variance analysis")
-    parser_esgf_check.add_argument(
-        '--case-spec',
-        default=os.path.join(tail, 'dataset_spec.yaml'),
+        '--spec-path',
+        default=os.path.join(resource_path, 'dataset_spec.yaml'),
         help="Path to custom dataset specification file")
     parser_esgf_check.add_argument(
         '--to-json',
         help='The output will be stored in the given file, json format')
+    parser_esgf_check.add_argument(
+        '--report-plot',
+        help="path to where the plot report should be saved, requires json output and digest")
     parser_esgf_check.add_argument(
         '--digest',
         action="store_true",
@@ -180,11 +183,6 @@ def parse_args():
         '--loop',
         action="store_true",
         help="If set, this will cause the publisher to loop continuously and publish any mapfiles placed in the input directory")
-    parser_publish.add_argument(
-        '-c',
-        '--credentials',
-        required=True,
-        help="JSON file containing myproxy-logon username and password")
     parser_publish.add_argument(
         '--sproket',
         default='sproket',

@@ -5,6 +5,8 @@ from esgfpub.util import path_to_dataset_id, print_message
 from dask.distributed import get_client, worker_client, as_completed
 from dask.diagnostics import ProgressBar
 # import vcs
+
+import statsmodels.api as sm
 import xarray as xr
 import numpy as np
 from datetime import datetime
@@ -32,7 +34,8 @@ def plot_minmaxmean(outpath, ds, vmax, dataset_id, debug=False):
 
     ax1.set_xlabel('year')
     var = next(filter(lambda x: 'bnds' not in x, ds.data_vars))
-    ax1.set_ylabel(ds[var].units)
+    if hasattr(ds[var], 'units'):
+        ax1.set_ylabel(ds[var].units)
 
     ax1.plot(ds['means'], color='tab:blue')
 
@@ -93,6 +96,9 @@ def check_sq_variance(dataset_path, dataset_id, variable, pngpath, pbar, debug=F
         pbar.last_print_n = 0
         pbar.update()
 
+    contents = os.listdir(dataset_path)
+    if not contents:
+        raise ValueError(f"Empty dataset directory {dataset_path}")
     with xr.open_mfdataset(dataset_path + '/*.nc') as ds:
 
         segments = list(
@@ -156,11 +162,70 @@ def check_sq_variance(dataset_path, dataset_id, variable, pngpath, pbar, debug=F
     return issues
 
 
-def verify_dataset(dataset_path, dataset_id, variable, output, pbar, debug=False):
+def plot_seasonal_decomp(dataset_path, dataset_id, variable, pngpath, debug=False):
+
+    contents = os.listdir(dataset_path)
+    if not contents:
+        raise ValueError(f"Empty dataset directory {dataset_path}")
+    
+    # open the multi-file dataset, combining the files by their coords
+    ds = xr.open_mfdataset(f'{dataset_path}/*.nc', combine='by_coords')
+    
+
+    # find the dimensions to average over
+    possible_dims = ['depth', 'lat', 'lon', 'plev', 'tau', 'lev', 'sector']    
+    dims = tuple(x if x != 'sector' else 'basin' for x in ds.dims if x in possible_dims)
+
+    meanvalues = ds[variable].mean(dims).compute()
+    mpd = meanvalues.to_pandas()
+
+    # compute the seasonal decomposition
+    decomposition = sm.tsa.seasonal_decompose(mpd, model='additive', period=12)
+
+    # produce the plot
+    fig, axes = plt.subplots(3)
+    plt.suptitle(dataset_id)
+
+    fig.set_size_inches(15, 10)
+    fig.tight_layout(pad=5.0)
+
+    xtick_positions = [i for i, t in enumerate(ds['time']) if i % (120) == 0]
+    xtick_values = [t.values.item().strftime('%Y') for i, t in enumerate(ds['time']) if i % (120) == 0]
+    # plt.xticks(xtick_positions, xtick_values)
+    plt.setp(axes, xticks=xtick_positions, xticklabels=xtick_values)
+    plt.xlabel('year')
+
+    # top plot is global mean
+    axes[0].set_title(f'global {variable} mean')
+    axes[0].plot(meanvalues)
+
+    # second plot is seasonality - mean
+    trend = decomposition.trend[:].to_xarray()
+    axes[1].set_title('trend')
+    axes[1].plot(trend)
+
+    # thrid plot is the residual
+    resid = decomposition.resid[:].to_xarray()
+    axes[2].set_title('residual')
+    axes[2].plot(resid, 'o')
+
+    plt.savefig(pngpath, dpi=100)
+
+    rstd = np.std(resid)
+    rmean = np.mean(resid)
+    diff = rstd * 5
+    # flag anything thats outside 5x away from the std as a potential issue
+    issues = [f"{variable} - {r.time.values.item().strftime('%Y-%m')}" for r in resid if r > rmean + diff or r < rmean - diff]
+    return issues
+
+
+
+def verify_dataset(dataset_path, dataset_id, variable, output, debug=False):
 
     issues = list()
     if not os.path.exists(output):
         os.makedirs(output)
 
     pngpath = os.path.join(output, f"{dataset_id}.png")
-    return check_sq_variance(dataset_path, dataset_id, variable, pngpath, pbar, debug)
+    return plot_seasonal_decomp(dataset_path, dataset_id, variable, pngpath, debug)
+    # return check_sq_variance(dataset_path, dataset_id, variable, pngpath, pbar, debug)

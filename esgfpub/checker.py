@@ -1,11 +1,19 @@
 import warnings
 warnings.simplefilter('ignore')
-from distributed import Client, as_completed, LocalCluster, get_client
+import logging
+logger = logging.getLogger("contextlib")
+logger.setLevel(logging.ERROR)
+
+# from distributed import Client, as_completed, LocalCluster, get_client
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
 from esgfpub.util import print_message
 from esgfpub.verify import verify_dataset
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
 from tqdm import tqdm
+import numpy as np
+import matplotlib.pyplot as plt
 import re
 import json
 import yaml
@@ -160,11 +168,7 @@ def check_monthly(files, start=None, end=None):
             else:
                 files_found.append(name)
 
-    # extra_files = [x for x in files if x not in files_found]
-    extra_files = list()
-    for x in files:
-        if x not in files_found:
-            extra_files.append(x)
+    extra_files = [x for x in files if x not in files_found]
     return missing, extra_files
 
 
@@ -325,7 +329,7 @@ def get_version(filename):
         return 0
 
 
-def filename_to_datasetid(filename):
+def filepath_to_datasetid(filename):
     tail, head = os.path.split(filename)
     if 'CMIP6' in tail:
         tail = tail.split('/')
@@ -345,21 +349,15 @@ def check_files(files, spec, start, end, debug=False):
     """
     missing = []
     extra = []
-    dataset_id = filename_to_datasetid(files[0])
+    try:
+        dataset_id = filepath_to_datasetid(files[0])
+    except:
+        import ipdb; ipdb.set_trace()
     if debug:
         print_message(f"Found dataset: {dataset_id}", 'info')
 
     if '.fx.' in dataset_id and files:
         return [], dataset_id, []
-
-    
-    new_files = list()
-    for f in files:
-        split = f.split('/')
-        if split[-1] not in new_files:
-            new_files.append(split[-1])
-    files = new_files
-
 
     if dataset_id[:5] == 'CMIP6':
         missing, extra = check_spans(files, start, end, dataset_id)
@@ -434,64 +432,74 @@ def sproket_with_id(dataset_id, sproket, spec, start=False, end=False, debug=Fal
 # This file would have the dataset_id:
 # CMIP6.CMIP.E3SM-project.E3SM-1-0.piControl.r1i1p1f1.Amon.ts#20190719
 
+def collect_cmip_datasets(**kwargs):
+    case_spec = kwargs['case_spec']
+    model_versions = kwargs.get('model_versions', 'all')
+    experiments = kwargs.get('experiments', 'all')
+    ensembles = kwargs.get('ens', 'all')
+    tables = kwargs.get('tables', 'all')
+    variables = kwargs.get('variables', 'all')
+    data_version = kwargs.get('data_version', 'all')
+    data_types = kwargs.get('data_types', 'all')
+    exclude = kwargs.get('exclude')
+    debug = kwargs.get('debug')
 
-def check_cmip(client, dataset_spec, data_path, model_versions, experiments, ensembles, tables, variables, sproket, exclude=False, debug=False):
-
-    missing, extra, futures, dataset_ids = list(), list(), list(), list()
-
-    for source in dataset_spec['project']['CMIP6']:
+    for source in case_spec['project']['CMIP6']:
         if facet_filter(source, model_versions, exclude):
             continue
         if debug:
             print_message('checking model version: ' + source, 'info')
-        for case in dataset_spec['project']['CMIP6'][source]:
 
-            # Check this case if its explicitly given by the user, or if default is set
+        for case in case_spec['project']['CMIP6'][source]:
             if facet_filter(case['experiment'], experiments, exclude):
                 continue
             if debug:
                 print_message('  checking case: ' + case['experiment'], 'info')
 
             if 'all' in ensembles:
-                ensembles = case['ens']
+                ensembles_to_run = case['ens']
             else:
                 if isinstance(ensembles, int):
-                    ensembles = f'r{ensembles}i1f1p1'
+                    ensembles_to_run = f'r{ensembles}i1f1p1'
                 elif isinstance(ensembles, list) and isinstance(ensembles[0], int):
-                    ensembles = [f'r{e}i1f1p1' for e in ensembles]
+                    ensembles_to_run = [f'r{e}i1f1p1' for e in ensembles]
 
-            for ensemble in ensembles:
+            for ensemble in ensembles_to_run:
+                if facet_filter(ensemble, ensembles_to_run, exclude):
+                    continue
                 if debug:
                     print_message(f'\t\tchecking ensemble: {ensemble}', 'info')
-                for table in dataset_spec['tables']:
-                    # skip this table if its not in the user list
-                    # and the default isnt set
-                    if facet_filter(table, tables, exclude):
-                        continue
 
-                    if table in case.get('except', []):
+                for table in case_spec['tables']:
+                    if facet_filter(table, tables, [*exclude, *case.get('except', [])] ):
                         continue
+                    if debug:
+                        print_message(f'\t\t\tchecking table: {table}', 'info')
 
-                    for variable in dataset_spec['tables'][table]:
-                        # skip this varible if its not in the user list
-                        # and the default isnt set
-                        if facet_filter(variable, variables, exclude):
+                    for variable in case_spec['tables'][table]:
+                        if facet_filter(variable, variables, [*exclude, *case.get('except', [])] ):
                             continue
 
-                        if variable in case.get('except', []):
-                            continue
+                        data_version = kwargs.get('data_version')
+                        if data_version == 'latest':
+                            data_version = '*'
 
-                        dataset_id = f"CMIP6.*.E3SM-Project.{source}.{case['experiment']}.{ensemble}.{table}.{variable}.*"
-                        dataset_ids.append((dataset_id, case))
+                        dataset_id = f"CMIP6.*.E3SM-Project.{source}.{case['experiment']}.{ensemble}.{table}.{variable}.{data_version}"
+                        yield dataset_id, case
 
-    msg = f"Found {len(dataset_ids)} datasets"
-    print_message(msg, 'ok')
+def check_cmip(**kwargs):
 
-    pbar = tqdm(
-        total=len(dataset_ids),
-        desc="Searching ESGF for datasets")
+    missing, extra, futures, dataset_ids = list(), list(), list(), list()
 
-    for dataset_id, case in dataset_ids:
+    sproket = kwargs.get('sproket')
+    case_spec = kwargs.get('case_spec')
+    debug = kwargs.get('debug')
+    client = kwargs.get('client')
+
+    if not client:
+        pbar = tqdm(desc="Searching ESGF for datasets")
+
+    for dataset_id, case in collect_cmip_datasets(**kwargs):
         if debug:
             msg = f'Looking up dataset {dataset_id}'
             print_message(msg, 'info')
@@ -501,7 +509,7 @@ def check_cmip(client, dataset_spec, data_path, model_versions, experiments, ens
                     sproket_with_id,
                     dataset_id,
                     sproket,
-                    dataset_spec,
+                    case_spec,
                     case['start'],
                     case['end'],
                     debug))
@@ -510,7 +518,7 @@ def check_cmip(client, dataset_spec, data_path, model_versions, experiments, ens
             m, _, e = sproket_with_id(
                 dataset_id,
                 sproket,
-                dataset_spec,
+                case_spec,
                 case['start'],
                 case['end'],
                 debug=debug)
@@ -530,6 +538,7 @@ def check_cmip(client, dataset_spec, data_path, model_versions, experiments, ens
                 extra.extend(e)
 
     if client:
+        pbar = tqdm(total=len(futures))
         for f in as_completed(futures):
             m, dataset_id, e = f.result()
             if not m:
@@ -548,23 +557,32 @@ def check_cmip(client, dataset_spec, data_path, model_versions, experiments, ens
             if e:
                 extra.extend(e)
             pbar.update(1)
-        pbar.close()
-
-    return missing, extra
+    pbar.close()
 
 
-def check_e3sm(client, dataset_spec, data_path, data_types, model_versions, experiments, ensembles, tables, variables, sproket, exclude=False, debug=False):
-    dataset_ids, missing, extra, futures = list(), list(), list(), list()
+    dataset_ids = [{'id': ds} for ds,case in dataset_ids]
+    return missing, extra, dataset_ids
 
-    print_message("Collecting dataset ids", 'ok')
-    for version in dataset_spec['project']['E3SM']:
+def collect_e3sm_datasets(**kwargs):
+    case_spec = kwargs['case_spec']
+    model_versions = kwargs.get('model_versions', 'all')
+    experiments = kwargs.get('experiments', 'all')
+    ensembles = kwargs.get('ens', 'all')
+    tables = kwargs.get('tables', 'all')
+    variables = kwargs.get('variables', 'all')
+    data_version = kwargs.get('data_version', 'all')
+    data_types = kwargs.get('data_types', 'all')
+    exclude = kwargs.get('exclude')
+    debug = kwargs.get('debug')
+
+    for version in case_spec['project']['E3SM']:
         if version not in model_versions and 'all' not in model_versions:
             continue
         if facet_filter(version, model_versions, exclude):
             continue
         if debug:
             print_message(f'checking version: {version}', 'info')
-        for case in dataset_spec['project']['E3SM'][version]:
+        for case in case_spec['project']['E3SM'][version]:
 
             # Check this case if its explicitly given by the user, or if default is set
             if facet_filter(case['experiment'], experiments, exclude):
@@ -596,43 +614,45 @@ def check_e3sm(client, dataset_spec, data_path, data_types, model_versions, expe
                                 if facet_filter(data_type, data_types, exclude):
                                     continue
                                 dataset_id = f"E3SM.{version}.{case['experiment']}.{res}.{comp}.{item['grid']}.{data_type}.{ensemble}.*"
-                                dataset_ids.append({
-                                    'id': dataset_id,
-                                    'start': case['start'],
-                                    'end': case['end']
-                                })
+                                yield dataset_id, case['start'], case['end']
 
-    msg = f'Found {len(dataset_ids)} dataset ids'
-    print_message(msg, 'ok')
+
+def check_e3sm(**kwargs):
+    dataset_ids, missing, extra, futures = list(), list(), list(), list()
+    case_spec = kwargs['case_spec']
+    sproket = kwargs.get('sproket', 'sproket')
+    client = kwargs.get('client')
+    debug = kwargs.get('debug')
+
     if debug:
         for d in dataset_ids:
             print_message(d, 'info')
     if not client:
-        pbar = tqdm(total=len(dataset_ids), desc="Looking up datasets")
+        pbar = tqdm(desc="Looking up datasets")
 
-    for info in dataset_ids:
+    for dataset_id, start, end in collect_e3sm_datasets(**kwargs):
         if client:
             futures.append(
                 client.submit(
                     sproket_with_id,
-                    info['id'],
+                    dataset_id,
                     sproket,
-                    dataset_spec,
-                    info['start'],
-                    info['end']))
+                    case_spec,
+                    start,
+                    end))
         else:
-            pbar.set_description(f'Checking: {info["id"]}')
+            pbar.set_description(f'Checking: {dataset_id}')
             m, dataset_id, e = sproket_with_id(
-                info['id'],
+                dataset_id,
                 sproket,
-                dataset_spec,
-                start=info['start'],
-                end=info['end'],
+                case_spec,
+                start=start,
+                end=end,
                 debug=debug)
             missing.extend(m)
             extra.extend(e)
             if not m and debug:
-                print_message(f'All files found for: {info["id"]}', 'info')
+                print_message(f'All files found for: {dataset_id}', 'info')
             pbar.update(1)
 
     if client:
@@ -649,12 +669,13 @@ def check_e3sm(client, dataset_spec, data_path, data_types, model_versions, expe
             pbar.update(1)
         pbar.close()
 
-    return missing, extra
+    return missing, extra, dataset_ids
 
 
 def check_datasets_by_id(client, sproket, dataset_ids, spec, *args, **kwargs):
     missing = list()
     extra = list()
+
     if client:
 
         pbar = tqdm(
@@ -690,30 +711,30 @@ def check_datasets_by_id(client, sproket, dataset_ids, spec, *args, **kwargs):
     return missing, extra
 
 
-def publication_check(client, case_spec, data_path, projects, ensembles, model_versions, experiments, tables, variables, sproket, dataset_ids=False, debug=False, exclude=False, data_types=None):
+def publication_check(**kwargs):
+
+    dataset_ids = kwargs.get('dataset_ids')
+    client = kwargs.get('client')
+    sproket = kwargs.get('sproket', 'sproket')
+    case_spec = kwargs['case_spec']
 
     if dataset_ids:
         if isinstance(dataset_ids, str):
             dataset_ids = [dataset_ids]
         missing, extra = check_datasets_by_id(
-            client, sproket, dataset_ids, spec=case_spec, debug=debug)
+            client,
+            sproket,
+            dataset_ids, 
+            spec=case_spec, 
+            debug=kwargs.get('debug'))
         return missing, extra
 
-    missing, extra = list(), list()
+    projects = kwargs.get('projects')
+    missing, extra, dataset_ids = list(), list(), list()
     if not projects or ('cmip6' in projects or 'CMIP6' in projects):
         print_message("Checking for CMIP6 project data", 'ok')
-        missing, extra = check_cmip(
-            client=client,
-            dataset_spec=case_spec,
-            data_path=data_path,
-            ensembles=ensembles,
-            model_versions=model_versions,
-            experiments=experiments,
-            tables=tables,
-            variables=variables,
-            sproket=sproket,
-            exclude=exclude,
-            debug=debug)
+        missing, extra, cmip_ids = check_cmip(**kwargs)
+        dataset_ids.extend(cmip_ids)
         if not missing:
             print_message('All CMIP6 files found', 'ok')
     else:
@@ -721,28 +742,17 @@ def publication_check(client, case_spec, data_path, projects, ensembles, model_v
 
     if not projects or ('e3sm' in projects or 'E3SM' in projects):
         print_message("Checking for E3SM project data", 'ok')
-        m, e = check_e3sm(
-            client=client,
-            dataset_spec=case_spec,
-            data_path=data_path,
-            data_types=data_types,
-            model_versions=model_versions,
-            ensembles=ensembles,
-            experiments=experiments,
-            tables=tables,
-            variables=variables,
-            exclude=exclude,
-            sproket=sproket,
-            debug=debug)
+        m, e, e3sm_ids = check_e3sm(**kwargs)
         missing.extend(m)
         extra.extend(e)
+        dataset_ids.extend(e3sm_ids)
 
         if not missing:
             print_message('All E3SM project files found', 'ok')
     else:
         print_message('Skipping E3SM project datasets', 'ok')
 
-    return missing, extra
+    return missing, extra, dataset_ids
 
 
 def facet_filter(facet, facets, exclude=None):
@@ -754,8 +764,10 @@ def facet_filter(facet, facets, exclude=None):
     return False
 
 
-def collect_paths(data_path, case_spec, projects, model_versions, cases, tables, variables, ens, exclude=None, debug=False):
+def collect_paths(data_path=None, case_spec=None, projects=None, model_versions='all', cases='all', tables='all', variables='all', ens='all', exclude=None, debug=False, **kwargs):
+
     dataset_paths, dataset_ids, extra = list(), list(), list()
+
     for project in os.listdir(data_path):
         if facet_filter(project, projects, exclude):
             continue
@@ -764,6 +776,10 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
         project_path = os.path.join(data_path, project)
 
         if project == 'CMIP6':
+            """
+            The CMIP6 paths go like
+            /base/CMIP6/cmip_project/model_name/case_id/realization_id/table/variable/gr/dataset_version
+            """
             for cmip_project in os.listdir(project_path):
                 cmip_project_path = os.path.join(
                     project_path, cmip_project, 'E3SM-Project')
@@ -802,12 +818,20 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
                                     variable_path = os.path.join(table_path, v)
 
                                     # pick just the last version
-                                    versions = os.listdir(
-                                        os.path.join(variable_path, 'gr'))
                                     try:
-                                        version = sorted(versions)[-1]
-                                    except IndexError as e:
-                                        raise ValueError(f'Unable to find version for {v}') from e
+                                        versions = os.listdir(
+                                            os.path.join(variable_path, 'gr'))
+                                    except:
+                                        import ipdb; ipdb.set_trace()
+
+                                    data_version = kwargs.get('data_version', 'latest')
+                                    if data_version == 'latest':
+                                        try:
+                                            version = sorted(versions)[-1]
+                                        except IndexError as e:
+                                            raise ValueError(f'Unable to find latest version for {v}') from e
+                                    else:
+                                        version = data_version
                                     if debug:
                                         print_message(f'      checking variable-{version}: {v}', 'info')
 
@@ -815,6 +839,9 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
                                         [project, cmip_project, 'E3SM-Project', model_version, case, e, table, v, 'gr#'+version])
                                     dataset_path = os.path.join(
                                         variable_path, 'gr', version)
+                                    if not os.path.exists(dataset_path):
+                                        print(f"Cant find requested version, skipping {dataset_id}")
+                                        continue
                                     dataset_paths.append(dataset_path)
                                     dataset_ids.append(dataset_id)
         elif project == 'E3SM':
@@ -871,8 +898,6 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
                                                     continue
                                                 freq_type = f"{data_type}.{freq}"
                                                 if freq_type not in comp_info['data_types']:
-                                                    import ipdb
-                                                    ipdb.set_trace()
                                                     msg = f"Frequency {freq} is present on filesystem but not in case specification: {casename}-{res}-{comp}-{grid}"
                                                     extra.append(msg)
                                                     continue
@@ -947,7 +972,7 @@ def collect_paths(data_path, case_spec, projects, model_versions, cases, tables,
     return dataset_paths, dataset_ids, extra
 
 
-def filesystem_check(client, data_path, case_spec, projects, model_versions, cases, tables, variables, ens, exclude=False, debug=False):
+def filesystem_check(client, case_spec=None, debug=False, **kwargs):
     """
     Walk down directories on the filesystem checking that every dataset that should be there is, and that there
     are no extra files. If verify is turned on, run a square variance check and plot suspicious time steps.
@@ -955,16 +980,18 @@ def filesystem_check(client, data_path, case_spec, projects, model_versions, cas
 
     missing, futures = list(), list()
     print_message("Starting file-system check", 'ok')
-    dataset_paths, dataset_ids, extra = collect_paths(
-        data_path, case_spec, projects, model_versions, cases, tables, variables, ens, exclude, debug)
+    dataset_paths, dataset_ids, extra = collect_paths(**kwargs)
+    expected_datasets = [x for x in collect_cmip_datasets(**kwargs)]
 
     if not client:
         pbar = tqdm(total=len(dataset_paths))
 
     for idx, dataset_path in enumerate(dataset_paths):
         dataset_id = dataset_ids[idx]
-        files = sorted(os.listdir(dataset_path))
-
+        files = [os.path.join(dataset_path, x) for x in sorted(os.listdir(dataset_path))]
+        if not files:
+            missing.append(dataset_id)
+            continue
         id_split = dataset_id.split('.')
         project = id_split[0]
         if project == 'E3SM':
@@ -983,7 +1010,7 @@ def filesystem_check(client, data_path, case_spec, projects, model_versions, cas
                 break
         if not start or not end:
             raise ValueError(
-                f"No start and/or end found in the dataset_spec for {dataset_id}")
+                f"No start and/or end found in the case_spec for {dataset_id}")
         if client:
             futures.append(
                 client.submit(
@@ -1020,18 +1047,12 @@ def filesystem_check(client, data_path, case_spec, projects, model_versions, cas
     return missing, extra
 
 
-def verification(data_path, plot_path, case_spec, projects, model_versions, cases, tables, variables, ens, exclude=None, only_plots=False, debug=False):
-    issues = list()
+def verification(plot_path=None, debug=None, **kwargs):
+    issues, futures = list(), list()
     print_message("Starting dataset verification", 'ok')
-    dataset_paths, dataset_ids, _ = collect_paths(
-        data_path, case_spec, projects, model_versions, cases, tables, variables, ens, exclude, debug)
+    dataset_paths, dataset_ids, _ = collect_paths(**kwargs)
 
-    pbar = tqdm()
-    client = get_client()
-    futures = list()
-
-    num_done = 0
-    num_total = len(dataset_paths)
+    pbar = tqdm(total=len(dataset_paths))
 
     for idx, dataset_path in enumerate(dataset_paths):
         dataset_id = dataset_ids[idx]
@@ -1039,162 +1060,115 @@ def verification(data_path, plot_path, case_spec, projects, model_versions, case
         # sample id: CMIP6.CMIP.E3SM-Project.E3SM-1-1.historical.r1i1p1f1.Amon.clivi.gr#v20191211
         id_split = dataset_id.split('.')
         variable = id_split[7]
-        pbar.set_description(f"Validating dataset {num_done}/{num_total} : {dataset_id}")
 
-        try:
-            issue = verify_dataset(
+        pbar.set_description(f"Validating {variable}")
+        issues.extend(
+            verify_dataset(
                 dataset_path,
                 dataset_id,
                 variable,
                 plot_path,
-                pbar,
-                debug)
-            num_done += 1
-        except Exception as e:
-            issue = []
-            print(repr(e))
-            print(f"Error while checking {dataset_id}")
-            raise(e)
-        except KeyboardInterrupt:
-            print("Got CTRL-C closing down")
-            return []
-        issues.extend(issue)
+                debug))
         pbar.update(1)
+    
     pbar.close()
 
     print_message("Dataset verification complete", 'ok')
     return issues
 
 
-def data_check(
-        variables,
-        spec_path,
-        cases,
-        ens,
-        tables,
-        published,
-        projects,
-        file_system=False,
-        data_path=False,
-        model_versions=None,
-        plot_path='pngs',
-        verify=False,
-        only_plots=False,
-        dataset_ids=None,
-        sproket=None,
-        exclude=None,
-        num_workers=4,
-        debug=False,
-        serial=False,
-        cluster_address=None,
-        to_json=False,
-        digest=False,
-        data_types=None):
+def data_check(**kwargs):
 
+    debug = kwargs.get('debug')
     if debug:
         print_message("Running in debug mode", 'info')
 
+    published = kwargs.get('published')
+    sproket = kwargs.get('sproket')
     if published and not sproket:
         raise ValueError(
             "Publication checking is turned on, but no sproket utility path given")
 
+    data_path = kwargs.get('data_path')
     if data_path and not os.path.exists(data_path):
         raise ValueError("Given data path does not exist")
+
+    spec_path = kwargs.get('spec_path')
     if not os.path.exists(spec_path):
         raise ValueError("Given case spec file does not exist")
+
+    verify = kwargs.get('verify')
     if verify and not data_path:
         raise ValueError(
             "--data-path must be set if dataset verification is turned on")
 
+    projects = kwargs.get('projects', 'all')
     if 'all' not in projects:
         if isinstance(projects, list):
             projects = [x.upper() for x in projects]
         else:
-            projects = projects.upper()
+            projects = [projects.upper()]
+    kwargs['projects'] = projects
 
     with open(spec_path, 'r') as ip:
         case_spec = yaml.load(ip, Loader=yaml.SafeLoader)
 
+    serial = kwargs.get('serial')
+    cluster_address = kwargs.get('cluster_address')
+    num_workers = kwargs.get('num_workers', 4)
     if serial:
-        client = None
+        pool = None
     else:
         if debug:
             print_message(f'Setting up dask cluster with {num_workers} workers', 'info')
-        if not cluster_address:
-            processes = False if debug else True
-            cluster = LocalCluster(
-                n_workers=num_workers,
-                processes=processes,
-                threads_per_worker=1,
-                local_dir='dask-worker-space')
+        # if not cluster_address:
+        #     processes = False if debug else True
+        #     cluster = LocalCluster(
+        #         n_workers=num_workers,
+        #         processes=processes,
+        #         threads_per_worker=1,
+        #         local_dir='dask-worker-space')
 
-            client = Client(cluster)
-        else:
-            client = Client(cluster_address)
+        #     client = Client(cluster)
+        # else:
+        #     client = Client(cluster_address)
+
+        pool = ProcessPoolExecutor(max_workers=num_workers)
 
         if debug:
             print_message('Cluster setup complete', 'info')
             print_message(str(client), 'info')
 
+    dataset_ids = kwargs.get('dataset_ids')
     if dataset_ids:
         published = True
     missing, extra, issues = list(), list(), list()
     try:
         if published:
-            m, e = publication_check(
-                client=client,
+            m, e, dataset_ids = publication_check(
                 case_spec=case_spec,
-                data_path=data_path,
-                data_types=data_types,
-                dataset_ids=dataset_ids,
-                model_versions=model_versions,
-                projects=projects,
-                ensembles=ens,
-                experiments=cases,
-                tables=tables,
-                variables=variables,
-                sproket=sproket,
-                exclude=exclude,
-                debug=debug)
+                client=pool,
+                **kwargs)
             missing.extend(m)
             extra.extend(e)
 
+        file_system = kwargs.get('file_system')
         if file_system and data_path:
             m, e = filesystem_check(
-                client=client,
-                data_path=data_path,
                 case_spec=case_spec,
-                projects=projects,
-                model_versions=model_versions,
-                cases=cases,
-                tables=tables,
-                variables=variables,
-                ens=ens,
-                exclude=exclude,
-                debug=debug)
+                client=pool,
+                **kwargs)
             missing.extend(m)
             extra.extend(e)
 
         if verify and data_path:
             from esgfpub.verify import verify_dataset
-            issues = verification(
-                data_path=data_path,
-                plot_path=plot_path,
-                case_spec=case_spec,
-                projects=projects,
-                model_versions=model_versions,
-                cases=cases,
-                tables=tables,
-                variables=variables,
-                exclude=exclude,
-                ens=ens,
-                only_plots=only_plots,
-                debug=debug)
+            issues = verification(**kwargs)
     finally:
-        if client:
-            client.close()
-            cluster.close()
+        if pool:
+            pool.shutdown()
     
+    digest = kwargs.get('digest')
     if digest:
         filtered_extra, filtered_missing = list(), list()
 
@@ -1213,17 +1187,28 @@ def data_check(
                 filtered_extra.append(e[:idx])
         extra = filtered_extra
 
+    to_json = kwargs.get('to_json')
     if to_json:
         print_message(f'Missing datasets being written to {to_json}')
         data = {
             'missing': missing,
-            'extra': extra}
+            'extra': extra }
         if verify:
             data['issues'] = issues
         if os.path.exists(to_json):
             os.remove(to_json)
         with open(to_json, 'w') as op:
             json.dump(data, op, indent=4, sort_keys=True)
+        
+    report_plot = kwargs.get('report_plot')
+    if report_plot:
+        if not to_json:
+            raise ValueError("You must turn on the json output to get a plot report")
+        dataset_report(
+            json_path=to_json, 
+            plot_path=report_plot,
+            dataset_ids=dataset_ids)
+
     else:
         if missing:
             print_message("Missing files:")
@@ -1250,3 +1235,85 @@ def data_check(
             print_message("No file issues", 'ok')
 
     return 0
+
+
+def dataset_report(json_path: str, plot_path: str, dataset_ids: list):
+    """
+    Create a nice plot reporting the status of the published datasets
+    Params:
+        json_path: the path to the json dataset info
+        plot_path: the path to where the plot should be saved
+        dataset_ids: list of strings of dataset IDs
+    Returns:
+        None
+    """
+    # import ipdb; ipdb.set_trace()
+    
+    dataset_info = {}
+    for dinfo in dataset_ids:
+        split = dinfo['id'].split('.')
+        if split[0] == 'E3SM':
+            title = 'E3SM project publication status'
+            casename = f'{split[1]}.{split[2]}.{split[-2]}'
+        else:
+            title = 'E3SM data in CMIP6 project publication status'
+            casename = f'{split[3]}.{split[4]}.{split[5]}'
+        
+        if casename not in dataset_info.keys():
+            dataset_info[casename] = [1, 0] # correct, error
+        else:
+            # import ipdb; ipdb.set_trace()
+            dataset_info[casename][0] += 1 # increment the correct count
+
+    with open(json_path, 'r') as ip:
+        raw_info = json.load(ip)
+
+    for missing in raw_info['missing']:
+        no_dataset_str = 'No dataset: '
+        if no_dataset_str in missing:
+            idx = missing.index(no_dataset_str)
+            split = missing[idx + len(no_dataset_str):].split('.')
+        else:
+            split = missing.split('.')
+
+        if split[0] == 'E3SM':
+            casename = f'{split[1]}.{split[2]}.{split[-2]}'
+        else:
+            casename = f'{split[3]}.{split[4]}.{split[5]}'
+        
+        if dataset_info[casename][0] > 0:
+            dataset_info[casename][0] -= 1 # decrease the num correct
+        dataset_info[casename][1] += 1 # increase the num issue
+
+    correct = [x[0] for x in dataset_info.values()]
+    error = [x[1] for x in dataset_info.values()]
+    width = 0.35
+    ind = np.arange(len(dataset_info.keys()))
+
+    fig, (barax, pieax) = plt.subplots(2, figsize=(20,10))
+
+    p1 = barax.bar(ind, correct, width)
+    p2 = barax.bar(ind, error, width, bottom=correct)
+    # set the bar chart xticks
+    barax.set_xticks(ind)
+    barax.set_xticklabels(tuple(x for x in dataset_info.keys()))
+    # set the barchar axis labels
+    barax.set_ylabel('datasets')
+    barax.set_xlabel('case')
+    # rotate the xaxis ticks
+    plt.setp(barax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    # add the legend
+    barax.legend((p1[0], p2[0]), ('published', 'missing'))
+    
+    pieax.pie([sum(correct), sum(error)], 
+                explode=(0.1, 0),
+                shadow=True,
+                labels=('published', 'missing'),
+                autopct='%1.1f%%')
+    pieax.axis('equal')
+    
+
+    fig.suptitle(title)
+    plt.subplots_adjust(hspace=0.5)
+    plt.savefig(plot_path)
+
