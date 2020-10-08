@@ -1,116 +1,112 @@
 import os
 import stat
 import json
+import yaml
 from os import remove
 from time import sleep
 from subprocess import Popen, PIPE
 from esgfpub.util import print_message, check_ds_exists
+from esgfpub import resources
 from datetime import datetime
+from tempfile import TemporaryDirectory
 
+
+def get_facet_info(datasetID):
+    ds_split =datasetID.split('.') 
+    project = ds_split[0]
+    if project != 'E3SM':
+        print(f"Only able to load facet info from E3SM project datasets")
+        return 0
+
+    resource_path, _ = os.path.split(resources.__file__)
+    spec_path = os.path.join(resource_path, 'dataset_spec.yaml')
+    with open(spec_path, 'r') as ip:
+        spec = yaml.safe_load(ip)
+    
+    model_version = ds_split[1]
+    casename = ds_split[2]
+    res = ds_split[3]
+
+    casespec = [x for x in spec['project'][project][model_version] if x['experiment'] == casename].pop()
+    campaign = casespec['Campaign']
+    science_driver = casespec['Science Driver']
+    period = f"{casespec['start']}-{casespec['end']}"
+    return campaign, science_driver, period
+
+def print_while_running(process):
+    for line in iter(process.stdout.readline, ""):
+        if process.poll():
+            raise StopIteration
+        yield line#.decode('utf-8')
 
 
 def publish_maps(mapfiles, mapsin, mapsout, mapserr, sproket='spoket', debug=False):
-    for m in mapfiles:
-        if debug:
-            print_message(f'Starting mapfile: {m}', 'info')
-        if m[-4:] != '.map':
-            msg = "Unrecognized file type, this doesnt appear to be an ESGF mapfile. Moving to the err directory {}".format(m)
-            print_message(msg)
-            os.rename(
-                os.path.join(mapsin, m),
-                os.path.join(mapserr, m))
-            continue
-        if check_ds_exists(m[:-4], debug=debug, sproket=sproket):
-            msg = f"Dataset {m[:-4]} already exists"
-            print_message(msg, 'err')
-            os.rename(
-                os.path.join(mapsin, m),
-                os.path.join(mapserr, m))
-            continue
-        if m[:5] == 'CMIP6':
-            project = 'cmip6'
-        elif m[:4] == 'E3SM':
-            project = 'e3sm'
-        else:
-            raise ValueError(
-                "Unrecognized project name for mapfile: {}".format(m))
+    with TemporaryDirectory() as tmpdir:
+        
+        for m in mapfiles:
+            if m[-4:] != '.map':
+                msg = "Unrecognized file type, this doesnt appear to be an ESGF mapfile. Moving to the err directory {}".format(m)
+                print_message(msg)
+                os.rename(
+                    os.path.join(mapsin, m),
+                    os.path.join(mapserr, m))
+                continue
 
+            print(f"Starting publication for {m}")
 
-#
-#           THE NEW PUBLISHER SHOULDNT REQUIRE THIS ANYMORE BUT IM LEAVING THE 
-#           CODE HERE IN CASE I NEED TO SWTICH BACK
-#
+            datasetID = m[:-4]
+            projectID = datasetID.split('.')[0]
+            if check_ds_exists(datasetID, debug=debug, sproket=sproket):
+                msg = f"Dataset {datasetID} already exists"
+                print_message(msg, 'err')
+                os.rename(
+                    os.path.join(mapsin, m),
+                    os.path.join(mapserr, m))
+                continue
+            if projectID == 'CMIP6':
+                project = 'cmip6'
+                project_metadata = None
+            elif projectID == 'E3SM':
+                project = 'e3sm'
+                campaign, driver, period = get_facet_info(datasetID)
+                project_metadata_path = os.path.join(tmpdir, f'{datasetID}.json')
+                project_metadata = {
+                    'Campaign': campaign,
+                    'Science Driver': driver,
+                    'Period': period
+                }
+                with open(project_metadata_path, 'w') as op:
+                    json.dump(project_metadata, op)
+            else:
+                raise ValueError(
+                    "Unrecognized project name for mapfile: {}".format(m))
+            
+            map_path = os.path.join(mapsin, m)
 
-#         if debug:
-#             print_message("Running myproxy-logon with stored credentials", 'info')
+            cmd = f"esgpublish --project {project} --map {map_path}".split()
+            if project_metadata:
+                cmd.extend(['--json', project_metadata_path])
+            print(f"Running: {' '.join(cmd)}")
+            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+            for line in print_while_running(proc):
+                print(line, end='')
+            proc.stdout.close()
+            proc.wait()
 
-#         script = f"""#!/bin/sh
-# source /usr/local/conda/bin/activate esgf-pub
-# echo {password} | myproxyclient logon -S -s esgf-node.llnl.gov -l {username} -t 72 -o ~/.globus/certificate-file"""
-
-#         tempfile = "login.sh"
-#         if os.path.exists(tempfile):
-#             os.remove(tempfile)
-
-#         with open(tempfile, 'w') as fp:
-#             fp.write(script)
-#         st = os.stat(tempfile)
-#         os.chmod(tempfile, st.st_mode | stat.S_IEXEC)
-#         try:
-#             check_call('./' + tempfile)
-#         except CalledProcessError as error:
-#             print_message("Error while creating myproxy-logon certificate")
-#             return error.returncode
-#         os.remove(tempfile)
-
-
-
-
-        map_path = os.path.join(mapsin, m)
-        # OLD PUBLISHER SCRIPT, LEAVING IT HERE INCASE WE NEED TO SWITCH BACK
-#         script = f"""#!/bin/sh
-# source /usr/local/conda/bin/activate esgf-pub
-# esgpublish -i {ini} --project {project} --map {map_path} --no-thredds-reinit --commit-every 100
-# if [ $? -ne  0 ]; then exit $?; fi
-# esgpublish -i {ini} --project {project} --map {map_path} --service fileservice --noscan --thredds  --no-thredds-reinit
-# if [ $? -ne  0 ]; then exit $?; fi
-# esgpublish --project {project} --thredds-reinit
-# esgpublish -i {ini} --project {project} --map {map_path} --service fileservice --noscan --publish
-# if [ $? -ne  0 ]; then exit $?; fi
-# """
-
-        # tempfile = "pub_script.sh"
-        # if os.path.exists(tempfile):
-        #     os.remove(tempfile)
-
-        # with open(tempfile, 'w') as fp:
-        #     fp.write(script)
-        # st = os.stat(tempfile)
-        # os.chmod(tempfile, st.st_mode | stat.S_IEXEC)
-
-        # if debug:
-        #     print_message(f'Running publication script: {tempfile}', 'info')
-        #     print_message(script, 'info')
-        print(f"Running publication for {map_path}")
-        cmd = f"esgpublish --project {project} --map {map_path}".split()
-        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        out, err = proc.communicate()
-        out = out.decode('utf-8')
-        err = err.decode('utf-8')
-        print(out)
-        if proc.returncode != 0:
-            print(err)
-            print_message(
-                f"Error in publication, moving {m} to {mapserr}", "error")
-            os.rename(
-                os.path.join(mapsin, m),
-                os.path.join(mapserr, m))
-        else:
-            print_message(
-                f"Publication success", "info")
-            os.rename(
-                os.path.join(mapsin, m),
-                os.path.join(mapsout, m))
+            if proc.returncode != 0:
+                print(proc.stderr.readlines())
+                print_message(
+                    f"Error in publication, moving {m} to {mapserr}", "error")
+                os.rename(
+                    os.path.join(mapsin, m),
+                    os.path.join(mapserr, m))
+            else:
+                print_message(
+                    f"Publication success, moving {m} to {mapsout}", "info")
+                os.rename(
+                    os.path.join(mapsin, m),
+                    os.path.join(mapsout, m))
+        
 
 
 def publish(mapsin, mapsout, mapserr, loop, sproket='sproket', debug=False):
