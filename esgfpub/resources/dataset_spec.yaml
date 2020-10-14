@@ -366,6 +366,8 @@ project:
         except:
         - PRECSCS
         - PRECSCL
+        Campaign: DECK-v1
+        Science Driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             land:
@@ -418,6 +420,7 @@ project:
         end: 55
         ens:
           - ens1
+        Campaign: HighResMIP-v1
         resolution:
           0_25deg_atm_18-6km_ocean:
             atmos:
@@ -514,6 +517,8 @@ project:
         except:
           - PRECSCS
           - PRECSCL
+        Campaign: DECK-v1
+        Science Driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -559,6 +564,8 @@ project:
         except:
           - PRECSCS
           - PRECSCL
+        Campaign: DECK-v1
+        Science Driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -603,6 +610,8 @@ project:
           - ens1
           - ens2
           - ens3
+        Campaign: DECK-v1
+        Science Driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -637,6 +646,8 @@ project:
           - ens1
           - ens2
           - ens3
+        Campaign: DECK-v1
+        Science Driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -671,6 +682,8 @@ project:
           - ens1
           - ens2
           - ens3
+        Campaign: DECK-v1
+        Science Driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -703,6 +716,8 @@ project:
         end: 5
         ens:
           - ens1
+        Campaign: HighResMIP-v1
+        Science Driver: Water Cycle
         resolution:
           0_25deg_atm_18-6km_ocean:
             highres.atmos:
@@ -726,6 +741,8 @@ project:
         end: 2010
         ens:
           - ens1
+        Campaign: HighResMIP-v1
+        Science Driver: Water Cycle
         resolution:
           0_25deg_atm_18-6km_ocean:
             highres.atmos:
@@ -749,6 +766,8 @@ project:
         end: 2010
         ens:
           - ens1
+        Campaign: HighResMIP-v1
+        Science Driver: Water Cycle
         resolution:
           0_25deg_atm_18-6km_ocean:
             highres.atmos:
@@ -772,6 +791,8 @@ project:
         end: 5
         ens:
           - ens1
+        Campaign: HighResMIP-v1
+        Science Driver: Water Cycle
         resolution:
           0_25deg_atm_18-6km_ocean:
             highres.atmos:
@@ -799,6 +820,8 @@ project:
           - ens3
           - ens4
           - ens5
+        Campaign: DECK-v1
+        Science Driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -839,9 +862,11 @@ project:
       -
         experiment: piControl
         start: 1850
-        end: 2014
+        end: 2100
         ens:
           - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -882,6 +907,8 @@ project:
         end: 2014
         ens:
           - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -922,6 +949,8 @@ project:
         end: 2014
         ens:
           - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -962,6 +991,8 @@ project:
         end: 2014
         ens:
           - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1002,6 +1033,176 @@ project:
         end: 2014
         ens:
           - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.3hr_snap
+                  - model-output.3hr
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      -
+        experiment: ssp585-BDRD
+        start: 2015
+        end: 2100
+        ens:
+          - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.3hr_snap
+                  - model-output.3hr
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      -
+        experiment: ssp585-BDRC
+        start: 2015
+        end: 2100
+        ens:
+          - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.3hr_snap
+                  - model-output.3hr
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      -
+        experiment: ssp585-BCRD
+        start: 2015
+        end: 2100
+        ens:
+          - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.3hr_snap
+                  - model-output.3hr
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      -
+        experiment: ssp585-BCRC
+        start: 2015
+        end: 2100
+        ens:
+          - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1040,9 +1241,11 @@ project:
       -
         experiment: piControl
         start: 1850
-        end: 2014
+        end: 2100
         ens:
           - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1083,6 +1286,8 @@ project:
         end: 2014
         ens:
           - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1123,6 +1328,8 @@ project:
         end: 2014
         ens:
           - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1163,6 +1370,8 @@ project:
         end: 2014
         ens:
           - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1203,6 +1412,8 @@ project:
         end: 2014
         ens:
           - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1232,6 +1443,368 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      -
+        experiment: ssp585-BDRD
+        start: 2015
+        end: 2100
+        ens:
+          - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.3hr_snap
+                  - model-output.3hr
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      -
+        experiment: ssp585-BDRC
+        start: 2015
+        end: 2100
+        ens:
+          - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.3hr_snap
+                  - model-output.3hr
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      -
+        experiment: ssp585-BCRD
+        start: 2015
+        end: 2100
+        ens:
+          - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.3hr_snap
+                  - model-output.3hr
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      -
+        experiment: ssp585-BCRC
+        start: 2015
+        end: 2100
+        ens:
+          - ens1
+        Campaign: BGC-v1
+        Science Driver: Biogeochemical Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.3hr_snap
+                  - model-output.3hr
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+    '1_2':
+      -
+        experiment: G-IAF
+        start: 0001
+        end: 0100
+        ens:
+          - ens1
+        Campaign: Cryosphere-v1
+        Science Driver: Cryosphere
+        resolution:
+          1deg_atm_60-30km_ocean:
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      -
+        experiment: B-1850
+        start: 0001
+        end: 0100
+        ens:
+          - ens1
+        Campaign: Cryosphere-v1
+        Science Driver: Cryosphere
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      -
+        experiment: B-1850-DIB-ISMF
+        start: 0001
+        end: 0100
+        ens:
+          - ens1
+        Campaign: Cryosphere-v1
+        Science Driver: Cryosphere
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      -
+        experiment: G-AIF-DIB-ISMF
+        start: 0001
+        end: 0100
+        ens:
+          - ens1
+        Campaign: Cryosphere-v1
+        Science Driver: Cryosphere
+        resolution:
+          1deg_atm_60-30km_ocean:
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+    '1_2_1':
+      -
+        experiment: B-1850-DIB-ISMF-3dGM
+        start: 0001
+        end: 0100
+        ens:
+          - ens1
+        Campaign: Cryosphere-v1
+        Science Driver: Cryosphere
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+    '1_3':
+      -
+        experiment: G-IAF-DIB-ISMF-3dGM
+        start: 0001
+        end: 0100
+        ens:
+          - ens1
+        Campaign: Cryosphere-v1
+        Science Driver: Cryosphere
+        resolution:
+          1deg_atm_60-30km_ocean:
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
             sea-ice:
               -
                 grid: native
