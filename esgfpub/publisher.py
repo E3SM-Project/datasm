@@ -34,13 +34,13 @@ def get_facet_info(datasetID):
     return campaign, science_driver, period
 
 def print_while_running(process):
-    for line in iter(process.stdout.readline, ""):
-        if process.poll():
-            raise StopIteration
-        yield line#.decode('utf-8')
+    while not process.poll(): 
+        yield process.stdout.readline()
+    raise StopIteration
 
 
-def publish_maps(mapfiles, mapsin, mapsout, mapserr, sproket='spoket', debug=False):
+def publish_maps(mapfiles, mapsin, mapsout, mapserr, logpath, sproket='spoket', debug=False):
+    os.makedirs(logpath, exist_ok=True)
     with TemporaryDirectory() as tmpdir:
         
         for m in mapfiles:
@@ -52,10 +52,10 @@ def publish_maps(mapfiles, mapsin, mapsout, mapserr, sproket='spoket', debug=Fal
                     os.path.join(mapserr, m))
                 continue
 
-            print(f"Starting publication for {m}")
+            print_message(f"Starting publication for {m}", 'ok')
 
             datasetID = m[:-4]
-            projectID = datasetID.split('.')[0]
+            project = datasetID.split('.')[0]
             if check_ds_exists(datasetID, debug=debug, sproket=sproket):
                 msg = f"Dataset {datasetID} already exists"
                 print_message(msg, 'err')
@@ -63,11 +63,10 @@ def publish_maps(mapfiles, mapsin, mapsout, mapserr, sproket='spoket', debug=Fal
                     os.path.join(mapsin, m),
                     os.path.join(mapserr, m))
                 continue
-            if projectID == 'CMIP6':
+            if project == 'CMIP6':
                 project = 'cmip6'
                 project_metadata = None
-            elif projectID == 'E3SM':
-                project = 'e3sm'
+            elif project == 'E3SM':
                 campaign, driver, period = get_facet_info(datasetID)
                 project_metadata_path = os.path.join(tmpdir, f'{datasetID}.json')
                 project_metadata = {
@@ -82,19 +81,20 @@ def publish_maps(mapfiles, mapsin, mapsout, mapserr, sproket='spoket', debug=Fal
                     "Unrecognized project name for mapfile: {}".format(m))
             
             map_path = os.path.join(mapsin, m)
-
             cmd = f"esgpublish --project {project} --map {map_path}".split()
             if project_metadata:
                 cmd.extend(['--json', project_metadata_path])
-            print(f"Running: {' '.join(cmd)}")
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
-            for line in print_while_running(proc):
-                print(line, end='')
-            proc.stdout.close()
-            proc.wait()
+            
+            print_message(f"Running: {' '.join(cmd)}", 'ok')
+            log = os.path.join(logpath, f"{datasetID}.log")
+            print_message(f"Writing publication log to {log}", 'ok')
+            
+            with open(log, 'w') as outstream:
+                proc = Popen(cmd, stdout=outstream, stderr=outstream, universal_newlines=True)
+                proc.wait()
 
             if proc.returncode != 0:
-                print(proc.stderr.readlines())
+                print(proc.stderr.readlines(), flush=True)
                 print_message(
                     f"Error in publication, moving {m} to {mapserr}", "error")
                 os.rename(
@@ -106,28 +106,9 @@ def publish_maps(mapfiles, mapsin, mapsout, mapserr, sproket='spoket', debug=Fal
                 os.rename(
                     os.path.join(mapsin, m),
                     os.path.join(mapsout, m))
-        
 
 
-def publish(mapsin, mapsout, mapserr, loop, sproket='sproket', debug=False):
-
-    # if not os.path.exists(cred_file):
-    #     raise ValueError('The given credential file does not exist')
-
-    # if cred_file:
-    #     with open(cred_file, 'r') as ip:
-    #         creds = json.load(ip)
-    #         try:
-    #             username = creds['username']
-    #         except:
-    #             raise ValueError("Missing username from credetial file")
-    #         try:
-    #             password = creds['password']
-    #         except:
-    #             raise ValueError("Missing password from credential file")
-    # else:
-    #     username = None
-    #     password = None
+def publish(mapsin, mapsout, mapserr, loop, logpath, sproket='sproket', debug=False):
 
     if loop:
         print_message("Starting publisher loop", 'ok')
@@ -137,7 +118,7 @@ def publish(mapsin, mapsout, mapserr, loop, sproket='sproket', debug=False):
         mapfiles = [x for x in os.listdir(mapsin) if x.endswith('.map')]
         if mapfiles:
             publish_maps(mapfiles, mapsin, mapsout,
-                        mapserr, debug=debug, sproket=sproket)
+                        mapserr, logpath, debug=debug, sproket=sproket)
         if not loop:
             break
         sleep(30)

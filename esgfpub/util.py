@@ -8,6 +8,7 @@ import stat
 import argparse
 import json
 from subprocess import call, Popen, PIPE
+from datetime import datetime
 from shutil import move, copy
 from time import sleep
 from tqdm import tqdm
@@ -177,6 +178,10 @@ def parse_args():
         '--maps-err',
         help="Path to where errored mapfiles should be moved to")
     parser_publish.add_argument(
+        '--logs',
+        default=os.path.join(os.environ['PWD'], 'logs'),
+        help=f"Path to where publication logs should be stored, default is {os.environ['PWD']}/logs")
+    parser_publish.add_argument(
         '--loop',
         action="store_true",
         help="If set, this will cause the publisher to loop continuously and publish any mapfiles placed in the input directory")
@@ -241,19 +246,34 @@ def print_message(message, status='error'):
 
     Parameters:
         message (str): the message to print
-        status (str): th"""
+        status (str): the status class of the message, should be "error", "ok", or "info"
+    """
+    now = datetime.now()
+    
+    hour=now.strftime('%H')
+    minutes=now.strftime('%M')
+    sec=now.strftime('%S')
+    
     if status == 'error':
-        print(colors.FAIL + '[-] ' + colors.ENDC +
-              colors.BOLD + str(message) + colors.ENDC)
-    elif status == 'ok':
-        print(colors.OKGREEN + '[+] ' + colors.ENDC + str(message))
+        start_icon = '[-]'
+        start_color = colors.FAIL
+        
     elif status == 'info':
-        print(colors.OKBLUE + '{=} ' + colors.ENDC + str(message))
+        start_icon = '[=]'
+        start_color = colors.OKBLUE
+    
+    else:
+        start_icon = '[+]'
+        start_color = colors.OKGREEN
+
+    timestr = f'{start_color}{start_icon}{colors.ENDC} {now.year}/{now.month}/{now.day} - {hour}:{minutes}:{sec}'
+    msg = f"{timestr}:  {message}"
+    print(msg, flush=True)
 
 
 def makedir(directory):
     """
-    Make a directory if it doesnt already exist
+    Make a directory if it doesn't already exist
     """
     if not os.path.exists(directory):
         os.makedirs(directory)

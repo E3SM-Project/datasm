@@ -30,6 +30,7 @@ def main():
             mapserr=ARGS.maps_err,
             loop=ARGS.loop,
             sproket=ARGS.sproket,
+            logpath=ARGS.logs,
             debug=ARGS.debug)
     elif subcommand == 'custom':
         
