@@ -81,7 +81,7 @@ def publish_maps(mapfiles, mapsin, mapsout, mapserr, logpath, sproket='spoket', 
                     "Unrecognized project name for mapfile: {}".format(m))
             
             map_path = os.path.join(mapsin, m)
-            cmd = f"esgpublish --project {project} --map {map_path}".split()
+            cmd = f"esgpublish --map {map_path}".split()
             if project_metadata:
                 cmd.extend(['--json', project_metadata_path])
             
@@ -94,15 +94,14 @@ def publish_maps(mapfiles, mapsin, mapsout, mapserr, logpath, sproket='spoket', 
                 proc.wait()
 
             if proc.returncode != 0:
-                print(proc.stderr.readlines(), flush=True)
                 print_message(
-                    f"Error in publication, moving {m} to {mapserr}", "error")
+                    f"Error in publication, moving mapfile to {os.path.join(mapserr, m)}", "error")
                 os.rename(
                     os.path.join(mapsin, m),
                     os.path.join(mapserr, m))
             else:
                 print_message(
-                    f"Publication success, moving {m} to {mapsout}", "info")
+                    f"Publication success, moving mapfile to {os.path.join(mapsout, m)}", "info")
                 os.rename(
                     os.path.join(mapsin, m),
                     os.path.join(mapsout, m))
