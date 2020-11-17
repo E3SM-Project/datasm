@@ -9,7 +9,7 @@ warehouse state LOCK | warehouse_assign --lock
 . | warehouse_assign --setstatus LOCK
 warehouse state FREE | warehouse_assign --free
 . | warehouse_assign --setstatus FREE
-warehouse filesystem adddir <leafname> | warehouse_assign --adddir <leafdir>
-. | warehouse_assign --setstatus ADDDIR:<leafdir>
+warehouse filesystem adddir leafname | warehouse_assign --adddir leafdir
+. | warehouse_assign --setstatus ADDDIR:leafdir
 
 
