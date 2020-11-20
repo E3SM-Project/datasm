@@ -57,6 +57,8 @@ def get_e3sm_start_end(filename):
 
 
 def check_spans(files, start, end, dataset_id):
+    # TODO: This needs to stitch the year spans together instead of assuming that all the files
+    # will be published with the same frequency
     missing = []
     files_found = []
 
@@ -278,7 +280,6 @@ def check_time_series(files, dataset_id, spec, start=None, end=None):
     else:
         expected_vars = spec['time-series'][realm]
 
-    # import ipdb; ipdb.set_trace()
     for v in expected_vars:
         v_files = [
             x for x in files if v in x and '_' in x and x[:-17] == v]
@@ -432,8 +433,8 @@ def sproket_with_id(dataset_id, sproket, spec, start=False, end=False, debug=Fal
 # This file would have the dataset_id:
 # CMIP6.CMIP.E3SM-project.E3SM-1-0.piControl.r1i1p1f1.Amon.ts#20190719
 
-def collect_cmip_datasets(**kwargs):
-    case_spec = kwargs['case_spec']
+def collect_cmip_datasets(case_spec, **kwargs):
+    # case_spec = kwargs['case_spec']
     model_versions = kwargs.get('model_versions', 'all')
     experiments = kwargs.get('experiments', 'all')
     ensembles = kwargs.get('ens', 'all')
@@ -785,6 +786,8 @@ def collect_paths(data_path=None, case_spec=None, projects=None, model_versions=
                     project_path, cmip_project, 'E3SM-Project')
                 if debug:
                     print_message(f' checking cmip-project: {cmip_project}', 'info')
+                if not os.path.exists(cmip_project_path):
+                    continue
                 for model_version in os.listdir(cmip_project_path):
                     if facet_filter(model_version, model_versions, exclude):
                         continue
@@ -981,7 +984,7 @@ def filesystem_check(client, case_spec=None, debug=False, **kwargs):
     missing, futures = list(), list()
     print_message("Starting file-system check", 'ok')
     dataset_paths, dataset_ids, extra = collect_paths(**kwargs)
-    expected_datasets = [x for x in collect_cmip_datasets(**kwargs)]
+    expected_datasets = [x for x in collect_cmip_datasets(case_spec, **kwargs)]
 
     if not client:
         pbar = tqdm(total=len(dataset_paths))
@@ -1120,7 +1123,7 @@ def data_check(**kwargs):
         pool = None
     else:
         if debug:
-            print_message(f'Setting up dask cluster with {num_workers} workers', 'info')
+            print_message(f'Creating processpool with {num_workers} workers', 'info')
         # if not cluster_address:
         #     processes = False if debug else True
         #     cluster = LocalCluster(
@@ -1134,10 +1137,6 @@ def data_check(**kwargs):
         #     client = Client(cluster_address)
 
         pool = ProcessPoolExecutor(max_workers=num_workers)
-
-        if debug:
-            print_message('Cluster setup complete', 'info')
-            print_message(str(client), 'info')
 
     dataset_ids = kwargs.get('dataset_ids')
     if dataset_ids:
@@ -1173,7 +1172,11 @@ def data_check(**kwargs):
         filtered_extra, filtered_missing = list(), list()
 
         for m in missing:
-            idx = m.index(':')
+            try:
+                idx = m.index(':')
+            except:
+                print(m)
+                continue
             if m[:idx] == 'No dataset':
                 filtered_missing.append(m)
             else:
@@ -1247,7 +1250,6 @@ def dataset_report(json_path: str, plot_path: str, dataset_ids: list):
     Returns:
         None
     """
-    # import ipdb; ipdb.set_trace()
     
     dataset_info = {}
     for dinfo in dataset_ids:
@@ -1262,7 +1264,6 @@ def dataset_report(json_path: str, plot_path: str, dataset_ids: list):
         if casename not in dataset_info.keys():
             dataset_info[casename] = [1, 0] # correct, error
         else:
-            # import ipdb; ipdb.set_trace()
             dataset_info[casename][0] += 1 # increment the correct count
 
     with open(json_path, 'r') as ip:
