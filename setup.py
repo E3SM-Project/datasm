@@ -12,7 +12,9 @@ setup(
     description="Automated publication tools for ESGF",
     entry_points={
         'console_scripts':
-            ['esgfpub = esgfpub.__main__:main']},
+            ['esgfpub = esgfpub.__main__:main',
+             'timecheck = scripts.timerect.timechecker:main',
+             'timerect = scripts.timerect.timerectifier:main']},
     packages=['esgfpub'],
     package_dir={'esgfpub': 'esgfpub'},
     include_package_data=True)
