@@ -108,9 +108,9 @@ def main():
             continue
         if monthly:
             month = get_month(files[idx])
-            target = prev + calendar[month]
+            target = prev + calendars[calendar][month]
         else:
-            target = prev + freq
+                target = prev + freq
         if not first or not last:
             # this file had an empty index, move on and start checking the next one as though this one was there
             msg = f"Empty time index found in {files[idx]}"

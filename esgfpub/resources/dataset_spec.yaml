@@ -295,7 +295,7 @@ project:
       -
         experiment: piControl
         start: 1850
-        end: 2014
+        end: 2100
         ens:
           - r1i1p1f1
         except:
@@ -327,7 +327,7 @@ project:
       -
         experiment: piControl
         start: 1850
-        end: 2014
+        end: 2100
         ens:
           - r1i1p1f1
         except:
@@ -366,8 +366,8 @@ project:
         except:
         - PRECSCS
         - PRECSCL
-        Campaign: DECK-v1
-        Science Driver: Water Cycle
+        campaign: DECK-v1
+        science driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             land:
@@ -420,7 +420,7 @@ project:
         end: 55
         ens:
           - ens1
-        Campaign: HighResMIP-v1
+        campaign: HighResMIP-v1
         resolution:
           0_25deg_atm_18-6km_ocean:
             atmos:
@@ -517,8 +517,8 @@ project:
         except:
           - PRECSCS
           - PRECSCL
-        Campaign: DECK-v1
-        Science Driver: Water Cycle
+        campaign: DECK-v1
+        science driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -564,8 +564,8 @@ project:
         except:
           - PRECSCS
           - PRECSCL
-        Campaign: DECK-v1
-        Science Driver: Water Cycle
+        campaign: DECK-v1
+        science driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -610,8 +610,8 @@ project:
           - ens1
           - ens2
           - ens3
-        Campaign: DECK-v1
-        Science Driver: Water Cycle
+        campaign: DECK-v1
+        science driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -646,8 +646,8 @@ project:
           - ens1
           - ens2
           - ens3
-        Campaign: DECK-v1
-        Science Driver: Water Cycle
+        campaign: DECK-v1
+        science driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -682,8 +682,8 @@ project:
           - ens1
           - ens2
           - ens3
-        Campaign: DECK-v1
-        Science Driver: Water Cycle
+        campaign: DECK-v1
+        science driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -716,8 +716,8 @@ project:
         end: 5
         ens:
           - ens1
-        Campaign: HighResMIP-v1
-        Science Driver: Water Cycle
+        campaign: HighResMIP-v1
+        science driver: Water Cycle
         resolution:
           0_25deg_atm_18-6km_ocean:
             highres.atmos:
@@ -741,8 +741,8 @@ project:
         end: 2010
         ens:
           - ens1
-        Campaign: HighResMIP-v1
-        Science Driver: Water Cycle
+        campaign: HighResMIP-v1
+        science driver: Water Cycle
         resolution:
           0_25deg_atm_18-6km_ocean:
             highres.atmos:
@@ -766,8 +766,8 @@ project:
         end: 2010
         ens:
           - ens1
-        Campaign: HighResMIP-v1
-        Science Driver: Water Cycle
+        campaign: HighResMIP-v1
+        science driver: Water Cycle
         resolution:
           0_25deg_atm_18-6km_ocean:
             highres.atmos:
@@ -791,8 +791,8 @@ project:
         end: 5
         ens:
           - ens1
-        Campaign: HighResMIP-v1
-        Science Driver: Water Cycle
+        campaign: HighResMIP-v1
+        science driver: Water Cycle
         resolution:
           0_25deg_atm_18-6km_ocean:
             highres.atmos:
@@ -820,8 +820,8 @@ project:
           - ens3
           - ens4
           - ens5
-        Campaign: DECK-v1
-        Science Driver: Water Cycle
+        campaign: DECK-v1
+        science driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -865,8 +865,8 @@ project:
         end: 2100
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -907,8 +907,8 @@ project:
         end: 2014
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -949,8 +949,8 @@ project:
         end: 2014
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -991,8 +991,8 @@ project:
         end: 2014
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1033,8 +1033,8 @@ project:
         end: 2014
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1075,8 +1075,8 @@ project:
         end: 2100
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1117,8 +1117,8 @@ project:
         end: 2100
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1159,8 +1159,8 @@ project:
         end: 2100
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1201,8 +1201,8 @@ project:
         end: 2100
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1244,8 +1244,8 @@ project:
         end: 2100
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1286,8 +1286,8 @@ project:
         end: 2014
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1328,8 +1328,8 @@ project:
         end: 2014
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1370,8 +1370,8 @@ project:
         end: 2014
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1412,8 +1412,8 @@ project:
         end: 2014
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1454,8 +1454,8 @@ project:
         end: 2100
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1496,8 +1496,8 @@ project:
         end: 2100
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1538,8 +1538,8 @@ project:
         end: 2100
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1580,8 +1580,8 @@ project:
         end: 2100
         ens:
           - ens1
-        Campaign: BGC-v1
-        Science Driver: Biogeochemical Cycle
+        campaign: BGC-v1
+        science driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1619,12 +1619,12 @@ project:
     '1_2':
       -
         experiment: G-IAF
-        start: 0001
-        end: 0100
+        start: 1
+        end: 100
         ens:
           - ens1
-        Campaign: Cryosphere-v1
-        Science Driver: Cryosphere
+        campaign: Cryosphere-v1
+        science driver: Cryosphere
         resolution:
           1deg_atm_60-30km_ocean:
             ocean:
@@ -1640,12 +1640,12 @@ project:
                   - model-output.mon
       -
         experiment: B-1850
-        start: 0001
-        end: 0100
+        start: 1
+        end: 100
         ens:
           - ens1
-        Campaign: Cryosphere-v1
-        Science Driver: Cryosphere
+        campaign: Cryosphere-v1
+        science driver: Cryosphere
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1684,12 +1684,12 @@ project:
                   - model-output.mon
       -
         experiment: B-1850-DIB-ISMF
-        start: 0001
-        end: 0100
+        start: 1
+        end: 156
         ens:
           - ens1
-        Campaign: Cryosphere-v1
-        Science Driver: Cryosphere
+        campaign: Cryosphere-v1
+        science driver: Cryosphere
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1727,13 +1727,13 @@ project:
                 data_types:
                   - model-output.mon
       -
-        experiment: G-AIF-DIB-ISMF
-        start: 0001
-        end: 0100
+        experiment: G-IAF-DIB-ISMF
+        start: 1
+        end: 174
         ens:
           - ens1
-        Campaign: Cryosphere-v1
-        Science Driver: Cryosphere
+        campaign: Cryosphere-v1
+        science driver: Cryosphere
         resolution:
           1deg_atm_60-30km_ocean:
             ocean:
@@ -1750,12 +1750,12 @@ project:
     '1_2_1':
       -
         experiment: B-1850-DIB-ISMF-3dGM
-        start: 0001
-        end: 0100
+        start: 1
+        end: 100
         ens:
           - ens1
-        Campaign: Cryosphere-v1
-        Science Driver: Cryosphere
+        campaign: Cryosphere-v1
+        science driver: Cryosphere
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1791,12 +1791,12 @@ project:
     '1_3':
       -
         experiment: G-IAF-DIB-ISMF-3dGM
-        start: 0001
-        end: 0100
+        start: 1
+        end: 187
         ens:
           - ens1
-        Campaign: Cryosphere-v1
-        Science Driver: Cryosphere
+        campaign: Cryosphere-v1
+        science driver: Cryosphere
         resolution:
           1deg_atm_60-30km_ocean:
             ocean:

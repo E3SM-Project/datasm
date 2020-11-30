@@ -27,7 +27,12 @@ def get_facet_info(datasetID):
     casename = ds_split[2]
     res = ds_split[3]
 
-    casespec = [x for x in spec['project'][project][model_version] if x['experiment'] == casename].pop()
+    try:
+        casespec = [x for x in spec['project'][project][model_version] if x['experiment'] == casename].pop()
+    except IndexError as e:
+        print(f"Does this experiment {casename} have the correct entry in the dataset spec?")
+        raise e
+
     campaign = casespec['Campaign']
     science_driver = casespec['Science Driver']
     period = f"{casespec['start']}-{casespec['end']}"
@@ -94,15 +99,16 @@ def publish_maps(mapfiles, mapsin, mapsout, mapserr, logpath, sproket='spoket', 
                 proc.wait()
 
             if proc.returncode != 0:
-                print(proc.stderr.readlines(), flush=True)
+                if proc.stderr:
+                    print(proc.stderr.readlines(), flush=True)
                 print_message(
-                    f"Error in publication, moving {m} to {mapserr}", "error")
+                    f"Error in publication, moving {m} to {mapserr}\n", "error")
                 os.rename(
                     os.path.join(mapsin, m),
                     os.path.join(mapserr, m))
             else:
                 print_message(
-                    f"Publication success, moving {m} to {mapsout}", "info")
+                    f"Publication success, moving {m} to {mapsout}\n", "info")
                 os.rename(
                     os.path.join(mapsin, m),
                     os.path.join(mapsout, m))
