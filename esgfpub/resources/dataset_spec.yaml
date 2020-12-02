@@ -109,6 +109,10 @@ tables:
     - tauuo
     - tauvo
     - zhalfo
+    - volcello
+    - thkcello
+  Ofx:
+    - areacello
   SImon:
     - sitimefrac
     - siconc
@@ -322,6 +326,26 @@ project:
           - siu
           - siv
           - clcalipso
+      -
+        experiment: ssp585
+        start: 2015
+        end: 2100
+        ens:
+          - r1i1p1f1
+        except:
+          - siu
+          - siv
+          - clcalipso
+      -
+        experiment: ssp585-bgc
+        start: 2015
+        end: 2100
+        ens:
+          - r1i1p1f1
+        except:
+          - siu
+          - siv
+          - clcalipso
 
     E3SM-1-1-ECA:
       -
@@ -348,6 +372,26 @@ project:
         experiment: historical
         start: 1850
         end: 2014
+        ens:
+          - r1i1p1f1
+        except:
+          - siu
+          - siv
+          - clcalipso
+      -
+        experiment: ssp585
+        start: 2015
+        end: 2100
+        ens:
+          - r1i1p1f1
+        except:
+          - siu
+          - siv
+          - clcalipso
+      -
+        experiment: ssp585-bgc
+        start: 2015
+        end: 2100
         ens:
           - r1i1p1f1
         except:
