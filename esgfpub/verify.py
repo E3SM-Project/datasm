@@ -4,7 +4,6 @@ warnings.simplefilter('ignore')
 from esgfpub.util import path_to_dataset_id, print_message
 from dask.distributed import get_client, worker_client, as_completed
 from dask.diagnostics import ProgressBar
-# import vcs
 
 import statsmodels.api as sm
 import xarray as xr
@@ -12,9 +11,8 @@ import numpy as np
 from datetime import datetime
 import os
 from tqdm import tqdm
-
+from mpl_toolkits.basemap import Basemap
 from matplotlib import pyplot as plt
-
 
 import logging
 logger = logging.getLogger("distributed.worker")
@@ -162,6 +160,24 @@ def check_sq_variance(dataset_path, dataset_id, variable, pngpath, pbar, debug=F
     return issues
 
 
+def plot_global(dataset, variable, pngpath, dataset_id, debug=False):
+    
+    m = Basemap(projection="eck4",lon_0=0,resolution='c')
+    m.drawcoastlines()
+    m.fillcontinents(color='coral',lake_color='aqua')
+    m.drawparallels(np.arange(-90.,120.,30.))
+    m.drawmeridians(np.arange(0.,360.,60.))
+    m.drawmapboundary(fill_color='aqua')
+    ny = dataset[variable].shape[0]
+    nx = dataset[variable].shape[1]
+    lons, lats = m.makegrid(nx, ny)
+    x, y = m(lons, lats)
+    m.contourf(x, y, dataset[variable])
+    plt.title(variable)
+    plt.plot(variable)
+    plt.savefig(pngpath, dpi=100)
+
+
 def plot_seasonal_decomp(dataset_path, dataset_id, variable, pngpath, debug=False):
 
     contents = os.listdir(dataset_path)
@@ -170,7 +186,11 @@ def plot_seasonal_decomp(dataset_path, dataset_id, variable, pngpath, debug=Fals
     
     # open the multi-file dataset, combining the files by their coords
     ds = xr.open_mfdataset(f'{dataset_path}/*.nc', combine='by_coords')
-    
+
+    # if the variable doesn't have a time axis, just plot whatever's there
+    if 'time' not in ds[variable].coords and 'time' not in ds[variable].dims:
+        plot_global(ds, variable, pngpath, debug)
+        return []
 
     # find the dimensions to average over
     possible_dims = ['depth', 'lat', 'lon', 'plev', 'tau', 'lev', 'sector']    
