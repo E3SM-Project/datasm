@@ -3,17 +3,14 @@ import os
 import argparse
 from subprocess import Popen, PIPE
 
+DESC = "Find all the latest version directories under a CMIP directory tree"
+
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=DESC)
     parser.add_argument('root')
-    parser.add_argument('output')
     args = parser.parse_args()
 
-    if not os.path.exists(args.output):
-        print(f"creating output directory {args.output}")
-        os.makedirs(args.output)
-
-    cmd = f'find {args.root} -type d -name gr'
+    cmd = 'find {root} -type d -name gr'.format(root=args.root)
     gr_paths, _ = Popen(cmd.split(), stdout=PIPE).communicate()
 
     gr_paths = gr_paths.decode('utf-8').split()
@@ -25,13 +22,12 @@ def main():
         variable = path.split(os.sep)[-2]
 
         # remove the "v"
-        versions = [x[1:] for x in os.listdir(path)]
-        inpaths.append((variable, os.path.join(path, f"v{versions[-1]}")))
+        versions = sorted([x[1:] for x in os.listdir(path)])
+        inpaths.append((variable, os.path.join(path, "v{}".format(versions[-1]))))
     
     for var, path in inpaths:
-        dst = os.path.join(args.output, var)
-        os.symlink(path, dst)
-
+        print(path)
+    
     return 0
 
 if __name__ == "__main__":
