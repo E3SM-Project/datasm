@@ -71,7 +71,9 @@ tables:
     - lai
     - cLitter 
     - cProduct
-    # - cSoil
+    - cSoilFast
+    - cSoilMedium
+    - cSoilSlow
     - fFire
     - fHarvest
     - cVeg
@@ -244,7 +246,9 @@ project:
         except:
           - cLitter 
           - cProduct
-          - cSoil
+          - cSoilFast
+          - cSoilMedium
+          - cSoilSlow
           - fFire
           - fHarvest
           - cVeg
@@ -262,10 +266,13 @@ project:
           - r3i1p1f1
         except:
           - Omon
+          - Ofx
           - SImon
           - cLitter 
           - cProduct
-          - cSoil
+          - cSoilFast
+          - cSoilMedium
+          - cSoilSlow
           - fFire
           - fHarvest
           - cVeg
@@ -286,7 +293,9 @@ project:
         except:
           - cLitter 
           - cProduct
-          - cSoil
+          - cSoilFast
+          - cSoilMedium
+          - cSoilSlow
           - fFire
           - fHarvest
           - cVeg

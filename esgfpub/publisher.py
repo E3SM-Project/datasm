@@ -33,8 +33,12 @@ def get_facet_info(datasetID):
         print(f"Does this experiment {casename} have the correct entry in the dataset spec?")
         raise e
 
-    campaign = casespec['Campaign']
-    science_driver = casespec['Science Driver']
+    campaign = casespec.get('campaign')
+    if not campaign:
+        return None, None, None
+    science_driver = casespec.get('science driver')
+    if not science_driver:
+        return None, None, None
     period = f"{casespec['start']}-{casespec['end']}"
     return campaign, science_driver, period
 
@@ -73,14 +77,15 @@ def publish_maps(mapfiles, mapsin, mapsout, mapserr, logpath, sproket='spoket', 
                 project_metadata = None
             elif project == 'E3SM':
                 campaign, driver, period = get_facet_info(datasetID)
-                project_metadata_path = os.path.join(tmpdir, f'{datasetID}.json')
-                project_metadata = {
-                    'Campaign': campaign,
-                    'Science Driver': driver,
-                    'Period': period
-                }
-                with open(project_metadata_path, 'w') as op:
-                    json.dump(project_metadata, op)
+                if campaign and driver and period:
+                    project_metadata_path = os.path.join(tmpdir, f'{datasetID}.json')
+                    project_metadata = {
+                        'Campaign': campaign,
+                        'Science Driver': driver,
+                        'Period': period
+                    }
+                    with open(project_metadata_path, 'w') as op:
+                        json.dump(project_metadata, op)
             else:
                 raise ValueError(
                     "Unrecognized project name for mapfile: {}".format(m))
