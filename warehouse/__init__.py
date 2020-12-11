@@ -200,8 +200,8 @@ def parse_args():
         default='all')
     status_parser.add_argument(
         '-r', '--root',
-        help="Path to warehouse root directory, default is '/p/user_pub/e3sm/staging/prepub'",
-        default='/p/user_pub/e3sm/staging/prepub')
+        help="Path to warehouse root directory, default is '/p/user_pub/e3sm/warehouse/E3SM'",
+        default='/p/user_pub/e3sm/warehouse/E3SM')
     status_parser.add_argument(
         '-e', '--ensemble',
         action="store_true",
