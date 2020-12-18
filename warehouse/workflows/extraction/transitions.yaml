@@ -1,0 +1,6 @@
+Extraction:Ready:
+    Extraction:Engaged
+Extraction:Pass:
+    Validation:Ready
+Extraction:Fail:
+    Exit:exit_code
