@@ -13,7 +13,9 @@ subcommands = {
     'report': report,
     'extract': Extraction,
     'cleanup': CleanUp,
-    'postprocess': PostProcess
+    'postprocess': PostProcess,
+    'publication': Publication,
+    'validation': Validation
 }
 arg_sources = [
     add_report_args, 
@@ -21,14 +23,16 @@ arg_sources = [
     CleanUp.add_args,
     PostProcess.add_args,
     Publication.add_args,
-    Validation.add_args ]
+    Validation.add_args 
+]
 arg_checkers = [
     check_report_args, 
     Extraction.arg_checker, 
     CleanUp.arg_checker,
     PostProcess.arg_checker,
     Publication.arg_checker,
-    Validation.arg_checker ]
+    Validation.arg_checker 
+]
 
 
 def main():
