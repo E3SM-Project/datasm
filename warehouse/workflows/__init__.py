@@ -1,11 +1,12 @@
 import yaml
 from pathlib import Path
 
+
 class Workflow(object):
 
     def __init__(self):
         self.transitions = loadTransitions()
-    
+
     def nextState(self):
         ...
 
@@ -13,6 +14,7 @@ class Workflow(object):
         transition_path = Path(Path(__file__).parents[0], 'transitions.yaml')
         with open(transition_path, 'r') as instream:
             return yaml.SafeLoader(instream)
+
 
 class WorkflowJob(object):
 
@@ -23,11 +25,11 @@ class WorkflowJob(object):
 
     def sbatch_submit(self):
         ...
-    
+
     @property
     def dataset(self):
         return self._dataset
-    
+
     @dataset.setter
     def dataset(self, new_ds):
         self._dataset = new_ds

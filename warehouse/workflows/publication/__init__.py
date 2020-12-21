@@ -5,10 +5,10 @@ class Publication(Workflow):
 
     def __init__(self):
         super().__init__()
-    
+
     def __call__(self):
         ...
-    
+
     @staticmethod
     def add_args(parser):
         name = 'publication'
@@ -24,7 +24,7 @@ class Publication(Workflow):
             required=True,
             help="the dataset_id to extract")
         return name, parser
-    
+
     @staticmethod
     def arg_checker(args):
         name = 'publication'

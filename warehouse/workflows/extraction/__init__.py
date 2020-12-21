@@ -13,7 +13,7 @@ class Extraction(Workflow):
 
     def __call__(self):
         ...
-    
+
     @staticmethod
     def add_args(parser):
         name = 'extract'
@@ -25,7 +25,7 @@ class Extraction(Workflow):
             required=True,
             help="Path to the dataset that was supposed to be extracted")
         p.add_argument(
-            '-z','--zstash',
+            '-z', '--zstash',
             required=True,
             help="Path to zstash directory")
         p.add_argument(
@@ -33,7 +33,7 @@ class Extraction(Workflow):
             required=True,
             help="the dataset_id to extract")
         return 'extraction', parser
-    
+
     @staticmethod
     def arg_checker(args):
         name = 'extract'

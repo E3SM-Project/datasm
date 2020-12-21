@@ -18,20 +18,20 @@ subcommands = {
     'validation': Validation
 }
 arg_sources = [
-    add_report_args, 
-    Extraction.add_args, 
+    add_report_args,
+    Extraction.add_args,
     CleanUp.add_args,
     PostProcess.add_args,
     Publication.add_args,
-    Validation.add_args 
+    Validation.add_args
 ]
 arg_checkers = [
-    check_report_args, 
-    Extraction.arg_checker, 
+    check_report_args,
+    Extraction.arg_checker,
     CleanUp.arg_checker,
     PostProcess.arg_checker,
     Publication.arg_checker,
-    Validation.arg_checker 
+    Validation.arg_checker
 ]
 
 
@@ -42,5 +42,6 @@ def main():
     command = args.subparser_name
     subcommands[command](args)
 
+
 if __name__ == "__main__":
-  sys.exit(main())
+    sys.exit(main())
