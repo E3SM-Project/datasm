@@ -20,7 +20,7 @@ FixTimeUnit:Fail:
 TimeCheck:Ready:
     default:TimeCheck:Engaged
 TimeCheck:Pass:
-    default:ZerosCheck:Ready
+    default:CreateDerivedDataset:Ready
 TimeCheck:Fail:
     default:TimeRectify:Ready
 
@@ -42,8 +42,8 @@ CreateDerivedDataset:Fail:
 
 MPASTimeCheck:Ready:
     default:MPASTimeCheck:Engaged
-ZerosCheck:Pass:
+MPASTimeCheck:Pass:
     Exit:Success
-ZerosCheck:Fail:
+MPASTimeCheck:Fail:
     Exit:exit_code
 

@@ -21,7 +21,7 @@ GenerateAtmTimeseries:Fail:
 GenerateAtmCmor:Ready:
   default:GenerateAtmCmor:Engaged
 GenerateAtmCmor:Pass:
-  default:Exit:Success
+  default:CMIPValidate:Ready
 GenerateAtmCmor:Fail:
   default:Exit:exit_code
 
@@ -35,20 +35,27 @@ GenerateLndTimeseries:Fail:
 GenerateLndCmor:Ready:
   default:GenerateLndCmor:Engaged
 GenerateLndCmor:Pass:
-  default:Exit:Success
+  default:CMIPValidate:Ready
 GenerateLndCmor:Fail:
   default:Exit:exit_code
 
 GenerateOcnCmor:Ready:
   default:GenerateOcnCmor:Engaged
 GenerateOcnCmor:Pass:
-  default:Exit:Success
+  default:CMIPValidate:Ready
 GenerateOcnCmor:Fail:
   default:Exit:exit_code
 
 GenerateIceCmor:Ready:
   default:GenerateIceCmor:Engaged
 GenerateIceCmor:Pass:
-  default:Exit:Success
+  default:CMIPValidate:Ready
 GenerateIceCmor:Fail:
+  default:Exit:exit_code
+
+CMIPValidate:Ready:
+  default:CMIPValidate:Engaged
+CMIPValidate:Pass:
+  default:Exit:Success
+CMIPValidate:Fail:
   default:Exit:exit_code

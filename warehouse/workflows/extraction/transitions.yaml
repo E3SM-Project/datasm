@@ -1,6 +1,13 @@
 Extraction:Ready:
-    Extraction:Engaged
+    default:ZstashExtract:Engaged
 Extraction:Pass:
-    Validation:Ready
+    default:ExtractionValidate:Ready
 Extraction:Fail:
-    Exit:exit_code
+    default:Exit:exit_code
+
+ExtractionValidate:Ready:
+    default:ExtractionValidate:Engaged
+ExtractionValidate:Pass:
+    default:Exit:Success
+ExtractionValidate:Fail:
+    default:Exit:exit_code

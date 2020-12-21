@@ -177,7 +177,7 @@ def produce_status_listing_vcounts(datasets):
     return sorted(list(set(statlinelist)))
 
 
-def parse_args():
+def parse_args(arg_sources, checkers):
     DESC = "Automated E3SM data warehouse utilities"
     parser = argparse.ArgumentParser(
         prog="warehouse",
@@ -185,42 +185,22 @@ def parse_args():
         prefix_chars='-',
         formatter_class=RawTextHelpFormatter)
 
-    subparsers = parser.add_subparsers(
+    subcommands = parser.add_subparsers(
         title='subcommands',
         description='warehouse subcommands',
         dest='subparser_name')
 
-    allowed_modes = ['all', 'empty', 'nonempty']
-    status_parser = subparsers.add_parser(
-        name='report',
-        help="Print out a report of the dataset status for all datasets under the given root")
-    status_parser.add_argument(
-        '-t', '--target',
-        help=f"What status files should be targetted, allowed values are: {', '.join(allowed_modes)}. default is all",
-        default='all')
-    status_parser.add_argument(
-        '-r', '--root',
-        help="Path to warehouse root directory, default is '/p/user_pub/e3sm/warehouse/E3SM'",
-        default='/p/user_pub/e3sm/warehouse/E3SM')
-    status_parser.add_argument(
-        '-e', '--ensemble',
-        action="store_true",
-        help="Print which ensemble member the status belongs to, default is True",
-        default=False)
-    status_parser.add_argument(
-        '-p', '--paths',
-        action="store_true",
-        help="Write out a file containing all the dataset paths",
-        default=False)
+    subparsers = {}
+    for source in arg_sources:
+        name, sub = source(subcommands)
+        subparsers[name] = sub
 
     args = parser.parse_args()
 
-    if args.subparser_name == 'report':
-        if args.target not in allowed_modes:
-            print(
-                f"ERROR: {args.target} is not of the allowed values: {', '.join(allowed_modes)} may be specified. Default is all.")
+    for check in checkers:
+        parser = check(args)
+        if parser != True:
+            subparsers[parser].print_help()
             return None
-        else:
-            return args
 
     return args

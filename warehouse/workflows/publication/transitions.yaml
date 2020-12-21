@@ -15,7 +15,6 @@ MapfileValidate:Pass:
 MapfileValidate:Fail:
   default:Exit:exit_code
 
-
 MoveToPublication:Ready:
   default:MoveToPublication:Engaged
 MoveToPublication:Pass:
