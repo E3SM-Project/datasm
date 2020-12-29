@@ -1,37 +1,47 @@
 import sys
-from datetime import datetime
-from warehouse.util import print_file_list
-from warehouse import (
-    parse_args,
-    get_ensemble_dirs,
-    load_ds_status_list,
-    produce_status_listing_vcounts )
 
+from warehouse.report import report, add_report_args, check_report_args
+from warehouse import parse_args
 
-def report(args):
-    ts=datetime.now().strftime('%Y%m%d_%H%M%S')
-    ensem_out = f'warehouse_ensem-{ts}'
-    paths_out = f'warehouse_paths-{ts}'
-    stats_out = f'warehouse_status-{ts}'
+from warehouse.workflows.extraction import Extraction
+from warehouse.workflows.cleanup import CleanUp
+from warehouse.workflows.postprocess import PostProcess
+from warehouse.workflows.publication import Publication
+from warehouse.workflows.validation import Validation
 
-    ensembles = get_ensemble_dirs(
-        warehouse_root=args.root,
-        print_paths=args.paths,
-        paths_out=paths_out)
-
-    wh_datasets = load_ds_status_list(ensembles)
-    status_list = produce_status_listing_vcounts(wh_datasets)
-    print_file_list(stats_out, status_list)
-    return 0
+subcommands = {
+    'report': report,
+    'extract': Extraction,
+    'cleanup': CleanUp,
+    'postprocess': PostProcess,
+    'publication': Publication,
+    'validation': Validation
+}
+arg_sources = [
+    add_report_args,
+    Extraction.add_args,
+    CleanUp.add_args,
+    PostProcess.add_args,
+    Publication.add_args,
+    Validation.add_args
+]
+arg_checkers = [
+    check_report_args,
+    Extraction.arg_checker,
+    CleanUp.arg_checker,
+    PostProcess.arg_checker,
+    Publication.arg_checker,
+    Validation.arg_checker
+]
 
 
 def main():
-    args = parse_args()
+    args = parse_args(arg_sources, arg_checkers)
     if not args:
         return -1
-    subcommand = args.subparser_name
-    if subcommand == 'report':
-        return report(args)
+    command = args.subparser_name
+    subcommands[command](args)
+
 
 if __name__ == "__main__":
-  sys.exit(main())
+    sys.exit(main())

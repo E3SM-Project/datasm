@@ -1,3 +1,5 @@
+import sys
+import traceback
 from pathlib import Path
 
 def load_file_lines(file_path):
@@ -18,3 +20,15 @@ def print_file_list(outfile, items):
     with open(outfile, 'w') as outstream:
         for x in items:
             outstream.write(f"{x}\n")
+
+def print_debug(e):
+    """
+    Print an exceptions relevent information
+    """
+    print('1', e.__doc__)
+    print('2', sys.exc_info())
+    print('3', sys.exc_info()[0])
+    print('4', sys.exc_info()[1])
+    _, _, tb = sys.exc_info()
+    print('5', traceback.print_tb(tb))
+# -----------------------------------------------
