@@ -157,9 +157,6 @@ time-series:
     - TGCLDCWP
     - RELHUM
     - FSNTOA
-    # - ICEFRAC
-    # - LANDFRAC
-    # - OCNFRAC
     - PHIS
     - LWCF
     - SWCF
@@ -186,6 +183,9 @@ time-series:
     - Z3
     - Q
     - O3
+    # - ICEFRAC
+    # - LANDFRAC
+    # - OCNFRAC
   land:
     - SOILWATER_10CM
     - SOILICE
@@ -484,12 +484,19 @@ project:
               -
                 grid: 720x1440
                 data_types:
-                  - model-output.5day_snap
                   - model-output.3hr
-                  - model-output.6hr_ave
+                  - model-output.6hr
                   - model-output.6hr_snap
+                  - model-output.day
                   - model-output.mon
-                  - climo.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.3hr
+                  - model-output.6hr
+                  - model-output.6hr_snap
+                  - model-output.day
+                  - model-output.mon
             land:
               -
                 grid: 180x360
@@ -526,11 +533,11 @@ project:
                 grid: 180x360
                 data_types:
                   - climo.mon
-                  - model-output.mon
                   - model-output.3hr
-                  - model-output.6hr_ave
+                  - model-output.6hr
                   - model-output.6hr_snap
                   - model-output.day
+                  - model-output.mon
             land:
               -
                 grid: 180x360
@@ -545,7 +552,7 @@ project:
               -
                 grid: native
                 data_types:
-                  - model-output.fixed
+                  - mapping.fixed
             ocean:
               -
                 grid: native
