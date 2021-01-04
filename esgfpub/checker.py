@@ -4,9 +4,9 @@ import logging
 logger = logging.getLogger("contextlib")
 logger.setLevel(logging.ERROR)
 
-# from distributed import Client, as_completed, LocalCluster, get_client
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from datetime import datetime
 from esgfpub.util import print_message
 from esgfpub.verify import verify_dataset
 from tempfile import NamedTemporaryFile
@@ -209,25 +209,32 @@ def check_climos(files, start, end):
 def check_submonthly(files, start, end, debug=False):
 
     missing, extra = list(), list()
-    pattern = r'\d{4}-\d{2}.*nc'
+    pattern = re.compile(r'\d{4}-\d{2}.*nc')
     first = files[0]
-    idx = re.search(pattern=pattern, string=first)
+    idx = pattern.search(first)
+    # idx = re.search(pattern=pattern, string=first)
     if not idx:
         raise ValueError(f'Unexpected file format: {first}')
     if not start or not end:
         start, end = infer_start_end_e3sm(files)
 
     prefix = first[:idx.start()]
+    # TODO: Come up with a way of doing this check more 
+    # robustly. Its hard because the high-freq files arent consistant
+    # from case to case, using different 'h' codes and different frequencies
+    # for the time being, if there's at least one file per year it'll get marked as correct
     for year in range(start, end):
-        for month in range(1, 13):
-            if month == 2:
-                # for some weird reason having to do with the frequency at which the mode
-                # outputs highfrequency files, feb gets left off _sometimes_
-                continue
-            name = f'{prefix}{year:04d}-{month:02d}'
-            res = [i for i in files if name in i]
-            if not res:
-                missing.append(name)
+        found = None
+        for idx, file in enumerate(files):
+            pattern = re.compile(fr'{year:04d}-\d{2}.*nc')
+            if pattern.search(file):
+                found = idx
+                break
+        if found:
+            files.pop(idx)
+        else:
+            name = f'{prefix}{year:04d}'
+            missing.append(name)
 
     if not missing and debug:
         msg = f'Found {len(files)} files for submonthly dataset'
@@ -243,8 +250,8 @@ def check_fixed(files, dataset_id, spec):
 
 
 def get_ts_start_end(filename):
-    p = r'_\d{6}_\d{6}.nc'
-    idx = re.search(p, filename)
+    p = re.compile(r'_\d{6}_\d{6}.*nc')
+    idx = p.search(filename)
     if not idx:
         raise ValueError(f'Unexpected file format: {filename}')
     start = int(filename[idx.start() + 1: idx.start() + 5])
@@ -280,40 +287,54 @@ def check_time_series(files, dataset_id, spec, start=None, end=None):
         expected_vars = spec['time-series'][realm]
 
     for v in expected_vars:
-        v_files = [
-            x for x in files if v in x and '_' in x and x[:-17] == v]
+        
+        v_files = list()
+        for x in files:
+            idx = -36 if 'cmip6_180x360_aave' in x else -17
+            if v in x and x[:idx] == v:
+                v_files.append(x)
 
         if not v_files:
             missing.append(f'{dataset_id}-{v}-{start:04d}-{end:04d}')
             continue
         else:
-
+            v_files = sorted(v_files)
             v_start, v_end = get_ts_start_end(v_files[0])
             if start != v_start:
                 missing.append(f'{dataset_id}-{v}-{start:04d}-{v_start:04d}')
-            if end != v_end:
-                missing.append(f'{dataset_id}-{v}-{start:04d}-{v_end:04d}')
 
-            f_start, f_end = get_ts_start_end(v_files[0])
-            freq = f_end - f_start + 1
-            spans = list(range(start, end, freq))
-
-            for idx, span_start in enumerate(spans):
-                if span_start != spans[-1]:
-                    span_end = spans[idx + 1] - 1
+            prev_end = start
+            for file in v_files:
+                file_start, file_end = get_ts_start_end(file)
+                if file_start == start:
+                    prev_end = file_end
+                    files_found.append(file)
+                    continue
+                if file_start == prev_end + 1:
+                    prev_end = file_end
+                    files_found.append(file)
                 else:
-                    span_end = end
+                    missing.append(f"{dataset_id}-{prev_end:04d}-{file_start:04d}")
+            # f_start, f_end = get_ts_start_end(v_files[0])
+            # freq = f_end - f_start + 1
+            # spans = list(range(start, end, freq))
 
-                found_span = False
+            # for idx, span_start in enumerate(spans):
+            #     if span_start != spans[-1]:
+            #         span_end = spans[idx + 1] - 1
+            #     else:
+            #         span_end = end
 
-                for f in v_files:
-                    f_start, f_end = get_ts_start_end(f)
-                    if f_start == span_start and f_end == span_end:
-                        found_span = True
-                        files_found.append(f)
-                        break
-                if not found_span:
-                    missing.append(f'{dataset_id}-{v}-{span_start:04d}-{span_end:04d}')
+            #     found_span = False
+
+            #     for f in v_files:
+            #         f_start, f_end = get_ts_start_end(f)
+            #         if f_start == span_start and f_end == span_end:
+            #             found_span = True
+            #             files_found.append(f)
+            #             break
+            #     if not found_span:
+            #         missing.append(f'{dataset_id}-{v}-{span_start:04d}-{span_end:04d}')
     e = [x for x in files if x not in files_found]
     extra.extend(e)
     return missing, extra
@@ -353,6 +374,7 @@ def check_files(files, spec, start, end, debug=False):
         dataset_id = filepath_to_datasetid(files[0])
     except:
         import ipdb; ipdb.set_trace()
+        print("something wonky happened")
     if debug:
         print_message(f"Found dataset: {dataset_id}", 'info')
 
@@ -662,6 +684,7 @@ def check_e3sm(**kwargs):
                 debug=debug)
             missing.extend(m)
             extra.extend(e)
+            dataset_ids.append(dataset_id)
             if not m and debug:
                 print_message(f'All files found for: {dataset_id}', 'info')
             pbar.update(1)
@@ -675,6 +698,7 @@ def check_e3sm(**kwargs):
             m, dataset_id, e = res
             missing.extend(m)
             extra.extend(e)
+            dataset_ids.append(dataset_id)
             if not m:
                 pbar.set_description(f'All files found for: {dataset_id}')
             pbar.update(1)
@@ -762,7 +786,7 @@ def publication_check(**kwargs):
             print_message('All E3SM project files found', 'ok')
     else:
         print_message('Skipping E3SM project datasets', 'ok')
-
+    dataset_ids = [{'id': ds} for ds in dataset_ids]
     return missing, extra, dataset_ids
 
 
@@ -1190,22 +1214,22 @@ def data_check(**kwargs):
         extra = filtered_extra
 
     to_json = kwargs.get('to_json')
-    if to_json:
-        print_message(f'Missing datasets being written to {to_json}')
-        data = {
-            'missing': missing,
-            'extra': extra }
-        if verify:
-            data['issues'] = issues
-        if os.path.exists(to_json):
-            os.remove(to_json)
-        with open(to_json, 'w') as op:
-            json.dump(data, op, indent=4, sort_keys=True)
+    if not to_json:
+        tmp = NamedTemporaryFile(suffix=".json")
+        to_json = tmp.name
+    print_message(f'Missing datasets being written to {to_json}')
+    data = {
+        'missing': missing,
+        'extra': extra }
+    if verify:
+        data['issues'] = issues
+    if os.path.exists(to_json):
+        os.remove(to_json)
+    with open(to_json, 'w') as op:
+        json.dump(data, op, indent=4, sort_keys=True)
         
     report_plot = kwargs.get('report_plot')
     if report_plot:
-        if not to_json:
-            raise ValueError("You must turn on the json output to get a plot report")
         dataset_report(
             json_path=to_json, 
             plot_path=report_plot,
@@ -1254,11 +1278,12 @@ def dataset_report(json_path: str, plot_path: str, dataset_ids: list):
     for dinfo in dataset_ids:
         dataset_id = dinfo['id']
         split = dataset_id.split('.')
+        now = datetime.now()
         if split[0] == 'E3SM':
-            title = 'E3SM project publication status'
+            title = f'E3SM project publication status {now.month}-{now.day}-{now.year}'
             casename = f'{split[1]}.{split[2]}.{split[-2]}'
         else:
-            title = 'E3SM data in CMIP6 project publication status'
+            title = f'E3SM data in CMIP6 project publication status {now.month}-{now.day}-{now.year}'
             casename = f'{split[3]}.{split[4]}.{split[5]}'
         
         if casename not in dataset_info.keys():
@@ -1280,10 +1305,14 @@ def dataset_report(json_path: str, plot_path: str, dataset_ids: list):
             dataset_id = missing.split(':')[0]
 
         if split[0] == 'E3SM':
-            casename = f'{split[1]}.{split[2]}.{split[-2]}'
+            casename = f'{split[1]}.{split[2]}.{split[8]}'
         else:
             casename = f'{split[3]}.{split[4]}.{split[5]}'
         
+        if not dataset_info.get(casename):
+            print(f"problem looking up {casename}")
+            continue
+
         if not dataset_info[casename].get(dataset_id):
             dataset_info[casename][dataset_id] = 'error'
         else:
@@ -1292,7 +1321,8 @@ def dataset_report(json_path: str, plot_path: str, dataset_ids: list):
 
     correct = []
     error = []
-    for casename in dataset_info.keys():
+    casenames = sorted(list(dataset_info.keys()))
+    for casename in casenames:
         num_good, num_bad = 0, 0
         for _, val in dataset_info[casename].items():
             if val == 'good':
