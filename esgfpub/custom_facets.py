@@ -60,7 +60,6 @@ def update_custom(facets, datadir, dataset_ids=None, debug=False):
         raise ValueError(f"The globus certificate doesnt exist where its expected, {str(cert_path.resolve())}")
     cert_path = str(cert_path.resolve())
     
-    import ipdb; ipdb.set_trace()
     for dataset in tqdm(dataset_ids):
         url = "https://esgf-node.llnl.gov/esg-search/ws/updateById"
         for facet in facets:

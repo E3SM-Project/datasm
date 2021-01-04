@@ -12,7 +12,7 @@ from tempfile import TemporaryDirectory
 
 
 def get_facet_info(datasetID):
-    ds_split =datasetID.split('.') 
+    ds_split = datasetID.split('.')
     project = ds_split[0]
     if project != 'E3SM':
         print(f"Only able to load facet info from E3SM project datasets")
@@ -22,15 +22,17 @@ def get_facet_info(datasetID):
     spec_path = os.path.join(resource_path, 'dataset_spec.yaml')
     with open(spec_path, 'r') as ip:
         spec = yaml.safe_load(ip)
-    
+
     model_version = ds_split[1]
     casename = ds_split[2]
     res = ds_split[3]
 
     try:
-        casespec = [x for x in spec['project'][project][model_version] if x['experiment'] == casename].pop()
+        casespec = [x for x in spec['project'][project]
+                    [model_version] if x['experiment'] == casename].pop()
     except IndexError as e:
-        print(f"Does this experiment {casename} have the correct entry in the dataset spec?")
+        print(
+            f"Does this experiment {casename} have the correct entry in the dataset spec?")
         raise e
 
     campaign = casespec.get('campaign')
@@ -42,23 +44,19 @@ def get_facet_info(datasetID):
     period = f"{casespec['start']}-{casespec['end']}"
     return campaign, science_driver, period
 
+
 def print_while_running(process):
-    while not process.poll(): 
+    while not process.poll():
         yield process.stdout.readline()
     raise StopIteration
 
 
-def publish_maps(mapfiles, mapsin, mapsout, mapserr, logpath, sproket='spoket', debug=False):
+def publish_maps(mapfiles, mapsin, mapsout, mapserr, logpath, sproket='spoket', no_custom=False, debug=False):
     os.makedirs(logpath, exist_ok=True)
     with TemporaryDirectory() as tmpdir:
-        
+
         for m in mapfiles:
-            if m[-4:] != '.map':
-                msg = "Unrecognized file type, this doesnt appear to be an ESGF mapfile. Moving to the err directory {}".format(m)
-                print_message(msg)
-                os.rename(
-                    os.path.join(mapsin, m),
-                    os.path.join(mapserr, m))
+            if not m.endswith('.map'):
                 continue
 
             print_message(f"Starting publication for {m}", 'ok')
@@ -76,31 +74,34 @@ def publish_maps(mapfiles, mapsin, mapsout, mapserr, logpath, sproket='spoket', 
                 project = 'cmip6'
                 project_metadata = None
             elif project == 'E3SM':
-                campaign, driver, period = get_facet_info(datasetID)
-                if campaign and driver and period:
-                    project_metadata_path = os.path.join(tmpdir, f'{datasetID}.json')
-                    project_metadata = {
-                        'Campaign': campaign,
-                        'Science Driver': driver,
-                        'Period': period
-                    }
-                    with open(project_metadata_path, 'w') as op:
-                        json.dump(project_metadata, op)
+                if not no_custom:
+                    campaign, driver, period = get_facet_info(datasetID)
+                    if campaign and driver and period:
+                        project_metadata_path = os.path.join(
+                            tmpdir, f'{datasetID}.json')
+                        project_metadata = {
+                            'Campaign': campaign,
+                            'Science Driver': driver,
+                            'Period': period
+                        }
+                        with open(project_metadata_path, 'w') as op:
+                            json.dump(project_metadata, op)
             else:
                 raise ValueError(
                     "Unrecognized project name for mapfile: {}".format(m))
-            
+
             map_path = os.path.join(mapsin, m)
             cmd = f"esgpublish --project {project} --map {map_path}".split()
-            if project_metadata:
+            if project_metadata and not no_custom:
                 cmd.extend(['--json', project_metadata_path])
-            
+
             print_message(f"Running: {' '.join(cmd)}", 'ok')
             log = os.path.join(logpath, f"{datasetID}.log")
             print_message(f"Writing publication log to {log}", 'ok')
-            
+
             with open(log, 'w') as outstream:
-                proc = Popen(cmd, stdout=outstream, stderr=outstream, universal_newlines=True)
+                proc = Popen(cmd, stdout=outstream,
+                             stderr=outstream, universal_newlines=True)
                 proc.wait()
 
             if proc.returncode != 0:
@@ -119,7 +120,7 @@ def publish_maps(mapfiles, mapsin, mapsout, mapserr, logpath, sproket='spoket', 
                     os.path.join(mapsout, m))
 
 
-def publish(mapsin, mapsout, mapserr, loop, logpath, sproket='sproket', debug=False):
+def publish(mapsin, mapsout, mapserr, loop, logpath, sproket='sproket', no_custom=False, debug=False):
 
     if loop:
         print_message("Starting publisher loop", 'ok')
@@ -129,7 +130,10 @@ def publish(mapsin, mapsout, mapserr, loop, logpath, sproket='sproket', debug=Fa
         mapfiles = [x for x in os.listdir(mapsin) if x.endswith('.map')]
         if mapfiles:
             publish_maps(mapfiles, mapsin, mapsout,
-                        mapserr, logpath, debug=debug, sproket=sproket)
+                         mapserr, logpath,
+                         debug=debug,
+                         no_custom=no_custom,
+                         sproket=sproket)
         if not loop:
             break
         sleep(30)

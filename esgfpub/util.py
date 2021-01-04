@@ -189,6 +189,10 @@ def parse_args():
         default='sproket',
         help="path to sproket binary if its not in your PATH")
     parser_publish.add_argument(
+        '--no-custom',
+        action="store_true",
+        help="dont do the custom facet update")
+    parser_publish.add_argument(
         '--debug',
         action="store_true")
 
