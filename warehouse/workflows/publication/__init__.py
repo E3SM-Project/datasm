@@ -1,5 +1,6 @@
 from warehouse.workflows import Workflow
 
+NAME = 'publish'
 
 class Publication(Workflow):
 
@@ -11,9 +12,8 @@ class Publication(Workflow):
 
     @staticmethod
     def add_args(parser):
-        name = 'publication'
         p = parser.add_parser(
-            name=name,
+            name=NAME,
             help='publish a dataset to ESGF')
         p.add_argument(
             '-p', '--path',
@@ -23,12 +23,11 @@ class Publication(Workflow):
             '-d', '--dataset',
             required=True,
             help="the dataset_id to extract")
-        return name, parser
+        return NAME, parser
 
     @staticmethod
     def arg_checker(args):
-        name = 'publication'
         if not os.path.exists(args.path):
             print("The given path {args.path} does not exist")
-            return name
-        return True
+            return False, NAME
+        return True, NAME

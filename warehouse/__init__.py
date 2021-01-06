@@ -195,12 +195,11 @@ def parse_args(arg_sources, checkers):
         name, sub = source(subcommands)
         subparsers[name] = sub
 
-    args = parser.parse_args()
+    parsed_args = parser.parse_args()
 
-    for check in checkers:
-        parser = check(args)
-        if parser != True:
-            subparsers[parser].print_help()
-            return None
+    valid, name = checkers[parsed_args.subparser_name](parsed_args)
+    if not valid:
+        subparsers[name].print_help()
+        return None
 
-    return args
+    return parsed_args

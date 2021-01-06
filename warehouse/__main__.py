@@ -1,8 +1,8 @@
 import sys
 
-from warehouse.report import report, add_report_args, check_report_args
 from warehouse import parse_args
-
+from warehouse.report import Report, add_report_args, check_report_args
+from warehouse.warehouse import AutoWarehouse
 from warehouse.workflows.extraction import Extraction
 from warehouse.workflows.cleanup import CleanUp
 from warehouse.workflows.postprocess import PostProcess
@@ -10,7 +10,8 @@ from warehouse.workflows.publication import Publication
 from warehouse.workflows.validation import Validation
 
 subcommands = {
-    'report': report,
+    'auto': AutoWarehouse,
+    'report': Report,
     'extract': Extraction,
     'cleanup': CleanUp,
     'postprocess': PostProcess,
@@ -18,6 +19,7 @@ subcommands = {
     'validation': Validation
 }
 arg_sources = [
+    AutoWarehouse.add_args,
     add_report_args,
     Extraction.add_args,
     CleanUp.add_args,
@@ -25,14 +27,15 @@ arg_sources = [
     Publication.add_args,
     Validation.add_args
 ]
-arg_checkers = [
-    check_report_args,
-    Extraction.arg_checker,
-    CleanUp.arg_checker,
-    PostProcess.arg_checker,
-    Publication.arg_checker,
-    Validation.arg_checker
-]
+arg_checkers = {
+    'auto': AutoWarehouse.arg_checker,
+    'report': check_report_args,
+    'extract': Extraction.arg_checker,
+    'cleanup': CleanUp.arg_checker,
+    'postprocess': PostProcess.arg_checker,
+    'publication': Publication.arg_checker,
+    'validation': Validation.arg_checker
+}
 
 
 def main():
@@ -40,7 +43,8 @@ def main():
     if not args:
         return -1
     command = args.subparser_name
-    subcommands[command](args)
+    job = subcommands[command](**vars(args))
+    return job()
 
 
 if __name__ == "__main__":

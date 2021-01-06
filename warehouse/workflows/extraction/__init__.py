@@ -5,6 +5,7 @@ from warehouse.workflows.extraction.jobs import (
     ZstashExtract
 )
 
+NAME = 'extract'
 
 class Extraction(Workflow):
 
@@ -16,9 +17,8 @@ class Extraction(Workflow):
 
     @staticmethod
     def add_args(parser):
-        name = 'extract'
         p = parser.add_parser(
-            name=name,
+            name=NAME,
             help='extract datasets from zstash and perform validation')
         p.add_argument(
             '-p', '--path',
@@ -32,15 +32,14 @@ class Extraction(Workflow):
             '-d', '--dataset',
             required=True,
             help="the dataset_id to extract")
-        return 'extraction', parser
+        return NAME, parser
 
     @staticmethod
     def arg_checker(args):
-        name = 'extract'
         if not os.path.exists(args.path):
             print("The given path {args.path} does not exist")
-            return name
+            return False, NAME
         if not not os.path.exists(args.zstash):
             print("The given path {args.zstash} does not exist")
-            return name
-        return True
+            return False, NAME
+        return True, NAME

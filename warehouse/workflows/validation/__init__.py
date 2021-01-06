@@ -1,5 +1,7 @@
+from pathlib import Path
 from warehouse.workflows import Workflow
 
+NAME = 'validate'
 
 class Validation(Workflow):
 
@@ -11,9 +13,8 @@ class Validation(Workflow):
 
     @staticmethod
     def add_args(parser):
-        name = 'validation'
         p = parser.add_parser(
-            name=name,
+            name=NAME,
             help='validate a raw dataset')
         p.add_argument(
             '-p', '--path',
@@ -23,12 +24,11 @@ class Validation(Workflow):
             '-d', '--dataset',
             required=True,
             help="the dataset_id to extract")
-        return name, parser
+        return NAME, parser
 
     @staticmethod
     def arg_checker(args):
-        name = 'validation'
-        if not os.path.exists(args.path):
+        if not Path(args.path).exists():
             print("The given path {args.path} does not exist")
-            return name
-        return True
+            return False, NAME
+        return True, NAME
