@@ -17,7 +17,6 @@ from esgfpub.version import __version__
 from tempfile import NamedTemporaryFile
 
 
-
 def parse_args():
     parser = argparse.ArgumentParser(prog='esgfpub')
     subparsers = parser.add_subparsers(
@@ -196,36 +195,29 @@ def parse_args():
     parser_custom = subparsers.add_parser(
         'custom', help='Update the custom facets for a list of datasets')
     parser_custom.add_argument(
-        "--version",
-        action="version",
-        version='%(prog)s' + f'{__version__}',
-        help="show program version and exit")
-    parser_custom.add_argument(
-        "-m", '--map-dir',
-        dest='mapdir',
-        help="directory of map files")
-    parser_custom.add_argument(
-        "-d", '--data-dir',
+        '-d', '--data-dir',
         dest='datadir',
         nargs="+",
         help="root of data directory")
+    parser_custom.add_argument(
+        '-i',
+        '--dataset-ids',
+        nargs='+',
+        help='One or more dataset IDs to update, if this option is turned on only these datasets will be checked')
     parser_custom.add_argument(
         '--facets',
         nargs='+',
         required=True,
         help="sequence of var=value pairs")
     parser_custom.add_argument(
-        '-o', '--output',
-        default="./custom_facets.map",
-        help="output for the new mapfile, defaults to $PWD/custom_facets.map")
-    parser_custom.add_argument(
-        '--generate-only',
-        action="store_true",
-        help="Only generate the custom facet mapfile and dont run the update command, usefull if not running on the ESGF node")
-    parser_custom.add_argument(
         '--debug',
         action="store_true",
         help="turn on debug prints")
+    parser_custom.add_argument(
+        "--version",
+        action="version",
+        version='%(prog)s' + f'{__version__}',
+        help="show program version and exit")
     return parser.parse_args(sys.argv[1:])
 
 
@@ -249,19 +241,19 @@ def print_message(message, status='error'):
         status (str): the status class of the message, should be "error", "ok", or "info"
     """
     now = datetime.now()
-    
-    hour=now.strftime('%H')
-    minutes=now.strftime('%M')
-    sec=now.strftime('%S')
-    
+
+    hour = now.strftime('%H')
+    minutes = now.strftime('%M')
+    sec = now.strftime('%S')
+
     if status == 'error':
         start_icon = '[-]'
         start_color = colors.FAIL
-        
+
     elif status == 'info':
         start_icon = '[=]'
         start_color = colors.OKBLUE
-    
+
     else:
         start_icon = '[+]'
         start_color = colors.OKGREEN
@@ -452,13 +444,14 @@ def mapfile_gen(basepath, inipath, outpath, maxprocesses, pbar, env_name, event=
         event (threading.Event): an event to terminate the process early
         pbar (tqdm): a tqdm progressbar
     """
-    pbar.set_description("Hashing files for {}".format(path_to_dataset_id(basepath)))
+    pbar.set_description("Hashing files for {}".format(
+        path_to_dataset_id(basepath)))
     run_mapfile_string = """#!/bin/bash
 source ~/anaconda3/etc/profile.d/conda.sh
 conda activate {env} 
 esgmapfile make --debug --outdir {out} -i {ini} --project e3sm --max-processes {procs} {data}
 """.format(
-        out=outpath, 
+        out=outpath,
         env=env_name,
         procs=maxprocesses,
         ini=inipath,
