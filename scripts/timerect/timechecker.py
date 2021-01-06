@@ -11,10 +11,16 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
 def get_time_units(path):
+    time_names = ['Time', 'time']
+    time_name = ''
     with xr.open_dataset(path, decode_times=False) as ds:
-        return ds['time'].attrs['units']
+        for name in time_names:
+            if name in ds.dims:
+                time_name = name
+                break
+        return ds[time_name].attrs['units'], time_name
 
-def check_file(file, freq, idx):
+def check_file(file, freq, idx, time_name='time'):
     """
     Step through the file checking that each step in time is exactly how long it should be
     and that the time index is monotonically increasing
@@ -22,7 +28,7 @@ def check_file(file, freq, idx):
     prevtime = None
     first, last = None, None
     with xr.open_dataset(file, decode_times=False) as ds:
-        for step in ds['time']:
+        for step in ds[time_name]:
             time = step.values.item()
             if not prevtime:
                 prevtime = time
@@ -59,11 +65,12 @@ def main():
     files = [x['name'] for x in sorted(fileinfo, key=lambda i: i['suffix'])]
     del fileinfo
 
-    time_units = get_time_units(files[0])
+    time_units, time_name = get_time_units(files[0])
 
-    # find the time frequency by checking the delta from the 0th to the 1st step
+    # find the time frequency and time name by checking the delta from the 0th to the 1st step
     with xr.open_dataset(files[0], decode_times=False) as ds:
-        freq = ds['time'][1].values.item() - ds['time'][0].values.item()
+
+        freq = ds[time_name][1].values.item() - ds[time_name][0].values.item()
         print(f"Time frequency detected as {freq} {time_units}")
 
     # iterate over each of the files and get the first and last index from each file
@@ -77,7 +84,6 @@ def main():
             first, last, idx = future.result()
             indices[idx] = (first, last, idx)
     
-    import ipdb; ipdb.set_trace()
     prev = None
     for first, last, idx in indices:
         if not prev:
