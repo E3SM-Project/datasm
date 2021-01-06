@@ -13,6 +13,13 @@ calendars = {
     'noleap': {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
 }
 
+#
+def ts(prefix):
+    return prefix + datetime.now().strftime('%Y%m%d_%H%M%S')
+
+def put_message(message):
+    print(f'{ts("")}:{message}')
+
 def get_time_units(path):
     with xr.open_dataset(path, decode_times=False) as ds:
         return ds['time'].attrs['units']
@@ -45,7 +52,7 @@ def check_file(file, freq, idx):
                 # monthly data
                 return time, time, idx
             elif delta != freq:
-                print(f"time discontinuity in {file} at {time}, delta was {delta} when it should have been {freq}")    
+                put_message(f"time discontinuity in {file} at {time}, delta was {delta} when it should have been {freq}")    
             prevtime = time
         last = time
     return first, last, idx
@@ -54,8 +61,11 @@ def main():
     parser = argparse.ArgumentParser(description="Check a directory of raw E3SM time-slice files for discontinuities in the time index")
     parser.add_argument('input', help="Directory path containing dataset")
     parser.add_argument('-j', '--jobs', default=8, type=int, help="the number of processes, default is 8")
+    parser.add_argument('-q', '--quiet', action='store_true', default=False, help="Disable progress-bar for batch/background processing")
     args = parser.parse_args()
     inpath = args.input
+
+    put_message(f'Running timechecker:dataset={inpath}')
 
     # collect all the files and sort them by their date stamp
     names = [os.path.join(os.path.abspath(inpath), x) for x in os.listdir(inpath) if x.endswith('.nc')]
@@ -81,14 +91,14 @@ def main():
     with xr.open_dataset(files[0], decode_times=False) as ds:
         if ds.attrs.get("time_period_freq") == "month_1":
             monthly = True
-            print("Found monthly data")
+            put_message("Found monthly data")
             calendar = ds['time'].attrs['calendar']
             if calendar not in calendars:
                 raise ValueError(f"Unsupported calendar type {calendar}")
         else:
-            print("Found sub-monthly data")
+            put_message("Found sub-monthly data")
             freq = ds['time'][1].values.item() - ds['time'][0].values.item()
-            print(f"Time frequency detected as {freq} {time_units}")
+            put_message(f"Time frequency detected as {freq} {time_units}")
 
     # iterate over each of the files and get the first and last index from each file
     issues = list()
@@ -97,7 +107,7 @@ def main():
     with ProcessPoolExecutor(max_workers=args.jobs) as pool:
         futures = [pool.submit(check_file, file, freq, idx) for idx, file in enumerate(files)]
 
-        for future in tqdm(as_completed(futures), total=len(futures), desc="Checking time indices"):
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Checking time indices", disable=args.quiet):
             first, last, idx = future.result()
             indices[idx] = (first, last, idx)
     
@@ -122,10 +132,14 @@ def main():
             issues.append(msg)
         prev = last
 
-    if not issues:
-        print("No time index issues found.")
-    else:
-        [print(msg) for msg in issues]
+    if issues:
+        issues.append(f'Result=Fail:dataset={inpath}')
+        [put_message(msg) for msg in issues]
+        return 1
+
+    
+    put_message("No time index issues found.")
+    put_message(f"Result=Pass:dataset={inpath}")
     return 0
 
 if __name__ == "__main__":
