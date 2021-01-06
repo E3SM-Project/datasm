@@ -57,6 +57,7 @@ def get_e3sm_start_end(filename):
 
 
 def check_spans(files, start, end, dataset_id):
+
     missing = []
     files_found = []
 
@@ -64,29 +65,29 @@ def check_spans(files, start, end, dataset_id):
         start, end = infer_start_end_cmip(files)
     if not start and not end:
         start, end = infer_start_end_e3sm(files)
+    
+    file_start, file_end = get_cmip_start_end(files[0])
+    if file_start != start:
+        missing.append(f"{dataset_id}-{start:04d}-{file_end:04d}")
 
-    f_start, f_end = get_cmip_start_end(files[0])
-    freq = f_end - f_start + 1
-    spans = list(range(start, end, freq))
-
-    for idx, span_start in enumerate(spans):
-        found_span = False
-        if span_start != spans[-1]:
-            span_end = spans[idx + 1] - 1
+    prev_end = start
+    for file in sorted(files):
+        file_start, file_end = get_cmip_start_end(file)
+        if file_start == start:
+            prev_end = file_end
+            files_found.append(file)
+            continue
+        if file_start == prev_end + 1:
+            prev_end = file_end
+            files_found.append(file)
         else:
-            span_end = end
+            missing.append(f"{dataset_id}-{prev_end:04d}-{file_start:04d}")
 
-        for f in files:
-            f_start, f_end = get_cmip_start_end(f)
-            if f_start == span_start and f_end == span_end:
-                found_span = True
-                files_found.append(f)
-                break
-        if not found_span:
-            missing.append(f"{dataset_id}-{span_start:04d}-{span_end:04d}")
+    file_start, file_end = get_cmip_start_end(files[-1])
+    if file_end != end:
+        missing.append(f"{dataset_id}-{file_start:04d}-{end:04d}")
 
     extra_files = [x for x in files if x not in files_found]
-
     return missing, extra_files
 
 
@@ -278,7 +279,6 @@ def check_time_series(files, dataset_id, spec, start=None, end=None):
     else:
         expected_vars = spec['time-series'][realm]
 
-    # import ipdb; ipdb.set_trace()
     for v in expected_vars:
         v_files = [
             x for x in files if v in x and '_' in x and x[:-17] == v]
@@ -359,6 +359,16 @@ def check_files(files, spec, start, end, debug=False):
     if '.fx.' in dataset_id and files:
         return [], dataset_id, []
 
+    nfiles = []
+    for file in files:
+        file_path, name = os.path.split(file)
+        file_attrs = file_path.split('/')
+        version = file_attrs[-1]
+        nfiles.append((version, file))
+    
+    latest_version = sorted(nfiles)[-1][0]
+    files = [x for version,x in nfiles if version == latest_version]
+
     if dataset_id[:5] == 'CMIP6':
         missing, extra = check_spans(files, start, end, dataset_id)
     elif dataset_id[:4] == 'E3SM':
@@ -393,7 +403,7 @@ def sproket_with_id(dataset_id, sproket, spec, start=False, end=False, debug=Fal
     with open(tempfile.name, mode='w') as tmp:
         config_string = json.dumps({
             'search_api': "https://esgf-node.llnl.gov/esg-search/search/",
-            'data_node_priority': ["aims3.llnl.gov", "esgf-data1.llnl.gov", "esgf-data2.llnl.gov"],
+            'data_node_priority': ["esgf-data2.llnl.gov", "aims3.llnl.gov", "esgf-data1.llnl.gov"],
             'fields': {
                 'dataset_id': dataset_id + '*',
                 'latest': 'true'
@@ -432,8 +442,8 @@ def sproket_with_id(dataset_id, sproket, spec, start=False, end=False, debug=Fal
 # This file would have the dataset_id:
 # CMIP6.CMIP.E3SM-project.E3SM-1-0.piControl.r1i1p1f1.Amon.ts#20190719
 
-def collect_cmip_datasets(**kwargs):
-    case_spec = kwargs['case_spec']
+def collect_cmip_datasets(case_spec, **kwargs):
+    # case_spec = kwargs['case_spec']
     model_versions = kwargs.get('model_versions', 'all')
     experiments = kwargs.get('experiments', 'all')
     ensembles = kwargs.get('ens', 'all')
@@ -522,6 +532,7 @@ def check_cmip(**kwargs):
                 case['start'],
                 case['end'],
                 debug=debug)
+            dataset_ids.append(dataset_id)
             pbar.update(1)
             if debug and not m and not e:
                 msg = f'All files found for: {dataset_id}'
@@ -541,6 +552,7 @@ def check_cmip(**kwargs):
         pbar = tqdm(total=len(futures))
         for f in as_completed(futures):
             m, dataset_id, e = f.result()
+            dataset_ids.append(dataset_id)
             if not m:
                 pbar.set_description(f'All files found for: {dataset_id}')
             if debug and not m and not e:
@@ -559,8 +571,7 @@ def check_cmip(**kwargs):
             pbar.update(1)
     pbar.close()
 
-
-    dataset_ids = [{'id': ds} for ds,case in dataset_ids]
+    dataset_ids = [{'id': ds} for ds in dataset_ids]
     return missing, extra, dataset_ids
 
 def collect_e3sm_datasets(**kwargs):
@@ -764,7 +775,7 @@ def facet_filter(facet, facets, exclude=None):
     return False
 
 
-def collect_paths(data_path=None, case_spec=None, projects=None, model_versions='all', cases='all', tables='all', variables='all', ens='all', exclude=None, debug=False, **kwargs):
+def collect_paths(data_path=None, case_spec=None, projects=None, model_versions='all', experiments='all', tables='all', variables='all', ens='all', exclude=None, debug=False, **kwargs):
 
     dataset_paths, dataset_ids, extra = list(), list(), list()
 
@@ -785,6 +796,8 @@ def collect_paths(data_path=None, case_spec=None, projects=None, model_versions=
                     project_path, cmip_project, 'E3SM-Project')
                 if debug:
                     print_message(f' checking cmip-project: {cmip_project}', 'info')
+                if not os.path.exists(cmip_project_path):
+                    continue
                 for model_version in os.listdir(cmip_project_path):
                     if facet_filter(model_version, model_versions, exclude):
                         continue
@@ -793,7 +806,7 @@ def collect_paths(data_path=None, case_spec=None, projects=None, model_versions=
                     if debug:
                         print_message(f'  checking model_version: {model_version}', 'info')
                     for case in os.listdir(model_version_path):
-                        if facet_filter(case, cases, exclude):
+                        if facet_filter(case, experiments, exclude):
                             continue
                         if debug:
                             print_message(f'   checking experiment: {case}', 'info')
@@ -981,7 +994,7 @@ def filesystem_check(client, case_spec=None, debug=False, **kwargs):
     missing, futures = list(), list()
     print_message("Starting file-system check", 'ok')
     dataset_paths, dataset_ids, extra = collect_paths(**kwargs)
-    expected_datasets = [x for x in collect_cmip_datasets(**kwargs)]
+    expected_datasets = [x for x in collect_cmip_datasets(case_spec, **kwargs)]
 
     if not client:
         pbar = tqdm(total=len(dataset_paths))
@@ -1120,24 +1133,9 @@ def data_check(**kwargs):
         pool = None
     else:
         if debug:
-            print_message(f'Setting up dask cluster with {num_workers} workers', 'info')
-        # if not cluster_address:
-        #     processes = False if debug else True
-        #     cluster = LocalCluster(
-        #         n_workers=num_workers,
-        #         processes=processes,
-        #         threads_per_worker=1,
-        #         local_dir='dask-worker-space')
-
-        #     client = Client(cluster)
-        # else:
-        #     client = Client(cluster_address)
+            print_message(f'Creating processpool with {num_workers} workers', 'info')
 
         pool = ProcessPoolExecutor(max_workers=num_workers)
-
-        if debug:
-            print_message('Cluster setup complete', 'info')
-            print_message(str(client), 'info')
 
     dataset_ids = kwargs.get('dataset_ids')
     if dataset_ids:
@@ -1173,7 +1171,11 @@ def data_check(**kwargs):
         filtered_extra, filtered_missing = list(), list()
 
         for m in missing:
-            idx = m.index(':')
+            try:
+                idx = m.index(':')
+            except:
+                print(m)
+                continue
             if m[:idx] == 'No dataset':
                 filtered_missing.append(m)
             else:
@@ -1247,11 +1249,11 @@ def dataset_report(json_path: str, plot_path: str, dataset_ids: list):
     Returns:
         None
     """
-    # import ipdb; ipdb.set_trace()
-    
+
     dataset_info = {}
     for dinfo in dataset_ids:
-        split = dinfo['id'].split('.')
+        dataset_id = dinfo['id']
+        split = dataset_id.split('.')
         if split[0] == 'E3SM':
             title = 'E3SM project publication status'
             casename = f'{split[1]}.{split[2]}.{split[-2]}'
@@ -1260,33 +1262,46 @@ def dataset_report(json_path: str, plot_path: str, dataset_ids: list):
             casename = f'{split[3]}.{split[4]}.{split[5]}'
         
         if casename not in dataset_info.keys():
-            dataset_info[casename] = [1, 0] # correct, error
-        else:
-            # import ipdb; ipdb.set_trace()
-            dataset_info[casename][0] += 1 # increment the correct count
+            dataset_info[casename] = {}
+        
+        dataset_info[casename][dataset_id] = 'good'
 
     with open(json_path, 'r') as ip:
         raw_info = json.load(ip)
 
+    no_dataset_str = 'No dataset: '
     for missing in raw_info['missing']:
-        no_dataset_str = 'No dataset: '
         if no_dataset_str in missing:
             idx = missing.index(no_dataset_str)
             split = missing[idx + len(no_dataset_str):].split('.')
+            dataset_id = '.'.join(split)
         else:
             split = missing.split('.')
+            dataset_id = missing.split(':')[0]
 
         if split[0] == 'E3SM':
             casename = f'{split[1]}.{split[2]}.{split[-2]}'
         else:
             casename = f'{split[3]}.{split[4]}.{split[5]}'
         
-        if dataset_info[casename][0] > 0:
-            dataset_info[casename][0] -= 1 # decrease the num correct
-        dataset_info[casename][1] += 1 # increase the num issue
+        if not dataset_info[casename].get(dataset_id):
+            dataset_info[casename][dataset_id] = 'error'
+        else:
+            if dataset_info[casename][dataset_id] != 'error':
+                dataset_info[casename][dataset_id] = 'error'
 
-    correct = [x[0] for x in dataset_info.values()]
-    error = [x[1] for x in dataset_info.values()]
+    correct = []
+    error = []
+    for casename in dataset_info.keys():
+        num_good, num_bad = 0, 0
+        for _, val in dataset_info[casename].items():
+            if val == 'good':
+                num_good += 1
+            else:
+                num_bad += 1
+        correct.append(num_good)
+        error.append(num_bad)
+
     width = 0.35
     ind = np.arange(len(dataset_info.keys()))
 
@@ -1299,7 +1314,7 @@ def dataset_report(json_path: str, plot_path: str, dataset_ids: list):
     barax.set_xticklabels(tuple(x for x in dataset_info.keys()))
     # set the barchar axis labels
     barax.set_ylabel('datasets')
-    barax.set_xlabel('case')
+    barax.set_xlabel('')
     # rotate the xaxis ticks
     plt.setp(barax.get_xticklabels(), rotation=30, horizontalalignment='right')
     # add the legend
@@ -1308,7 +1323,7 @@ def dataset_report(json_path: str, plot_path: str, dataset_ids: list):
     pieax.pie([sum(correct), sum(error)], 
                 explode=(0.1, 0),
                 shadow=True,
-                labels=('published', 'missing'),
+                labels=(f'{sum(correct)} published', f'{sum(error)} missing'),
                 autopct='%1.1f%%')
     pieax.axis('equal')
     

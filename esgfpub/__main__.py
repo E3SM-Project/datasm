@@ -37,16 +37,11 @@ def main():
         from esgfpub.custom_facets import update_custom
         update_custom(
             facets=ARGS.facets,
-            outpath=ARGS.output,
-            generate_only=ARGS.generate_only,
-            mapdir=ARGS.mapdir,
             datadir=ARGS.datadir,
+            dataset_ids=ARGS.dataset_ids,
             debug=ARGS.debug)
     else:
-        raise ValueError("Unrecognised subcommand")
-
-    if os.path.exists('dask-worker-space'):
-        rmtree('dask-worker-space')
+        raise ValueError("Unrecognized subcommand")
 
 
 if __name__ == "__main__":
