@@ -40,7 +40,7 @@ def print_debug(e):
     print('5', traceback.print_tb(tb))
 # -----------------------------------------------
 
-def sproket_with_id(dataset_id, sprocket_path='sprocket', **kwargs):
+def sproket_with_id(dataset_id, sproket_path='sproket', **kwargs):
 
     # create the path to the config, write it out
     tempfile = NamedTemporaryFile(suffix='.json')
@@ -57,7 +57,7 @@ def sproket_with_id(dataset_id, sprocket_path='sprocket', **kwargs):
         tmp.write(config_string)
         tmp.seek(0)
 
-        cmd = [sprocket_path, '-config', tempfile.name, '-y', '-urls.only']
+        cmd = [sproket_path, '-config', tempfile.name, '-y', '-urls.only']
         proc = Popen(cmd, shell=False, stdout=PIPE, stderr=PIPE)
         out, err = proc.communicate()
     if err:

@@ -32,7 +32,7 @@ class AutoWarehouse():
         self.serial = kwargs.get('serial', False)
         self.testing = kwargs.get('testing', False)
         self.dataset_ids = kwargs.get('dataset_id', False)
-        self.sproket_path = kwargs.get('sprocket', 'sprocket')
+        self.sproket_path = kwargs.get('sproket', 'sproket')
         if self.serial:
             print("Running warehouse in serial mode")
         else:
@@ -74,7 +74,7 @@ class AutoWarehouse():
                 pub_base=self.publication_path,
                 warehouse_base=self.warehouse_path,
                 archive_base=self.archive_path,
-                sprocket=self.sproket_path)
+                sproket=self.sproket_path)
             for dataset_id in dataset_ids
         }
 
@@ -194,7 +194,7 @@ class AutoWarehouse():
             action="store_true",
             help='run the warehouse in testing mode')
         p.add_argument(
-            '--sprocket',
+            '--sproket',
             required=False,
             default='sproket',
             help='path to sproket binary if its not in your $PATH')

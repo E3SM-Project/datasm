@@ -71,7 +71,7 @@ class Dataset(object):
         self.warehouse_base = warehouse_base
         self.archive_path = Path(path)
         self.archive_base = archive_base
-        self.sprocket = kwargs.get('sprocket')
+        self.sproket = kwargs.get('sproket')
 
         self.stat = stat if stat else {}
         self.comm = comm if comm else {}
@@ -177,11 +177,11 @@ class Dataset(object):
         else:
             return True
 
-    def get_esgf_status(self, sprocket='sprocket'):
+    def get_esgf_status(self, sproket='sproket'):
         """
         Check ESGF to see of the dataset has already been published,
         if it exists check that the dataset is complete"""
-        _, files = sproket_with_id(self.dataset_id, sprocket_path=self.sprocket)
+        _, files = sproket_with_id(self.dataset_id, sproket_path=self.sproket)
         if not files:
             return DatasetStatus.UNITITIALIZED
 
