@@ -1,11 +1,12 @@
 from warehouse.workflows import Workflow
 
-NAME = 'postprocess'
+NAME = 'PostProcess'
+COMMAND = 'postprocess'
 
 class PostProcess(Workflow):
 
     def __init__(self, *args, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
 
     def __call__(self):
         ...
@@ -13,7 +14,7 @@ class PostProcess(Workflow):
     @staticmethod
     def add_args(parser):
         p = parser.add_parser(
-            name=NAME,
+            name=COMMAND,
             help='postprocess a dataset')
         p.add_argument(
             '-p', '--path',
@@ -23,11 +24,11 @@ class PostProcess(Workflow):
             '-d', '--dataset',
             required=True,
             help="the dataset_id to extract")
-        return NAME, parser
+        return COMMAND, parser
 
     @staticmethod
     def arg_checker(args):
         if not os.path.exists(args.path):
             print("The given path {args.path} does not exist")
-            return False, NAME
-        return True, NAME
+            return False, COMMAND
+        return True, COMMAND

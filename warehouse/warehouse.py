@@ -32,6 +32,9 @@ class AutoWarehouse():
         self.serial = kwargs.get('serial', False)
         self.testing = kwargs.get('testing', False)
         self.dataset_ids = kwargs.get('dataset_id', False)
+
+
+        self.workflows = Workflow()
         if self.serial:
             print("Running warehouse in serial mode")
         else:
@@ -117,6 +120,7 @@ class AutoWarehouse():
         import ipdb; ipdb.set_trace()
         from pprint import pprint
         pprint(dataset_status)
+        
         # start a workflow for each dataset (if needed)
         for dataset_id, status in dataset_status.items():
             if status == DatasetStatus.SUCCESS:
@@ -124,6 +128,12 @@ class AutoWarehouse():
             ...
         
         return 0
+    
+    def nextState(self, dataset):
+        ...
+    
+    def load_workflows(self):
+        ...
     
 
     
