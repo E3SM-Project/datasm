@@ -553,6 +553,8 @@ def conductPublication(adir,stagespec):        # cheat:  stagespec is either PUB
         edir_w, vdirs_w = get_dataset_dirs_loc(adir,'W')
         pdir = getPubCurrVersionPath(adir)
 
+        statfile = os.path.join(edir_w,'.status')
+
         wfilenames = [files for _, _, files in os.walk(pdir)][0]
         wfilenames.sort()
         wcount = len(wfilenames)
