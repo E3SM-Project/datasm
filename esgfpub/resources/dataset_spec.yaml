@@ -204,8 +204,7 @@ project:
   CMIP:
     C4MIP:
       E3SM-1-1:
-        -
-          experiment: hist-bgc
+        hist-bgc:
           start: 1850
           end: 2014
           ens:
@@ -214,8 +213,7 @@ project:
             - siu
             - siv
             - clcalipso
-        -
-          experiment: ssp585-bgc
+        ssp585-bgc:
           start: 2015
           end: 2100
           ens:
@@ -225,8 +223,7 @@ project:
             - siv
             - clcalipso
       E3SM-1-1-ECA:
-        -
-          experiment: ssp585-bgc
+        ssp585-bgc:
           start: 2015
           end: 2100
           ens:
@@ -235,8 +232,7 @@ project:
             - siu
             - siv
             - clcalipso
-        -
-          experiment: hist-bgc
+        hist-bgc:
           start: 1850
           end: 2014
           ens:
@@ -247,8 +243,7 @@ project:
             - clcalipso
     ScenarioMIP:
       E3SM-1-1:
-        -
-          experiment: ssp585
+        ssp585:
           start: 2015
           end: 2100
           ens:
@@ -258,8 +253,7 @@ project:
             - siv
             - clcalipso
       E3SM-1-1-ECA:
-        -
-          experiment: ssp585
+        ssp585:
           start: 2015
           end: 2100
           ens:
@@ -270,8 +264,7 @@ project:
             - clcalipso
     CMIP6:
       E3SM-1-0:
-        -
-          experiment: piControl
+        piControl:
           start: 1
           end: 500
           ens:
@@ -287,8 +280,7 @@ project:
             - gpp
             - rh
             - ra
-        -
-          experiment: 1pctCO2
+        1pctCO2:
           start: 1
           end: 150
           ens:
@@ -304,8 +296,7 @@ project:
             - gpp
             - rh
             - ra
-        -
-          experiment: abrupt-4xCO2
+        abrupt-4xCO2:
           start: 1
           end: 150
           ens:
@@ -323,8 +314,7 @@ project:
             - gpp
             - rh
             - ra
-        -
-          experiment: amip
+        amip:
           start: 1870
           end: 2014
           ens: 
@@ -347,8 +337,7 @@ project:
             - gpp
             - rh
             - ra
-        -
-          experiment: historical
+        historical:
           start: 1850
           end: 2014
           ens: 
@@ -372,8 +361,7 @@ project:
             - ra
             
       E3SM-1-1:
-        -
-          experiment: piControl
+        piControl:
           start: 1850
           end: 2100
           ens:
@@ -382,8 +370,7 @@ project:
             - siu
             - siv
             - clcalipso
-        -
-          experiment: historical
+        historical:
           start: 1850
           end: 2014
           ens:
@@ -393,8 +380,7 @@ project:
             - siv
             - clcalipso
       E3SM-1-1-ECA:
-        -
-          experiment: piControl
+        piControl:
           start: 1850
           end: 2100
           ens:
@@ -403,8 +389,7 @@ project:
             - siu
             - siv
             - clcalipso
-        -
-          experiment: historical
+        historical:
           start: 1850
           end: 2014
           ens:
