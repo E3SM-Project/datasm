@@ -57,7 +57,7 @@ SEASONS = [{
 
 class Dataset(object):
     def __init__(self, dataset_id, pub_base=None, warehouse_base=None, archive_base=None, start_year=None, end_year=None, datavars=None, path='', versions={}, stat=None, comm=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__()
         self.dataset_id = dataset_id
         self.status = DatasetStatus.UNITITIALIZED
         self.status_path = None
@@ -71,6 +71,7 @@ class Dataset(object):
         self.warehouse_base = warehouse_base
         self.archive_path = Path(path)
         self.archive_base = archive_base
+        self.sprocket = kwargs.get('sprocket')
 
         self.stat = stat if stat else {}
         self.comm = comm if comm else {}
@@ -176,11 +177,11 @@ class Dataset(object):
         else:
             return True
 
-    def get_esgf_status(self, sproket='sproket'):
+    def get_esgf_status(self, sprocket='sprocket'):
         """
         Check ESGF to see of the dataset has already been published,
         if it exists check that the dataset is complete"""
-        _, files = sproket_with_id(self.dataset_id)
+        _, files = sproket_with_id(self.dataset_id, sprocket_path=self.sprocket)
         if not files:
             return DatasetStatus.UNITITIALIZED
 
