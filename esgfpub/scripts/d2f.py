@@ -28,9 +28,9 @@ def zMid(inpath, restart, outpath):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('input', type=str, help="path to raw ocean files")
+    parser.add_argument('input', type=str, help="path to raw ocean files directory")
     parser.add_argument('restart', type=str, help="path to a single mpaso restart file")
-    parser.add_argument('output', type=str, help="path of where to place post-processed ocean files")
+    parser.add_argument('output', type=str, help="path to processed output directory")
     parser.add_argument('-n', '--num-workers', type=int, default=8, help="number of parallel workers")
     parser.add_argument('-q', '--quite', action="store_true", help="don't output progressbars or status messages")
     args = parser.parse_args()
