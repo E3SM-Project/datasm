@@ -49,7 +49,8 @@ helptext = '''
 def ts(prefix):
     return prefix + datetime.now().strftime('%Y%m%d_%H%M%S')
 
-gv_jobset_config = '/p/user+pub/e3sm/archive/.cfg/jobset_config'
+gv_jobset_configfile = '/p/user_pub/e3sm/archive/.cfg/jobset_config'
+gv_jobset_config = dict()
 
 def assess_args():
     global gv_jobset_config
@@ -111,6 +112,7 @@ def logMessage(mtype,message):
 
 def parse_jobset_config(configfile):
     speclist = load_file_lines(configfile)
+    jobset = dict()
     for _ in speclist:
         pair = _.split('=')    # each a list with two elements
         jobset[ pair[0] ] = pair[1]
@@ -131,12 +133,15 @@ def get_archspec(archline):
 
     if 'ne30' in archspec['apath']:
         archspec['resol'] = '1deg_atm_60-30km_ocean'
-    if 'ne120' in archspec['apath']:
+    elif 'ne120' in archspec['apath']:
         archspec['resol'] = '0_25deg_atm_18-6km_ocean'
+    else:
+        archspec['resol'] = gv_jobset_config['resolution']
 
     return archspec
 
 def get_dsid_via_archline(archline):
+
     archspec = get_archspec(archline)
 
     if len(archspec['dstyp'].split('_')) == 3:
@@ -189,6 +194,7 @@ def setStatus(statfile,parent,statspec):
 # Must test for existence of facet dest, if augmenting.  May create to 0_extraction/init_status_files/, move later
 
 def main():
+    global gv_jobset_config
 
     assess_args()
     logMessageInit('runlog_archive_extraction_service')
@@ -199,6 +205,8 @@ def main():
     if not (zstashversion == 'v0.4.1' or zstashversion == 'v0.4.2'):
         logMessage('ERROR',f'ARCHIVE_EXTRACTION_SERVICE: zstash version ({zstashversion})is not 0.4.1 or greater, or is unavailable')
         sys.exit(1)
+
+    gv_jobset_config = parse_jobset_config(gv_jobset_configfile)
 
     logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Startup:zstash version = {zstashversion}')
 
@@ -255,7 +263,7 @@ def main():
             setStatus(statfile,'WAREHOUSE','EXTRACTION:Engaged')
             setStatus(statfile,'EXTRACTION','SETUP:Engaged')
 
-            dest_path = os.path.join(ens_path,'v0')
+            dest_path = os.path.join(ens_path,gv_jobset_config['pubversion'])
 
             setStatus(statfile,'EXTRACTION','SETUP:Pass')
             setStatus(statfile,'EXTRACTION','ZSTASH:Ready')
