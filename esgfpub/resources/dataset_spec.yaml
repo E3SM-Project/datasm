@@ -201,217 +201,208 @@ time-series:
     - LAISUN
 
 project:
-  CMIP6:
-    E3SM-1-0:
-      -
-        experiment: piControl
-        start: 1
-        end: 500
-        ens:
-          - r1i1p1f1
-        except:
-          - cLitter 
-          - cProduct
-          - cSoil
-          - fFire
-          - fHarvest
-          - cVeg
-          - nbp
-          - gpp
-          - rh
-          - ra
-      -
-        experiment: 1pctCO2
-        start: 1
-        end: 150
-        ens:
-          - r1i1p1f1
-        except:
-          - cLitter 
-          - cProduct
-          - cSoil
-          - fFire
-          - fHarvest
-          - cVeg
-          - nbp
-          - gpp
-          - rh
-          - ra
-      -
-        experiment: abrupt-4xCO2
-        start: 1
-        end: 150
-        ens:
-          - r1i1p1f1
-        except:
-          - cLitter 
-          - cProduct
-          - cSoilFast
-          - cSoilMedium
-          - cSoilSlow
-          - fFire
-          - fHarvest
-          - cVeg
-          - nbp
-          - gpp
-          - rh
-          - ra
-      -
-        experiment: amip
-        start: 1870
-        end: 2014
-        ens: 
-          - r1i1p1f1
-          - r2i1p1f1
-          - r3i1p1f1
-        except:
-          - Omon
-          - Ofx
-          - SImon
-          - cLitter 
-          - cProduct
-          - cSoilFast
-          - cSoilMedium
-          - cSoilSlow
-          - fFire
-          - fHarvest
-          - cVeg
-          - nbp
-          - gpp
-          - rh
-          - ra
-      -
-        experiment: historical
-        start: 1850
-        end: 2014
-        ens: 
-          - r1i1p1f1
-          - r2i1p1f1
-          - r3i1p1f1
-          - r4i1p1f1
-          - r5i1p1f1
-        except:
-          - cLitter 
-          - cProduct
-          - cSoilFast
-          - cSoilMedium
-          - cSoilSlow
-          - fFire
-          - fHarvest
-          - cVeg
-          - nbp
-          - gpp
-          - rh
-          - ra
-          
-    E3SM-1-1:
-      -
-        experiment: piControl
-        start: 1850
-        end: 2100
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: hist-bgc
-        start: 1850
-        end: 2014
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: historical
-        start: 1850
-        end: 2014
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: ssp585
-        start: 2015
-        end: 2100
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: ssp585-bgc
-        start: 2015
-        end: 2100
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
+  CMIP:
+    C4MIP:
+      E3SM-1-1:
+        hist-bgc:
+          start: 1850
+          end: 2014
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+        ssp585-bgc:
+          start: 2015
+          end: 2100
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+      E3SM-1-1-ECA:
+        ssp585-bgc:
+          start: 2015
+          end: 2100
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+        hist-bgc:
+          start: 1850
+          end: 2014
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+    ScenarioMIP:
+      E3SM-1-1:
+        ssp585:
+          start: 2015
+          end: 2100
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+      E3SM-1-1-ECA:
+        ssp585:
+          start: 2015
+          end: 2100
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+    CMIP6:
+      E3SM-1-0:
+        piControl:
+          start: 1
+          end: 500
+          ens:
+            - r1i1p1f1
+          except:
+            - cLitter 
+            - cProduct
+            - cSoil
+            - fFire
+            - fHarvest
+            - cVeg
+            - nbp
+            - gpp
+            - rh
+            - ra
+        1pctCO2:
+          start: 1
+          end: 150
+          ens:
+            - r1i1p1f1
+          except:
+            - cLitter 
+            - cProduct
+            - cSoil
+            - fFire
+            - fHarvest
+            - cVeg
+            - nbp
+            - gpp
+            - rh
+            - ra
+        abrupt-4xCO2:
+          start: 1
+          end: 150
+          ens:
+            - r1i1p1f1
+          except:
+            - cLitter 
+            - cProduct
+            - cSoilFast
+            - cSoilMedium
+            - cSoilSlow
+            - fFire
+            - fHarvest
+            - cVeg
+            - nbp
+            - gpp
+            - rh
+            - ra
+        amip:
+          start: 1870
+          end: 2014
+          ens: 
+            - r1i1p1f1
+            - r2i1p1f1
+            - r3i1p1f1
+          except:
+            - Omon
+            - Ofx
+            - SImon
+            - cLitter 
+            - cProduct
+            - cSoilFast
+            - cSoilMedium
+            - cSoilSlow
+            - fFire
+            - fHarvest
+            - cVeg
+            - nbp
+            - gpp
+            - rh
+            - ra
+        historical:
+          start: 1850
+          end: 2014
+          ens: 
+            - r1i1p1f1
+            - r2i1p1f1
+            - r3i1p1f1
+            - r4i1p1f1
+            - r5i1p1f1
+          except:
+            - cLitter 
+            - cProduct
+            - cSoilFast
+            - cSoilMedium
+            - cSoilSlow
+            - fFire
+            - fHarvest
+            - cVeg
+            - nbp
+            - gpp
+            - rh
+            - ra
+            
+      E3SM-1-1:
+        piControl:
+          start: 1850
+          end: 2100
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+        historical:
+          start: 1850
+          end: 2014
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+      E3SM-1-1-ECA:
+        piControl:
+          start: 1850
+          end: 2100
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+        historical:
+          start: 1850
+          end: 2014
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
 
-    E3SM-1-1-ECA:
-      -
-        experiment: piControl
-        start: 1850
-        end: 2100
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: hist-bgc
-        start: 1850
-        end: 2014
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: historical
-        start: 1850
-        end: 2014
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: ssp585
-        start: 2015
-        end: 2100
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: ssp585-bgc
-        start: 2015
-        end: 2100
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
 
   E3SM:
     '1_0':
-      -
-        experiment: piControl
+      piControl:
         start: 1
         end: 500
         ens:
@@ -467,8 +458,7 @@ project:
                 grid: native
                 data_types:
                   - mapping.fixed
-      -
-        experiment: 1950-Control
+      1950-Control:
         start: 26
         end: 55
         ens:
@@ -568,8 +558,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: 1pctCO2
+      1pctCO2:
         start: 1
         end: 150
         ens:
@@ -615,8 +604,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: abrupt-4xCO2
+      abrupt-4xCO2:
         start: 1
         end: 150
         ens:
@@ -662,8 +650,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: amip
+      amip:
         start: 1870
         end: 2014
         ens:
@@ -698,8 +685,7 @@ project:
                 grid: 180x360
                 data_types:
                   - time-series.mon
-      -
-        experiment: amip_1850_aeroF
+      amip_1850_aeroF:
         start: 1870
         end: 2014
         ens:
@@ -734,8 +720,7 @@ project:
                 grid: 180x360
                 data_types:
                   - time-series.mon
-      -
-        experiment: amip_1850_allF
+      amip_1850_allF:
         start: 1870
         end: 2014
         ens:
@@ -770,8 +755,7 @@ project:
                 grid: 180x360
                 data_types:
                   - time-series.mon
-      -
-        experiment: F2010
+      F2010:
         start: 1
         end: 5
         ens:
@@ -795,8 +779,7 @@ project:
                 grid: 180x360
                 data_types:
                   - model-output.mon
-      -
-        experiment: F2010-nudgeUV
+      F2010-nudgeUV:
         start: 2010
         end: 2010
         ens:
@@ -820,8 +803,7 @@ project:
                 grid: 180x360
                 data_types:
                   - model-output.mon
-      -
-        experiment: F2010-nudgeUV-1850aero
+      F2010-nudgeUV-1850aero:
         start: 2010
         end: 2010
         ens:
@@ -845,8 +827,7 @@ project:
                 grid: 180x360
                 data_types:
                   - model-output.mon
-      -
-        experiment: F2010plus4k
+      F2010plus4k:
         start: 1
         end: 5
         ens:
@@ -870,8 +851,7 @@ project:
                 grid: 180x360
                 data_types:
                   - model-output.mon
-      -
-        experiment: historical
+      historical:
         start: 1850
         end: 2014
         ens:
@@ -919,8 +899,7 @@ project:
                 data_types:
                   - model-output.mon
     '1_1':
-      -
-        experiment: piControl
+      piControl:
         start: 1850
         end: 2100
         ens:
@@ -961,8 +940,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BDRD
+      hist-BDRD:
         start: 1850
         end: 2014
         ens:
@@ -1003,8 +981,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BDRC
+      hist-BDRC:
         start: 1850
         end: 2014
         ens:
@@ -1045,8 +1022,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BCRD
+      hist-BCRD:
         start: 1850
         end: 2014
         ens:
@@ -1087,8 +1063,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BCRC
+      hist-BCRC:
         start: 1850
         end: 2014
         ens:
@@ -1129,8 +1104,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BDRD
+      ssp585-BDRD:
         start: 2015
         end: 2100
         ens:
@@ -1171,8 +1145,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BDRC
+      ssp585-BDRC:
         start: 2015
         end: 2100
         ens:
@@ -1213,8 +1186,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BCRD
+      ssp585-BCRD:
         start: 2015
         end: 2100
         ens:
@@ -1255,8 +1227,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BCRC
+      ssp585-BCRC:
         start: 2015
         end: 2100
         ens:
@@ -1298,8 +1269,7 @@ project:
                 data_types:
                   - model-output.mon
     '1_1_ECA':
-      -
-        experiment: piControl
+      piControl:
         start: 1850
         end: 2100
         ens:
@@ -1340,8 +1310,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BDRD
+      hist-BDRD:
         start: 1850
         end: 2014
         ens:
@@ -1382,8 +1351,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BDRC
+      hist-BDRC:
         start: 1850
         end: 2014
         ens:
@@ -1424,8 +1392,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BCRD
+      hist-BCRD:
         start: 1850
         end: 2014
         ens:
@@ -1466,8 +1433,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BCRC
+      hist-BCRC:
         start: 1850
         end: 2014
         ens:
@@ -1508,8 +1474,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BDRD
+      ssp585-BDRD:
         start: 2015
         end: 2100
         ens:
@@ -1550,8 +1515,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BDRC
+      ssp585-BDRC:
         start: 2015
         end: 2100
         ens:
@@ -1592,8 +1556,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BCRD
+      ssp585-BCRD:
         start: 2015
         end: 2100
         ens:
@@ -1634,8 +1597,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BCRC
+      ssp585-BCRC:
         start: 2015
         end: 2100
         ens:
@@ -1677,8 +1639,7 @@ project:
                 data_types:
                   - model-output.mon
     '1_2':
-      -
-        experiment: G-IAF
+      G-IAF:
         start: 1
         end: 100
         ens:
@@ -1698,8 +1659,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: B-1850
+      B-1850:
         start: 1
         end: 100
         ens:
@@ -1742,8 +1702,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: B-1850-DIB-ISMF
+      B-1850-DIB-ISMF:
         start: 1
         end: 156
         ens:
@@ -1786,8 +1745,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: G-IAF-DIB-ISMF
+      G-IAF-DIB-ISMF:
         start: 1
         end: 174
         ens:
@@ -1808,8 +1766,7 @@ project:
                 data_types:
                   - model-output.mon
     '1_2_1':
-      -
-        experiment: B-1850-DIB-ISMF-3dGM
+      B-1850-DIB-ISMF-3dGM:
         start: 1
         end: 100
         ens:
@@ -1849,8 +1806,7 @@ project:
                 data_types:
                   - model-output.mon
     '1_3':
-      -
-        experiment: G-IAF-DIB-ISMF-3dGM
+      G-IAF-DIB-ISMF-3dGM:
         start: 1
         end: 187
         ens:

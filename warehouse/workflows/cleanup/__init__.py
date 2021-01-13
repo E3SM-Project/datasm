@@ -1,6 +1,7 @@
 from warehouse.workflows import Workflow
 from warehouse.workflows.cleanup.jobs import EvictDataSet
 
+NAME = 'cleanup'
 
 class CleanUp(Workflow):
 
@@ -12,9 +13,8 @@ class CleanUp(Workflow):
 
     @staticmethod
     def add_args(parser):
-        name = 'cleanup'
         p = parser.add_parser(
-            name=name,
+            name=NAME,
             help='Remove dataset directories from the warehouse')
         p.add_argument(
             '-p', '--path',
@@ -24,12 +24,11 @@ class CleanUp(Workflow):
             '-d', '--dataset',
             required=True,
             help="the dataset_id to extract")
-        return 'extraction', parser
+        return NAME, parser
 
     @staticmethod
     def arg_checker(args):
-        name = 'extract'
         if not os.path.exists(args.path):
             print("The given path {args.path} does not exist")
-            return name
-        return True
+            return False, NAME
+        return True, NAME

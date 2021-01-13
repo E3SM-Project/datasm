@@ -8,27 +8,32 @@ from warehouse import (
 )
 
 allowed_modes = ['all', 'empty', 'nonempty']
+NAME = 'report'
 
-def report(args):
-    ts=datetime.now().strftime('%Y%m%d_%H%M%S')
-    ensem_out = f'warehouse_ensem-{ts}'
-    paths_out = f'warehouse_paths-{ts}'
-    stats_out = f'warehouse_status-{ts}'
+class Report():
+    def __init__(self, *args, **kwargs):
+        super().__init__(**kwargs)
+    
+    def __call__(self, args):
+        ts=datetime.now().strftime('%Y%m%d_%H%M%S')
+        ensem_out = f'warehouse_ensem-{ts}'
+        paths_out = f'warehouse_paths-{ts}'
+        stats_out = f'warehouse_status-{ts}'
 
-    ensembles = get_ensemble_dirs(
-        warehouse_root=args.root,
-        print_paths=args.paths,
-        paths_out=paths_out)
+        ensembles = get_ensemble_dirs(
+            warehouse_root=args.root,
+            print_paths=args.paths,
+            paths_out=paths_out)
 
-    wh_datasets = load_ds_status_list(ensembles)
-    status_list = produce_status_listing_vcounts(wh_datasets)
-    print_file_list(stats_out, status_list)
-    return 0
+        wh_datasets = load_ds_status_list(ensembles)
+        status_list = produce_status_listing_vcounts(wh_datasets)
+        print_file_list(stats_out, status_list)
+        return 0
 
 def add_report_args(parser):
     
     report_parser = parser.add_parser(
-        name='report',
+        name=NAME,
         help="Print out a report of the dataset status for all datasets under the given root")
     report_parser.add_argument(
         '-t', '--target',
@@ -48,11 +53,11 @@ def add_report_args(parser):
         action="store_true",
         help="Write out a file containing all the dataset paths",
         default=False)
-    return 'report', report_parser
+    return NAME, report_parser
 
 def check_report_args(args):
     if args.target not in allowed_modes:
         print(
             f"ERROR: {args.target} is not of the allowed values: {', '.join(allowed_modes)} may be specified. Default is all.")
-        return 'report'
-    return True
+        return False, NAME
+    return True, NAME
