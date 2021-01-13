@@ -18,14 +18,18 @@ resource_path, _ = os.path.split(resources.__file__)
 DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
 NAME = 'auto'
 
+
 class AutoWarehouse():
 
     def __init__(self, *args, **kwargs):
         super().__init__()
 
-        self.warehouse_path = Path(kwargs.get('warehouse_path', DEFAULT_WAREHOUSE_PATH))
-        self.publication_path = Path(kwargs.get('publication_path', DEFAULT_PUBLICATION_PATH))
-        self.archive_path = Path(kwargs.get('archive_path', DEFAULT_ARCHIVE_PATH))
+        self.warehouse_path = Path(kwargs.get(
+            'warehouse_path', DEFAULT_WAREHOUSE_PATH))
+        self.publication_path = Path(kwargs.get(
+            'publication_path', DEFAULT_PUBLICATION_PATH))
+        self.archive_path = Path(kwargs.get(
+            'archive_path', DEFAULT_ARCHIVE_PATH))
         self.spec_path = Path(kwargs.get('spec_path', DEFAULT_SPEC_PATH))
         self.sproket_path = kwargs.get('sproket', 'sproket')
         self.num_workers = kwargs.get('num', 8)
@@ -41,11 +45,12 @@ class AutoWarehouse():
         if self.serial:
             print("Running warehouse in serial mode")
         else:
-            print(f"Running warehouse in parallel mode with {self.num_workers} workers")
+            print(
+                f"Running warehouse in parallel mode with {self.num_workers} workers")
 
         with open(self.spec_path, 'r') as instream:
             self.dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
-    
+
     def __call__(self):
         # find missing datasets
         print("Initializing the warehouse")
@@ -57,7 +62,6 @@ class AutoWarehouse():
         if self.testing:
             e3sm_ids = e3sm_ids[:100]
         dataset_ids = cmip6_ids + e3sm_ids
-    
 
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
@@ -72,7 +76,7 @@ class AutoWarehouse():
                 if found:
                     ndataset_ids.append(i)
             dataset_ids = ndataset_ids
-        
+
         datasets = {
             dataset_id: Dataset(
                 dataset_id,
@@ -86,8 +90,10 @@ class AutoWarehouse():
         # fill in the start and end year if possible
         for dataset_id, dataset in datasets.items():
             if dataset.project == 'CMIP':
-                start_year = self.dataset_spec['project']['CMIP'][dataset.activity][dataset.model_version][dataset.experiment]['start']
-                end_year = self.dataset_spec['project']['CMIP'][dataset.activity][dataset.model_version][dataset.experiment]['end']
+                start_year = self.dataset_spec['project']['CMIP'][dataset.activity][
+                    dataset.model_version][dataset.experiment]['start']
+                end_year = self.dataset_spec['project']['CMIP'][dataset.activity][
+                    dataset.model_version][dataset.experiment]['end']
             else:
                 start_year = self.dataset_spec['project']['E3SM'][dataset.model_version][dataset.experiment]['start']
                 end_year = self.dataset_spec['project']['E3SM'][dataset.model_version][dataset.experiment]['end']
@@ -98,9 +104,11 @@ class AutoWarehouse():
             if 'time-series' in dataset.data_type:
                 facets = dataset.dataset_id.split('.')
                 realm_vars = self.dataset_spec['time-series'][dataset.realm]
-                exclude = self.dataset_spec['project']['E3SM'][facets[1]][facets[2]].get('except')
+                exclude = self.dataset_spec['project']['E3SM'][facets[1]][facets[2]].get(
+                    'except')
                 if exclude:
-                    dataset.datavars = [x for x in realm_vars if x not in exclude]
+                    dataset.datavars = [
+                        x for x in realm_vars if x not in exclude]
                 else:
                     dataset.datavars = realm_vars
 
@@ -115,32 +123,27 @@ class AutoWarehouse():
                 dataset_id, status = res
                 dataset_status[dataset_id] = status
         else:
-        
+
             for dataset in tqdm(datasets.values()):
-                # import ipdb; ipdb.set_trace()
                 dataset_id, status = dataset.find_status()
                 dataset_status[dataset_id] = status
-        
-        import ipdb; ipdb.set_trace()
+
+        import ipdb
+        ipdb.set_trace()
         from pprint import pprint
         pprint(dataset_status)
-        
+
         # start a workflow for each dataset (if needed)
         for dataset_id, status in dataset_status.items():
             if status == DatasetStatus.SUCCESS:
                 continue
             ...
-        
+
         return 0
-    
+
     def nextState(self, dataset):
         ...
-    
-    def load_workflows(self):
-        ...
-    
 
-    
     def collect_cmip_datasets(self, **kwargs):
         for activity_name, activity_val in self.dataset_spec['project']['CMIP'].items():
             for version_name, version_value in activity_val.items():
@@ -152,7 +155,7 @@ class AutoWarehouse():
                                     continue
                                 dataset_id = f"CMIP.{activity_name}.E3SM-Project.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr.*"
                                 yield dataset_id
-    
+
     def collect_e3sm_datasets(self, **kwargs):
         for version in self.dataset_spec['project']['E3SM']:
             for experiment, experimentinfo in self.dataset_spec['project']['E3SM'][version].items():
@@ -211,12 +214,11 @@ class AutoWarehouse():
             default='sproket',
             help='path to sproket binary if its not in your $PATH')
         return NAME, parser
-    
+
     @staticmethod
     def arg_checker(args):
         return True, NAME
-    
+
     def get_dataset_spec(self):
         with open(self.spec_path, 'r') as ip:
             return yaml.safe_load(ip)
-    
