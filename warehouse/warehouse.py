@@ -218,7 +218,3 @@ class AutoWarehouse():
     @staticmethod
     def arg_checker(args):
         return True, NAME
-
-    def get_dataset_spec(self):
-        with open(self.spec_path, 'r') as ip:
-            return yaml.safe_load(ip)
