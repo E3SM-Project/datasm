@@ -2,6 +2,7 @@ import yaml
 import importlib
 import os
 import inspect
+from pprint import pformat
 from pathlib import Path
 
 
@@ -36,9 +37,10 @@ class Workflow(object):
             if self.parent is None:
                 module_name = f'warehouse.workflows.{d.name}'
             else:
-                module_name = f'warehouse.workflows.{str(my_path)[idx+len(workflows_string) + 1:].replace(os.sep, ".")}'
+                module_name = f'warehouse.workflows.{str(my_path)[idx+len(workflows_string) + 1:].replace(os.sep, ".")}.{d.name}'
 
             print(f"loading workflow module {module_name}")
+            
             module = importlib.import_module(module_name)
             workflow_class = getattr(module, module.NAME)
             workflow_instance = workflow_class(parent=self)
@@ -53,7 +55,20 @@ class Workflow(object):
             return self.parent.get_status_prefix(prefix)
         else:
             return self.NAME + prefix
-
+    
+    def toString(self):
+        info = {}
+        if self.parent == None:
+            for name, instance in self.children.items():
+                info[name] = instance.toString()
+            return pformat(info, indent=4)
+        else:
+            if self.children:
+                for name, instance in self.children.items():
+                    info[name] = instance.toString()
+                return info
+            else:
+                return self.transitions
 
 
 class WorkflowJob(object):

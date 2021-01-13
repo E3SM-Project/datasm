@@ -37,6 +37,8 @@ class AutoWarehouse():
         self.workflow = Workflow()
         self.workflow.load_children()
         self.workflow.load_transitions()
+        print(self.workflow.toString())
+
         if self.serial:
             print("Running warehouse in serial mode")
         else:
