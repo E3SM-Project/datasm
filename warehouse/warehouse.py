@@ -34,7 +34,9 @@ class AutoWarehouse():
         self.dataset_ids = kwargs.get('dataset_id', False)
 
 
-        self.workflows = Workflow()
+        self.workflow = Workflow()
+        self.workflow.load_children()
+        self.workflow.load_transitions()
         if self.serial:
             print("Running warehouse in serial mode")
         else:
