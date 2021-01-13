@@ -77,6 +77,8 @@ class AutoWarehouse():
                     ndataset_ids.append(i)
             dataset_ids = ndataset_ids
 
+        # instantiate the dataset objects with the paths to 
+        # where they should look for their data files
         datasets = {
             dataset_id: Dataset(
                 dataset_id,
@@ -87,7 +89,7 @@ class AutoWarehouse():
             for dataset_id in dataset_ids
         }
 
-        # fill in the start and end year if possible
+        # fill in the start and end year for each dataset
         for dataset_id, dataset in datasets.items():
             if dataset.project == 'CMIP':
                 start_year = self.dataset_spec['project']['CMIP'][dataset.activity][
@@ -100,6 +102,8 @@ class AutoWarehouse():
             dataset.start_year = start_year
             dataset.end_year = end_year
 
+        # if the dataset is a time-series, find out what
+        # its data variables are
         for dataset in datasets.values():
             if 'time-series' in dataset.data_type:
                 facets = dataset.dataset_id.split('.')
