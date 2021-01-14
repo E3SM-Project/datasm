@@ -1,5 +1,5 @@
 PostProcess:Ready:
-  atm-nat-mon:GenerateAtmCLimo:Ready
+  atmos-native-mon:GenerateAtmCLimo:Ready
   lnd-nat-mon:GenerateLndTimeseries:Ready
   ocn-nat-mon:GenerateOcnCmor:Ready
   ice-nat-mon:GenerateIceCmor:Ready

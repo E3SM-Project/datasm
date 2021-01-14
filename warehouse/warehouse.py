@@ -42,6 +42,8 @@ class AutoWarehouse():
         self.workflow.load_children()
         self.workflow.load_transitions()
 
+        self.job_pool = []
+
         if self.serial:
             print("Running warehouse in serial mode")
         else:
@@ -117,36 +119,40 @@ class AutoWarehouse():
                     dataset.datavars = realm_vars
 
         # find the state of each dataset
-        dataset_status = {}
         if not self.serial:
             pool = ProcessPoolExecutor(max_workers=self.num_workers)
             futures = [pool.submit(x.find_status) for x in datasets.values()]
-
             for future in tqdm(as_completed(futures), total=len(futures), desc="Searching ESGF for datasets"):
-                res = future.result()
-                dataset_id, status = res
-                dataset_status[dataset_id] = status
+                dataset_id, status = future.result()
+                if isinstance(status, DatasetStatus):
+                    status = status.name
+                datasets[dataset_id].status = status
         else:
-
             for dataset in tqdm(datasets.values()):
                 dataset_id, status = dataset.find_status()
-                dataset_status[dataset_id] = status
+                if isinstance(status, DatasetStatus):
+                    status = status.name
+                datasets[dataset_id].status = status
 
         import ipdb
         ipdb.set_trace()
         from pprint import pprint
-        pprint(dataset_status)
+        pprint(datasets)
 
-        # start a workflow for each dataset (if needed)
-        for dataset_id, status in dataset_status.items():
-            if status == DatasetStatus.SUCCESS:
+        # start a workflow for each dataset as needed
+        for dataset_id, dataset in datasets.items():
+            if dataset.status == DatasetStatus.SUCCESS:
                 continue
-            ...
+            if dataset.status not in [x.name for x in DatasetStatus]:
+                if 'Ready' in dataset.status or 'Pass' in dataset.status or 'Fail' in dataset.status:
+                    next_state = self.workflow.next_state(dataset, dataset.status)
+                    # TODO:implement these methods
+                    # if not datasets[dataset_id].is_blocked(next_state):
+                    #     job = self.workflow.get_job(next_state)
+                    #     job_pool.append(job)
 
         return 0
 
-    def nextState(self, dataset):
-        ...
 
     def collect_cmip_datasets(self, **kwargs):
         for activity_name, activity_val in self.dataset_spec['project']['CMIP'].items():

@@ -5,6 +5,7 @@ import inspect
 from pprint import pformat
 from pathlib import Path
 
+NAME = 'Warehouse'
 
 class Workflow(object):
 
@@ -12,9 +13,40 @@ class Workflow(object):
         self.parent = parent
         self.transitions = {}
         self.children = {}
+        self.name = NAME.upper()
+    
+    def get_status_prefix(self, prefix=""):
+        if self.parent != None:
+            prefix += f'{self.name}:{prefix}'
+            return self.parent.get_status_prefix(prefix)
+        else:
+            return prefix
 
-    def next_state(self):
+    def next_state(self, dataset, status):
+        # Returns the name of the next state to transition to given the current state of the dataset
+        status_attrs = status.split(':')
+        if status_attrs[0] in self.children.keys():
+            return self.children[status_attrs[0]].next_state(dataset, status)
+        
+        prefix = self.get_status_prefix()
+        target_state = ":".join(status_attrs[-3:-1])
+        if target_state in self.transitions.keys():
+            target_data_type = f'{dataset.realm}-{dataset.grid}-{dataset.freq}'
+            transitions = self.transitions[target_state].get(target_data_type)
+            if not transitions:
+                raise ValueError(f"{target_data_type} is not a transition from {self.transitions[target_state]}")
+            transitions = [f'{prefix}{t}' for t in transitions]
+            return transitions
+        else:
+            raise ValueError(f"{target_state} is not present in the transition graph for {NAME}")
+        
+
+        
+    
+    def get_job(self, state):
+        # Returns a job instance for the given state name
         ...
+
 
     def load_transitions(self):
         transition_path = Path(Path(inspect.getfile(
@@ -48,15 +80,8 @@ class Workflow(object):
             workflow_instance = workflow_class(parent=self)
             workflow_instance.load_children()
             workflow_instance.load_transitions()
-            workflows[module.NAME] = workflow_instance
+            workflows[module.NAME.upper()] = workflow_instance
         self.children = workflows
-
-    def get_status_prefix(self, prefix=""):
-        if self.parent != None:
-            self.prefix += ":" + self.NAME
-            return self.parent.get_status_prefix(prefix)
-        else:
-            return self.NAME + prefix
 
     def toString(self):
         info = {}

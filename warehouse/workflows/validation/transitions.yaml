@@ -1,7 +1,20 @@
-Validation:Ready:
-    default:TimeUnitCheck:Ready
-    ocn-nat-mon:MPASTimeCheck:Ready
-    ice-nat-mon:MPASTimeCheck:Ready
+VALIDATION:Ready:
+    atmos-native-3hr:
+        - TimeUnitCheck:Ready
+    atmos-native-3hr_snap:
+        - TimeUnitCheck:Ready
+    atmos-native-6hr:
+        - TimeUnitCheck:Ready
+    atmos-native-day:
+        - TimeUnitCheck:Ready
+    atmos-native-mon:
+        - TimeUnitCheck:Ready
+    land-native-mon:
+        - TimeUnitCheck:Ready
+    ocean-native-mon:
+        - MPASTimeCheck:Ready
+    sea-ice-native-mon:
+        - MPASTimeCheck:Ready
 
 TimeUnitCheck:Ready:
     default:TimeUnitCheck:Engaged
@@ -28,7 +41,7 @@ TimeRectify:Ready:
     TimeRectify:Engaged
 TimeRectify:Pass:
     default:Success
-    atm-nat-mon:CreateDerivedDataset:Ready
+    atmos-native-mon:CreateDerivedDataset:Ready
     lnd-nat-mon:CreateDerivedDataset:Ready
 TimeRectify:Fail:
     Exit:exit_code

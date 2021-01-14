@@ -12,7 +12,6 @@ from warehouse.util import load_file_lines, sproket_with_id
 class DatasetStatus(Enum):
     UNITITIALIZED = 1
     INITIALIZED = 2
-    PENDING = 3
     RUNNING = 4
     FAILED = 5
     SUCCESS = 6
@@ -326,6 +325,8 @@ class Dataset(object):
             self.status = self.get_status_from_archive()
 
         return self.dataset_id, self.status
+
+
 
     def initialize_status_file(self):
         ...
