@@ -1,10 +1,10 @@
 Warehouse:Ready:
-    default:Extraction:Ready
     atm-ts:PostProcessing:Ready
     atm-climo:PostProcessing:Ready
     atm-cmor:PostProcessing:Ready
     lnd-ts:PostProcessing:Ready
     lnd-cmor:PostProcessing:Ready
+    default:Extraction:Ready
 
 Extraction:Success:
     default:Validation:Ready

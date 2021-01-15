@@ -7,6 +7,7 @@ from pathlib import Path
 
 NAME = 'Warehouse'
 
+
 class Workflow(object):
 
     def __init__(self, parent=None):
@@ -14,39 +15,65 @@ class Workflow(object):
         self.transitions = {}
         self.children = {}
         self.name = NAME.upper()
+        self.jobs = self.load_jobs()
     
+    def load_jobs(self):
+        """
+        get the path to the jobs directory which should be a sibling
+        of the warehouse.py file
+        """
+        modules = {}
+        jobs_path = Path(Path(inspect.getfile(self.__class__)).parent.absolute(), 'jobs')
+        for file in jobs_path.glob('*'):
+            if file.name == '__init__.py' or file.is_dir():
+                continue
+            module_string = f'warehouse.workflows.jobs.{file.stem}'
+            module = importlib.import_module(module_string)
+            job_class = getattr(module, module.NAME)
+            modules[module.NAME] = job_class
+        return modules
+
+
     def get_status_prefix(self, prefix=""):
+        """
+        From any node in the workflow tree, get the correct status message prefix
+        """
         if self.parent != None:
-            prefix += f'{self.name}:{prefix}'
+            prefix = f'{self.name}:{prefix}'
             return self.parent.get_status_prefix(prefix)
         else:
             return prefix
 
-    def next_state(self, dataset, status):
-        # Returns the name of the next state to transition to given the current state of the dataset
+    def next_state(self, dataset, status, idx=0):
+        """
+        Parameters: 
+            dataset (Dataset) : The dataset which is changing state
+            status (string) : The state to move out from
+            idx (int) : The recursive depth index
+        Returns the name of the next state to transition to given the current state of the dataset
+        """
         status_attrs = status.split(':')
-        if status_attrs[0] in self.children.keys():
-            return self.children[status_attrs[0]].next_state(dataset, status)
+        if status_attrs[idx] in self.children.keys():
+            return self.children[status_attrs[idx]].next_state(dataset, status, idx + 1)
         
         prefix = self.get_status_prefix()
-        target_state = ":".join(status_attrs[-3:-1])
+        target_state = ":".join(status_attrs[idx-1:])
         if target_state in self.transitions.keys():
             target_data_type = f'{dataset.realm}-{dataset.grid}-{dataset.freq}'
             transitions = self.transitions[target_state].get(target_data_type)
             if not transitions:
-                raise ValueError(f"{target_data_type} is not a transition from {self.transitions[target_state]}")
+                transitions = self.transitions[target_state].get('default')
+
             transitions = [f'{prefix}{t}' for t in transitions]
             return transitions
         else:
-            raise ValueError(f"{target_state} is not present in the transition graph for {NAME}")
-        
+            raise ValueError(
+                f"{target_state} is not present in the transition graph for {self.name}")
 
-        
-    
-    def get_job(self, state):
-        # Returns a job instance for the given state name
+    # TODO: Implement this
+    def get_job(self, dataset, state, jobs):
         ...
-
+        
 
     def load_transitions(self):
         transition_path = Path(Path(inspect.getfile(
@@ -96,22 +123,3 @@ class Workflow(object):
                 return info
             else:
                 return self.transitions
-
-
-class WorkflowJob(object):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._dataset = kwargs.get('dataset')
-        self._cmd = None
-
-    def sbatch_submit(self):
-        ...
-
-    @property
-    def dataset(self):
-        return self._dataset
-
-    @dataset.setter
-    def dataset(self, new_ds):
-        self._dataset = new_ds

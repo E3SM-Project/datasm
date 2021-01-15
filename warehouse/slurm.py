@@ -1,11 +1,12 @@
 
 import logging
 import os
-
+from pathlib import Path
 from subprocess import Popen, PIPE
 from time import sleep
 
 from warehouse.util import print_debug
+
 
 class Slurm(object):
     """
@@ -21,13 +22,30 @@ class Slurm(object):
                 'Unable to find slurm, is it installed on this system?')
     # -----------------------------------------------
 
+    def render_script(self, cmd, script_path, slurm_opts=[], **kwargs):
+        """
+        Write out an executable bash script
+        Parameters:
+            cmd (string) : a bash command to run
+            script_path (string) : the path to where to store the sbatch script
+            slurm_opts List[(str, str)] : a list of slurm argument key value pairs
+        """
+        path = Path(script_path)
+        if path.exists():
+            raise ValueError(f"unable to render slurm script, file already exists at path {script_path}")
+        with open(script_path, 'w') as outstream:
+            outstream.write("#!/bin/bash\n")
+            for key, val in slurm_opts:
+                outstream.write(f"#SBATCH {key} {val}\n\n")
+            outstream.write(cmd)
+
     def batch(self, cmd, sargs=None):
         """
         Submit to the batch queue in non-interactive mode
 
         Parameters:
             cmd (str): The path to the run script that should be submitted
-            sargs (str): The additional arguments to pass to slurm
+            sargs (str): The additional arguments to pass to sbatch
         Returns:
             job id of the new job (int)
         """
@@ -63,7 +81,7 @@ class Slurm(object):
             out = out.decode('utf-8')
             if err:
                 err = err.decode('utf-8')
-                print_line(err, status='err')
+                print_debug(err, status='err')
                 logging.error(err)
                 tries += 1
                 sleep(tries * 2)

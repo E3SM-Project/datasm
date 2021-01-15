@@ -2,13 +2,17 @@ import os
 import yaml
 import json
 from pathlib import Path
+import importlib
+import inspect
+
 
 from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
-
+from tempfile import NamedTemporaryFile
 from esgfpub import resources
 from warehouse.workflows import Workflow
 from warehouse.dataset import Dataset, DatasetStatus
+from warehouse.slurm import Slurm
 
 DEFAULT_WAREHOUSE_PATH = '/p/user_pub/e3sm/warehouse/'
 DEFAULT_PUBLICATION_PATH = '/p/user_pub/work/'
@@ -37,7 +41,9 @@ class AutoWarehouse():
         self.testing = kwargs.get('testing', False)
         self.dataset_ids = kwargs.get('dataset_id', False)
         self.sproket_path = kwargs.get('sproket', 'sproket')
+        self.slurm_path = kwargs.get('slurm', 'temp')
 
+        
         self.workflow = Workflow()
         self.workflow.load_children()
         self.workflow.load_transitions()
@@ -134,25 +140,29 @@ class AutoWarehouse():
                     status = status.name
                 datasets[dataset_id].status = status
 
-        import ipdb
-        ipdb.set_trace()
-        from pprint import pprint
-        pprint(datasets)
+        for dataset in datasets.values():
+            print(str(dataset))
+            print('')
 
         # start a workflow for each dataset as needed
         for dataset_id, dataset in datasets.items():
-            if dataset.status == DatasetStatus.SUCCESS:
+            if dataset.status == DatasetStatus.SUCCESS.name:
                 continue
             if dataset.status not in [x.name for x in DatasetStatus]:
                 if 'Ready' in dataset.status or 'Pass' in dataset.status or 'Fail' in dataset.status:
-                    next_state = self.workflow.next_state(dataset, dataset.status)
-                    # TODO:implement these methods
-                    # if not datasets[dataset_id].is_blocked(next_state):
-                    #     job = self.workflow.get_job(next_state)
-                    #     job_pool.append(job)
+                    import ipdb; ipdb.set_trace()
+                    next_states = self.workflow.next_state(dataset, dataset.status)
+                    for state in next_states:
+                        if not dataset.is_blocked(state):
+                            # if we hit a job, put it in the pool
+                            if "Engaged" in state:
+                                job = self.workflow.get_job(dataset, state)
+                            # we hit another workflow node
+                            else:
+                                dataset.update_status(state)
 
         return 0
-
+        
 
     def collect_cmip_datasets(self, **kwargs):
         for activity_name, activity_val in self.dataset_spec['project']['CMIP'].items():
@@ -178,6 +188,7 @@ class AutoWarehouse():
                                         continue
                                     dataset_id = f"E3SM.{version}.{experiment}.{res}.{comp}.{item['grid']}.{data_type}.{ensemble}.*"
                                     yield dataset_id
+    
 
     @staticmethod
     def add_args(parser):
