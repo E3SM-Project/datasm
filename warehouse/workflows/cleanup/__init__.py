@@ -1,5 +1,5 @@
 from warehouse.workflows import Workflow
-from warehouse.workflows.cleanup.jobs import EvictDataSet
+# from warehouse.jobs import EvictDataset
 
 COMMAND = 'cleanup'
 NAME = 'CleanUp'

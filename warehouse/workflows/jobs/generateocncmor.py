@@ -1,7 +1,8 @@
-from warehouse.workflows import WorkflowJob
+from warehouse.jobs import WorkflowJob
 
+NAME = 'GenerateOcnCmor'
 
-class EvictDataSet(WorkflowJob):
+class GenerateOcnCmor(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

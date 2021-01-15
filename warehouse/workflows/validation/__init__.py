@@ -4,6 +4,7 @@ from warehouse.workflows import Workflow
 NAME = 'Validation'
 COMMAND = 'validate'
 
+
 class Validation(Workflow):
 
     def __init__(self, *args, **kwargs):

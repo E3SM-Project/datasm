@@ -1,14 +1,15 @@
 PostProcess:Ready:
-  atmos-native-mon:GenerateAtmCLimo:Ready
+  atmos-native-mon:GenerateAtmClimo:Ready
+  atmos-native-mon:GenerateAtmTimeseries:Ready
   lnd-nat-mon:GenerateLndTimeseries:Ready
   ocn-nat-mon:GenerateOcnCmor:Ready
   ice-nat-mon:GenerateIceCmor:Ready
 
-GenerateAtmCLimo:Ready:
+GenerateAtmClimo:Ready:
   default:GenerateAtmCLimo:Engaged
-GenerateAtmCLimo:Pass:
+GenerateAtmClimo:Pass:
   default:CreateAtmTimeseries:Ready
-GenerateAtmCLimo:Fail:
+GenerateAtmClimo:Fail:
   default:Exit:exit_code
 
 GenerateAtmTimeseries:Ready:

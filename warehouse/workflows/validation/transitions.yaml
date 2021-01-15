@@ -1,62 +1,17 @@
 VALIDATION:Ready:
     atmos-native-3hr:
-        - TimeUnitCheck:Ready
+        - ATMVALIDATION:Ready
     atmos-native-3hr_snap:
-        - TimeUnitCheck:Ready
+        - ATMVALIDATION:Ready
     atmos-native-6hr:
-        - TimeUnitCheck:Ready
+        - ATMVALIDATION:Ready
     atmos-native-day:
-        - TimeUnitCheck:Ready
+        - ATMVALIDATION:Ready
     atmos-native-mon:
-        - TimeUnitCheck:Ready
+        - ATMVALIDATION:Ready
     land-native-mon:
-        - TimeUnitCheck:Ready
+        - LNDVALIDATION:Ready
     ocean-native-mon:
-        - MPASTimeCheck:Ready
+        - MPASVALIDATION:Ready
     sea-ice-native-mon:
-        - MPASTimeCheck:Ready
-
-TimeUnitCheck:Ready:
-    default:TimeUnitCheck:Engaged
-TimeUnitCheck:Pass:
-    default:TimeCheck:Ready
-TimeUnitCheck:Fail:
-    default:FixTimeUnit:Ready
-
-FixTimeUnit:Ready:
-    default:FixTimeUnit:Engaged
-FixTimeUnit:Pass:
-    default:TimeCheck:Ready
-FixTimeUnit:Fail:
-    default:Exit:exit_code
-
-TimeCheck:Ready:
-    default:TimeCheck:Engaged
-TimeCheck:Pass:
-    default:CreateDerivedDataset:Ready
-TimeCheck:Fail:
-    default:TimeRectify:Ready
-
-TimeRectify:Ready:
-    TimeRectify:Engaged
-TimeRectify:Pass:
-    default:Success
-    atmos-native-mon:CreateDerivedDataset:Ready
-    lnd-nat-mon:CreateDerivedDataset:Ready
-TimeRectify:Fail:
-    Exit:exit_code
-
-CreateDerivedDataset:Ready:
-    default:CreateDerivedDataset:Engaged
-CreateDerivedDataset:Pass:
-    default:Exit:Success
-CreateDerivedDataset:Fail:
-    default:Exit:exit_code
-
-MPASTimeCheck:Ready:
-    default:MPASTimeCheck:Engaged
-MPASTimeCheck:Pass:
-    Exit:Success
-MPASTimeCheck:Fail:
-    Exit:exit_code
-
+        - MPASVALIDATION:Ready
