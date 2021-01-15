@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from subprocess import Popen, PIPE
 from time import sleep
+import json
 
 from warehouse.util import print_debug
 
@@ -39,18 +40,18 @@ class Slurm(object):
                 outstream.write(f"#SBATCH {key} {val}\n\n")
             outstream.write(cmd)
 
-    def batch(self, cmd, sargs=None):
+    def batch(self, cmd, sbatch_args=None):
         """
         Submit to the batch queue in non-interactive mode
 
         Parameters:
             cmd (str): The path to the run script that should be submitted
-            sargs (str): The additional arguments to pass to sbatch
+            sbatch_args (str): The additional arguments to pass to sbatch
         Returns:
             job id of the new job (int)
         """
         try:
-            out, err = self._submit('sbatch', cmd, sargs)
+            out, err = self._submit('sbatch', cmd, sbatch_args)
         except Exception as e:
             print('Batch job submission failed')
             print_debug(e)
@@ -118,10 +119,8 @@ class Slurm(object):
                 out = out.decode('utf-8')
                 if err:
                     err = err.decode('utf-8')
-                    print_line(err, status='err')
+                    print_debug(err, status='err')
                     if err == 'slurm_load_jobs error: Invalid job id specified':
-                        import ipdb
-                        ipdb.set_trace()
                         raise ValueError(
                             f"Unable to find slurm job with id {jobid}")
                     sleep(1)
@@ -250,25 +249,20 @@ class JobInfo(object):
     """
 
     def __init__(self, jobid=None,
-                 jobname=None,
-                 partition=None,
-                 state=None,
-                 time=None,
-                 user=None,
-                 command=None):
+                        jobname=None,
+                        partition=None,
+                        state=None,
+                        time=None,
+                        user=None,
+                        command=None):
         self.jobid = jobid
         self.jobname = jobname
         self.partition = partition
         self.time = time
         self.user = user
         self.command = command
-        if state is not None:
-            if not isinstance(state, JobStatus):
-                raise Exception(
-                    "{} is not of type JobStatus".format(type(state)))
-            self._state = state
-        else:
-            self._state = None
+        self.state = state
+            
     # -----------------------------------------------
 
     def __str__(self):
@@ -308,19 +302,19 @@ class JobInfo(object):
 
     @property
     def state(self):
-        return self._state
+        return self.state
     # -----------------------------------------------
 
     @state.setter
     def state(self, state):
         if state in ['Q', 'W', 'PD', 'PENDING']:
-            self._state = 'PENDING'
+            self.state = 'PENDING'
         elif state in ['R', 'RUNNING']:
-            self._state = 'RUNNING'
+            self.state = 'RUNNING'
         elif state in ['E', 'CD', 'CG', 'COMPLETED', 'COMPLETING']:
-            self._state = 'COMPLETED'
+            self.state = 'COMPLETED'
         elif state in ['FAILED', 'F']:
-            self._state = 'FAILED'
+            self.state = 'FAILED'
         else:
-            self._state = state
+            self.state = state
     # -----------------------------------------------
