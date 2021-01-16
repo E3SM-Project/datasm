@@ -8,7 +8,6 @@ import inspect
 
 from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from tempfile import NamedTemporaryFile
 from esgfpub import resources
 from warehouse.workflows import Workflow
 from warehouse.dataset import Dataset, DatasetStatus
@@ -21,7 +20,6 @@ DEFAULT_ARCHIVE_PATH = '/p/user_pub/e3sm/archive'
 resource_path, _ = os.path.split(resources.__file__)
 DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
 NAME = 'auto'
-
 
 class AutoWarehouse():
 
@@ -43,12 +41,14 @@ class AutoWarehouse():
         self.sproket_path = kwargs.get('sproket', 'sproket')
         self.slurm_path = kwargs.get('slurm', 'temp')
 
+        self.scripts_path = Path(Path(inspect.getfile(self.__class__)).parent.absolute(), 'scripts').resolve()
         
-        self.workflow = Workflow()
+        self.workflow = Workflow(slurm_scripts=self.slurm_path)
         self.workflow.load_children()
         self.workflow.load_transitions()
 
-        self.job_pool = []
+        # this is a dict of {Dataset: [Job]}
+        self.job_pool = {}
 
         if self.serial:
             print("Running warehouse in serial mode")
@@ -150,19 +150,38 @@ class AutoWarehouse():
                 continue
             if dataset.status not in [x.name for x in DatasetStatus]:
                 if 'Ready' in dataset.status or 'Pass' in dataset.status or 'Fail' in dataset.status:
-                    import ipdb; ipdb.set_trace()
                     next_states = self.workflow.next_state(dataset, dataset.status)
-                    for state in next_states:
-                        if not dataset.is_blocked(state):
-                            # if we hit a job, put it in the pool
-                            if "Engaged" in state:
-                                job = self.workflow.get_job(dataset, state)
-                            # we hit another workflow node
-                            else:
-                                dataset.update_status(state)
+                    engaged_states = []
+                    while next_states:
+                        state = next_states.pop(0)
+                        if dataset.is_blocked(state):
+                            continue
+                        if 'Engaged' in state:
+                            engaged_states.append(state)
+                            continue    
+                        new_states = self.workflow.next_state(dataset, state)
+                        next_states.extend(new_states)
 
-        return 0
+                    for state in engaged_states:
+                        job_name = state.split(':')[-2]
+                        job = self.workflow.get_job(dataset, job_name, self.scripts_path)
+                        if not self.job_pool.get(dataset):
+                            self.job_pool[dataset] = [job]
+                        else:
+                            self.job_pool[dataset].append(job)
         
+        # start the jobs in the job_pool if their ready
+        return 0
+    
+    def find_job_requirements(self, job):
+        if job.meets_requirements():
+            return
+        
+    
+    def start_jobs(self):
+        for dataset, jobs in self.job_pool.items():
+            for job in jobs:
+                slurm_id = job()
 
     def collect_cmip_datasets(self, **kwargs):
         for activity_name, activity_val in self.dataset_spec['project']['CMIP'].items():
