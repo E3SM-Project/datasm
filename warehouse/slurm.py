@@ -5,7 +5,8 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 from time import sleep
 import json
-
+import os
+import stat
 from warehouse.util import print_debug
 
 
@@ -35,10 +36,12 @@ class Slurm(object):
         if path.exists():
             raise ValueError(f"unable to render slurm script, file already exists at path {script_path}")
         with open(script_path, 'w') as outstream:
-            outstream.write("#!/bin/bash\n")
+            outstream.write("#!/bin/bash\n\n")
             for key, val in slurm_opts:
-                outstream.write(f"#SBATCH {key} {val}\n\n")
+                outstream.write(f"#SBATCH {key} {val}\n")
             outstream.write(cmd)
+        st = os.stat(script_path)
+        os.chmod(script_path, st.st_mode | stat.S_IEXEC)
 
     def batch(self, cmd, sbatch_args=None):
         """
