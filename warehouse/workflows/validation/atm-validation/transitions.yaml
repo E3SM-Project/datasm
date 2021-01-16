@@ -1,7 +1,7 @@
 ATMVALIDATION:Ready:
   default:
     - CheckTimeUnit:Ready
-    - FixTimeUnit:Ready
+    - FixTimeUnits:Ready
   # atmos-native-3hr:
   #   - TimeUnitCheck:Ready
   # atmos-native-3hr_snap:
@@ -21,15 +21,15 @@ TimeUnitCheck:Pass:
     - TimeCheck:Ready
 TimeUnitCheck:Fail:
   default:
-    - FixTimeUnit:Ready
+    - FixTimeUnits:Ready
 
-FixTimeUnit:Ready:
+FixTimeUnits:Ready:
   default:
-    - FixTimeUnit:Engaged
-FixTimeUnit:Pass:
+    - FixTimeUnits:Engaged
+FixTimeUnits:Pass:
   default:
     - TimeCheck:Ready
-FixTimeUnit:Fail:
+FixTimeUnits:Fail:
   default:
     - Exit:exit_code
 
