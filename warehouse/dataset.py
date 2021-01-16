@@ -102,6 +102,34 @@ class Dataset(object):
             self.ensemble = facets[8]
             self.activity = None
             self.table = None
+    
+    @property
+    def working_dir(self):
+        """
+        Return the path to the latest working directory for the data files as a string
+        """
+        if self.publication_path and self.publication_path.exists():
+            self.update_versions(self.publication_path)
+            path = self.publication_path
+        elif self.warehouse_path and self.warehouse_path.exists():
+            self.update_versions(self.warehouse_path)
+            path = self.warehouse_path
+        latest_version = sorted(self.versions.keys())[-1]
+        return str(Path(path, latest_version).resolve())
+    
+    def lock_dir(self, path):
+        if self.is_locked(path):
+            return
+        Path(path, '.lock').touch()
+    
+    def is_locked(self, path):
+        for item in Path(path).glob('*'):
+            if item.name == '.lock':
+                return True
+        return False
+    
+    def unlock(self, path):
+        Path(path, '.lock').unlink(missing_ok=True)
 
     def datatype_from_id(self):
         if 'CMIP' in self.dataset_id:
@@ -137,7 +165,7 @@ class Dataset(object):
                  if version == latest_version 
                  and x != '.lock' and x != '.mapfile']
         
-        self.versions = {latest_version: len(files)}
+        self.versions[latest_version] = len(files)
 
         if not self.start_year or not self.end_year:
             if 'CMIP' in self.dataset_id:
@@ -223,10 +251,7 @@ class Dataset(object):
         if not self.publication_path.exists():
             return DatasetStatus.NOT_IN_PUBLICATION
 
-        self.versions = {
-            x: len([i for i in Path(self.publication_path, x).glob('*')])
-            for x in os.listdir(self.publication_path) if x[0] == 'v'
-        }
+        self.update_versions(self.publication_path)
 
         statfile = Path(self.publication_path, '.status')
         if statfile.exists():
@@ -249,6 +274,12 @@ class Dataset(object):
             return DatasetStatus.IN_PUBLICATION
         else:
             return DatasetStatus.NOT_IN_PUBLICATION
+
+    def update_versions(self, path):
+        self.versions = {
+            x: len([i for i in Path(path, x).glob('*')])
+            for x in os.listdir(path) if x[0] == 'v'
+        }
 
     def update_status(self, status):
         # write out the status to the status file, and update the 
@@ -288,9 +319,7 @@ class Dataset(object):
         if not self.warehouse_path.exists():
             return DatasetStatus.NOT_IN_WAREHOUSE
 
-        self.versions = {
-            x: len([i for i in Path(self.warehouse_path, x).glob('*')])
-            for x in os.listdir(self.warehouse_path) if x[0] == 'v'}
+        self.update_versions(self.warehouse_path)
 
         statfile = Path(self.warehouse_path, '.status')
         if statfile.exists():
