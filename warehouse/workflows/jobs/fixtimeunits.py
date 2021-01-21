@@ -8,3 +8,4 @@ class FixTimeUnits(WorkflowJob):
         super().__init__(*args, **kwargs)
         self.name = NAME
         self._cmd = ''
+        self._requires = {'atmos-native-mon': None, 'ocean-native-mon': None}
