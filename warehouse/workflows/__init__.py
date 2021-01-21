@@ -58,7 +58,7 @@ class Workflow(object):
             return self.children[status_attrs[idx]].next_state(dataset, status, idx + 1)
         
         prefix = self.get_status_prefix()
-        target_state = ":".join(status_attrs[-2:])
+        target_state = f"{status_attrs[idx-1]}:{status_attrs[idx]}"
         if target_state in self.transitions.keys():
             target_data_type = f'{dataset.realm}-{dataset.grid}-{dataset.freq}'
             transitions = self.transitions[target_state].get(target_data_type)
@@ -71,9 +71,14 @@ class Workflow(object):
             raise ValueError(
                 f"{target_state} is not present in the transition graph for {self.name}")
 
-    def get_job(self, dataset, state, scripts_path):
+    def get_job(self, dataset, state, scripts_path, slurm_out_path, **kwargs):
+
         job = self.jobs[state]
-        job_instance = job(dataset, state, scripts_path)
+        job_instance = job(
+            dataset, state, scripts_path, slurm_out_path, 
+            slurm_opts=kwargs.get('slurm_opts', []), 
+            parent=kwargs.get('parent', self.name))
+        job_instance.setup_requisites()
         return job_instance
         
 
