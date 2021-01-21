@@ -32,18 +32,16 @@ class Slurm(object):
             script_path (string) : the path to where to store the sbatch script
             slurm_opts List[(str, str)] : a list of slurm argument key value pairs
         """
-        path = Path(script_path)
-        if path.exists():
-            raise ValueError(f"unable to render slurm script, file already exists at path {script_path}")
+
         with open(script_path, 'w') as outstream:
             outstream.write("#!/bin/bash\n\n")
             for key, val in slurm_opts:
                 outstream.write(f"#SBATCH {key} {val}\n")
-            outstream.write(cmd)
+            outstream.write(cmd + '\n')
         st = os.stat(script_path)
         os.chmod(script_path, st.st_mode | stat.S_IEXEC)
 
-    def batch(self, cmd, sbatch_args=None):
+    def sbatch(self, cmd, sbatch_args=None):
         """
         Submit to the batch queue in non-interactive mode
 
