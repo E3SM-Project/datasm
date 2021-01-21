@@ -55,6 +55,11 @@ SEASONS = [{
 
 
 class Dataset(object):
+    def get_status_from_archive(self):
+        ...
+    def initialize_status_file(self):
+        ...
+    
     def __init__(self, dataset_id, pub_base=None, warehouse_base=None, archive_base=None, start_year=None, end_year=None, datavars=None, path='', versions={}, stat=None, comm=None, *args, **kwargs):
         super().__init__()
         self.dataset_id = dataset_id
@@ -78,16 +83,25 @@ class Dataset(object):
         self.versions = versions
 
         facets = self.dataset_id.split('.')
-        if facets[0] == 'CMIP':
-            self.project = 'CMIP'
-            self.data_type = 'time-series'
-            self.activity = facets[2]
+        if facets[0] == 'CMIP6':
+            self.project = 'CMIP6'
+            self.data_type = 'CMIP'
+            self.activity = facets[1]
             self.model_version = facets[3]
             self.experiment = facets[4]
             self.ensemble = facets[5]
             self.table = facets[6]
             self.resolution = None
-            self.realm = None
+            if facets[6] in ['Amon', '3hr', 'day']:
+                self.realm = 'atmos'
+            elif facets[6] == 'Lmon':
+                self.realm = 'land'
+            elif facets[6] == 'Omon':
+                self.realm = 'ocean'
+            elif facets[6] == 'SImon':
+                self.realm = 'sea-ice'
+            else:
+                self.realm = 'fixed'
             self.freq = None  # the frequency and realm are part of the CMIP table
             self.grid = 'gr'
         else:
@@ -117,7 +131,7 @@ class Dataset(object):
         latest_version = sorted(self.versions.keys())[-1]
         return str(Path(path, latest_version).resolve())
     
-    def lock_dir(self, path):
+    def lock(self, path):
         if self.is_locked(path):
             return
         Path(path, '.lock').touch()
@@ -185,8 +199,8 @@ class Dataset(object):
         # if not self.start_year or not self.end_year:
         #     import ipdb; ipdb.set_trace()
         #     this is probably a fx dataset
-
-        if 'CMIP' in self.dataset_id:
+        # import ipdb; ipdb.set_trace()
+        if self.data_type == 'CMIP':
             missing = self.check_spans(files)
         else:
             if 'model-output.mon' in self.dataset_id:
@@ -212,6 +226,12 @@ class Dataset(object):
         """
         Check ESGF to see of the dataset has already been published,
         if it exists check that the dataset is complete"""
+
+
+        # TODO: fix this at some point
+        if self.table == 'fx':
+            return DatasetStatus.SUCCESS
+        
         _, files = sproket_with_id(self.dataset_id, sproket_path=self.sproket)
         if not files:
             return DatasetStatus.UNITITIALIZED
@@ -224,7 +244,7 @@ class Dataset(object):
             return DatasetStatus.PARTIAL_PUBLISHED
 
     def get_status_from_pub_dir(self):
-        if self.project == 'CMIP':
+        if self.project == 'CMIP6':
             pubpath = Path(
                 self.pub_base,
                 self.project,
@@ -293,7 +313,7 @@ class Dataset(object):
             outstream.write(msg)    
 
     def get_status_from_warehouse(self):
-        if self.project == 'CMIP':
+        if self.project == 'CMIP6':
             warepath = Path(
                 self.warehouse_base,
                 self.project,
@@ -341,9 +361,6 @@ class Dataset(object):
             else:
                 return DatasetStatus.NOT_IN_WAREHOUSE
 
-    def get_status_from_archive(self):
-        ...
-
     def find_status(self, sproket='sproket'):
         """
         Lookup the datasets status in ESGF, or on the filesystem
@@ -360,22 +377,21 @@ class Dataset(object):
 
         if self.status in [DatasetStatus.NOT_PUBLISHED, DatasetStatus.UNITITIALIZED]:
             # returns IN_PUBLICATION or NOT_IN_PUBLICATION
-            self.status = self.get_status_from_pub_dir()
+            # self.status = self.get_status_from_pub_dir()
+            ...
 
         if self.status in [DatasetStatus.NOT_IN_PUBLICATION, DatasetStatus.UNITITIALIZED]:
             # returns IN_WAREHOUSE or NOT_IN_WAREHOUSE
-            self.status = self.get_status_from_warehouse()
+            # self.status = self.get_status_from_warehouse()
+            ...
 
         if self.status in [DatasetStatus.NOT_IN_WAREHOUSE, DatasetStatus.UNITITIALIZED] and self.data_type not in ['time-series', 'climo']:
             # returns IN_ARCHIVE OR NOT_IN_ARCHIVE
-            self.status = self.get_status_from_archive()
+            # self.status = self.get_status_from_archive()
+            ...
 
         return self.dataset_id, self.status
 
-
-
-    def initialize_status_file(self):
-        ...
 
     def check_submonthly(self, files):
         missing = list()
@@ -517,6 +533,7 @@ class Dataset(object):
         else:
             return int(filename[-16:-12]), int(filename[-9: -5])
 
+
     @staticmethod
     def get_ts_start_end(filename):
         p = re.compile(r'_\d{6}_\d{6}.*nc')
@@ -534,11 +551,11 @@ class Dataset(object):
         missing = []
         files = sorted(files)
 
-        file_start, file_end = get_file_start_end(files[0])
+        file_start, file_end = self.get_file_start_end(files[0])
 
         if file_start != self.start_year:
             missing.append(
-                f"{dataset_id}-{self.start_year:04d}-{file_end:04d}")
+                f"{self.dataset_id}-{self.start_year:04d}-{file_end:04d}")
 
         prev_end = self.start_year
         for file in files:
@@ -549,12 +566,12 @@ class Dataset(object):
             if file_start == prev_end + 1:
                 prev_end = file_end
             else:
-                missing.append(f"{dataset_id}-{prev_end:04d}-{file_start:04d}")
+                missing.append(f"{self.dataset_id}-{prev_end:04d}-{file_start:04d}")
 
         file_start, file_end = self.get_file_start_end(files[-1])
         if file_end != self.end_year:
             missing.append(
-                f"{dataset_id}-{file_start:04d}-{self.end_year:04d}")
+                f"{self.dataset_id}-{file_start:04d}-{self.end_year:04d}")
         return missing
 
     def infer_start_end_cmip(self, files):
@@ -639,6 +656,7 @@ comm: {self.comm}"""
         """
         if not path.exists():
             return dict()
+        self.status_path = path
 
         statbody = load_file_lines(path.resolve())
         for line in statbody:
@@ -664,3 +682,10 @@ comm: {self.comm}"""
             else:
                 self.comm.append(line)
         return
+    
+    @staticmethod
+    def id_from_path(base: str, path: str):
+        """
+        return the dataset id, reconstructed from the path given the base path
+        """
+        return '.'.join(path[len(base):].split(os.sep)[1:-1])
