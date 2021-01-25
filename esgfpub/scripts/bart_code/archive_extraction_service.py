@@ -334,7 +334,7 @@ def main():
                 while os.path.exists(dst):
                     alt += 1
                     altfile = bname + '(' + str(alt) + ')'
-                    dst = os.path.join(pub_path,altfile)
+                    dst = os.path.join(dest_path,altfile)
 
                 shutil.move(datafile,dst)
                 os.chmod(dst,0o664)
