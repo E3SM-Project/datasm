@@ -73,6 +73,10 @@ class AutoWarehouse():
             self.dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
 
     def status_was_updated(self, path):
+        """
+        This should be called whenever a datasets status file is updated
+        Parameters: path (str) -> the path to the directory containing the status file
+        """
         dataset_id = Dataset.id_from_path(str(self.warehouse_path), path)
         print(f"Got a status update from {dataset_id}")
         dataset = self.datasets[dataset_id]
@@ -83,108 +87,10 @@ class AutoWarehouse():
     def __call__(self):
         try:
             # find missing datasets
-            print("Initializing the warehouse")
-
-            cmip6_ids = [x for x in self.collect_cmip_datasets()]
-            if self.testing:
-                cmip6_ids = cmip6_ids[:100]
-            e3sm_ids = [x for x in self.collect_e3sm_datasets()]
-            if self.testing:
-                e3sm_ids = e3sm_ids[:100]
-            dataset_ids = cmip6_ids + e3sm_ids
-
-            # if the user gave us a wild card, filter out anything
-            # that doesn't match their pattern
-            # import ipdb; ipdb.set_trace()
-            if self.dataset_ids:
-                ndataset_ids = []
-                for i in dataset_ids:
-                    found = False
-                    # if 'tas' in i:
-                        # print(i)
-                        # import ipdb; ipdb.set_trace()
-                    for ii in self.dataset_ids:
-                        if ii in i:
-                            found = True
-                            break
-                    if found:
-                        ndataset_ids.append(i)
-                dataset_ids = ndataset_ids
-
-            # instantiate the dataset objects with the paths to
-            # where they should look for their data files
-            self.datasets = {
-                dataset_id: Dataset(
-                    dataset_id,
-                    pub_base=self.publication_path,
-                    warehouse_base=self.warehouse_path,
-                    archive_base=self.archive_path,
-                    sproket=self.sproket_path)
-                for dataset_id in dataset_ids
-            }
-
-            # fill in the start and end year for each dataset
-            for dataset_id, dataset in self.datasets.items():
-                if dataset.project == 'CMIP6':
-                    start_year = self.dataset_spec['project']['CMIP6'][dataset.activity][
-                        dataset.model_version][dataset.experiment]['start']
-                    end_year = self.dataset_spec['project']['CMIP6'][dataset.activity][
-                        dataset.model_version][dataset.experiment]['end']
-                else:
-                    start_year = self.dataset_spec['project']['E3SM'][dataset.model_version][dataset.experiment]['start']
-                    end_year = self.dataset_spec['project']['E3SM'][dataset.model_version][dataset.experiment]['end']
-                    
-                dataset.start_year = start_year
-                dataset.end_year = end_year
-
-            # if the dataset is a time-series, find out what
-            # its data variables are
-            for dataset in self.datasets.values():
-                if 'time-series' in dataset.data_type:
-                    facets = dataset.dataset_id.split('.')
-                    realm_vars = self.dataset_spec['time-series'][dataset.realm]
-                    exclude = self.dataset_spec['project']['E3SM'][facets[1]][facets[2]].get(
-                        'except')
-                    if exclude:
-                        dataset.datavars = [
-                            x for x in realm_vars if x not in exclude]
-                    else:
-                        dataset.datavars = realm_vars
-
-            # find the state of each dataset
-            if not self.serial:
-                pool = ProcessPoolExecutor(max_workers=self.num_workers)
-                futures = [pool.submit(x.find_status)
-                        for x in self.datasets.values()]
-                for future in tqdm(as_completed(futures), total=len(futures), desc="Searching ESGF for datasets"):
-                    dataset_id, status = future.result()
-                    if isinstance(status, DatasetStatus):
-                        status = status.name
-                    self.datasets[dataset_id].status = status
-            else:
-                for dataset in tqdm(self.datasets.values()):
-                    # import ipdb; ipdb.set_trace()
-                    dataset_id, status = dataset.find_status()
-                    if isinstance(status, DatasetStatus):
-                        status = status.name
-                    self.datasets[dataset_id].status = status
-
-            # import ipdb; ipdb.set_trace()
-            for dataset in self.datasets.values():
-                print(str(dataset))
-                print('')
-            # missing = [x for x in self.datasets.values() if x.status != DatasetStatus.SUCCESS.name]
-            # all_missing = [x for x in self.datasets.values() if x.status == DatasetStatus.UNITITIALIZED.name]
-
-            # print("The following datasets have missing files")
-            # for m in missing:
-            #     print(m.dataset_id)
-            #     # print(m.missing)
-            #     print('')
-            # exit(1)
+            self.setup_datasets()
 
             # start a workflow for each dataset as needed
-            self.job_pool = self.start_datasets()
+            self.start_datasets()
 
             # start the jobs in the job_pool if they're ready
             self.filter_job_pool(self.job_pool, self.datasets)
@@ -192,20 +98,102 @@ class AutoWarehouse():
             job_ids = []
             for job in self.job_pool:
                 if job.meets_requirements():
-                    # import ipdb; ipdb.set_trace()
                     if (job_id := job(self.slurm)) is not None:
                         job_ids.append(job_id)
                     else:
                         print(f"Error starting up job {job}")
-            
+
+            # wait around while jobs run
             while True:
-                sleep(1)
+                sleep(10)
 
         except KeyboardInterrupt:
             self.listener.stop()
             exit(1)
 
         return 0
+
+    def setup_datasets(self):
+        print("Initializing the warehouse")
+        cmip6_ids = [x for x in self.collect_cmip_datasets()]
+        if self.testing:
+            cmip6_ids = cmip6_ids[:100]
+        e3sm_ids = [x for x in self.collect_e3sm_datasets()]
+        if self.testing:
+            e3sm_ids = e3sm_ids[:100]
+        dataset_ids = cmip6_ids + e3sm_ids
+
+        # if the user gave us a wild card, filter out anything
+        # that doesn't match their pattern
+        if self.dataset_ids:
+            ndataset_ids = []
+            for i in dataset_ids:
+                found = False
+                for ii in self.dataset_ids:
+                    if ii in i:
+                        found = True
+                        break
+                if found:
+                    ndataset_ids.append(i)
+            dataset_ids = ndataset_ids
+
+        # instantiate the dataset objects with the paths to
+        # where they should look for their data files
+        self.datasets = {
+            dataset_id: Dataset(
+                dataset_id,
+                pub_base=self.publication_path,
+                warehouse_base=self.warehouse_path,
+                archive_base=self.archive_path,
+                sproket=self.sproket_path)
+            for dataset_id in dataset_ids
+        }
+
+        # fill in the start and end year for each dataset
+        for dataset_id, dataset in self.datasets.items():
+            if dataset.project == 'CMIP6':
+                start_year = self.dataset_spec['project']['CMIP6'][dataset.activity][
+                    dataset.model_version][dataset.experiment]['start']
+                end_year = self.dataset_spec['project']['CMIP6'][dataset.activity][
+                    dataset.model_version][dataset.experiment]['end']
+            else:
+                start_year = self.dataset_spec['project']['E3SM'][dataset.model_version][dataset.experiment]['start']
+                end_year = self.dataset_spec['project']['E3SM'][dataset.model_version][dataset.experiment]['end']
+
+            dataset.start_year = start_year
+            dataset.end_year = end_year
+
+        # if the dataset is a time-series, find out what
+        # its data variables are
+        for dataset in self.datasets.values():
+            if 'time-series' in dataset.data_type:
+                facets = dataset.dataset_id.split('.')
+                realm_vars = self.dataset_spec['time-series'][dataset.realm]
+                exclude = self.dataset_spec['project']['E3SM'][facets[1]][facets[2]].get(
+                    'except')
+                if exclude:
+                    dataset.datavars = [
+                        x for x in realm_vars if x not in exclude]
+                else:
+                    dataset.datavars = realm_vars
+
+        # find the state of each dataset
+        if not self.serial:
+            pool = ProcessPoolExecutor(max_workers=self.num_workers)
+            futures = [pool.submit(x.find_status)
+                       for x in self.datasets.values()]
+            for future in tqdm(as_completed(futures), total=len(futures), desc="Searching ESGF for datasets"):
+                dataset_id, status = future.result()
+                if isinstance(status, DatasetStatus):
+                    status = status.name
+                self.datasets[dataset_id].status = status
+        else:
+            for dataset in tqdm(self.datasets.values()):
+                dataset_id, status = dataset.find_status()
+                if isinstance(status, DatasetStatus):
+                    status = status.name
+                self.datasets[dataset_id].status = status
+        return
 
     def filter_job_pool(self, jobs, datasets):
         # search all datasets to see if there's one that matches
@@ -220,6 +208,13 @@ class AutoWarehouse():
                             and job.matches_requirement(dataset) \
                             and (dataset.status == DatasetStatus.SUCCESS.name or job.name in dataset.get_latest_status()):
                         job.setup_requisites(dataset)
+        return
+
+    def workflow_error(self, dataset):
+        print(f"Dataset {dataset.dataset_id} FAILED from {dataset.status}")
+
+    def workflow_success(self, dataset):
+        print(f"Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}")
 
     def start_datasets(self):
         """
@@ -245,7 +240,13 @@ class AutoWarehouse():
                         if 'Engaged' in state:
                             engaged_states.append((state, workflow))
                             continue
-                        
+                        if state == 'Exit:exit_code':
+                            self.workflow_error(dataset)
+                            continue
+                        if state == 'Exit:Pass':
+                            self.workflow_success(dataset)
+                            continue
+
                         new_states = self.workflow.next_state(dataset, state)
                         if new_states is None:
                             continue
@@ -256,9 +257,9 @@ class AutoWarehouse():
                         job_name = state_attrs[-3]
                         job_parent = state_attrs[-4]
                         newjob = self.workflow.get_job(
-                            dataset, 
+                            dataset,
                             job_name,
-                            self.scripts_path, 
+                            self.scripts_path,
                             self.slurm_path,
                             workflow=workflow)
 
@@ -266,7 +267,9 @@ class AutoWarehouse():
                             new_jobs.append(newjob)
                         else:
                             matching_job.setup_requisites(newjob.dataset)
-        return new_jobs
+        if new_jobs is not None:
+            self.job_pool.extend(new_jobs)
+        return
 
     def find_matching_job(self, searchjob):
         for job in self.job_pool:
@@ -278,7 +281,7 @@ class AutoWarehouse():
                     and job.matches_requirement(searchjob.dataset) \
                     and searchjob.matches_requirement(job.dataset):
                 return job
-        return None
+        return
 
     # def find_job_requirements(self, job):
     #     if job.meets_requirements():

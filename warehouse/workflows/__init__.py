@@ -53,7 +53,7 @@ class Workflow(object):
             idx (int) : The recursive depth index
         Returns the name of the next state to transition to given the current state of the dataset
         """
-        
+
         status_attrs = status.split(':')
         if len(status_attrs) < 3:
             target_state = status
