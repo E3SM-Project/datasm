@@ -28,7 +28,7 @@ class DatasetStatusMessage(Enum):
     WAREHOUSE_READY: "DATASET:WAREHOUSE:Ready"
 
 
-non_binding_status = ['Blocked', 'Unblocked', 'Approved', 'Unapproved']
+non_binding_status = ['Blocked:', 'Unblocked:', 'Approved:', 'Unapproved:']
 
 
 SEASONS = [{
@@ -159,10 +159,11 @@ class Dataset(object):
         for major in self.stat.keys():
             for minor in self.stat[major].keys():
                 for item in self.stat[major][minor]:
-                    if item[0] >= latest and item[1] not in non_binding_status:
+                    if item[0] >= latest \
+                    and item[1] not in non_binding_status:
                         latest = item[0]
-                        latest_val = f'{minor}:{item[1]}'
-        return latest, latest_val
+                        latest_val = f'{major}:{minor}:{item[1]}'
+        return latest_val
 
     def check_dataset_is_complete(self, files):
 
@@ -232,9 +233,17 @@ class Dataset(object):
         if self.table == 'fx':
             return DatasetStatus.SUCCESS
         
-        _, files = sproket_with_id(self.dataset_id, sproket_path=self.sproket)
+        _, files = sproket_with_id(f"{self.dataset_id}*" , sproket_path=self.sproket)
         if not files:
             return DatasetStatus.UNITITIALIZED
+
+        latest_version = 0
+        for f in files:
+            version_dir = int(f.split(os.sep)[-2][1:])
+            if version_dir > latest_version:
+                latest_version = version_dir
+        
+        files = [x for x in files if x.split(os.sep)[-2] == f"v{latest_version}"]
 
         is_complete = self.check_dataset_is_complete(files)
 
@@ -345,7 +354,7 @@ class Dataset(object):
         if statfile.exists():
             self.status_path = statfile
             self.load_dataset_status_file(statfile)
-            _, status = self.get_latest_status()
+            status = self.get_latest_status()
             self.data_path = self.warehouse_path
             return status
 
@@ -377,12 +386,12 @@ class Dataset(object):
 
         if self.status in [DatasetStatus.NOT_PUBLISHED, DatasetStatus.UNITITIALIZED]:
             # returns IN_PUBLICATION or NOT_IN_PUBLICATION
-            # self.status = self.get_status_from_pub_dir()
+            self.status = self.get_status_from_pub_dir()
             ...
 
         if self.status in [DatasetStatus.NOT_IN_PUBLICATION, DatasetStatus.UNITITIALIZED]:
             # returns IN_WAREHOUSE or NOT_IN_WAREHOUSE
-            # self.status = self.get_status_from_warehouse()
+            self.status = self.get_status_from_warehouse()
             ...
 
         if self.status in [DatasetStatus.NOT_IN_WAREHOUSE, DatasetStatus.UNITITIALIZED] and self.data_type not in ['time-series', 'climo']:
@@ -648,19 +657,22 @@ version: {', '.join(self.versions.keys())},
 stat: {self.get_latest_status()},
 comm: {self.comm}"""
 
-    def load_dataset_status_file(self, path):
+    def load_dataset_status_file(self, path=None):
         """
         read status file, convert lines "STAT:ts:PROCESS:status1:status2:..."
         into dictionary, key = STAT, rows are tuples (ts,'PROCESS:status1:status2:...')
         and for comments, key = COMM, rows are comment lines
         """
+        if path is None:
+            path = self.status_path
+
         if not path.exists():
             return dict()
         self.status_path = path
 
         statbody = load_file_lines(path.resolve())
         for line in statbody:
-            line_info = [x for x in line.split(':') if x]
+            line_info = line.split(':')
             # forge tuple (timestamp,residual_string), add to STAT list
             if line_info[0] == 'STAT':
                 timestamp = line_info[1]
