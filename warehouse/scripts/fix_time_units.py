@@ -8,25 +8,30 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'input', help="path to directory containing data with incorrect time units")
-    parser.add_argument(
-        'output', help="path to directory where corrected data should be saved")
-    parser.add_argument('-t', '--time-offset', type=float, required=True)
-    parser.add_argument('-d', '--time-units',
+    parser.add_argument('input', 
+                        help="path to directory containing data with incorrect time units")
+    parser.add_argument('output', 
+                        help="path to directory where corrected data should be saved")
+    parser.add_argument('--bounds-name', 
+                        type=str, default="time_bnds")
+    parser.add_argument('--time-units',
                         default="days since 1850-01-01 00:00:00")
-    parser.add_argument('-p', '--processes', default=6, type=int)
-    parser.add_argument('-q', '--quiet', action="store_true", help="Suppress progressbars")
+    parser.add_argument('--processes', 
+                        default=6, type=int)
+    parser.add_argument('--quiet', 
+                        action="store_true", help="Suppress progressbars")
     return parser.parse_args()
 
 
-def fix_units(inpath, outpath, time_units, time_offset):
+def fix_units(inpath, outpath, time_units, bounds_name):
 
     with xr.open_dataset(inpath, decode_times=False) as ds:
-        if ds['time'].attrs['units'] != time_units:
-            ds['time'].attrs['units'] = time_units
-            ds = ds.assign_coords(time=ds['time']+time_offset)
-            ds = ds.assign_coords(time_bnds=ds['time_bnds']+time_offset)
+        if ds['time'].attrs.get('units') != time_units:
+            ds['time'].attrs = {
+                'long_name': "time",
+                'units': time_units,
+                'calendar': "noleap",
+                'bounds': bounds_name }
             ds.to_netcdf(outpath, unlimited_dims=['time'])
 
 
