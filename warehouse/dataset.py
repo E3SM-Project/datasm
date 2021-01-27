@@ -12,7 +12,6 @@ from warehouse.util import load_file_lines, sproket_with_id
 class DatasetStatus(Enum):
     UNITITIALIZED = 1
     INITIALIZED = 2
-    PENDING = 3
     RUNNING = 4
     FAILED = 5
     SUCCESS = 6
@@ -29,7 +28,7 @@ class DatasetStatusMessage(Enum):
     WAREHOUSE_READY: "DATASET:WAREHOUSE:Ready"
 
 
-non_binding_status = ['Blocked', 'Unblocked', 'Approved', 'Unapproved']
+non_binding_status = ['Blocked:', 'Unblocked:', 'Approved:', 'Unapproved:']
 
 
 SEASONS = [{
@@ -56,11 +55,17 @@ SEASONS = [{
 
 
 class Dataset(object):
+    def get_status_from_archive(self):
+        ...
+    def initialize_status_file(self):
+        ...
+    
     def __init__(self, dataset_id, pub_base=None, warehouse_base=None, archive_base=None, start_year=None, end_year=None, datavars=None, path='', versions={}, stat=None, comm=None, *args, **kwargs):
         super().__init__()
         self.dataset_id = dataset_id
         self.status = DatasetStatus.UNITITIALIZED
         self.status_path = None
+        self.data_path = None
         self.start_year = start_year
         self.end_year = end_year
         self.datavars = datavars
@@ -78,16 +83,25 @@ class Dataset(object):
         self.versions = versions
 
         facets = self.dataset_id.split('.')
-        if facets[0] == 'CMIP':
-            self.project = 'CMIP'
-            self.data_type = 'time-series'
-            self.activity = facets[2]
+        if facets[0] == 'CMIP6':
+            self.project = 'CMIP6'
+            self.data_type = 'CMIP'
+            self.activity = facets[1]
             self.model_version = facets[3]
             self.experiment = facets[4]
             self.ensemble = facets[5]
             self.table = facets[6]
             self.resolution = None
-            self.realm = None
+            if facets[6] in ['Amon', '3hr', 'day']:
+                self.realm = 'atmos'
+            elif facets[6] == 'Lmon':
+                self.realm = 'land'
+            elif facets[6] == 'Omon':
+                self.realm = 'ocean'
+            elif facets[6] == 'SImon':
+                self.realm = 'sea-ice'
+            else:
+                self.realm = 'fixed'
             self.freq = None  # the frequency and realm are part of the CMIP table
             self.grid = 'gr'
         else:
@@ -102,6 +116,34 @@ class Dataset(object):
             self.ensemble = facets[8]
             self.activity = None
             self.table = None
+    
+    @property
+    def working_dir(self):
+        """
+        Return the path to the latest working directory for the data files as a string
+        """
+        if self.publication_path and self.publication_path.exists():
+            self.update_versions(self.publication_path)
+            path = self.publication_path
+        elif self.warehouse_path and self.warehouse_path.exists():
+            self.update_versions(self.warehouse_path)
+            path = self.warehouse_path
+        latest_version = sorted(self.versions.keys())[-1]
+        return str(Path(path, latest_version).resolve())
+    
+    def lock(self, path):
+        if self.is_locked(path):
+            return
+        Path(path, '.lock').touch()
+    
+    def is_locked(self, path):
+        for item in Path(path).glob('*'):
+            if item.name == '.lock':
+                return True
+        return False
+    
+    def unlock(self, path):
+        Path(path, '.lock').unlink(missing_ok=True)
 
     def datatype_from_id(self):
         if 'CMIP' in self.dataset_id:
@@ -117,10 +159,11 @@ class Dataset(object):
         for major in self.stat.keys():
             for minor in self.stat[major].keys():
                 for item in self.stat[major][minor]:
-                    if item[0] >= latest and item[1] not in non_binding_status:
+                    if item[0] >= latest \
+                    and item[1] not in non_binding_status:
                         latest = item[0]
-                        latest_val = f'{minor}:{item[1]}'
-        return latest, latest_val
+                        latest_val = f'{major}:{minor}:{item[1]}'
+        return latest_val
 
     def check_dataset_is_complete(self, files):
 
@@ -133,8 +176,11 @@ class Dataset(object):
             nfiles.append((version, file))
 
         latest_version = sorted(nfiles)[-1][0]
-        files = [x for version, x in nfiles if version == latest_version]
-        self.versions = {latest_version: len(files)}
+        files = [x for version, x in nfiles 
+                 if version == latest_version 
+                 and x != '.lock' and x != '.mapfile']
+        
+        self.versions[latest_version] = len(files)
 
         if not self.start_year or not self.end_year:
             if 'CMIP' in self.dataset_id:
@@ -154,8 +200,8 @@ class Dataset(object):
         # if not self.start_year or not self.end_year:
         #     import ipdb; ipdb.set_trace()
         #     this is probably a fx dataset
-
-        if 'CMIP' in self.dataset_id:
+        # import ipdb; ipdb.set_trace()
+        if self.data_type == 'CMIP':
             missing = self.check_spans(files)
         else:
             if 'model-output.mon' in self.dataset_id:
@@ -181,9 +227,23 @@ class Dataset(object):
         """
         Check ESGF to see of the dataset has already been published,
         if it exists check that the dataset is complete"""
-        _, files = sproket_with_id(self.dataset_id, sproket_path=self.sproket)
+
+
+        # TODO: fix this at some point
+        if self.table == 'fx':
+            return DatasetStatus.SUCCESS
+        
+        _, files = sproket_with_id(f"{self.dataset_id}*" , sproket_path=self.sproket)
         if not files:
             return DatasetStatus.UNITITIALIZED
+
+        latest_version = 0
+        for f in files:
+            version_dir = int(f.split(os.sep)[-2][1:])
+            if version_dir > latest_version:
+                latest_version = version_dir
+        
+        files = [x for x in files if x.split(os.sep)[-2] == f"v{latest_version}"]
 
         is_complete = self.check_dataset_is_complete(files)
 
@@ -193,7 +253,7 @@ class Dataset(object):
             return DatasetStatus.PARTIAL_PUBLISHED
 
     def get_status_from_pub_dir(self):
-        if self.project == 'CMIP':
+        if self.project == 'CMIP6':
             pubpath = Path(
                 self.pub_base,
                 self.project,
@@ -220,9 +280,7 @@ class Dataset(object):
         if not self.publication_path.exists():
             return DatasetStatus.NOT_IN_PUBLICATION
 
-        self.versions = {
-            x: len([i for i in Path(self.path, x).glob('*')])
-            for x in os.listdir(self.path) if x[0] == 'v'}
+        self.update_versions(self.publication_path)
 
         statfile = Path(self.publication_path, '.status')
         if statfile.exists():
@@ -240,20 +298,31 @@ class Dataset(object):
             # we only set the status file if the publication is complete
             # otherwise the "official" location should be the warehouse
             self.status_path = statfile
+            self.data_path = self.publication_path
             self.update_status(DatasetStatusMessage.PUBLICATION_READY)
             return DatasetStatus.IN_PUBLICATION
         else:
             return DatasetStatus.NOT_IN_PUBLICATION
 
+    def update_versions(self, path):
+        self.versions = {
+            x: len([i for i in Path(path, x).glob('*')])
+            for x in os.listdir(path) if x[0] == 'v'
+        }
+
     def update_status(self, status):
+        # write out the status to the status file, and update the 
+        # self.state variable 
         if not self.status_path or not self.status_path.exists():
             raise ValueError(
                 f"Invalid status path {self.status_path} for dataset {self.dataset_id}")
+        self.status = status
         with open(self.status_path, 'a') as outstream:
-            msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:{status}'
+            msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:WAREHOUSE:{status}\n'
+            outstream.write(msg)    
 
     def get_status_from_warehouse(self):
-        if self.project == 'CMIP':
+        if self.project == 'CMIP6':
             warepath = Path(
                 self.warehouse_base,
                 self.project,
@@ -279,15 +348,14 @@ class Dataset(object):
         if not self.warehouse_path.exists():
             return DatasetStatus.NOT_IN_WAREHOUSE
 
-        self.versions = {
-            x: len([i for i in Path(self.warehouse_path, x).glob('*')])
-            for x in os.listdir(self.warehouse_path) if x[0] == 'v'}
+        self.update_versions(self.warehouse_path)
 
         statfile = Path(self.warehouse_path, '.status')
         if statfile.exists():
             self.status_path = statfile
             self.load_dataset_status_file(statfile)
-            _, status = self.get_latest_status()
+            status = self.get_latest_status()
+            self.data_path = self.warehouse_path
             return status
 
         version_names = list(self.versions.keys())
@@ -295,9 +363,12 @@ class Dataset(object):
         files = [x.resolve() for x in version_dir.glob('*')]
         if not files:
             return DatasetStatus.NOT_IN_WAREHOUSE
-
-    def get_status_from_archive(self):
-        ...
+        else:
+            if self.check_dataset_is_complete(files):
+                self.data_path = self.warehouse_path
+                return DatasetStatus.IN_WAREHOUSE
+            else:
+                return DatasetStatus.NOT_IN_WAREHOUSE
 
     def find_status(self, sproket='sproket'):
         """
@@ -316,19 +387,20 @@ class Dataset(object):
         if self.status in [DatasetStatus.NOT_PUBLISHED, DatasetStatus.UNITITIALIZED]:
             # returns IN_PUBLICATION or NOT_IN_PUBLICATION
             self.status = self.get_status_from_pub_dir()
+            ...
 
         if self.status in [DatasetStatus.NOT_IN_PUBLICATION, DatasetStatus.UNITITIALIZED]:
             # returns IN_WAREHOUSE or NOT_IN_WAREHOUSE
             self.status = self.get_status_from_warehouse()
+            ...
 
         if self.status in [DatasetStatus.NOT_IN_WAREHOUSE, DatasetStatus.UNITITIALIZED] and self.data_type not in ['time-series', 'climo']:
             # returns IN_ARCHIVE OR NOT_IN_ARCHIVE
-            self.status = self.get_status_from_archive()
+            # self.status = self.get_status_from_archive()
+            ...
 
         return self.dataset_id, self.status
 
-    def initialize_status_file(self):
-        ...
 
     def check_submonthly(self, files):
         missing = list()
@@ -419,7 +491,11 @@ class Dataset(object):
         files = sorted(files)
 
         pattern = r'\d{4}-\d{2}.*nc'
-        idx = re.search(pattern=pattern, string=files[0])
+        try:
+            idx = re.search(pattern=pattern, string=files[0])
+        except Exception as e:
+            raise ValueError(f"file {files[0]} does not match expected pattern for monthly files")
+        
         if not idx:
             raise ValueError(f'Unexpected file format: {files[0]}')
 
@@ -466,6 +542,7 @@ class Dataset(object):
         else:
             return int(filename[-16:-12]), int(filename[-9: -5])
 
+
     @staticmethod
     def get_ts_start_end(filename):
         p = re.compile(r'_\d{6}_\d{6}.*nc')
@@ -483,11 +560,11 @@ class Dataset(object):
         missing = []
         files = sorted(files)
 
-        file_start, file_end = get_file_start_end(files[0])
+        file_start, file_end = self.get_file_start_end(files[0])
 
         if file_start != self.start_year:
             missing.append(
-                f"{dataset_id}-{self.start_year:04d}-{file_end:04d}")
+                f"{self.dataset_id}-{self.start_year:04d}-{file_end:04d}")
 
         prev_end = self.start_year
         for file in files:
@@ -498,12 +575,12 @@ class Dataset(object):
             if file_start == prev_end + 1:
                 prev_end = file_end
             else:
-                missing.append(f"{dataset_id}-{prev_end:04d}-{file_start:04d}")
+                missing.append(f"{self.dataset_id}-{prev_end:04d}-{file_start:04d}")
 
         file_start, file_end = self.get_file_start_end(files[-1])
         if file_end != self.end_year:
             missing.append(
-                f"{dataset_id}-{file_start:04d}-{self.end_year:04d}")
+                f"{self.dataset_id}-{file_start:04d}-{self.end_year:04d}")
         return missing
 
     def infer_start_end_cmip(self, files):
@@ -554,28 +631,48 @@ class Dataset(object):
 
         return start, end
 
-    def is_blocked(self):
-        ...
+    def is_blocked(self, state):
+        if not self.status_path or not self.status_path.exists():
+            raise ValueError(f"Status file for {self.dataset_id} cannot be found")
+        
+        # reload the status file in case somethings changed
+        self.load_dataset_status_file(self.status_path)
+
+        status_attrs = state.split(':')
+        blocked = False
+        if status_attrs[0] in self.stat['WAREHOUSE'].keys():
+            state_messages = sorted(self.stat['WAREHOUSE'][status_attrs[0]])
+            for ts, message in state_messages:
+                if 'Blocked' in message:
+                    blocked = True
+                elif 'Unblocked' in message:
+                    blocked = False
+        return blocked
+        
 
     def __str__(self):
         return f"""id: {self.dataset_id},
-path: {self.path},
+path: {self.data_path},
 version: {', '.join(self.versions.keys())},
-stat: {json.dumps(self.stat, indent=4)},
+stat: {self.get_latest_status()},
 comm: {self.comm}"""
 
-    def load_dataset_status_file(self, path):
+    def load_dataset_status_file(self, path=None):
         """
         read status file, convert lines "STAT:ts:PROCESS:status1:status2:..."
         into dictionary, key = STAT, rows are tuples (ts,'PROCESS:status1:status2:...')
         and for comments, key = COMM, rows are comment lines
         """
+        if path is None:
+            path = self.status_path
+
         if not path.exists():
             return dict()
+        self.status_path = path
 
         statbody = load_file_lines(path.resolve())
         for line in statbody:
-            line_info = [x for x in line.split(':') if x]
+            line_info = line.split(':')
             # forge tuple (timestamp,residual_string), add to STAT list
             if line_info[0] == 'STAT':
                 timestamp = line_info[1]
@@ -589,8 +686,18 @@ comm: {self.comm}"""
                     self.stat[major] = {}
                 if minor not in self.stat[major]:
                     self.stat[major][minor] = []
-                self.stat[major][minor].append(
-                    (timestamp, ':'.join(line_info[4:])))
+                
+                message = (timestamp, ':'.join(line_info[4:]))
+                # make sure not to load duplicate messages
+                if message not in self.stat[major][minor]:
+                    self.stat[major][minor].append(message)
             else:
                 self.comm.append(line)
         return
+    
+    @staticmethod
+    def id_from_path(base: str, path: str):
+        """
+        return the dataset id, reconstructed from the path given the base path
+        """
+        return '.'.join(path[len(base):].split(os.sep)[1:-1])

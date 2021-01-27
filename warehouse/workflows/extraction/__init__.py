@@ -1,16 +1,18 @@
 import os
 from warehouse.workflows import Workflow
-from warehouse.workflows.extraction.jobs import (
-    ExtractionValidate,
-    ZstashExtract
-)
+# from warehouse.workflows.extraction.jobs import (
+#     ExtractionValidate,
+#     ZstashExtract
+# )
 
-NAME = 'extract'
+COMMAND = 'extract'
+NAME = 'Extraction'
 
 class Extraction(Workflow):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(**kwargs)
+        self.name = NAME.upper()
 
     def __call__(self):
         ...
@@ -18,7 +20,7 @@ class Extraction(Workflow):
     @staticmethod
     def add_args(parser):
         p = parser.add_parser(
-            name=NAME,
+            name=COMMAND,
             help='extract datasets from zstash and perform validation')
         p.add_argument(
             '-p', '--path',
@@ -32,14 +34,14 @@ class Extraction(Workflow):
             '-d', '--dataset',
             required=True,
             help="the dataset_id to extract")
-        return NAME, parser
+        return COMMAND, parser
 
     @staticmethod
     def arg_checker(args):
         if not os.path.exists(args.path):
             print("The given path {args.path} does not exist")
-            return False, NAME
+            return False, COMMAND
         if not not os.path.exists(args.zstash):
             print("The given path {args.zstash} does not exist")
-            return False, NAME
-        return True, NAME
+            return False, COMMAND
+        return True, COMMAND

@@ -201,7 +201,7 @@ time-series:
     - LAISUN
 
 project:
-  CMIP:
+  CMIP6:
     C4MIP:
       E3SM-1-1:
         hist-bgc:
@@ -262,7 +262,7 @@ project:
             - siu
             - siv
             - clcalipso
-    CMIP6:
+    CMIP:
       E3SM-1-0:
         piControl:
           start: 1
@@ -272,7 +272,9 @@ project:
           except:
             - cLitter 
             - cProduct
-            - cSoil
+            - cSoilFast
+            - cSoilMedium
+            - cSoilSlow
             - fFire
             - fHarvest
             - cVeg
@@ -288,7 +290,9 @@ project:
           except:
             - cLitter 
             - cProduct
-            - cSoil
+            - cSoilFast
+            - cSoilMedium
+            - cSoilSlow
             - fFire
             - fHarvest
             - cVeg

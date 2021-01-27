@@ -1,11 +1,14 @@
 
 import logging
 import os
-
+from pathlib import Path
 from subprocess import Popen, PIPE
 from time import sleep
-
+import json
+import os
+import stat
 from warehouse.util import print_debug
+
 
 class Slurm(object):
     """
@@ -21,18 +24,35 @@ class Slurm(object):
                 'Unable to find slurm, is it installed on this system?')
     # -----------------------------------------------
 
-    def batch(self, cmd, sargs=None):
+    def render_script(self, cmd, script_path, slurm_opts=[], **kwargs):
+        """
+        Write out an executable bash script
+        Parameters:
+            cmd (string) : a bash command to run
+            script_path (string) : the path to where to store the sbatch script
+            slurm_opts List[(str, str)] : a list of slurm argument key value pairs
+        """
+
+        with open(script_path, 'w') as outstream:
+            outstream.write("#!/bin/bash\n\n")
+            for key, val in slurm_opts:
+                outstream.write(f"#SBATCH {key} {val}\n")
+            outstream.write(cmd + '\n')
+        st = os.stat(script_path)
+        os.chmod(script_path, st.st_mode | stat.S_IEXEC)
+
+    def sbatch(self, cmd, sbatch_args=None):
         """
         Submit to the batch queue in non-interactive mode
 
         Parameters:
             cmd (str): The path to the run script that should be submitted
-            sargs (str): The additional arguments to pass to slurm
+            sbatch_args (str): The additional arguments to pass to sbatch
         Returns:
             job id of the new job (int)
         """
         try:
-            out, err = self._submit('sbatch', cmd, sargs)
+            out, err = self._submit('sbatch', cmd, sbatch_args)
         except Exception as e:
             print('Batch job submission failed')
             print_debug(e)
@@ -63,7 +83,7 @@ class Slurm(object):
             out = out.decode('utf-8')
             if err:
                 err = err.decode('utf-8')
-                print_line(err, status='err')
+                print_debug(err, status='err')
                 logging.error(err)
                 tries += 1
                 sleep(tries * 2)
@@ -100,10 +120,8 @@ class Slurm(object):
                 out = out.decode('utf-8')
                 if err:
                     err = err.decode('utf-8')
-                    print_line(err, status='err')
+                    print_debug(err, status='err')
                     if err == 'slurm_load_jobs error: Invalid job id specified':
-                        import ipdb
-                        ipdb.set_trace()
                         raise ValueError(
                             f"Unable to find slurm job with id {jobid}")
                     sleep(1)
@@ -232,25 +250,20 @@ class JobInfo(object):
     """
 
     def __init__(self, jobid=None,
-                 jobname=None,
-                 partition=None,
-                 state=None,
-                 time=None,
-                 user=None,
-                 command=None):
+                        jobname=None,
+                        partition=None,
+                        state=None,
+                        time=None,
+                        user=None,
+                        command=None):
         self.jobid = jobid
         self.jobname = jobname
         self.partition = partition
         self.time = time
         self.user = user
         self.command = command
-        if state is not None:
-            if not isinstance(state, JobStatus):
-                raise Exception(
-                    "{} is not of type JobStatus".format(type(state)))
-            self._state = state
-        else:
-            self._state = None
+        self.state = state
+            
     # -----------------------------------------------
 
     def __str__(self):
@@ -290,19 +303,19 @@ class JobInfo(object):
 
     @property
     def state(self):
-        return self._state
+        return self.state
     # -----------------------------------------------
 
     @state.setter
     def state(self, state):
         if state in ['Q', 'W', 'PD', 'PENDING']:
-            self._state = 'PENDING'
+            self.state = 'PENDING'
         elif state in ['R', 'RUNNING']:
-            self._state = 'RUNNING'
+            self.state = 'RUNNING'
         elif state in ['E', 'CD', 'CG', 'COMPLETED', 'COMPLETING']:
-            self._state = 'COMPLETED'
+            self.state = 'COMPLETED'
         elif state in ['FAILED', 'F']:
-            self._state = 'FAILED'
+            self.state = 'FAILED'
         else:
-            self._state = state
+            self.state = state
     # -----------------------------------------------

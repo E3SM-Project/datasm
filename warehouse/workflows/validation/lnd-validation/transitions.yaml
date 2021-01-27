@@ -1,0 +1,34 @@
+LNDVALIDATION:Ready:
+  land-native-mon:
+      - TimeUnitCheck:Ready
+
+
+TimeUnitCheck:Ready:
+    default:TimeUnitCheck:Engaged
+TimeUnitCheck:Pass:
+    default:TimeCheck:Ready
+TimeUnitCheck:Fail:
+    default:FixTimeUnit:Ready
+
+FixTimeUnit:Ready:
+    default:FixTimeUnit:Engaged
+FixTimeUnit:Pass:
+    default:TimeCheck:Ready
+FixTimeUnit:Fail:
+    default:Exit:exit_code
+
+TimeCheck:Ready:
+    default:TimeCheck:Engaged
+TimeCheck:Pass:
+    default:CreateDerivedDataset:Ready
+TimeCheck:Fail:
+    default:TimeRectify:Ready
+
+TimeRectify:Ready:
+    TimeRectify:Engaged
+TimeRectify:Pass:
+    default:Success
+TimeRectify:Fail:
+    Exit:exit_code
+
+

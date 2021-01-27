@@ -1,61 +1,91 @@
-PostProcess:Ready:
-  atm-nat-mon:GenerateAtmCLimo:Ready
-  lnd-nat-mon:GenerateLndTimeseries:Ready
-  ocn-nat-mon:GenerateOcnCmor:Ready
-  ice-nat-mon:GenerateIceCmor:Ready
+POSTPROCESS:Ready:
+  atmos-native-mon:
+    - GenerateAtmClimo:Ready
+  atmos-native-mon:
+    - GenerateAtmTimeseries:Ready
+  lnd-nat-mon:
+    - GenerateLndTimeseries:Ready
+  ocn-nat-mon:
+    - GenerateOcnCmor:Ready
+  ice-nat-mon:
+    - GenerateIceCmor:Ready
 
-GenerateAtmCLimo:Ready:
-  default:GenerateAtmCLimo:Engaged
-GenerateAtmCLimo:Pass:
-  default:CreateAtmTimeseries:Ready
-GenerateAtmCLimo:Fail:
-  default:Exit:exit_code
+GenerateAtmClimo:Ready:
+  default:
+    - GenerateAtmCLimo:Engaged
+GenerateAtmClimo:Pass:
+  default:
+    - CreateAtmTimeseries:Ready
+GenerateAtmClimo:Fail:
+  default:
+    - Exit:exit_code
 
 GenerateAtmTimeseries:Ready:
-  default:GenerateAtmTimeseries:Engaged
+  default:
+    - GenerateAtmTimeseries:Engaged
 GenerateAtmTimeseries:Pass:
-  default:GenerateAtmCmor:Ready
+  default:
+    - GenerateAtmCmor:Ready
 GenerateAtmTimeseries:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code
 
 GenerateAtmCmor:Ready:
-  default:GenerateAtmCmor:Engaged
+  default:
+    - GenerateAtmCmor:Engaged
 GenerateAtmCmor:Pass:
-  default:CMIPValidate:Ready
+  default:
+    - CMIPValidate:Ready
 GenerateAtmCmor:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code
 
 GenerateLndTimeseries:Ready:
-  default:GenerateLndTimeseries:Engaged
+  default:
+    - GenerateLndTimeseries:Engaged
 GenerateLndTimeseries:Pass:
-  default:GenerateLndCmor:Ready
+  default:
+    - GenerateLndCmor:Ready
 GenerateLndTimeseries:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code
 
 GenerateLndCmor:Ready:
-  default:GenerateLndCmor:Engaged
+  default:
+    - GenerateLndCmor:Engaged
 GenerateLndCmor:Pass:
-  default:CMIPValidate:Ready
+  default:
+    - CMIPValidate:Ready
 GenerateLndCmor:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code
 
 GenerateOcnCmor:Ready:
-  default:GenerateOcnCmor:Engaged
+  default:
+    - GenerateOcnCmor:Engaged
 GenerateOcnCmor:Pass:
-  default:CMIPValidate:Ready
+  default:
+    - CMIPValidate:Ready
 GenerateOcnCmor:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code
 
 GenerateIceCmor:Ready:
-  default:GenerateIceCmor:Engaged
+  default:
+    - GenerateIceCmor:Engaged
 GenerateIceCmor:Pass:
-  default:CMIPValidate:Ready
+  default:
+    - CMIPValidate:Ready
 GenerateIceCmor:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code
 
 CMIPValidate:Ready:
-  default:CMIPValidate:Engaged
+  default:
+    - CMIPValidate:Engaged
 CMIPValidate:Pass:
-  default:Exit:Success
+  default:
+    - Exit:Success
 CMIPValidate:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code

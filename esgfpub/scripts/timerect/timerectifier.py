@@ -5,6 +5,7 @@ import argparse
 import xarray as xr
 import numpy as np
 import netCDF4
+from pathlib import Path
 from tqdm import tqdm
 from shutil import move as move_file
 from shutil import copyfile
@@ -13,9 +14,9 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from itertools import combinations
 
 
-def get_indices(path):
-    with xr.open_dataset(path, decode_times=False) as ds:
-        return path, ds['time_bnds'][0].values[0], ds['time_bnds'][-1].values[-1]
+# def get_indices(path, bndsname):
+#     with xr.open_dataset(path, decode_times=False) as ds:
+#         return path, ds[bndsname][0].values[0], ds[bndsname][-1].values[-1]
 
 def filter_files(file_info):
     to_remove = []
@@ -34,7 +35,6 @@ def filter_files(file_info):
             else:
                 to_remove.append(combo[1])
 
-    
     for i1 in to_remove:
         for idx, i2 in enumerate(file_info):
             if i1 == i2:
@@ -42,18 +42,18 @@ def filter_files(file_info):
                 print(f"removing {f['name']} from file list")
                 break
 
-def monotonic_check(path, idx):
+def monotonic_check(path, idx, bndsname):
     _, name = os.path.split(path)
     with xr.open_dataset(path, decode_times=False) as ds:
         # start at -1 so that the 0th time step doesnt trigger
         try:
-            start_bound = ds['time_bnds'][0].values[0]
-            end_bound = ds['time_bnds'][-1].values[-1]
+            start_bound = ds[bndsname][0].values[0]
+            end_bound = ds[bndsname][-1].values[-1]
         except IndexError as e:
             print(f"{name} doesnt have expect time_bnds variable shape")
             return None, None, idx
         l1, l2 = -1.0, -1.0
-        for bounds in ds['time_bnds']:
+        for bounds in ds[bndsname]:
             b1, b2 = bounds.values
             if (l1 == -1.0 and b1 == 0.0) or (b1 == b2):
                 # the daily files have a 0 width time step at the start
@@ -67,7 +67,7 @@ def monotonic_check(path, idx):
 
         return start_bound, end_bound, idx
 
-def collect_segments(inpath, num_jobs):
+def collect_segments(inpath, num_jobs, timename, bndsname):
     
     print("starting segment collection")
     # collect all the files and sort them by their date stamp
@@ -78,18 +78,9 @@ def collect_segments(inpath, num_jobs):
             print(f"File {n} is zero bytes, skipping it")
             paths.pop(idx)
     
-    # pattern = r'\d{4}-\d{2}-\d{2}'
-    # files = []
-    # for name in names:
-    #     start = re.search(pattern, name).start()
-    #     files.append({
-    #         'suffix': name[start:],
-    #         'name': name
-    #     })
-    # files = [x['name'] for x in sorted(files, key=lambda i: i['suffix'])]
 
     with ProcessPoolExecutor(max_workers=num_jobs) as pool:
-        futures = [pool.submit(monotonic_check, path, idx) for idx, path in enumerate(paths)]
+        futures = [pool.submit(monotonic_check, path, idx, bndsname) for idx, path in enumerate(paths)]
         file_info = []
         for future in tqdm(as_completed(futures), desc="Checking files for monotonically increasing time indices", total=len(futures)):
             b1, b2, idx = future.result()
@@ -103,12 +94,7 @@ def collect_segments(inpath, num_jobs):
                     'name': paths[idx],
                     'start': b1,
                     'end': b2
-                })
-
-        # futures = [pool.submit(get_indices, x) for x in path]    
-        
-        # for future in tqdm(as_completed(futures), desc="Collecting time indices", total=len(futures)):
-            
+                })        
     
     file_info.sort(key=lambda i: i['start'])
 
@@ -142,8 +128,7 @@ def collect_segments(inpath, num_jobs):
     
     num_segments = len(segments)
     if num_segments > 10:
-        print(f"There were {num_segments} found, this is strangly high. Probably something wrong with the dataset")
-        return 1
+        print(f"There were {num_segments} found, this is high. Probably something wrong with the dataset")
 
     print("Found segments:")
     for seg in segments.keys():
@@ -195,6 +180,14 @@ def write_netcdf(ds, fileName, fillValues=netCDF4.default_fillvals, unlimited=No
 def get_time_units(path):
     with xr.open_dataset(path, decode_times=False) as ds:
         return ds['time'].attrs['units']
+
+def get_time_names(path):
+    # import ipdb; ipdb.set_trace()
+    with xr.open_dataset(path, decode_times=False) as ds:
+        if ds.get('time_bounds').any():
+            return 'time', 'time_bounds'
+        else:
+            return 'time', 'time_bnds'
     
 
 def main():
@@ -224,8 +217,10 @@ def main():
         return 1
     else:
         os.makedirs(outpath, exist_ok=True)
+    
+    timename, bndsname = get_time_names(next(Path(inpath).glob('*')).as_posix())
 
-    segments = collect_segments(inpath, num_jobs)
+    segments = collect_segments(inpath, num_jobs, timename, bndsname)
 
     if len(segments) == 1:
         print("No overlapping segments found")
@@ -257,8 +252,9 @@ def main():
     
     for s1, s2 in zip(ordered_segments[:-1], ordered_segments[1:]):
         if s2['start'] > s1['end']:
-            units = get_time_units(s1['files'][0])
-            msg = f"There's a time gap between the end of {s1['files'][-1]} and the start of {s2['files'][0]} of {s2['start'] - s1['end']} {units.split(' ')[0]}"
+            # units = get_time_units(s1['files'][0])
+            # {units.split(' ')[0]}
+            msg = f"There's a time gap between the end of {s1['files'][-1]} and the start of {s2['files'][0]} of {s2['start'] - s1['end']} "
             if args.no_gaps:
                 raise ValueError(msg)
             else:
@@ -281,7 +277,7 @@ def main():
         truncate_index = len(s1['files']) # the index in the file list of segment 1
         for file in s1['files'][::-1]:
             with xr.open_dataset(file, decode_times=False) as ds:
-                if ds['time_bnds'][-1].values[1] > s2['start']:
+                if ds[bndsname][-1].values[1] > s2['start']:
                     truncate_index -= 1
                     continue
                 else:
@@ -293,27 +289,26 @@ def main():
         to_truncate = s1['files'][truncate_index]
         with xr.open_dataset(to_truncate, decode_times=False) as ds:
             target_index = 0
-            for i in range(0, len(ds['time_bnds'])):
-                if ds['time_bnds'][i].values[1] == s2['start']:
+            for i in range(0, len(ds[bndsname])):
+                if ds[bndsname][i].values[1] == s2['start']:
                     target_index += 1
                     break
                 target_index += 1
 
-            # import ipdb; ipdb.set_trace()
-            # just skip the entire file
-            # if len(ds['time_bnds']) == target_index or target_index == 0:
-            #     continue
-            # else:
-            print(f"truncating {to_truncate} by removing {len(ds['time_bnds']) - target_index} time steps")
+            print(f"truncating {to_truncate} by removing {len(ds[bndsname]) - target_index} time steps")
 
             new_ds.attrs = ds.attrs
             for variable in ds.data_vars:
-                if 'time' not in ds[variable].coords:
+                if 'time' not in ds[variable].coords and timename != 'Time':
                     new_ds[variable] = ds[variable]
                     new_ds[variable].attrs = ds[variable].attrs
                     continue
-                new_ds[variable] = ds[variable].isel(time=slice(0, target_index))
-                new_ds[variable].attrs = ds[variable].attrs
+                if timename == 'time':
+                    new_ds[variable] = ds[variable].isel(time=slice(0, target_index))
+                    new_ds[variable].attrs = ds[variable].attrs
+                else:
+                    new_ds[variable] = ds[variable].isel(Time=slice(0, target_index))
+                    new_ds[variable].attrs = ds[variable].attrs
         
         _, to_truncate_name = os.path.split(to_truncate)
         outfile_path = os.path.join(outpath, f"{to_truncate_name[:-3]}.trunc.nc")
@@ -322,7 +317,7 @@ def main():
             print(f"not writing out file {outfile_path}")
         else:
             print(f"writing out {outfile_path}")
-            write_netcdf(new_ds, outfile_path, unlimited=['time'])
+            write_netcdf(new_ds, outfile_path, unlimited=[timename])
 
         if dryrun:
             print("not moving files")
