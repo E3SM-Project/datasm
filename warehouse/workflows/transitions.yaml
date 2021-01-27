@@ -1,22 +1,52 @@
-Warehouse:Ready:
-    atm-ts:PostProcessing:Ready
-    atm-climo:PostProcessing:Ready
-    atm-cmor:PostProcessing:Ready
-    lnd-ts:PostProcessing:Ready
-    lnd-cmor:PostProcessing:Ready
-    default:Extraction:Ready
+WAREHOUSE:Ready:
+    atm-ts-mon:
+        - POSTPROCESS:Ready
+    atm-climo-mon:
+        - POSTPROCESS:Ready
+    atm-cmor-mon:
+        - POSTPROCESS:Ready
+    lnd-ts-mon:
+        - POSTPROCESS:Ready
+    lnd-cmor-mon:
+        - POSTPROCESS:Ready
+    ocn-cmor-mon:
+        - POSTPROCESS:Ready
+    ice-cmor-mon:
+        - POSTPROCESS:Ready
+    default:
+        - EXTRACTION:Ready
 
-Extraction:Success:
-    default:Validation:Ready
+EXTRACTION:Pass:
+    default:
+        - Validation:Ready
+EXTRACTION:Fail:
+    default:
+        - Exit:exit_code
 
-Validation:Success:
-    default:Publication:Ready
+VALIDATION:Pass:
+    default:
+        - PUBLICATION:Ready
+VALIDATION:Fail:
+    default:
+        - exit_code
 
-PostProcess:Success:
-    default:Publication:Ready
+POSTPROCESS:Pass:
+    default:
+        - PUBLICATION:Ready
+POSTPROCESS:Fail:
+    default:
+        - Exit:exit_code
 
-Publication:Success:
-    default:CleanUp:Ready
+PUBLICATION:Pass:
+    default:
+        - CLEANUP:Ready
+PUBLICATION:Fail:
+    default:
+        - Exit:exit_code
 
-CleanUp:Success:
-    Exit:Success
+CLEANUP:Pass:
+    default:
+        - Exit:Success
+CLEANUP:Fail:
+    default:
+        - Exit:exit_code

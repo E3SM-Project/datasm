@@ -1,44 +1,63 @@
-Publication:Ready:
-  default:GenerateMapfile:Ready
+PUBLICATION:Ready:
+  default:
+    - GenerateMapfile:Ready
 
 GenerateMapfile:Ready:
-  default:GenerateMapfile:Engaged
+  default:
+    - GenerateMapfile:Engaged
 GenerateMapfile:Pass:
-  default:ValidateMapfile:Ready
+  default:
+    - ValidateMapfile:Ready
 GenerateMapfile:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code
 
 ValidateMapfile:Ready:
-  default:ValidateMapfile:Engaged
+  default:
+    - ValidateMapfile:Engaged
 ValidateMapfile:Pass:
-  default:ValidateMapfile:Ready
+  default:
+    - ValidateMapfile:Ready
 ValidateMapfile:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code
 
 MoveToPublication:Ready:
-  default:MoveToPublication:Engaged
+  default:
+    - MoveToPublication:Engaged
 MoveToPublication:Pass:
-  default:FixMapfilePaths:Ready
+  default:
+    - FixMapfilePaths:Ready
 MoveToPublication:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code
 
 FixMapfilePaths:Ready:
-  default:FixMapfilePaths:Engaged
+  default:
+    - FixMapfilePaths:Engaged
 FixMapfilePaths:Pass:
-  default:ESGFPublish:Ready
+  default:
+    - ESGFPublish:Ready
 FixMapfilePaths:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code
 
 PublishESGF:Ready:
-  default:PublishESGF:Engaged
+  default:
+    - PublishESGF:Engaged
 PublishESGF:Pass:
-  default:ValidateESGF:Ready
+  default:
+    - ValidateESGF:Ready
 PublishESGF:Fail:
-  default:ValidateExit:exit_code
+  default:
+    - ValidateExit:exit_code
 
 Validate:Ready:
-  default:Validate:Engaged
+  default:
+    - Validate:Engaged
 Validate:Pass:
-  default:Exit:Success
+  default:
+    - Exit:Success
 Validate:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code

@@ -15,3 +15,24 @@ VALIDATION:Ready:
         - MPASVALIDATION:Ready
     sea-ice-native-mon:
         - MPASVALIDATION:Ready
+
+ATMVALIDATION:Pass:
+    default:
+        - VALIDATION:Pass
+ATMVALIDATION:Fail:
+    default:
+        - Exit:exit_code
+
+LNDVALIDATION:Pass:
+    default:
+        - VALIDATION:Pass
+LNDVALIDATION:Fail:
+    default:
+        - Exit:exit_code
+
+MPASVALIDATION:Pass:
+    default:
+        - VALIDATION:Pass
+MPASVALIDATION:Fail:
+    default:
+        - Exit:exit_code

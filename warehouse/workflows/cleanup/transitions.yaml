@@ -1,9 +1,13 @@
-CleanUp:Ready:
-  default:EvictDataset:Ready
+CLEANUP:Ready:
+  default:
+    - EvictDataset:Ready
 
 EvictDataSet:Ready:
-  default:EvictDataSet:Engaged
+  default:
+    - EvictDataSet:Engaged
 EvictDataSet:Pass:
-  default:Exit:Success
+  default:
+    - Exit:Success
 EvictDataSet:Fail:
-  default:Exit:exit_code
+  default:
+    - Exit:exit_code
