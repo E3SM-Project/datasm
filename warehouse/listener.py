@@ -35,9 +35,10 @@ class Listener(object):
         print(f"{event.src_path} has been created")
 
     def on_modified(self, event):
+        import ipdb; ipdb.set_trace()
         print(f"{event.src_path} has been modified")
         with open(event.src_path, 'r') as instream:
-            lines = [line for line in instream.readlines() if 'STAT' in lines]
+            lines = [line for line in instream.readlines() if 'STAT' in line]
         if 'Engaged' not in lines[-1]:
             self.warehouse.status_was_updated(event.src_path)
 

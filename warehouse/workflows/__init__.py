@@ -53,31 +53,45 @@ class Workflow(object):
             idx (int) : The recursive depth index
         Returns the name of the next state to transition to given the current state of the dataset
         """
-        status_attrs = status.split(':')
-        if status_attrs[idx] in self.children.keys():
-            return self.children[status_attrs[idx]].next_state(dataset, status, idx + 1)
         
+        status_attrs = status.split(':')
+        if len(status_attrs) < 3:
+            target_state = status
+        else:
+            target_state = f"{status_attrs[-3]}:{status_attrs[-2]}"
         prefix = self.get_status_prefix()
-        target_state = f"{status_attrs[idx-1]}:{status_attrs[idx]}"
         if target_state in self.transitions.keys():
             target_data_type = f'{dataset.realm}-{dataset.grid}-{dataset.freq}'
             transitions = self.transitions[target_state].get(target_data_type)
-            if not transitions:
-                transitions = self.transitions[target_state].get('default')
+            if transitions is None:
+                return [(x, self) for x in self.transitions[target_state]['default']]
+            else:
+                return [(f'{prefix}{t}:', self) for t in transitions]
+            
+        elif status_attrs[idx] == "WAREHOUSE":
+            return self.next_state(dataset, status, idx + 1)
 
-            transitions = [f'{prefix}{t}' for t in transitions]
-            return transitions
+        elif status_attrs[idx] in self.children.keys():
+            return self.children[status_attrs[idx]].next_state(dataset, status, idx + 1)
+
         else:
-            raise ValueError(
-                f"{target_state} is not present in the transition graph for {self.name}")
+            if "Exit:Success" in target_state:
+                dataset.update_status(f'{prefix}Pass:')
+                return None
+            elif "Exit:Fail" in target_state:
+                dataset.update_status(f'{prefix}Fail:')
+                return None
+            else:
+                raise ValueError(
+                    f"{target_state} is not present in the transition graph for {self.name}")
 
-    def get_job(self, dataset, state, scripts_path, slurm_out_path, **kwargs):
+    def get_job(self, dataset, state, scripts_path, slurm_out_path, workflow, **kwargs):
 
         job = self.jobs[state]
         job_instance = job(
             dataset, state, scripts_path, slurm_out_path, 
             slurm_opts=kwargs.get('slurm_opts', []), 
-            parent=kwargs.get('parent', self.name))
+            parent=workflow.get_status_prefix())
         job_instance.setup_requisites()
         return job_instance
         

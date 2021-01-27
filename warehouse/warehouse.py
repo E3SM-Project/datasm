@@ -1,13 +1,14 @@
 import os
 import yaml
 import json
-from pathlib import Path
 import importlib
 import inspect
 
-
+from pathlib import Path
+from time import sleep
 from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
+
 from esgfpub import resources
 from warehouse.workflows import Workflow
 from warehouse.dataset import Dataset, DatasetStatus
@@ -74,7 +75,9 @@ class AutoWarehouse():
     def status_was_updated(self, path):
         dataset_id = Dataset.id_from_path(str(self.warehouse_path), path)
         print(f"Got a status update from {dataset_id}")
-
+        dataset = self.datasets[dataset_id]
+        dataset.load_dataset_status_file()
+        dataset.status = dataset.get_latest_status()
         self.start_datasets()
 
     def __call__(self):
@@ -167,19 +170,21 @@ class AutoWarehouse():
                     self.datasets[dataset_id].status = status
 
             # import ipdb; ipdb.set_trace()
-            # for dataset in self.datasets.values():
-            #     print(str(dataset))
-            #     print('')
-            missing = [x for x in self.datasets.values() if x.status != DatasetStatus.SUCCESS.name]
-            all_missing = [x for x in self.datasets.values() if x.status == DatasetStatus.UNITITIALIZED.name]
-            for m in all_missing:
-                print(m.dataset_id)
-                # print(m.missing)
+            for dataset in self.datasets.values():
+                print(str(dataset))
                 print('')
-            exit(1)
+            # missing = [x for x in self.datasets.values() if x.status != DatasetStatus.SUCCESS.name]
+            # all_missing = [x for x in self.datasets.values() if x.status == DatasetStatus.UNITITIALIZED.name]
+
+            # print("The following datasets have missing files")
+            # for m in missing:
+            #     print(m.dataset_id)
+            #     # print(m.missing)
+            #     print('')
+            # exit(1)
 
             # start a workflow for each dataset as needed
-            self.job_pool = self.start_datasets(self.datasets)
+            self.job_pool = self.start_datasets()
 
             # start the jobs in the job_pool if they're ready
             self.filter_job_pool(self.job_pool, self.datasets)
@@ -187,10 +192,14 @@ class AutoWarehouse():
             job_ids = []
             for job in self.job_pool:
                 if job.meets_requirements():
+                    # import ipdb; ipdb.set_trace()
                     if (job_id := job(self.slurm)) is not None:
                         job_ids.append(job_id)
                     else:
                         print(f"Error starting up job {job}")
+            
+            while True:
+                sleep(1)
 
         except KeyboardInterrupt:
             self.listener.stop()
@@ -212,43 +221,46 @@ class AutoWarehouse():
                             and (dataset.status == DatasetStatus.SUCCESS.name or job.name in dataset.get_latest_status()):
                         job.setup_requisites(dataset)
 
-    def start_datasets(self, datasets):
+    def start_datasets(self):
         """
         Resolve next steps for datasets and create job objects for them
         Parameters: datasets dict of string dataset_ids to dataset objects
         Returns: list of new job objects
         """
         new_jobs = []
-        for dataset_id, dataset in datasets.items():
+        for dataset_id, dataset in self.datasets.items():
             if dataset.status in [DatasetStatus.SUCCESS.name, DatasetStatus.FAILED.name]:
                 continue
             if dataset.status not in [x.name for x in DatasetStatus]:
                 if 'Ready' in dataset.status or 'Pass' in dataset.status or 'Fail' in dataset.status:
-                    import ipdb; ipdb.set_trace()
-                    next_states = self.workflow.next_state(
-                        dataset, dataset.status)
+                    # we keep a reference to the workflow instance, so when
+                    # we make a job we can reconstruct the parent workflow name
+                    # for the status file
+                    next_states = [(dataset.status, self.workflow)]
                     engaged_states = []
                     while next_states:
-                        state = next_states.pop(0)
+                        state, workflow = next_states.pop(0)
                         if dataset.is_blocked(state):
                             continue
                         if 'Engaged' in state:
-                            engaged_states.append(state)
+                            engaged_states.append((state, workflow))
                             continue
                         
                         new_states = self.workflow.next_state(dataset, state)
+                        if new_states is None:
+                            continue
                         next_states.extend(new_states)
 
-                    for state in engaged_states:
+                    for state, workflow in engaged_states:
                         state_attrs = state.split(':')
-                        job_name = state_attrs[-2]
-                        job_parent = state_attrs[-3]
+                        job_name = state_attrs[-3]
+                        job_parent = state_attrs[-4]
                         newjob = self.workflow.get_job(
                             dataset, 
                             job_name,
                             self.scripts_path, 
                             self.slurm_path,
-                            parent=job_parent)
+                            workflow=workflow)
 
                         if (matching_job := self.find_matching_job(newjob)) is None:
                             new_jobs.append(newjob)
@@ -286,7 +298,7 @@ class AutoWarehouse():
                             for variable in table_value:
                                 if variable in experimentvalue['except'] or table_name in experimentvalue['except']:
                                     continue
-                                dataset_id = f"CMIP6.{activity_name}.E3SM-Project.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr.*"
+                                dataset_id = f"CMIP6.{activity_name}.E3SM-Project.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr"
                                 yield dataset_id
 
     def collect_e3sm_datasets(self, **kwargs):
@@ -299,7 +311,7 @@ class AutoWarehouse():
                                 for data_type in item['data_types']:
                                     if item.get('except') and data_type in item['except']:
                                         continue
-                                    dataset_id = f"E3SM.{version}.{experiment}.{res}.{comp}.{item['grid']}.{data_type}.{ensemble}.*"
+                                    dataset_id = f"E3SM.{version}.{experiment}.{res}.{comp}.{item['grid']}.{data_type}.{ensemble}"
                                     yield dataset_id
 
     @staticmethod

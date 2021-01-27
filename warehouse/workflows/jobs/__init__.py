@@ -16,13 +16,20 @@ class WorkflowJob(object):
         self._outname = None
         self._requires = {}
         self._parent = kwargs.get('parent')
+    
+    def __str__(self):
+        return f"{self.parent}:{self.name}:{self.dataset.dataset_id}"
 
     def __call__(self, slurm):
+
+        print(f"starting up {str(self)}")
+
         if not self.meets_requirements():
             return None
 
         working_dir = self.dataset.working_dir
         if self.dataset.is_locked(working_dir):
+            print(f"Cant start job working dir is locked: {working_dir}")
             return None
         else:
             self.dataset.lock(working_dir)
@@ -33,20 +40,21 @@ class WorkflowJob(object):
 
         tmp = NamedTemporaryFile(dir=self._scripts_path, delete=False)
 
-        self.add_cmd_suffix()
+        self.add_cmd_suffix(working_dir)
         slurm.render_script(self.cmd, tmp.name, self._slurm_opts)
-        self.dataset.update_status(f"{self._parent}:{self.name}:Engaged")
+        self.dataset.update_status(f"{self._parent}{self.name}:Engaged:")
         return slurm.sbatch(tmp.name)
 
     
-    def add_cmd_suffix(self):
+    def add_cmd_suffix(self, working_dir):
         suffix = f"""
 if [ $? -ne 0 ]
 then 
-    echo STAT:`date +%Y%m%d_%H%M%S`:{self.parent}:{self.name}:Fail >> {self.dataset.status_path}
+    echo STAT:`date +%Y%m%d_%H%M%S`:{self.parent}:{self.name}:Fail: >> {self.dataset.status_path}
 else
-    echo STAT:`date +%Y%m%d_%H%M%S`:{self.parent}:{self.name}:Pass >> {self.dataset.status_path}
+    echo STAT:`date +%Y%m%d_%H%M%S`:{self.parent}:{self.name}:Pass: >> {self.dataset.status_path}
 fi
+rm {Path(working_dir, ".lock")}
 """
         self._cmd = self._cmd + suffix
 
