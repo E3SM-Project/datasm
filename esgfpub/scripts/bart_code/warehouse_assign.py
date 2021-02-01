@@ -429,6 +429,60 @@ def get_dataset_dirs_loc(anydir,loc):   # loc in ['P','W']
     # print(f'DEBUG: get_dataset_dirs_loc: RETURNING: a_enspath = {a_enspath}, vpaths = {vpaths}',flush=True)
     return a_enspath, vpaths
 
+def get_statusfile_dir(apath):
+    global gv_WH_root
+    global gv_PUB_root
+
+    ''' Take ANY inputpath.
+        Reject if not begin with either warehouse_root or publication_root
+        Reject if not a valid version dir or ensemble dir.
+        Trim to ensemble directory, and trim to dataset_part ('E3SM/...').
+        Determine if ".status" exists under wh_root/dataset_part or pub_root/dataset_part.
+        Reject if both or neither, else return full path (root/dataset_part)
+    '''
+    if not (gv_WH_root in apath or gv_PUB_root in apath):
+        logMessage('ERROR',f'invalid dataset source path:{apath}')
+        return ''
+    if gv_WH_root in apath:
+        ds_part = apath[1+len(gv_WH_root):]
+    else:
+        ds_part = apath[1+len(gv_PUB_root):]
+
+    # logMessage('DEBUG',f'ds_part  = {ds_part}')
+
+    tpath, leaf = os.path.split(ds_part)
+    if len(leaf) == 0:
+        tpath, leaf = os.path.split(tpath)
+    if leaf[0] == 'v' and leaf[1] in '123456789':
+        tpath, leaf = os.path.split(tpath)
+        if not (leaf[0:3] == 'ens' and leaf[3] in '123456789'):
+            logMessage('ERROR',f'invalid dataset source path:{apath}')
+            return ''
+        ens_part = os.path.join(tpath,leaf)
+    elif (leaf[0:3] == 'ens' and leaf[3] in '123456789'):
+        ens_part = os.path.join(tpath,leaf)
+    else:
+        logMessage('ERROR',f'invalid dataset source path:{apath}')
+        return ''
+    wpath = os.path.join(gv_WH_root, ens_part, '.status')
+    ppath = os.path.join(gv_PUB_root, ens_part, '.status')
+    # logMessage('DEBUG',f'gv_WH_root  = {gv_WH_root}')
+    # logMessage('DEBUG',f'gv_PUB_root = {gv_PUB_root}')
+    # logMessage('DEBUG',f'wpath = {wpath}')
+    # logMessage('DEBUG',f'ppath = {ppath}')
+    in_w = os.path.exists(wpath)
+    in_p = os.path.exists(ppath)
+    if not (in_w or in_p):
+        logMessage('ERROR',f'status file not found in warehouse or publication:{apath}')
+        return ''
+    if in_w and in_p:
+        logMessage('ERROR',f'status file found in both warehouse and publication:{apath}')
+        return ''
+    if in_w:
+        return os.path.join(gv_WH_root, ens_part)
+    return os.path.join(gv_PUB_root, ens_part)
+
+
 
 def isVLeaf(_):
     if len(_) > 1 and _[0] == 'v' and _[1] in '0123456789':
@@ -543,13 +597,12 @@ def freeLock(edir):      # cheap version for now
     lockpath = os.path.join(edir,".lock")
     os.system('rm -f ' + lockpath)
     
-def setStatus(edir,statspec):
-    statfile = os.path.join(edir,'.status')
+def setStatus(statfile,parent,statspec):
     if len(gv_timestamp):
         tsval = gv_timestamp
     else:
         tsval = ts('')
-    statline = f'STAT:{tsval}:{parentName}:{statspec}\n'
+    statline = f'STAT:{tsval}:{parent}:{statspec}\n'
     with open(statfile, 'a') as f:
         f.write(statline)
 
@@ -805,6 +858,9 @@ def main():
 
         setLock(edir)
 
+        statpath = get_statusfile_dir(edir)
+        statfile = os.path.join(statpath,'.status')
+
         # check for an arbitrary rename operation
         if len(gv_rename):
             dirLeafRename(edir,gv_rename)
@@ -815,9 +871,9 @@ def main():
 
         # check for a status update operation
         elif len(gv_setstat):
-            setStatus(edir,gv_setstat)
+            setStatus(statfile,'WAREHOUSE',gv_setstat)
 
-        logMessage('Completed',f'{gv_theOp}: {edir}')
+        logMessage('Completed',f'{gv_theOp}:{gv_setstat}: {edir}')
 
         freeLock(edir)
 
@@ -838,47 +894,6 @@ if __name__ == "__main__":
     vlist = ['v2', 'v12', 'v0', 'v0.2', 'v0.15']
     vlist.sort()
     print(f'{vlist}')
-'''
-
-
-'''
-
-# ============== Special Onetime Function - Create Whole Statusfiles from Scratch using wh_startdates_e file ==================
-#
-# 1.  Use the touch_statfile(statfile) to have the file opened and closed
-# 2.  Use the timestamp from the file to craft a "STAT:<ts>:CONTROL:EXTRACTION:Success" update
-# STAT:ts:CONTROL:VALIDATION:Unblocked:
-# STAT:ts:CONTROL:VALIDATION:Ready:srcdir=v0
-# STAT:ts:CONTROL:POSTPROCESS:Unblocked
-# STAT:ts:CONTROL:PUBLICATION:Blocked
-# STAT:ts:CONTROL:PUBLICATION:Unapproved
-# STAT:ts:CONTROL:CLEANUP:Blocked
-
-def initialStatusFiles():
-    global gv_timestamp
-    driverfile = '/p/user_pub/e3sm/bartoletti1/Pub_Work/1_Refactor/wh_startdates_e'
-    driverlines = loadFileLines(driverfile)
-    for aline in driverlines:
-        comps = aline.split(':')
-        ts = comps[0][0:15]
-        gv_timestamp = ts
-        enspath = comps[1]
-        statfile = os.path.join(enspath,'.status')
-        print(f'ts = {ts}, statfile: {statfile}')
-        setStatus(statfile,parentName,'EXTRACTION:Success:')
-        setStatus(statfile,parentName,'VALIDATION:Unblocked:')
-        setStatus(statfile,parentName,'VALIDATION:Ready:srcdir=v0')
-        setStatus(statfile,parentName,'POSTPROCESS:Unblocked:')
-        setStatus(statfile,parentName,'PUBLICATION:Blocked:')
-        setStatus(statfile,parentName,'PUBLICATION:Unapproved:')
-        setStatus(statfile,parentName,'EVICTION:Blocked:')
-
-def main():
-
-    # One Time Gig
-    initialStatusFiles()
-    sys.exit(0)
-
 '''
 
 

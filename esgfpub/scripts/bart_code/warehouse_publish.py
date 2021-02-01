@@ -177,7 +177,7 @@ def isActiveStatus(substats,query):     # substats = warehouse dictionary of [<l
     testsection = query.split(':')[0]
     test_status = query.split(':')[1]
 
-    if not substats[testsection]:
+    if not testsection in substats:
         print(f'ERROR: substats has no section = {testsection}')
         return False
 
@@ -276,6 +276,59 @@ def get_dataset_dirs_loc(anydir,loc):   # loc in ['P','W']
 
     # print(f'DEBUG: get_dataset_dirs_loc: RETURNING: a_enspath = {a_enspath}, vpaths = {vpaths}',flush=True)
     return a_enspath, vpaths
+
+def get_statusfile_dir(apath):
+    global gv_WH_root
+    global gv_PUB_root
+
+    ''' Take ANY inputpath.
+        Reject if not begin with either warehouse_root or publication_root
+        Reject if not a valid version dir or ensemble dir.
+        Trim to ensemble directory, and trim to dataset_part ('E3SM/...').
+        Determine if ".status" exists under wh_root/dataset_part or pub_root/dataset_part.
+        Reject if both or neither, else return full path (root/dataset_part)
+    '''
+    if not (gv_WH_root in apath or gv_PUB_root in apath):
+        logMessage('ERROR',f'invalid dataset source path:{apath}')
+        return ''
+    if gv_WH_root in apath:
+        ds_part = apath[1+len(gv_WH_root):]
+    else:
+        ds_part = apath[1+len(gv_PUB_root):]
+
+    # logMessage('DEBUG',f'ds_part  = {ds_part}')
+
+    tpath, leaf = os.path.split(ds_part)
+    if len(leaf) == 0:
+        tpath, leaf = os.path.split(tpath)
+    if leaf[0] == 'v' and leaf[1] in '123456789':
+        tpath, leaf = os.path.split(tpath)
+        if not (leaf[0:3] == 'ens' and leaf[3] in '123456789'):
+            logMessage('ERROR',f'invalid dataset source path:{apath}')
+            return ''
+        ens_part = os.path.join(tpath,leaf)
+    elif (leaf[0:3] == 'ens' and leaf[3] in '123456789'):
+        ens_part = os.path.join(tpath,leaf)
+    else:
+        logMessage('ERROR',f'invalid dataset source path:{apath}')
+        return ''
+    wpath = os.path.join(gv_WH_root, ens_part, '.status')
+    ppath = os.path.join(gv_PUB_root, ens_part, '.status')
+    # logMessage('DEBUG',f'gv_WH_root  = {gv_WH_root}')
+    # logMessage('DEBUG',f'gv_PUB_root = {gv_PUB_root}')
+    # logMessage('DEBUG',f'wpath = {wpath}')
+    # logMessage('DEBUG',f'ppath = {ppath}')
+    in_w = os.path.exists(wpath)
+    in_p = os.path.exists(ppath)
+    if not (in_w or in_p):
+        logMessage('ERROR',f'status file not found in warehouse or publication:{apath}')
+        return ''
+    if in_w and in_p:
+        logMessage('ERROR',f'status file found in both warehouse and publication:{apath}')
+        return ''
+    if in_w:
+        return os.path.join(gv_WH_root, ens_part)
+    return os.path.join(gv_PUB_root, ens_part)
 
 
 def isVLeaf(_):
