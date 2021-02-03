@@ -224,8 +224,10 @@ def main():
         dataset_spec = load_file_lines(request_file) # list of Archive_Map lines for one dataset
 
         # move request file to gv_output_dir
-        request_file_done = os.path.join(gv_output_dir,request_file)
-        shutil.move(request_file,request_file_done)
+        request_file_done = os.path.join(gv_output_dir,os.path.basename(request_file))
+        if os.path.exists(request_file_done):
+            os.remove(request_file_done)
+        shutil.move(request_file,gv_output_dir)
 
         # possible multiple lines for a single dataset extraction request
         # The Inner Loop
