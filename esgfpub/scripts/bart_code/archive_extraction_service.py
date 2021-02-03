@@ -224,7 +224,8 @@ def main():
         dataset_spec = load_file_lines(request_file) # list of Archive_Map lines for one dataset
 
         # move request file to gv_output_dir
-        shutil.move(request_file,gv_output_dir)
+        request_file_done = os.path.join(gv_output_dir,request_file)
+        shutil.move(request_file,request_file_done)
 
         # possible multiple lines for a single dataset extraction request
         # The Inner Loop
@@ -336,9 +337,19 @@ def main():
                     altfile = bname + '(' + str(alt) + ')'
                     dst = os.path.join(dest_path,altfile)
 
-                shutil.move(datafile,dst)
-                os.chmod(dst,0o664)
-                fcount += 1
+                moved=True
+                try:
+                    shutil.move(datafile,dst)    # move all files, including .status and (if exists) .
+                except shutil.Error:
+                    logMessage('WARNING',f'shutil - cannot move file: {dst}')
+                    moved=False
+                try:
+                    os.chmod(dst,0o664)
+                except:
+                    logMessage('WARNING',f'cannot chmod file: {dst}')
+
+                if moved:
+                    fcount += 1
 
             tm_final = time.time()
             ET = tm_final - tm_start
