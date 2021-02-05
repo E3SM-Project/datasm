@@ -11,7 +11,8 @@ def fix_units(inpath, outpath, time_units, offset):
     with xr.open_dataset(inpath, decode_times=False) as ds:
         if ds.get('time') is None:
             raise ValueError(f"{inpath} has no 'time' axis")
-        bnds_name = 'time_bnds' if ds.get('time_bnds') is not None else 'time_bounds'
+        bnds_name = 'time_bnds' if ds.get(
+            'time_bnds') is not None else 'time_bounds'
         if ds['time'].attrs.get('units') != time_units:
             ds = ds.assign_coords(time=ds['time']+offset)
             if bnds_name == 'time_bnds':
@@ -34,7 +35,7 @@ def fix_units(inpath, outpath, time_units, offset):
             }
             ds.to_netcdf(outpath, unlimited_dims=['time'])
 
-4
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
