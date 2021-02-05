@@ -23,22 +23,32 @@ touch $list_success
 touch $list_failure
 
 for srcdir in `cat $dirlist`; do
-    ts=`date +%Y%m%d.%H%M%S`
+    ts=`date +%Y%m%d_%H%M%S`
     ens_path=`dirname $srcdir`
     statfile=$ens_path/.status
     echo "STAT:$ts:WAREHOUSE:VALIDATION:Engaged" >> $statfile
-    echo "STAT:$ts:VALIDATION:TIMECHECKER:Engaged" >> $statfile
+    echo "STAT:$ts:VALIDATION:CHECKUNITS:Engaged" >> $statfile
 
-    python timechecker.py -j 8 -q $srcdir >> rlog_stdout_timechecker 2>> rlog_stderr_timechecker
+    python checkUnits.py -p 8 --time-name time -q $srcdir >> rlog_stdout_checkunits 2>> rlog_stderr_checkunits
     retval=$?
     if [ $retval -eq 0 ]; then
-        echo "$srcdir" >> $list_success
-        echo "STAT:$ts:VALIDATION:TIMECHECKER:Pass" >> $statfile
-        echo "STAT:$ts:WAREHOUSE:VALIDATION:Pass" >> $statfile
+        echo "STAT:$ts:VALIDATION:CHECKUNITS:Pass" >> $statfile
+        echo "STAT:$ts:VALIDATION:CHECKTIME:Engaged" >> $statfile
+        python checkTime.py -j 8 -q $srcdir >> rlog_stdout_checktime 2>> rlog_stderr_checktime
+        retval=$?
+        if [ $retval -eq 0 ]; then
+            echo "$srcdir" >> $list_success
+            echo "STAT:$ts:VALIDATION:CHECKTIME:Pass" >> $statfile
+            echo "STAT:$ts:WAREHOUSE:VALIDATION:Pass" >> $statfile
+        else
+            echo "$srcdir" >> $list_failure
+            echo "STAT:$ts:VALIDATION:CHECKTIME:Fail" >> $statfile
+        fi
     else
         echo "$srcdir" >> $list_failure
-        echo "STAT:$ts:VALIDATION:TIMECHECKER:Fail" >> $statfile
+        echo "STAT:$ts:VALIDATION:CHECKUNITS:Fail" >> $statfile
     fi
+        
 done
 
 exit 0
