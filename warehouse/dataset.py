@@ -24,8 +24,8 @@ class DatasetStatus(Enum):
 
 
 class DatasetStatusMessage(Enum):
-    PUBLICATION_READY: "DATASET:PUBLICATION:Ready"
-    WAREHOUSE_READY: "DATASET:WAREHOUSE:Ready"
+    PUBLICATION_READY = "DATASET:PUBLICATION:Ready"
+    WAREHOUSE_READY = "DATASET:WAREHOUSE:Ready"
 
 
 non_binding_status = ['Blocked:', 'Unblocked:', 'Approved:', 'Unapproved:']
@@ -197,28 +197,29 @@ class Dataset(object):
                     self.start_year, self.end_year = self.infer_start_end_e3sm(
                         files)
 
-        # if not self.start_year or not self.end_year:
-        #     import ipdb; ipdb.set_trace()
-        #     this is probably a fx dataset
-        # import ipdb; ipdb.set_trace()
         if self.data_type == 'CMIP':
-            missing = self.check_spans(files)
+            if 'fx' in self.dataset_id:
+                if files:
+                    return True
+                else:
+                    self.missing = [self.dataset_id]
+                    return False
+            self.missing = self.check_spans(files)
         else:
             if 'model-output.mon' in self.dataset_id:
-                missing = self.check_monthly(files)
+                self.missing = self.check_monthly(files)
             elif 'climo' in self.dataset_id:
-                missing = self.check_climos(files)
+                self.missing = self.check_climos(files)
             elif 'time-series' in self.dataset_id:
-                missing = self.check_time_series(files)
+                self.missing = self.check_time_series(files)
             elif 'fixed' in self.dataset_id:
                 # missing, extra = check_fixed(files, dataset_id, spec)
                 # TODO: implement this
-                missing = []
+                self.missing = []
             else:
-                missing = self.check_submonthly(files)
+                self.missing = self.check_submonthly(files)
 
-        if missing:
-            self.missing = missing
+        if self.missing:
             return False
         else:
             return True
@@ -245,9 +246,7 @@ class Dataset(object):
         
         files = [x for x in files if x.split(os.sep)[-2] == f"v{latest_version}"]
 
-        is_complete = self.check_dataset_is_complete(files)
-
-        if is_complete:
+        if self.check_dataset_is_complete(files):
             return DatasetStatus.SUCCESS
         else:
             return DatasetStatus.PARTIAL_PUBLISHED
@@ -289,7 +288,7 @@ class Dataset(object):
 
         version_names = list(self.versions.keys())
         version_dir = Path(self.publication_path, version_names[-1])
-        files = [x.resolve() for x in version_dir.glob('*')]
+        files = [str(x.resolve()) for x in version_dir.glob('*')]
         if not files:
             return DatasetStatus.NOT_IN_PUBLICATION
 
@@ -310,16 +309,20 @@ class Dataset(object):
             for x in os.listdir(path) if x[0] == 'v'
         }
 
-    def update_status(self, status):
+    def update_status(self, status, params=None):
         # write out the status to the status file, and update the 
-        # self.state variable 
+        # self.state variable
+
         if not self.status_path or not self.status_path.exists():
-            raise ValueError(
-                f"Invalid status path {self.status_path} for dataset {self.dataset_id}")
+            self.status_path.touch()
+
         self.status = status
         with open(self.status_path, 'a') as outstream:
-            msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:WAREHOUSE:{status}\n'
-            outstream.write(msg)    
+            msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:WAREHOUSE:{status}'
+            if params is not None:
+                items = [f"{k}={v}".replace(":", "^") for k, v in params.items()]
+                msg += ",".join(items)
+            outstream.write(msg + "\n")
 
     def get_status_from_warehouse(self):
         if self.project == 'CMIP6':
@@ -388,28 +391,30 @@ class Dataset(object):
             # returns IN_PUBLICATION or NOT_IN_PUBLICATION
             self.status = self.get_status_from_pub_dir()
             ...
+            
 
         if self.status in [DatasetStatus.NOT_IN_PUBLICATION, DatasetStatus.UNITITIALIZED]:
             # returns IN_WAREHOUSE or NOT_IN_WAREHOUSE
             self.status = self.get_status_from_warehouse()
             ...
+            
 
         if self.status in [DatasetStatus.NOT_IN_WAREHOUSE, DatasetStatus.UNITITIALIZED] and self.data_type not in ['time-series', 'climo']:
             # returns IN_ARCHIVE OR NOT_IN_ARCHIVE
             # self.status = self.get_status_from_archive()
             ...
 
-        return self.dataset_id, self.status
+        return self.dataset_id, self.status, self.missing
 
 
     def check_submonthly(self, files):
+        
         missing = list()
         files = sorted(files)
 
         first = files[0]
         pattern = re.compile(r'\d{4}-\d{2}.*nc')
-        idx = pattern.search(first)
-        if not idx:
+        if not (idx := pattern.search(first)):
             raise ValueError(f'Unexpected file format: {first}')
 
         prefix = first[:idx.start()]
@@ -455,7 +460,7 @@ class Dataset(object):
 
             if not v_files:
                 missing.append(
-                    f'{dataset_id}-{var}-{self.start_year:04d}-{self.end_year:04d}')
+                    f'{self.dataset_id}-{var}-{self.start_year:04d}-{self.end_year:04d}')
                 continue
 
             v_files = sorted(v_files)
@@ -474,12 +479,12 @@ class Dataset(object):
                     prev_end = file_end
                 else:
                     missing.append(
-                        f"{self.dataset_id}-{prev_end:04d}-{file_start:04d}")
+                        f"{self.dataset_id}-{var}-{prev_end:04d}-{file_start:04d}")
 
             file_start, file_end = self.get_ts_start_end(files[-1])
             if file_end != self.end_year:
                 missing.append(
-                    f"{self.dataset_id}-{file_start:04d}-{self.end_year:04d}")
+                    f"{self.dataset_id}-{var}-{file_start:04d}-{self.end_year:04d}")
 
         return missing
 
@@ -542,7 +547,6 @@ class Dataset(object):
         else:
             return int(filename[-16:-12]), int(filename[-9: -5])
 
-
     @staticmethod
     def get_ts_start_end(filename):
         p = re.compile(r'_\d{6}_\d{6}.*nc')
@@ -559,28 +563,30 @@ class Dataset(object):
         """
         missing = []
         files = sorted(files)
-
         file_start, file_end = self.get_file_start_end(files[0])
 
         if file_start != self.start_year:
-            missing.append(
-                f"{self.dataset_id}-{self.start_year:04d}-{file_end:04d}")
+            msg = f"{self.dataset_id}-{self.start_year:04d}-{file_start:04d} -> expected case start doesnt match files start"
+            missing.append(msg)
+            prev_end = file_start - 1
+        else:
+            prev_end = self.start_year
 
-        prev_end = self.start_year
         for file in files:
             file_start, file_end = self.get_file_start_end(file)
             if file_start == self.start_year:
                 prev_end = file_end
                 continue
-            if file_start == prev_end + 1:
-                prev_end = file_end
-            else:
-                missing.append(f"{self.dataset_id}-{prev_end:04d}-{file_start:04d}")
+            if file_start != prev_end + 1:
+                msg = f"{self.dataset_id}-{prev_end:04d}-{file_start:04d}"
+                missing.append(msg)
+            prev_end = file_end
+                
 
         file_start, file_end = self.get_file_start_end(files[-1])
         if file_end != self.end_year:
-            missing.append(
-                f"{self.dataset_id}-{file_start:04d}-{self.end_year:04d}")
+            msg = f"{self.dataset_id}-{file_end:04d}-{self.end_year:04d} -> expected case end doesnt match files end"
+            missing.append(msg)
         return missing
 
     def infer_start_end_cmip(self, files):
