@@ -18,21 +18,21 @@ VALIDATION:Ready:
 
 ATMVALIDATION:Pass:
     default:
-        - VALIDATION:Pass
+        - Pass
 ATMVALIDATION:Fail:
     default:
-        - Exit:exit_code
+        - Fail
 
 LNDVALIDATION:Pass:
     default:
         - VALIDATION:Pass
 LNDVALIDATION:Fail:
     default:
-        - Exit:exit_code
+        - VALIDATION:Fail
 
 MPASVALIDATION:Pass:
     default:
         - VALIDATION:Pass
 MPASVALIDATION:Fail:
     default:
-        - Exit:exit_code
+        - VALIDATION:Fail

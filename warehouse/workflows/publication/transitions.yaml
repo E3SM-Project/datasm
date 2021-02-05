@@ -10,7 +10,7 @@ GenerateMapfile:Pass:
     - ValidateMapfile:Ready
 GenerateMapfile:Fail:
   default:
-    - Exit:exit_code
+    - Fail
 
 ValidateMapfile:Ready:
   default:
@@ -20,7 +20,7 @@ ValidateMapfile:Pass:
     - ValidateMapfile:Ready
 ValidateMapfile:Fail:
   default:
-    - Exit:exit_code
+    - Fail
 
 MoveToPublication:Ready:
   default:
@@ -30,7 +30,7 @@ MoveToPublication:Pass:
     - FixMapfilePaths:Ready
 MoveToPublication:Fail:
   default:
-    - Exit:exit_code
+    - Fail
 
 FixMapfilePaths:Ready:
   default:
@@ -40,7 +40,7 @@ FixMapfilePaths:Pass:
     - ESGFPublish:Ready
 FixMapfilePaths:Fail:
   default:
-    - Exit:exit_code
+    - Fail
 
 PublishESGF:Ready:
   default:
@@ -50,14 +50,14 @@ PublishESGF:Pass:
     - ValidateESGF:Ready
 PublishESGF:Fail:
   default:
-    - ValidateExit:exit_code
+    - ValidateFail
 
 Validate:Ready:
   default:
     - Validate:Engaged
 Validate:Pass:
   default:
-    - Exit:Success
+    - Pass
 Validate:Fail:
   default:
-    - Exit:exit_code
+    - Fail

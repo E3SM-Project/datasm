@@ -21,32 +21,32 @@ EXTRACTION:Pass:
         - Validation:Ready
 EXTRACTION:Fail:
     default:
-        - Exit:exit_code
+        - Exit:Fail
 
 VALIDATION:Pass:
     default:
         - PUBLICATION:Ready
 VALIDATION:Fail:
     default:
-        - exit_code
+        - Exit:Fail
 
 POSTPROCESS:Pass:
     default:
         - PUBLICATION:Ready
 POSTPROCESS:Fail:
     default:
-        - Exit:exit_code
+        - Exit:Fail
 
 PUBLICATION:Pass:
     default:
         - CLEANUP:Ready
 PUBLICATION:Fail:
     default:
-        - Exit:exit_code
+        - Exit:Fail
 
 CLEANUP:Pass:
     default:
-        - Exit:Success
+        - WAREHOUSE:Pass
 CLEANUP:Fail:
     default:
-        - Exit:exit_code
+        - Exit:Fail

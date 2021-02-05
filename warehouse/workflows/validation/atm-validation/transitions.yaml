@@ -1,27 +1,14 @@
 ATMVALIDATION:Ready:
   default:
     - CheckTimeUnit:Ready
-    # - FixTimeUnits:Ready
-  # atmos-native-3hr:
-  #   - TimeUnitCheck:Ready
-  # atmos-native-3hr_snap:
-  #   - TimeUnitCheck:Ready
-  # atmos-native-6hr:
-  #   - TimeUnitCheck:Ready
-  # atmos-native-day:
-  #   - TimeUnitCheck:Ready
-  # atmos-native-mon:
-  #   - TimeUnitCheck:Ready
 
 CheckTimeUnit:Ready:
   default:
     - CheckTimeUnit:Engaged
 CheckTimeUnit:Pass:
   default:
-    - Exit:Success
-  
-
-TimeUnitCheck:Fail:
+    - TimeCheck:Ready
+CheckTimeUnit:Fail:
   default:
     - FixTimeUnits:Ready
 
@@ -30,26 +17,30 @@ FixTimeUnits:Ready:
     - FixTimeUnits:Engaged
 FixTimeUnits:Pass:
   default:
-    - TimeCheck:Ready
+    - Pass
 FixTimeUnits:Fail:
   default:
-    - Exit:exit_code
+    - Fail
 
 TimeCheck:Ready:
-    default:TimeCheck:Engaged
+    default:
+      - TimeCheck:Engaged
 TimeCheck:Pass:
-    default:CreateDerivedDataset:Ready
+    default:
+      - CreateDerivedDataset:Ready
 TimeCheck:Fail:
-    default:TimeRectify:Ready
+    default:
+      - TimeRectify:Ready
 
 TimeRectify:Ready:
-    TimeRectify:Engaged
+    default:
+      - TimeRectify:Engaged
 TimeRectify:Pass:
-    default:Success
-    atmos-native-mon:CreateDerivedDataset:Ready
-    lnd-nat-mon:CreateDerivedDataset:Ready
+    default:
+      - Pass
 TimeRectify:Fail:
-    Exit:exit_code
+    default:
+      - Fail
 
 
 

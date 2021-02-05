@@ -7,14 +7,14 @@ ZstashExtract:Ready:
         -  ExtractionValidate:Ready
 ZstashExtract:Fail:
     default:
-        -  Exit:exit_code
+        -  Fail
 
 ExtractionValidate:Ready:
     default:
         -  ExtractionValidate:Engaged
 ExtractionValidate:Pass:
     default:
-        -  Exit:Success
+        -  Pass
 ExtractionValidate:Fail:
     default:
-        -  Exit:exit_code
+        -  Fail

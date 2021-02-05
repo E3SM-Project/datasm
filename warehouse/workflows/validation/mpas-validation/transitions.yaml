@@ -5,9 +5,12 @@ MPASVALIDATION:Ready:
         - MPASTimeCheck:Ready
 
 MPASTimeCheck:Ready:
-    default:MPASTimeCheck:Engaged
+    default:
+        - MPASTimeCheck:Engaged
 MPASTimeCheck:Pass:
-    Exit:Success
+    default:
+        - Pass
 MPASTimeCheck:Fail:
-    Exit:exit_code
+    default:
+        - Fail
 
