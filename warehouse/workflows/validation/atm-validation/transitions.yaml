@@ -7,7 +7,7 @@ CheckTimeUnit:Ready:
     - CheckTimeUnit:Engaged
 CheckTimeUnit:Pass:
   default:
-    - TimeCheck:Ready
+    - CheckTime:Ready
 CheckTimeUnit:Fail:
   default:
     - FixTimeUnits:Ready
@@ -22,23 +22,23 @@ FixTimeUnits:Fail:
   default:
     - Fail
 
-TimeCheck:Ready:
+CheckTime:Ready:
     default:
-      - TimeCheck:Engaged
-TimeCheck:Pass:
-    default:
-      - CreateDerivedDataset:Ready
-TimeCheck:Fail:
-    default:
-      - TimeRectify:Ready
-
-TimeRectify:Ready:
-    default:
-      - TimeRectify:Engaged
-TimeRectify:Pass:
+      - CheckTime:Engaged
+CheckTime:Pass:
     default:
       - Pass
-TimeRectify:Fail:
+CheckTime:Fail:
+    default:
+      - RectifyTimeIndex:Ready
+
+RectifyTimeIndex:Ready:
+    default:
+      - RectifyTime:Engaged
+RectifyTimeIndex:Pass:
+    default:
+      - Pass
+RectifyTimeIndex:Fail:
     default:
       - Fail
 
