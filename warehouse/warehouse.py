@@ -43,25 +43,28 @@ class AutoWarehouse():
         self.dataset_ids = kwargs.get('dataset_id', False)
         self.sproket_path = kwargs.get('sproket', 'sproket')
         self.slurm_path = kwargs.get('slurm', 'slurm_scripts')
+        self.report_missing = kwargs.get('report_missing')
+        self.job_workers = kwargs.get('job_workers', 8)
         self.datasets = None
         os.makedirs(self.slurm_path, exist_ok=True)
 
         self.scripts_path = Path(Path(inspect.getfile(
             self.__class__)).parent.absolute(), 'scripts').resolve()
 
-        self.workflow = Workflow(slurm_scripts=self.slurm_path)
-        self.workflow.load_children()
-        self.workflow.load_transitions()
+        if not self.report_missing:
+            self.workflow = Workflow(slurm_scripts=self.slurm_path)
+            self.workflow.load_children()
+            self.workflow.load_transitions()
 
-        # this is a list of WorkflowJob objects
-        self.job_pool = []
+            # this is a list of WorkflowJob objects
+            self.job_pool = []
 
-        # create the local Slurm object
-        self.slurm = Slurm()
+            # create the local Slurm object
+            self.slurm = Slurm()
 
-        # create the filesystem listener
-        self.listener = Listener(warehouse=self)
-        self.listener.start()
+            # create the filesystem listener
+            self.listener = Listener(warehouse=self)
+            self.listener.start()
 
         if self.serial:
             print("Running warehouse in serial mode")
@@ -89,19 +92,12 @@ class AutoWarehouse():
             # find missing datasets
             self.setup_datasets()
 
+            if self.report_missing:
+                self.print_missing()
+                return 0
+
             # start a workflow for each dataset as needed
             self.start_datasets()
-
-            # start the jobs in the job_pool if they're ready
-            self.filter_job_pool(self.job_pool, self.datasets)
-
-            job_ids = []
-            for job in self.job_pool:
-                if job.meets_requirements():
-                    if (job_id := job(self.slurm)) is not None:
-                        job_ids.append(job_id)
-                    else:
-                        print(f"Error starting up job {job}")
 
             # wait around while jobs run
             while True:
@@ -112,6 +108,19 @@ class AutoWarehouse():
             exit(1)
 
         return 0
+    
+    def print_missing(self):
+        # import ipdb; ipdb.set_trace()
+        found_missing = False
+        for x in self.datasets.values():
+            if x.missing:
+                found_missing = True
+                for m in x.missing:
+                    print(f"{m}")
+            elif x.status == DatasetStatus.UNITITIALIZED.name:
+                print(f"No files in dataset {x.dataset_id}")
+        if not found_missing:
+            print("No missing files in datasets")
 
     def setup_datasets(self):
         print("Initializing the warehouse")
@@ -183,16 +192,18 @@ class AutoWarehouse():
             futures = [pool.submit(x.find_status)
                        for x in self.datasets.values()]
             for future in tqdm(as_completed(futures), total=len(futures), desc="Searching ESGF for datasets"):
-                dataset_id, status = future.result()
+                dataset_id, status, missing = future.result()
                 if isinstance(status, DatasetStatus):
                     status = status.name
                 self.datasets[dataset_id].status = status
+                self.datasets[dataset_id].missing = missing
         else:
             for dataset in tqdm(self.datasets.values()):
-                dataset_id, status = dataset.find_status()
+                dataset_id, status, _ = dataset.find_status()
                 if isinstance(status, DatasetStatus):
                     status = status.name
                 self.datasets[dataset_id].status = status
+
         return
 
     def filter_job_pool(self, jobs, datasets):
@@ -231,37 +242,58 @@ class AutoWarehouse():
                     # we keep a reference to the workflow instance, so when
                     # we make a job we can reconstruct the parent workflow name
                     # for the status file
-                    next_states = [(dataset.status, self.workflow)]
+                    params = {}
+                    if (parameters := dataset.status.split(':')[-1]):
+                        for item in parameters.split(','):
+                            key, value = item.split('=')
+                            params[key] = value.replace('^', ':')
+
+                    next_states = [(dataset.status, self.workflow, params)]
                     engaged_states = []
                     while next_states:
-                        state, workflow = next_states.pop(0)
+
+                        state, workflow, params = next_states.pop(0)
                         if dataset.is_blocked(state):
                             continue
                         if 'Engaged' in state:
-                            engaged_states.append((state, workflow))
+                            engaged_states.append((state, workflow, params))
                             continue
-                        if state == 'Exit:exit_code':
+                        elif "Exit:Fail" in state:
                             self.workflow_error(dataset)
+                            dataset.status = state
                             continue
-                        if state == 'Exit:Pass':
+                        elif 'Fail' in state:
+                            self.workflow_error(dataset)
+                            new_state = self.workflow.next_state(dataset, state, params)
+                            if new_state:
+                                new_state, _, _ = new_state.pop()
+                                dataset.update_status(new_state, params)
+                            continue
+                        elif 'Pass' in state:
                             self.workflow_success(dataset)
+                            new_state = self.workflow.next_state(dataset, state, params)
+                            if new_state:
+                                new_state, _, _ = new_state.pop()
+                                dataset.update_status(new_state, params)
                             continue
 
-                        new_states = self.workflow.next_state(dataset, state)
+                        new_states = self.workflow.next_state(dataset, state, params)
                         if new_states is None:
                             continue
                         next_states.extend(new_states)
+                    
+                    if not engaged_states:
+                        return
 
-                    for state, workflow in engaged_states:
-                        state_attrs = state.split(':')
-                        job_name = state_attrs[-3]
-                        job_parent = state_attrs[-4]
+                    for state, workflow, params in engaged_states:
                         newjob = self.workflow.get_job(
                             dataset,
-                            job_name,
+                            state,
+                            params,
                             self.scripts_path,
                             self.slurm_path,
-                            workflow=workflow)
+                            workflow=workflow,
+                            job_workers=self.job_workers)
 
                         if (matching_job := self.find_matching_job(newjob)) is None:
                             new_jobs.append(newjob)
@@ -269,6 +301,17 @@ class AutoWarehouse():
                             matching_job.setup_requisites(newjob.dataset)
         if new_jobs is not None:
             self.job_pool.extend(new_jobs)
+    
+        # start the jobs in the job_pool if they're ready
+        self.filter_job_pool(self.job_pool, self.datasets)
+
+        job_ids = []
+        for job in self.job_pool:
+            if job.meets_requirements():
+                if (job_id := job(self.slurm)) is not None:
+                    job_ids.append(job_id)
+                else:
+                    print(f"Error starting up job {job}")
         return
 
     def find_matching_job(self, searchjob):
@@ -282,10 +325,6 @@ class AutoWarehouse():
                     and searchjob.matches_requirement(job.dataset):
                 return job
         return
-
-    # def find_job_requirements(self, job):
-    #     if job.meets_requirements():
-    #         return
 
     def start_jobs(self):
         for dataset, jobs in self.job_pool.items():
@@ -353,6 +392,11 @@ class AutoWarehouse():
             help='Only run the automated processing for the given datasets, this can the the complete dataset_id, '
                  'or a wildcard such as E3SM.1_0.')
         p.add_argument(
+            '--job-workers',
+            type=int,
+            default=8,
+            help='number of parallel workers each job should create when running')
+        p.add_argument(
             '--testing',
             action="store_true",
             help='run the warehouse in testing mode')
@@ -366,6 +410,11 @@ class AutoWarehouse():
             required=False,
             default='slurm_scripts',
             help='The directory to hold slurm batch scripts as well as console output from batch jobs')
+        p.add_argument(
+            '--report-missing',
+            required=False,
+            action='store_true',
+            help='After collecting the datasets, print out any that have missing files and exit')
         return NAME, parser
 
     @staticmethod

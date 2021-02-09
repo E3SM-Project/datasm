@@ -4,31 +4,43 @@ LNDVALIDATION:Ready:
 
 
 TimeUnitCheck:Ready:
-    default:TimeUnitCheck:Engaged
+    default:
+        - TimeUnitCheck:Engaged
 TimeUnitCheck:Pass:
-    default:TimeCheck:Ready
+    default:
+        - TimeCheck:Ready
 TimeUnitCheck:Fail:
-    default:FixTimeUnit:Ready
+    default:
+        - FixTimeUnit:Ready
 
 FixTimeUnit:Ready:
-    default:FixTimeUnit:Engaged
+    default:
+        - FixTimeUnit:Engaged
 FixTimeUnit:Pass:
-    default:TimeCheck:Ready
+    default:
+        - TimeCheck:Ready
 FixTimeUnit:Fail:
-    default:Exit:exit_code
+    default:
+        - Fail
 
 TimeCheck:Ready:
-    default:TimeCheck:Engaged
+    default:
+        - TimeCheck:Engaged
 TimeCheck:Pass:
-    default:CreateDerivedDataset:Ready
+    default:
+        - CreateDerivedDataset:Ready
 TimeCheck:Fail:
-    default:TimeRectify:Ready
+    default:
+        - TimeRectify:Ready
 
 TimeRectify:Ready:
-    TimeRectify:Engaged
+    default:
+        - TimeRectify:Engaged
 TimeRectify:Pass:
-    default:Success
+    default:
+        - Pass
 TimeRectify:Fail:
-    Exit:exit_code
+    default:
+        - Fail
 
 

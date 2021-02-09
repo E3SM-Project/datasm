@@ -48,7 +48,7 @@ GenerateLndTimeseries:Pass:
     - GenerateLndCmor:Ready
 GenerateLndTimeseries:Fail:
   default:
-    - Exit:exit_code
+    - Fail
 
 GenerateLndCmor:Ready:
   default:
@@ -58,7 +58,7 @@ GenerateLndCmor:Pass:
     - CMIPValidate:Ready
 GenerateLndCmor:Fail:
   default:
-    - Exit:exit_code
+    - Fail
 
 GenerateOcnCmor:Ready:
   default:
@@ -68,7 +68,7 @@ GenerateOcnCmor:Pass:
     - CMIPValidate:Ready
 GenerateOcnCmor:Fail:
   default:
-    - Exit:exit_code
+    - Fail
 
 GenerateIceCmor:Ready:
   default:
@@ -78,14 +78,14 @@ GenerateIceCmor:Pass:
     - CMIPValidate:Ready
 GenerateIceCmor:Fail:
   default:
-    - Exit:exit_code
+    - Fail
 
 CMIPValidate:Ready:
   default:
     - CMIPValidate:Engaged
 CMIPValidate:Pass:
   default:
-    - Exit:Success
+    - Pass
 CMIPValidate:Fail:
   default:
-    - Exit:exit_code
+    - Fail

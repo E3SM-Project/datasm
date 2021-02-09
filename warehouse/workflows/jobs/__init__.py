@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile
 
 class WorkflowJob(object):
 
-    def __init__(self, dataset, state, scripts_path, slurm_out_path, slurm_opts=[], **kwargs):
+    def __init__(self, dataset, state, scripts_path, slurm_out_path, slurm_opts=[], params={}, **kwargs):
         super().__init__()
         self.name = "WorkflowJobBase"
         self._dataset = dataset
@@ -16,12 +16,13 @@ class WorkflowJob(object):
         self._outname = None
         self._requires = {}
         self._parent = kwargs.get('parent')
+        self._parameters = params
+        self._job_workers = kwargs.get('job_workers', 8)
     
     def __str__(self):
         return f"{self.parent}:{self.name}:{self.dataset.dataset_id}"
 
     def __call__(self, slurm):
-
         print(f"starting up {str(self)}")
 
         if not self.meets_requirements():
@@ -38,23 +39,29 @@ class WorkflowJob(object):
         output_option = ('-o', f'{Path(self._slurm_out, self._outname).resolve()}')
         self._slurm_opts.extend([output_option])
 
-        tmp = NamedTemporaryFile(dir=self._scripts_path, delete=False)
+        script_name = f'{self._dataset.experiment}-{self.name}-{self._dataset.realm}-{self._dataset.grid}-{self._dataset.freq}'
+        tmp = NamedTemporaryFile(dir=self._slurm_out, delete=False, prefix=script_name)
+        message_file = NamedTemporaryFile(dir=self._slurm_out, delete=False)
+        Path(message_file.name).touch()
+        self._cmd = f"export message_file={message_file.name}\n" + self._cmd
 
         self.add_cmd_suffix(working_dir)
         slurm.render_script(self.cmd, tmp.name, self._slurm_opts)
-        self.dataset.update_status(f"{self._parent}{self.name}:Engaged:")
-        return slurm.sbatch(tmp.name)
+        job_id = slurm.sbatch(tmp.name)
+        self.dataset.update_status(f"{self._parent}:{self.name}:Engaged:slurm_id={job_id}")
+        return job_id
 
     
     def add_cmd_suffix(self, working_dir):
         suffix = f"""
 if [ $? -ne 0 ]
 then 
-    echo STAT:`date +%Y%m%d_%H%M%S`:{self.parent}:{self.name}:Fail: >> {self.dataset.status_path}
+    echo STAT:`date +%Y%m%d_%H%M%S`:WAREHOUSE:{self.parent}:{self.name}:Fail:`cat $message_file` >> {self.dataset.status_path}
 else
-    echo STAT:`date +%Y%m%d_%H%M%S`:{self.parent}:{self.name}:Pass: >> {self.dataset.status_path}
+    echo STAT:`date +%Y%m%d_%H%M%S`:WAREHOUSE:{self.parent}:{self.name}:Pass:`cat $message_file` >> {self.dataset.status_path}
 fi
 rm {Path(working_dir, ".lock")}
+rm $message_file
 """
         self._cmd = self._cmd + suffix
 
@@ -137,3 +144,7 @@ rm {Path(working_dir, ".lock")}
     @property
     def parent(self):
         return self._parent
+    
+    @property
+    def params(self):
+        return self._parameters
