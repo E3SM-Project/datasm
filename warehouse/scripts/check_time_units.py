@@ -65,7 +65,7 @@ def main():
                 freq = ds['time_bnds'].values[0][1] - ds['time_bnds'].values[0][0]
                 offset = ds['time'].values[-1] + freq
             message = f"correct_units={expected_units},offset={offset}"
-            if (messages_path := os.environ.get('MESSAGES_FILE')):
+            if (messages_path := os.environ.get('message_file')):
                 with open(messages_path, 'w') as outstream:
                     outstream.write(message.replace(':', '^'))
             else:

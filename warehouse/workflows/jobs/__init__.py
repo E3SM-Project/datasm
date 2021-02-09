@@ -41,9 +41,9 @@ class WorkflowJob(object):
 
         script_name = f'{self._dataset.experiment}-{self.name}-{self._dataset.realm}-{self._dataset.grid}-{self._dataset.freq}'
         tmp = NamedTemporaryFile(dir=self._slurm_out, delete=False, prefix=script_name)
-        messages_file = NamedTemporaryFile(dir=self._slurm_out, delete=False)
-        Path(messages_file.name).touch()
-        self._cmd = f"export MESSAGES_FILE={messages_file.name}\n" + self._cmd
+        message_file = NamedTemporaryFile(dir=self._slurm_out, delete=False)
+        Path(message_file.name).touch()
+        self._cmd = f"export message_file={message_file.name}\n" + self._cmd
 
         self.add_cmd_suffix(working_dir)
         slurm.render_script(self.cmd, tmp.name, self._slurm_opts)
@@ -56,12 +56,12 @@ class WorkflowJob(object):
         suffix = f"""
 if [ $? -ne 0 ]
 then 
-    echo STAT:`date +%Y%m%d_%H%M%S`:WAREHOUSE:{self.parent}:{self.name}:Fail:`cat $MESSAGES_FILE` >> {self.dataset.status_path}
+    echo STAT:`date +%Y%m%d_%H%M%S`:WAREHOUSE:{self.parent}:{self.name}:Fail:`cat $message_file` >> {self.dataset.status_path}
 else
-    echo STAT:`date +%Y%m%d_%H%M%S`:WAREHOUSE:{self.parent}:{self.name}:Pass:`cat $MESSAGES_FILE` >> {self.dataset.status_path}
+    echo STAT:`date +%Y%m%d_%H%M%S`:WAREHOUSE:{self.parent}:{self.name}:Pass:`cat $message_file` >> {self.dataset.status_path}
 fi
 rm {Path(working_dir, ".lock")}
-rm $MESSAGES_FILE
+rm $message_file
 """
         self._cmd = self._cmd + suffix
 
