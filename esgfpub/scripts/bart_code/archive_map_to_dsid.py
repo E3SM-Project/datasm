@@ -28,7 +28,11 @@ helptext = '''
     will produce as output the files needed to supply to the archive_extraction_loop process
     input queue,
 
-        /p/user_pub/e3sm/archive/.extraction_requests/
+        /p/user_pub/e3sm/archive/.extraction_requests_pending/
+
+    as each request is processed, the request is moved to
+
+         /p/user_pub/e3sm/archive/.extraction_requests_processed
 
 '''
 
