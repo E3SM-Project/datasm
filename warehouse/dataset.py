@@ -24,9 +24,9 @@ class DatasetStatus(Enum):
 
 
 class DatasetStatusMessage(Enum):
-    PUBLICATION_READY = "DATASET:PUBLICATION:Ready"
-    WAREHOUSE_READY = "DATASET:WAREHOUSE:Ready"
-
+    PUBLICATION_READY = "PUBLICATION:Ready:"
+    WAREHOUSE_READY = "WAREHOUSE:Ready:"
+    VALIDATION_READY = "VALIDATION:Ready:"
 
 non_binding_status = ['Blocked:', 'Unblocked:', 'Approved:', 'Unapproved:']
 
@@ -64,22 +64,27 @@ class Dataset(object):
         super().__init__()
         self.dataset_id = dataset_id
         self.status = DatasetStatus.UNITITIALIZED
-        self.status_path = None
+
+        if (status_path := Path(warehouse_base, '.status')):
+            self.status_path = status_path
+        else:
+            self.status_path = None
+
         self.data_path = None
         self.start_year = start_year
         self.end_year = end_year
         self.datavars = datavars
         self.missing = None
-        self.publication_path = Path(path)
+        self.publication_path = Path(path) if path != '' else None
         self.pub_base = pub_base
-        self.warehouse_path = Path(path)
+        self.warehouse_path = Path(path) if path != '' else None
         self.warehouse_base = warehouse_base
-        self.archive_path = Path(path)
+        self.archive_path = Path(path) if path != '' else None
         self.archive_base = archive_base
         self.sproket = kwargs.get('sproket')
 
         self.stat = stat if stat else {}
-        self.comm = comm if comm else {}
+        self.comm = comm if comm else []
         self.versions = versions
 
         facets = self.dataset_id.split('.')
@@ -122,6 +127,7 @@ class Dataset(object):
         """
         Return the path to the latest working directory for the data files as a string
         """
+        import ipdb; ipdb.set_trace()
         if self.publication_path and self.publication_path.exists():
             self.update_versions(self.publication_path)
             path = self.publication_path
@@ -298,7 +304,7 @@ class Dataset(object):
             # otherwise the "official" location should be the warehouse
             self.status_path = statfile
             self.data_path = self.publication_path
-            self.update_status(DatasetStatusMessage.PUBLICATION_READY)
+            self.update_status(DatasetStatusMessage.PUBLICATION_READY.value)
             return DatasetStatus.IN_PUBLICATION
         else:
             return DatasetStatus.NOT_IN_PUBLICATION
@@ -377,6 +383,11 @@ class Dataset(object):
         """
         Lookup the datasets status in ESGF, or on the filesystem
         """
+
+        if self.status_path.exists():
+            self.load_dataset_status_file()
+            self.status = self.get_latest_status()
+
         # if the dataset is UNITITIALIZED, then we need to build up the status from scratch
         if self.status == DatasetStatus.UNITITIALIZED:
             # returns either NOT_PUBLISHED or SUCCESS or PARTIAL_PUBLISHED or UNITITIALIZED
@@ -700,10 +711,3 @@ comm: {self.comm}"""
             else:
                 self.comm.append(line)
         return
-    
-    @staticmethod
-    def id_from_path(base: str, path: str):
-        """
-        return the dataset id, reconstructed from the path given the base path
-        """
-        return '.'.join(path[len(base):].split(os.sep)[1:-1])

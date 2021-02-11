@@ -4,27 +4,32 @@ import os
 import inspect
 from pprint import pformat
 from pathlib import Path
+from termcolor import colored, cprint
+
+import warehouse.workflows.jobs
 
 NAME = 'Warehouse'
 
 
 class Workflow(object):
 
-    def __init__(self, parent=None, slurm_scripts='temp'):
+    def __init__(self, parent=None, slurm_scripts='temp', **kwargs):
         self.parent = parent
         self.transitions = {}
         self.children = {}
         self.slurm_scripts = slurm_scripts
         self.name = NAME.upper()
         self.jobs = self.load_jobs()
+        self.params = kwargs
     
     def load_jobs(self):
         """
         get the path to the jobs directory which should be a sibling
         of the warehouse.py file
         """
+
         modules = {}
-        jobs_path = Path(Path(inspect.getfile(self.__class__)).parent.absolute(), 'jobs')
+        jobs_path = Path(jobs.__file__).parent.absolute()
         for file in jobs_path.glob('*'):
             if file.name == '__init__.py' or file.is_dir():
                 continue
@@ -105,6 +110,7 @@ class Workflow(object):
             self.transitions = yaml.load(instream, Loader=yaml.SafeLoader)
 
     def load_children(self):
+
         my_path = Path(inspect.getfile(self.__class__)).parent.absolute()
         workflows = {}
         for d in os.scandir(my_path):
@@ -118,7 +124,7 @@ class Workflow(object):
 
             workflows_string = f"warehouse{os.sep}workflows"
             idx = str(my_path.resolve()).find(workflows_string)
-            if self.parent is None:
+            if self.name == NAME:
                 module_name = f'warehouse.workflows.{d.name}'
             else:
                 module_name = f'warehouse.workflows.{str(my_path)[idx+len(workflows_string) + 1:].replace(os.sep, ".")}.{d.name}'
@@ -148,3 +154,31 @@ class Workflow(object):
                 return info
             else:
                 return self.transitions
+    
+    @staticmethod
+    def add_args(parser):
+        parser.add_argument(
+            '-d', '--dataset-id',
+            nargs="*",
+            help="Dataset IDs that should have the workflow applied to them. If this is "
+                 "given without the data-path, the default warehouse value will be used.")
+        parser.add_argument(
+            '--data-path',
+            help="Path to a directory containing a single dataset that should have "
+                 "the workflow applied to them. If given, also use the --dataset-id flag "
+                 "to specify the dataset-id that should be applied to the data\n"
+                 "If its an E3SM dataset, the ID should be in the form 'E3SM.model_version.experiment.(atm_res)_atm_(ocn_res)_ocean.realm.grid.data-type.freq.ensemble_number' "
+                 "\t\t for example: 'E3SM.1_3.G-IAF-DIB-ISMF-3dGM.1deg_atm_60-30km_ocean.ocean.native.model-output.mon.ens1' "
+                 "If its a CMIP6 dataset, the ID should be in the format 'CMIP6.activity.source.model-version.case.variant.table.variable.gr'  "
+                 "\t\t for example: 'CMIP6.CMIP.E3SM-Project.E3SM-1-1.historical.r1i1p1f1.CFmon.cllcalipso.gr' ")
+        return parser
+    
+    @staticmethod
+    def arg_checker(args, command=NAME):
+        if args.data_path and not args.dataset_id:
+            cprint("\nError: If the data_path is given, please also give a dataset ID for the data at the path\n", 'red')
+            return False, command
+        if not args.dataset_id and not args.data_path:
+            cprint("\nError: please specify either the dataset-ids to process, or the data-path to find datasets\n", 'red')
+            return False, command
+        return True, command

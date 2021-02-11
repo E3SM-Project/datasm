@@ -1,4 +1,5 @@
 import os
+import sys
 import yaml
 import json
 import importlib
@@ -8,6 +9,7 @@ from pathlib import Path
 from time import sleep
 from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from termcolor import colored, cprint
 
 from esgfpub import resources
 from warehouse.workflows import Workflow
@@ -40,19 +42,21 @@ class AutoWarehouse():
         self.num_workers = kwargs.get('num', 8)
         self.serial = kwargs.get('serial', False)
         self.testing = kwargs.get('testing', False)
-        self.dataset_ids = kwargs.get('dataset_id', False)
+        self.dataset_ids = kwargs.get('dataset_id')
         self.sproket_path = kwargs.get('sproket', 'sproket')
         self.slurm_path = kwargs.get('slurm', 'slurm_scripts')
         self.report_missing = kwargs.get('report_missing')
         self.job_workers = kwargs.get('job_workers', 8)
         self.datasets = None
+        self.datasets_from_path = kwargs.get('datasets_from_path', False)
         os.makedirs(self.slurm_path, exist_ok=True)
 
         self.scripts_path = Path(Path(inspect.getfile(
             self.__class__)).parent.absolute(), 'scripts').resolve()
 
         if not self.report_missing:
-            self.workflow = Workflow(slurm_scripts=self.slurm_path)
+            self.workflow = kwargs.get('workflow', Workflow(slurm_scripts=self.slurm_path))
+            
             self.workflow.load_children()
             self.workflow.load_transitions()
 
@@ -67,10 +71,10 @@ class AutoWarehouse():
             self.listener.start()
 
         if self.serial:
-            print("Running warehouse in serial mode")
+            cprint("Running warehouse in serial mode", 'cyan')
         else:
-            print(
-                f"Running warehouse in parallel mode with {self.num_workers} workers")
+            cprint(
+                f"Running warehouse in parallel mode with {self.num_workers} workers", 'white')
 
         with open(self.spec_path, 'r') as instream:
             self.dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
@@ -80,7 +84,18 @@ class AutoWarehouse():
         This should be called whenever a datasets status file is updated
         Parameters: path (str) -> the path to the directory containing the status file
         """
-        dataset_id = Dataset.id_from_path(str(self.warehouse_path), path)
+        import ipdb; ipdb.set_trace()
+        dataset_id = None
+        path_split = path.split(os.sep)
+        length = len(path_split)
+        for i in range(1, length):
+            test = '.'.join(path_split[length - i : -1])
+            if test in self.datasets.keys():
+                dataset_id = test
+                break
+        if dataset_id is None:
+            print("something went wrong")
+            import ipdb; ipdb.set_trace()
         print(f"Got a status update from {dataset_id}")
         dataset = self.datasets[dataset_id]
         dataset.load_dataset_status_file()
@@ -97,6 +112,7 @@ class AutoWarehouse():
                 return 0
 
             # start a workflow for each dataset as needed
+            import ipdb; ipdb.set_trace()
             self.start_datasets()
 
             # wait around while jobs run
@@ -118,12 +134,13 @@ class AutoWarehouse():
                 for m in x.missing:
                     print(f"{m}")
             elif x.status == DatasetStatus.UNITITIALIZED.name:
-                print(f"No files in dataset {x.dataset_id}")
+                cprint(f"No files in dataset {x.dataset_id}", 'red')
         if not found_missing:
-            print("No missing files in datasets")
+            cprint("No missing files in datasets", 'red')
+            
 
     def setup_datasets(self):
-        print("Initializing the warehouse")
+        cprint("Initializing the warehouse", 'green')
         cmip6_ids = [x for x in self.collect_cmip_datasets()]
         if self.testing:
             cmip6_ids = cmip6_ids[:100]
@@ -131,10 +148,10 @@ class AutoWarehouse():
         if self.testing:
             e3sm_ids = e3sm_ids[:100]
         dataset_ids = cmip6_ids + e3sm_ids
-
+        
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
-        if self.dataset_ids:
+        if self.dataset_ids is not None:
             ndataset_ids = []
             for i in dataset_ids:
                 found = False
@@ -145,6 +162,11 @@ class AutoWarehouse():
                 if found:
                     ndataset_ids.append(i)
             dataset_ids = ndataset_ids
+        
+        if not dataset_ids:
+            cprint('No datasets match pattern from --dataset-id flag', 'red')
+            sys.exit(1)
+        # import ipdb; ipdb.set_trace()
 
         # instantiate the dataset objects with the paths to
         # where they should look for their data files
@@ -199,6 +221,7 @@ class AutoWarehouse():
                 self.datasets[dataset_id].missing = missing
         else:
             for dataset in tqdm(self.datasets.values()):
+                import ipdb; ipdb.set_trace()
                 dataset_id, status, _ = dataset.find_status()
                 if isinstance(status, DatasetStatus):
                     status = status.name
@@ -222,10 +245,10 @@ class AutoWarehouse():
         return
 
     def workflow_error(self, dataset):
-        print(f"Dataset {dataset.dataset_id} FAILED from {dataset.status}")
+        cprint(f"Dataset {dataset.dataset_id} FAILED from {dataset.status}", 'red')
 
     def workflow_success(self, dataset):
-        print(f"Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}")
+        cprint(f"Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}", 'blue')
 
     def start_datasets(self):
         """
@@ -311,7 +334,7 @@ class AutoWarehouse():
                 if (job_id := job(self.slurm)) is not None:
                     job_ids.append(job_id)
                 else:
-                    print(f"Error starting up job {job}")
+                    cprint(f"Error starting up job {job}", 'red')
         return
 
     def find_matching_job(self, searchjob):
