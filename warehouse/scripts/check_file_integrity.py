@@ -13,7 +13,7 @@ def parse_args():
     parser.add_argument('input', type=str,
                         help="Path a directory full of netCDF files")
     parser.add_argument(
-        '-j', '--jobs',
+        '-p', '--processes',
         type=int, default=8,
         help="Number of parallel jobs, default is 8")
     return parser.parse_args()
@@ -41,8 +41,8 @@ def main():
         raise ValueError("Input directory does not exist or is not a directory")
 
     futures = []
-    pool = ProcessPoolExecutor(max_workers=parsed_args.jobs)
-    for path in input_path.glob('*'):
+    pool = ProcessPoolExecutor(max_workers=parsed_args.processes)
+    for path in input_path.glob('*.nc'):
         realpath = str(path.resolve())
         futures.append(
             pool.submit(

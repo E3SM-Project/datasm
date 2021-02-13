@@ -63,7 +63,7 @@ class Dataset(object):
     def __init__(self, dataset_id, pub_base=None, warehouse_base=None, archive_base=None, start_year=None, end_year=None, datavars=None, path='', versions={}, stat=None, comm=None, *args, **kwargs):
         super().__init__()
         self.dataset_id = dataset_id
-        self.status = DatasetStatus.UNITITIALIZED
+        self.status = DatasetStatus.UNITITIALIZED.name
 
         if (status_path := Path(warehouse_base, '.status')):
             self.status_path = status_path
@@ -127,7 +127,7 @@ class Dataset(object):
         """
         Return the path to the latest working directory for the data files as a string
         """
-        import ipdb; ipdb.set_trace()
+        # import ipdb; ipdb.set_trace()
         if self.publication_path and self.publication_path.exists():
             self.update_versions(self.publication_path)
             path = self.publication_path
@@ -142,10 +142,11 @@ class Dataset(object):
             return
         Path(path, '.lock').touch()
     
-    def is_locked(self, path):
-        for item in Path(path).glob('*'):
-            if item.name == '.lock':
-                return True
+    def is_locked(self, path=None):
+        if path is None:
+            path = self.working_dir
+        for item in Path(path).glob('.lock'):
+            return True
         return False
     
     def unlock(self, path):
@@ -162,14 +163,16 @@ class Dataset(object):
     def get_latest_status(self):
         latest = '0'
         latest_val = None
+        second_latest = None
         for major in self.stat.keys():
             for minor in self.stat[major].keys():
                 for item in self.stat[major][minor]:
                     if item[0] >= latest \
                     and item[1] not in non_binding_status:
                         latest = item[0]
+                        second_latest = latest_val
                         latest_val = f'{major}:{minor}:{item[1]}'
-        return latest_val
+        return latest_val, second_latest
 
     def check_dataset_is_complete(self, files):
 
@@ -320,7 +323,7 @@ class Dataset(object):
         # self.state variable
 
         if not self.status_path or not self.status_path.exists():
-            self.status_path.touch()
+            self.status_path.touch(mode=0o755, exist_ok=True)
 
         self.status = status
         with open(self.status_path, 'a') as outstream:

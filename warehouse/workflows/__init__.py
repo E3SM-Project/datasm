@@ -83,11 +83,14 @@ class Workflow(object):
                 f"{target_state} is not present in the transition graph for {self.name}")
 
     def get_job(self, dataset, state, params, scripts_path, slurm_out_path, workflow, job_workers=8, **kwargs):
-
+        # import ipdb; ipdb.set_trace()
         state_attrs = state.split(':')
         job_name = state_attrs[-3]
 
-        parent = f"{state_attrs[0]}:{state_attrs[1]}"
+        if job_name == state_attrs[1]:
+            parent = state_attrs[0] 
+        else:
+            parent = f"{state_attrs[0]}:{state_attrs[1]}"
     
         job = self.jobs[job_name]
         job_instance = job(
@@ -98,7 +101,7 @@ class Workflow(object):
             params=params,
             slurm_opts=kwargs.get('slurm_opts', []), 
             parent=parent,
-            job_workers=job_workers)
+            job_workers=self.job_workers)
         job_instance.setup_requisites()
         return job_instance
         
@@ -157,6 +160,11 @@ class Workflow(object):
     
     @staticmethod
     def add_args(parser):
+        parser.add_argument(
+            '--job-workers',
+            type=int,
+            default=8,
+            help='number of parallel workers each job should create when running, default is 8')
         parser.add_argument(
             '-d', '--dataset-id',
             nargs="*",

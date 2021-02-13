@@ -27,7 +27,7 @@ FixTimeUnits:Ready:
     - FixTimeUnits:Engaged
 FixTimeUnits:Pass:
   default:
-    - Pass
+    - CheckTime:Ready
 FixTimeUnits:Fail:
   default:
     - Fail

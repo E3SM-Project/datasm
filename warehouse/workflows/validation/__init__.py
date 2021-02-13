@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from time import sleep
 from warehouse.workflows import Workflow
@@ -14,11 +15,12 @@ class Validation(Workflow):
         super().__init__(**kwargs)
         self.name = NAME.upper()
         self.datasets = None
+        self.job_workers = kwargs.get('job_workers')
         
 
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse
-        
+
         dataset_ids = self.params['dataset_id']
 
         if (data_path := self.params.get('data_path')):
@@ -26,14 +28,16 @@ class Validation(Workflow):
                 workflow=self,
                 dataset_id=dataset_ids,
                 warehouse_path=data_path,
-                serial=True)
+                serial=True,
+                job_worker=self.job_workers)
         else:
             warehouse = AutoWarehouse(
                 workflow=self,
                 dataset_id=dataset_ids,
-                serial=True)
+                serial=True,
+                job_worker=self.job_workers)
         
-        warehouse.setup_datasets()
+        warehouse.setup_datasets(check_esgf=False)
         dataset_id, dataset = next(iter(warehouse.datasets.items()))
         dataset.warehouse_path = Path(data_path)
         # import ipdb; ipdb.set_trace()
@@ -43,9 +47,9 @@ class Validation(Workflow):
             warehouse.start_datasets()
 
         while True:
+            if warehouse.should_exit:
+                sys.exit(0)
             sleep(10)
-
-
 
 
     @staticmethod
