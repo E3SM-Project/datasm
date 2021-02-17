@@ -15,17 +15,10 @@ class CleanUp(Workflow):
 
     @staticmethod
     def add_args(parser):
-        p = parser.add_parser(
+        parser = parser.add_parser(
             name=COMMAND,
-            help='Remove dataset directories from the warehouse')
-        p.add_argument(
-            '-p', '--path',
-            required=True,
-            help="path to the warehouse root")
-        p.add_argument(
-            '-d', '--dataset',
-            required=True,
-            help="the dataset_id to extract")
+            description='Remove dataset directories from the warehouse')
+        parser = Workflow.add_args(parser)
         return COMMAND, parser
 
     @staticmethod

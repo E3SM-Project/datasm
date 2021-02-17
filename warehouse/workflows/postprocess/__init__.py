@@ -15,17 +15,10 @@ class PostProcess(Workflow):
 
     @staticmethod
     def add_args(parser):
-        p = parser.add_parser(
+        parser = parser.add_parser(
             name=COMMAND,
-            help='postprocess a dataset')
-        p.add_argument(
-            '-p', '--path',
-            required=True,
-            help="root path to the warehouse root directory")
-        p.add_argument(
-            '-d', '--dataset',
-            required=True,
-            help="the dataset_id to extract")
+            description='postprocess a dataset')
+        parser = Workflow.add_args(parser)
         return COMMAND, parser
 
     @staticmethod

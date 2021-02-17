@@ -19,13 +19,13 @@ subcommands = {
     'validate': Validation
 }
 arg_sources = [
+    Publication.add_args,
+    Validation.add_args,
     AutoWarehouse.add_args,
     add_report_args,
     Extraction.add_args,
     CleanUp.add_args,
-    PostProcess.add_args,
-    Publication.add_args,
-    Validation.add_args
+    PostProcess.add_args
 ]
 arg_checkers = {
     'auto': AutoWarehouse.arg_checker,
