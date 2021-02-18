@@ -9,4 +9,4 @@ class CheckTimeUnit(WorkflowJob):
         self.name = NAME
         self._requires = { 'atmos-native-*': None }
         timename = 'time' if self.dataset.realm == 'atmos' else 'Time'
-        self._cmd = f'cd {self.scripts_path}; python check_time_units.py -q --time-name {timename} {self.dataset.working_dir}'
+        self._cmd = f'cd {self.scripts_path}; python check_time_units.py -p {self._job_workers} --time-name {timename} {self.dataset.working_dir}'

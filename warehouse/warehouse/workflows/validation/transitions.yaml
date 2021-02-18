@@ -36,3 +36,10 @@ MPASVALIDATION:Pass:
 MPASVALIDATION:Fail:
     default:
         - VALIDATION:Fail
+
+WAREHOUSE:Pass:
+    default:
+        - Pass
+WAREHOUSE:Fail:
+    default:
+        - Fail
