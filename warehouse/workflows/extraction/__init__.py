@@ -19,21 +19,14 @@ class Extraction(Workflow):
 
     @staticmethod
     def add_args(parser):
-        p = parser.add_parser(
+        parser = parser.add_parser(
             name=COMMAND,
-            help='extract datasets from zstash and perform validation')
-        p.add_argument(
-            '-p', '--path',
-            required=True,
-            help="Path to the dataset that was supposed to be extracted")
-        p.add_argument(
+            description='extract datasets from zstash and perform validation')
+        parser.add_argument(
             '-z', '--zstash',
             required=True,
             help="Path to zstash directory")
-        p.add_argument(
-            '-d', '--dataset',
-            required=True,
-            help="the dataset_id to extract")
+        parser = Workflow.add_args(parser)
         return COMMAND, parser
 
     @staticmethod

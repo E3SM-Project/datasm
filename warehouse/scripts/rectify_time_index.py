@@ -195,9 +195,8 @@ def get_time_units(path):
 
 
 def get_time_names(path):
-    # import ipdb; ipdb.set_trace()
     with xr.open_dataset(path, decode_times=False) as ds:
-        if ds.get('time_bounds').any():
+        if (tb := ds.get('time_bounds')) and tb.any():
             return 'time', 'time_bounds'
         else:
             return 'time', 'time_bnds'

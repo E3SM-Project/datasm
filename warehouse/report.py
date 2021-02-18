@@ -56,7 +56,7 @@ def add_report_args(parser):
     return NAME, report_parser
 
 def check_report_args(args):
-    if args.target not in allowed_modes:
+    if (target:=args.get('target')) and target not in allowed_modes:
         print(
             f"ERROR: {args.target} is not of the allowed values: {', '.join(allowed_modes)} may be specified. Default is all.")
         return False, NAME

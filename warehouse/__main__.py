@@ -15,17 +15,17 @@ subcommands = {
     'extract': Extraction,
     'cleanup': CleanUp,
     'postprocess': PostProcess,
-    'publication': Publication,
-    'validation': Validation
+    'publish': Publication,
+    'validate': Validation
 }
 arg_sources = [
+    Publication.add_args,
+    Validation.add_args,
     AutoWarehouse.add_args,
     add_report_args,
     Extraction.add_args,
     CleanUp.add_args,
-    PostProcess.add_args,
-    Publication.add_args,
-    Validation.add_args
+    PostProcess.add_args
 ]
 arg_checkers = {
     'auto': AutoWarehouse.arg_checker,
@@ -33,8 +33,8 @@ arg_checkers = {
     'extract': Extraction.arg_checker,
     'cleanup': CleanUp.arg_checker,
     'postprocess': PostProcess.arg_checker,
-    'publication': Publication.arg_checker,
-    'validation': Validation.arg_checker
+    'publish': Publication.arg_checker,
+    'validate': Validation.arg_checker
 }
 
 

@@ -199,6 +199,7 @@ def parse_args(arg_sources, checkers):
 
     valid, name = checkers[parsed_args.subparser_name](parsed_args)
     if not valid:
+        print('invalid')
         subparsers[name].print_help()
         return None
 
