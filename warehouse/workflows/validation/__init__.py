@@ -25,7 +25,6 @@ class Validation(Workflow):
         super().__init__(**kwargs)
         self.name = NAME.upper()
         self.datasets = None
-        self.job_workers = kwargs.get('job_workers')
         
 
     def __call__(self, *args, **kwargs):
@@ -53,8 +52,8 @@ class Validation(Workflow):
         # import ipdb; ipdb.set_trace()
         if DatasetStatusMessage.VALIDATION_READY.value not in dataset.status:
             dataset.update_status(DatasetStatusMessage.VALIDATION_READY.value)
-        else:
-            warehouse.start_datasets()
+        # else:
+        #     warehouse.start_datasets()
 
         while True:
             if warehouse.should_exit:

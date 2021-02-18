@@ -21,6 +21,7 @@ class Workflow(object):
         self.name = NAME.upper()
         self.jobs = self.load_jobs()
         self.params = kwargs
+        self.job_workers = kwargs.get('job_workers')
     
     def load_jobs(self):
         """
