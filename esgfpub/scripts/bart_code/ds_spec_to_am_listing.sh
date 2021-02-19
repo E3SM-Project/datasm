@@ -3,6 +3,7 @@
 ds_spec_list=$1
 arch_map=/p/user_pub/e3sm/archive/.cfg/Archive_Map
 
+# WHY???
 output_list=`echo $ds_spec_list | cut -f2- -d_`
 
 # echo $output_list

@@ -233,6 +233,7 @@ def main():
         if warehouse_persona:
             setStatus(statfile,'WAREHOUSE',f'MAPFILE_GEN:Engaged')
         retcode = os.system(f'{esgmapfile_make} {request_path}')
+
         tm_final = time.time()
         ET = tm_final - tm_start
         opath, basep = os.path.split(request_file)

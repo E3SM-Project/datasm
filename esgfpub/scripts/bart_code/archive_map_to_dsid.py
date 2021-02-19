@@ -19,7 +19,7 @@ helptext = '''
     For each archive_map line of the input file, the corresponding dataset_id (dsid) is generated.
     If "--names" is given, the dataset ids are simply printed to stdout.
     If "--files" (default) is given each constructed dsid becomes a filename, with optional prefix,
-    populated with all archive_map lines the result in the same dsid.
+    populated with all archive_map lines that result in the same dsid.
 
     For instance:
 

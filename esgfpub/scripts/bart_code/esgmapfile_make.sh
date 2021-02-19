@@ -15,6 +15,7 @@ ts=`date +%Y%m%d.%H%M%S`
 rlog=$workpath/mfg_runlog-$ts
 
 dataset_fullpath=$1
+dataset_ens_path=`echo $dataset_fullpath | rev | cut -f2- -d/ | rev`
 
 self_log=0
 
@@ -55,7 +56,7 @@ esgmapfile make --debug -i $ini_path --max-processes $proc_num --project e3sm --
 retcode=$?
 conda deactivate
 
-mv $out_path/$mapfile_name $dataset_fullpath/.mapfile
+mv $out_path/$mapfile_name $dataset_ens_path/.mapfile
 mv_code=$?
 ts=`date +%Y%m%d.%H%M%S`
 if [ $mv_code -ne 0 ]; then

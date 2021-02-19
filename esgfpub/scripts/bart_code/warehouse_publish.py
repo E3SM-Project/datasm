@@ -617,7 +617,7 @@ def conductPublication(adir,stagespec):        # cheat:  stagespec is either PUB
         mapfile_name = '.'.join([dsid,'map'])
         mapfile_path = os.path.join(gv_Mapfile_Auto_Pub,mapfile_name)
         # copy to mapfiles/mapfiles_auto_publish
-        curr_mapfile = os.path.join(pdir,'.mapfile')
+        curr_mapfile = os.path.join(edir_p,'.mapfile')
         shutil.copyfile(curr_mapfile,mapfile_path)
         
         logMessage('INFO',f'Initiated {stagespec}: {wcount} files: {pdir}')
