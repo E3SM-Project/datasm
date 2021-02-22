@@ -70,7 +70,9 @@ class AutoWarehouse():
             self.slurm = Slurm()
 
             # create the filesystem listener
-            self.listener = Listener(warehouse=self)
+            self.listener = Listener(
+                warehouse=self,
+                root=self.warehouse_path)
             self.listener.start()
 
         if self.serial:
