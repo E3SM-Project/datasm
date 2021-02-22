@@ -13,4 +13,3 @@ MPASTimeCheck:Pass:
 MPASTimeCheck:Fail:
     default:
         - Fail
-

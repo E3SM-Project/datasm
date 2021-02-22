@@ -11,7 +11,7 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from termcolor import colored, cprint
 
-from esgfpub import resources
+import warehouse.resources as resources
 from warehouse.workflows import Workflow
 from warehouse.dataset import Dataset, DatasetStatus
 from warehouse.slurm import Slurm
