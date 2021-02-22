@@ -51,10 +51,13 @@ class Validation(Workflow):
         dataset_id, dataset = next(iter(warehouse.datasets.items()))
         dataset.warehouse_path = Path(data_path)
         # import ipdb; ipdb.set_trace()
+        dataset.load_dataset_status_file()
+        latest, _ = dataset.get_latest_status()
+        dataset.status = latest
         if DatasetStatusMessage.VALIDATION_READY.value not in dataset.status:
             dataset.update_status(DatasetStatusMessage.VALIDATION_READY.value)
-        # else:
-        #     warehouse.start_datasets()
+        else:
+            warehouse.start_datasets()
 
         while True:
             if warehouse.should_exit:
