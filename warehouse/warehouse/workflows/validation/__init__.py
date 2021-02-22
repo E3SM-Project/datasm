@@ -56,8 +56,8 @@ class Validation(Workflow):
         dataset.status = latest
         if DatasetStatusMessage.VALIDATION_READY.value not in dataset.status:
             dataset.update_status(DatasetStatusMessage.VALIDATION_READY.value)
-        else:
-            warehouse.start_datasets()
+        
+        warehouse.start_datasets()
 
         while True:
             if warehouse.should_exit:
