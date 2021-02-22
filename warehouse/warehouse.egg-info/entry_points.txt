@@ -1,3 +1,0 @@
-[console_scripts]
-warehouse = warehouse.__main__:main
-
