@@ -80,13 +80,11 @@ class Dataset(object):
         self.warehouse_path = Path(path) if path != '' else None
         self.warehouse_base = warehouse_base
         self.archive_path = Path(path) if path != '' else None
-
         self.archive_base = archive_base
         self.sproket = kwargs.get('sproket')
 
         self.stat = stat if stat else {}
         self.comm = comm if comm else []
-
         self.versions = versions
 
         facets = self.dataset_id.split('.')
@@ -129,6 +127,7 @@ class Dataset(object):
         """
         Return the path to the latest working directory for the data files as a string
         """
+        # import ipdb; ipdb.set_trace()
         if self.publication_path and self.publication_path.exists():
             self.update_versions(self.publication_path)
             path = self.publication_path
@@ -174,7 +173,6 @@ class Dataset(object):
                         second_latest = latest_val
                         latest_val = f'{major}:{minor}:{item[1]}'
         return latest_val, second_latest
-
 
     def check_dataset_is_complete(self, files):
 
@@ -310,7 +308,6 @@ class Dataset(object):
             self.status_path = statfile
             self.data_path = self.publication_path
             self.update_status(DatasetStatusMessage.PUBLICATION_READY.value)
-
             return DatasetStatus.IN_PUBLICATION
         else:
             return DatasetStatus.NOT_IN_PUBLICATION
@@ -327,7 +324,6 @@ class Dataset(object):
 
         if not self.status_path or not self.status_path.exists():
             self.status_path.touch(mode=0o755, exist_ok=True)
-
 
         self.status = status
         with open(self.status_path, 'a') as outstream:
@@ -390,10 +386,10 @@ class Dataset(object):
         """
         Lookup the datasets status in ESGF, or on the filesystem
         """
+
         if self.status_path.exists():
             self.load_dataset_status_file()
             self.status = self.get_latest_status()
-
 
         # if the dataset is UNITITIALIZED, then we need to build up the status from scratch
         if self.status == DatasetStatus.UNITITIALIZED:

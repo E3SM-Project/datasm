@@ -8,7 +8,6 @@ from termcolor import colored, cprint
 
 import warehouse.workflows.jobs
 
-
 NAME = 'Warehouse'
 
 
@@ -23,15 +22,15 @@ class Workflow(object):
         self.jobs = self.load_jobs()
         self.params = kwargs
         self.job_workers = kwargs.get('job_workers')
-
+    
     def load_jobs(self):
         """
         get the path to the jobs directory which should be a sibling
         of the warehouse.py file
         """
+
         modules = {}
         jobs_path = Path(jobs.__file__).parent.absolute()
-
         for file in jobs_path.glob('*'):
             if file.name == '__init__.py' or file.is_dir():
                 continue
@@ -85,6 +84,7 @@ class Workflow(object):
                 f"{target_state} is not present in the transition graph for {self.name}")
 
     def get_job(self, dataset, state, params, scripts_path, slurm_out_path, workflow, job_workers=8, **kwargs):
+        # import ipdb; ipdb.set_trace()
         state_attrs = state.split(':')
         job_name = state_attrs[-3]
 
@@ -92,7 +92,6 @@ class Workflow(object):
             parent = state_attrs[0] 
         else:
             parent = f"{state_attrs[0]}:{state_attrs[1]}"
-
     
         job = self.jobs[job_name]
         job_instance = job(
@@ -104,7 +103,6 @@ class Workflow(object):
             slurm_opts=kwargs.get('slurm_opts', []), 
             parent=parent,
             job_workers=self.job_workers)
-
         job_instance.setup_requisites()
         return job_instance
         
@@ -131,7 +129,6 @@ class Workflow(object):
             workflows_string = f"warehouse{os.sep}workflows"
             idx = str(my_path.resolve()).find(workflows_string)
             if self.name == NAME:
-
                 module_name = f'warehouse.workflows.{d.name}'
             else:
                 module_name = f'warehouse.workflows.{str(my_path)[idx+len(workflows_string) + 1:].replace(os.sep, ".")}.{d.name}'
@@ -161,7 +158,7 @@ class Workflow(object):
                 return info
             else:
                 return self.transitions
-
+    
     @staticmethod
     def add_args(parser):
         parser.add_argument(
@@ -194,4 +191,3 @@ class Workflow(object):
             cprint("\nError: please specify either the dataset-ids to process, or the data-path to find datasets\n", 'red')
             return False, command
         return True, command
-

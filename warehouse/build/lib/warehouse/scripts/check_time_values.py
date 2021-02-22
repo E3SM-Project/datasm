@@ -128,7 +128,6 @@ def main():
             freq = ds[time_name][1].values.item() - ds[time_name][0].values.item()
             put_message(f"Detected frequency: {freq}, with units: {time_units}")
 
-
     # iterate over each of the files and get the first and last index from each file
     issues = list()
     prevtime = None

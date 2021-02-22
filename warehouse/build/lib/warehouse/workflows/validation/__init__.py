@@ -19,7 +19,6 @@ The --dataset-id flag should be in the facet format of the ESGF project.
 """
 
 
-
 class Validation(Workflow):
 
     def __init__(self, *args, **kwargs):
@@ -73,3 +72,4 @@ class Validation(Workflow):
     @staticmethod
     def arg_checker(args):
         return Workflow.arg_checker(args, COMMAND)
+

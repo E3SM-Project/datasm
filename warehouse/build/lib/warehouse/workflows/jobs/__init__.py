@@ -19,13 +19,13 @@ class WorkflowJob(object):
         self._parameters = params
         self._job_workers = kwargs.get('job_workers', 8)
         self._job_id = None
-
     
     def __str__(self):
         return f"{self.parent}:{self.name}:{self.dataset.dataset_id}"
 
     def __call__(self, slurm):
         print(f"starting up {str(self)}")
+        # import ipdb; ipdb.set_trace()
         if not self.meets_requirements():
             return None
 
@@ -149,8 +149,7 @@ rm $message_file
     @property
     def params(self):
         return self._parameters
-
+    
     @property
     def job_id(self):
         return self._job_id
-
