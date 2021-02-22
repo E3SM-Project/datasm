@@ -24,9 +24,9 @@ class DatasetStatus(Enum):
 
 
 class DatasetStatusMessage(Enum):
-    PUBLICATION_READY = "DATASET:PUBLICATION:Ready"
-    WAREHOUSE_READY = "DATASET:WAREHOUSE:Ready"
-
+    PUBLICATION_READY = "PUBLICATION:Ready:"
+    WAREHOUSE_READY = "WAREHOUSE:Ready:"
+    VALIDATION_READY = "VALIDATION:Ready:"
 
 non_binding_status = ['Blocked:', 'Unblocked:', 'Approved:', 'Unapproved:']
 
@@ -63,23 +63,30 @@ class Dataset(object):
     def __init__(self, dataset_id, pub_base=None, warehouse_base=None, archive_base=None, start_year=None, end_year=None, datavars=None, path='', versions={}, stat=None, comm=None, *args, **kwargs):
         super().__init__()
         self.dataset_id = dataset_id
-        self.status = DatasetStatus.UNITITIALIZED
-        self.status_path = None
+        self.status = DatasetStatus.UNITITIALIZED.name
+
+        if (status_path := Path(warehouse_base, '.status')):
+            self.status_path = status_path
+        else:
+            self.status_path = None
+
         self.data_path = None
         self.start_year = start_year
         self.end_year = end_year
         self.datavars = datavars
         self.missing = None
-        self.publication_path = Path(path)
+        self.publication_path = Path(path) if path != '' else None
         self.pub_base = pub_base
-        self.warehouse_path = Path(path)
+        self.warehouse_path = Path(path) if path != '' else None
         self.warehouse_base = warehouse_base
-        self.archive_path = Path(path)
+        self.archive_path = Path(path) if path != '' else None
+
         self.archive_base = archive_base
         self.sproket = kwargs.get('sproket')
 
         self.stat = stat if stat else {}
-        self.comm = comm if comm else {}
+        self.comm = comm if comm else []
+
         self.versions = versions
 
         facets = self.dataset_id.split('.')
@@ -136,10 +143,11 @@ class Dataset(object):
             return
         Path(path, '.lock').touch()
     
-    def is_locked(self, path):
-        for item in Path(path).glob('*'):
-            if item.name == '.lock':
-                return True
+    def is_locked(self, path=None):
+        if path is None:
+            path = self.working_dir
+        for item in Path(path).glob('.lock'):
+            return True
         return False
     
     def unlock(self, path):
@@ -156,14 +164,17 @@ class Dataset(object):
     def get_latest_status(self):
         latest = '0'
         latest_val = None
+        second_latest = None
         for major in self.stat.keys():
             for minor in self.stat[major].keys():
                 for item in self.stat[major][minor]:
                     if item[0] >= latest \
                     and item[1] not in non_binding_status:
                         latest = item[0]
+                        second_latest = latest_val
                         latest_val = f'{major}:{minor}:{item[1]}'
-        return latest_val
+        return latest_val, second_latest
+
 
     def check_dataset_is_complete(self, files):
 
@@ -298,7 +309,8 @@ class Dataset(object):
             # otherwise the "official" location should be the warehouse
             self.status_path = statfile
             self.data_path = self.publication_path
-            self.update_status(DatasetStatusMessage.PUBLICATION_READY)
+            self.update_status(DatasetStatusMessage.PUBLICATION_READY.value)
+
             return DatasetStatus.IN_PUBLICATION
         else:
             return DatasetStatus.NOT_IN_PUBLICATION
@@ -314,7 +326,8 @@ class Dataset(object):
         # self.state variable
 
         if not self.status_path or not self.status_path.exists():
-            self.status_path.touch()
+            self.status_path.touch(mode=0o755, exist_ok=True)
+
 
         self.status = status
         with open(self.status_path, 'a') as outstream:
@@ -377,6 +390,11 @@ class Dataset(object):
         """
         Lookup the datasets status in ESGF, or on the filesystem
         """
+        if self.status_path.exists():
+            self.load_dataset_status_file()
+            self.status = self.get_latest_status()
+
+
         # if the dataset is UNITITIALIZED, then we need to build up the status from scratch
         if self.status == DatasetStatus.UNITITIALIZED:
             # returns either NOT_PUBLISHED or SUCCESS or PARTIAL_PUBLISHED or UNITITIALIZED
@@ -700,10 +718,3 @@ comm: {self.comm}"""
             else:
                 self.comm.append(line)
         return
-    
-    @staticmethod
-    def id_from_path(base: str, path: str):
-        """
-        return the dataset id, reconstructed from the path given the base path
-        """
-        return '.'.join(path[len(base):].split(os.sep)[1:-1])

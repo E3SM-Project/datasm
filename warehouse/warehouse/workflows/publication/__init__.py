@@ -4,6 +4,12 @@ from warehouse.workflows import Workflow
 NAME = 'Publication'
 COMMAND = 'publish'
 
+HELP_TEXT = """
+Publish an E3SM dataset to ESGF. The input directory should be 
+one level up from the data directory, and will be used to hold the 
+.status file and intermediate working directories for the workflow steps.
+"""
+
 class Publication(Workflow):
 
     def __init__(self, *args, **kwargs):
@@ -15,17 +21,10 @@ class Publication(Workflow):
 
     @staticmethod
     def add_args(parser):
-        p = parser.add_parser(
+        parser = parser.add_parser(
             name=COMMAND,
-            help='publish a dataset to ESGF')
-        p.add_argument(
-            '-p', '--path',
-            required=True,
-            help="root path to the warehouse root directory")
-        p.add_argument(
-            '-d', '--dataset',
-            required=True,
-            help="the dataset_id to extract")
+            description=HELP_TEXT)
+        parser = Workflow.add_args(parser)
         return COMMAND, parser
 
     @staticmethod

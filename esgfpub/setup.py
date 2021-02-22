@@ -14,7 +14,7 @@ setup(
         'console_scripts':
             ['esgfpub = esgfpub.__main__:main',
              'timecheck = esgfpub.scripts.timerect.timechecker:main',
-             'timerect = esgfpub.scripts.timerect.timerectifier:main',]},
+             'timerect = esgfpub.scripts.timerect.timerectifier:main']},
     packages=find_packages(),
     package_dir={'esgfpub': 'esgfpub'},
     include_package_data=True)

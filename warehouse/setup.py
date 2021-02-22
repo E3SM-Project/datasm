@@ -7,7 +7,7 @@ from warehouse.version import __version__
 setup(
     name="warehouse",
     version=__version__,
-    author="Sterling Baldwin",
+    author="Sterling Baldwin and Anthony Bartoletti",
     author_email="baldwin32@llnl.gov",
     description="Automated Data Warehouse for E3SM Processing and Publication",
     entry_points={

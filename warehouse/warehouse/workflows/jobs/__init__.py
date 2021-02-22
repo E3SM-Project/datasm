@@ -18,13 +18,14 @@ class WorkflowJob(object):
         self._parent = kwargs.get('parent')
         self._parameters = params
         self._job_workers = kwargs.get('job_workers', 8)
+        self._job_id = None
+
     
     def __str__(self):
         return f"{self.parent}:{self.name}:{self.dataset.dataset_id}"
 
     def __call__(self, slurm):
         print(f"starting up {str(self)}")
-
         if not self.meets_requirements():
             return None
 
@@ -39,7 +40,7 @@ class WorkflowJob(object):
         output_option = ('-o', f'{Path(self._slurm_out, self._outname).resolve()}')
         self._slurm_opts.extend([output_option])
 
-        script_name = f'{self._dataset.experiment}-{self.name}-{self._dataset.realm}-{self._dataset.grid}-{self._dataset.freq}'
+        script_name = f'{self._dataset.experiment}-{self.name}-{self._dataset.realm}-{self._dataset.grid}-{self._dataset.freq}.'
         tmp = NamedTemporaryFile(dir=self._slurm_out, delete=False, prefix=script_name)
         message_file = NamedTemporaryFile(dir=self._slurm_out, delete=False)
         Path(message_file.name).touch()
@@ -47,9 +48,9 @@ class WorkflowJob(object):
 
         self.add_cmd_suffix(working_dir)
         slurm.render_script(self.cmd, tmp.name, self._slurm_opts)
-        job_id = slurm.sbatch(tmp.name)
-        self.dataset.update_status(f"{self._parent}:{self.name}:Engaged:slurm_id={job_id}")
-        return job_id
+        self._job_id = slurm.sbatch(tmp.name)
+        self.dataset.update_status(f"{self._parent}:{self.name}:Engaged:slurm_id={self.job_id}")
+        return self._job_id
 
     
     def add_cmd_suffix(self, working_dir):
@@ -148,3 +149,8 @@ rm $message_file
     @property
     def params(self):
         return self._parameters
+
+    @property
+    def job_id(self):
+        return self._job_id
+
