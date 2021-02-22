@@ -1,0 +1,20 @@
+EXTRACTION:Ready:
+    default:
+        - ZstashExtract:Ready
+
+ZstashExtract:Ready:
+    default:
+        -  ExtractionValidate:Ready
+ZstashExtract:Fail:
+    default:
+        -  Fail
+
+ExtractionValidate:Ready:
+    default:
+        -  ExtractionValidate:Engaged
+ExtractionValidate:Pass:
+    default:
+        -  Pass
+ExtractionValidate:Fail:
+    default:
+        -  Fail

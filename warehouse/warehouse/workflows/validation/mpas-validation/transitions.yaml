@@ -1,0 +1,15 @@
+MPASVALIDATION:Ready:
+    ocean-native-mon:
+        - MPASTimeCheck:Ready
+    sea-ice-native-mon:
+        - MPASTimeCheck:Ready
+
+MPASTimeCheck:Ready:
+    default:
+        - MPASTimeCheck:Engaged
+MPASTimeCheck:Pass:
+    default:
+        - Pass
+MPASTimeCheck:Fail:
+    default:
+        - Fail

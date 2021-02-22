@@ -1,0 +1,56 @@
+ATMVALIDATION:Ready:
+  default:
+    - CheckFileIntegrity:Ready
+
+CheckFileIntegrity:Ready:
+    default:
+      - CheckFileIntegrity:Engaged
+CheckFileIntegrity:Pass:
+    default:
+      - CheckTimeUnit:Ready
+CheckFileIntegrity:Fail:
+    default:
+      - Fail
+
+CheckTimeUnit:Ready:
+  default:
+    - CheckTimeUnit:Engaged
+CheckTimeUnit:Pass:
+  default:
+    - CheckTime:Ready
+CheckTimeUnit:Fail:
+  default:
+    - FixTimeUnits:Ready
+
+FixTimeUnits:Ready:
+  default:
+    - FixTimeUnits:Engaged
+FixTimeUnits:Pass:
+  default:
+    - CheckTime:Ready
+FixTimeUnits:Fail:
+  default:
+    - Fail
+
+CheckTime:Ready:
+    default:
+      - CheckTime:Engaged
+CheckTime:Pass:
+    default:
+      - Pass
+CheckTime:Fail:
+    default:
+      - RectifyTimeIndex:Ready
+
+RectifyTimeIndex:Ready:
+    default:
+      - RectifyTime:Engaged
+RectifyTimeIndex:Pass:
+    default:
+      - Pass
+RectifyTimeIndex:Fail:
+    default:
+      - Fail
+
+
+

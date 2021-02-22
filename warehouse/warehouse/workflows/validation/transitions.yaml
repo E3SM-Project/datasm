@@ -1,0 +1,45 @@
+VALIDATION:Ready:
+    atmos-native-3hr:
+        - ATMVALIDATION:Ready
+    atmos-native-3hr_snap:
+        - ATMVALIDATION:Ready
+    atmos-native-6hr:
+        - ATMVALIDATION:Ready
+    atmos-native-day:
+        - ATMVALIDATION:Ready
+    atmos-native-mon:
+        - ATMVALIDATION:Ready
+    land-native-mon:
+        - LNDVALIDATION:Ready
+    ocean-native-mon:
+        - MPASVALIDATION:Ready
+    sea-ice-native-mon:
+        - MPASVALIDATION:Ready
+
+ATMVALIDATION:Pass:
+    default:
+        - Pass
+ATMVALIDATION:Fail:
+    default:
+        - Fail
+
+LNDVALIDATION:Pass:
+    default:
+        - VALIDATION:Pass
+LNDVALIDATION:Fail:
+    default:
+        - VALIDATION:Fail
+
+MPASVALIDATION:Pass:
+    default:
+        - VALIDATION:Pass
+MPASVALIDATION:Fail:
+    default:
+        - VALIDATION:Fail
+
+WAREHOUSE:Pass:
+    default:
+        - Pass
+WAREHOUSE:Fail:
+    default:
+        - Fail

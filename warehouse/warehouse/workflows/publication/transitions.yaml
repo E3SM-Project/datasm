@@ -1,0 +1,63 @@
+PUBLICATION:Ready:
+  default:
+    - GenerateMapfile:Ready
+
+GenerateMapfile:Ready:
+  default:
+    - GenerateMapfile:Engaged
+GenerateMapfile:Pass:
+  default:
+    - ValidateMapfile:Ready
+GenerateMapfile:Fail:
+  default:
+    - Fail
+
+ValidateMapfile:Ready:
+  default:
+    - ValidateMapfile:Engaged
+ValidateMapfile:Pass:
+  default:
+    - ValidateMapfile:Ready
+ValidateMapfile:Fail:
+  default:
+    - Fail
+
+MoveToPublication:Ready:
+  default:
+    - MoveToPublication:Engaged
+MoveToPublication:Pass:
+  default:
+    - FixMapfilePaths:Ready
+MoveToPublication:Fail:
+  default:
+    - Fail
+
+FixMapfilePaths:Ready:
+  default:
+    - FixMapfilePaths:Engaged
+FixMapfilePaths:Pass:
+  default:
+    - ESGFPublish:Ready
+FixMapfilePaths:Fail:
+  default:
+    - Fail
+
+PublishESGF:Ready:
+  default:
+    - PublishESGF:Engaged
+PublishESGF:Pass:
+  default:
+    - ValidateESGF:Ready
+PublishESGF:Fail:
+  default:
+    - ValidateFail
+
+Validate:Ready:
+  default:
+    - Validate:Engaged
+Validate:Pass:
+  default:
+    - Pass
+Validate:Fail:
+  default:
+    - Fail
