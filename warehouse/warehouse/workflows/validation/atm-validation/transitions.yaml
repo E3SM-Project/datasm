@@ -44,7 +44,7 @@ CheckTime:Fail:
 
 RectifyTimeIndex:Ready:
     default:
-      - RectifyTime:Engaged
+      - RectifyTimeIndex:Engaged
 RectifyTimeIndex:Pass:
     default:
       - Pass

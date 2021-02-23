@@ -5,9 +5,10 @@ from watchdog.events import RegexMatchingEventHandler
 
 class Listener(object):
 
-    def __init__(self, warehouse, **kwargs):
+    def __init__(self, warehouse, root, **kwargs):
         super().__init__(**kwargs)
         self.warehouse = warehouse
+        self.root = root
         self.observer = None
 
         patterns = [r'^.*\/.status$']
@@ -21,10 +22,9 @@ class Listener(object):
 
     def start(self):
         print("Starting up filesystem listener")
-        path = "/p/user_pub/e3sm/baldwin32/warehouse_testing"
         go_recursively = True
         self.observer = Observer()
-        self.observer.schedule(self.my_event_handler, path, recursive=go_recursively)
+        self.observer.schedule(self.my_event_handler, self.root, recursive=go_recursively)
         self.observer.start()
 
     def stop(self):
