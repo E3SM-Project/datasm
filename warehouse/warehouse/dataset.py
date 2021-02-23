@@ -138,6 +138,15 @@ class Dataset(object):
         latest_version = sorted(self.versions.keys())[-1]
         return str(Path(path, latest_version).resolve())
     
+    @property
+    def status(self):
+        return self.status
+    
+    @status.setter
+    def status(self, status):
+        if status is not None:
+            self.status = status
+    
     def lock(self, path):
         if self.is_locked(path):
             return
