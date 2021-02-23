@@ -29,17 +29,17 @@ ATMVALIDATION:Fail:
 
 LNDVALIDATION:Pass:
     default:
-        - VALIDATION:Pass
+        - Pass
 LNDVALIDATION:Fail:
     default:
-        - VALIDATION:Fail
+        - Fail
 
 MPASVALIDATION:Pass:
     default:
-        - VALIDATION:Pass
+        - Pass
 MPASVALIDATION:Fail:
     default:
-        - VALIDATION:Fail
+        - Fail
 
 WAREHOUSE:Pass:
     default:
