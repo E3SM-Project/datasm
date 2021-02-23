@@ -1,4 +1,4 @@
-ATMVALIDATION:Ready:
+LNDVALIDATION:Ready:
   default:
     - CheckFileIntegrity:Ready
 
