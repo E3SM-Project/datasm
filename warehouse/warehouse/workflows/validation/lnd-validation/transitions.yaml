@@ -1,46 +1,53 @@
-LNDVALIDATION:Ready:
-  land-native-mon:
-      - TimeUnitCheck:Ready
+ATMVALIDATION:Ready:
+  default:
+    - CheckFileIntegrity:Ready
 
+CheckFileIntegrity:Ready:
+    default:
+      - CheckFileIntegrity:Engaged
+CheckFileIntegrity:Pass:
+    default:
+      - CheckTimeUnit:Ready
+CheckFileIntegrity:Fail:
+    default:
+      - Fail
 
-TimeUnitCheck:Ready:
-    default:
-        - TimeUnitCheck:Engaged
-TimeUnitCheck:Pass:
-    default:
-        - TimeCheck:Ready
-TimeUnitCheck:Fail:
-    default:
-        - FixTimeUnit:Ready
+CheckTimeUnit:Ready:
+  default:
+    - CheckTimeUnit:Engaged
+CheckTimeUnit:Pass:
+  default:
+    - CheckTime:Ready
+CheckTimeUnit:Fail:
+  default:
+    - FixTimeUnits:Ready
 
-FixTimeUnit:Ready:
-    default:
-        - FixTimeUnit:Engaged
-FixTimeUnit:Pass:
-    default:
-        - TimeCheck:Ready
-FixTimeUnit:Fail:
-    default:
-        - Fail
+FixTimeUnits:Ready:
+  default:
+    - FixTimeUnits:Engaged
+FixTimeUnits:Pass:
+  default:
+    - CheckTime:Ready
+FixTimeUnits:Fail:
+  default:
+    - Fail
 
-TimeCheck:Ready:
+CheckTime:Ready:
     default:
-        - TimeCheck:Engaged
-TimeCheck:Pass:
+      - CheckTime:Engaged
+CheckTime:Pass:
     default:
-        - CreateDerivedDataset:Ready
-TimeCheck:Fail:
+      - Pass
+CheckTime:Fail:
     default:
-        - TimeRectify:Ready
+      - RectifyTimeIndex:Ready
 
-TimeRectify:Ready:
+RectifyTimeIndex:Ready:
     default:
-        - TimeRectify:Engaged
-TimeRectify:Pass:
+      - RectifyTimeIndex:Engaged
+RectifyTimeIndex:Pass:
     default:
-        - Pass
-TimeRectify:Fail:
+      - Pass
+RectifyTimeIndex:Fail:
     default:
-        - Fail
-
-
+      - Fail
