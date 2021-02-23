@@ -11,6 +11,8 @@ VALIDATION:Ready:
         - ATMVALIDATION:Ready
     atmos-native-mon:
         - ATMVALIDATION:Ready
+    atmos-native-day_cosp:
+        - ATMVALIDATION:Ready
     land-native-mon:
         - LNDVALIDATION:Ready
     ocean-native-mon:
