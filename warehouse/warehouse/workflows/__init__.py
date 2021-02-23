@@ -70,7 +70,11 @@ class Workflow(object):
             target_data_type = f'{dataset.realm}-{dataset.grid}-{dataset.freq}'
             transitions = self.transitions[target_state].get(target_data_type)
             if transitions is None:
-                return [(f'{prefix}{x}:', self, params) for x in self.transitions[target_state]['default']]
+                try:
+                    return [(f'{prefix}{x}:', self, params) for x in self.transitions[target_state]['default']]
+                except KeyError as e:
+                    print(f"Dataset {dataset.dataset_id} tried to go to the 'default' transition from the {target_state}, but no default was found")
+                    raise e
             else:
                 return [(f'{prefix}{x}:', self, params) for x in transitions]
             

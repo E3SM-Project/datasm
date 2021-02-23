@@ -5,6 +5,8 @@ VALIDATION:Ready:
         - ATMVALIDATION:Ready
     atmos-native-6hr:
         - ATMVALIDATION:Ready
+    atmos-native-6hr_snap:
+        - ATMVALIDATION:Ready
     atmos-native-day:
         - ATMVALIDATION:Ready
     atmos-native-mon:

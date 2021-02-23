@@ -11,7 +11,7 @@ class Listener(object):
         self.root = root
         self.observer = None
 
-        patterns = [r'^.*\/.status$']
+        patterns = [r'^.*\/\.status$']
         ignore_patterns = ""
         ignore_directories = True
         case_sensitive = True
