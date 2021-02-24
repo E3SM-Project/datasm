@@ -70,10 +70,11 @@ class AutoWarehouse():
             self.slurm = Slurm()
 
             # create the filesystem listener
-            self.listener = Listener(
-                warehouse=self,
-                root=self.warehouse_path)
-            self.listener.start()
+            # self.listener = Listener(
+            #     warehouse=self,
+            #     root=self.warehouse_path)
+            # self.listener.start()
+            self.listener = None
 
         if self.serial:
             cprint("Running warehouse in serial mode", 'cyan')
@@ -91,13 +92,17 @@ class AutoWarehouse():
         """
         # import ipdb; ipdb.set_trace()
         dataset_id = None
-        path_split = path.split(os.sep)
-        length = len(path_split)
-        for i in range(1, length):
-            test = '.'.join(path_split[length - i : -1])
-            if test in self.datasets.keys():
-                dataset_id = test
-                break
+        with open(path, 'r') as instream:
+            for line in instream.readlines():
+                if 'DATASETID' in line:
+                    dataset_id = line.split('=')[-1].strip()
+        # path_split = path.split(os.sep)
+        # length = len(path_split)
+        # for i in range(1, length):
+        #     test = '.'.join(path_split[length - i : -1])
+        #     if test in self.datasets.keys():
+        #         dataset_id = test
+        #         break
         if dataset_id is None:
             print("something went wrong")
             import ipdb; ipdb.set_trace()
@@ -134,8 +139,10 @@ class AutoWarehouse():
                 self.print_missing()
                 return 0
 
+            self.start_listener()
+
             # start a workflow for each dataset as needed
-            import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
             self.start_datasets()
 
             # wait around while jobs run
@@ -372,6 +379,13 @@ class AutoWarehouse():
         self.check_done()
         return
     
+    def start_listener(self):
+        self.listener = Listener(
+            warehouse=self,
+            root=self.warehouse_path)
+        self.listener.start()
+        cprint("Listener setup complete", "green")
+
     def check_done(self):
         all_done = True
         for dataset in self.datasets.values():

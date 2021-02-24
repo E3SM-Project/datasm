@@ -58,7 +58,17 @@ class Dataset(object):
     def get_status_from_archive(self):
         ...
     def initialize_status_file(self):
-        ...
+        if not self.status_path.exists():
+            self.status_path.touch(mode=0o755, exist_ok=True)
+        found_id = False
+        with open(self.status_path, 'r') as instream:
+            for line in instream.readlines():
+                if 'DATASETID' in line:
+                    found_id = True
+                    break
+        if not found_id:
+            with open(self.status_path, 'a') as outstream:
+                outstream.write(f'DATASETID={self.dataset_id}\n')
     
     def __init__(self, dataset_id, pub_base=None, warehouse_base=None, archive_base=None, start_year=None, end_year=None, datavars=None, path='', versions={}, stat=None, comm=None, *args, **kwargs):
         super().__init__()
@@ -69,7 +79,9 @@ class Dataset(object):
             self.status_path = status_path
         else:
             self.status_path = None
-
+        
+        self.initialize_status_file()
+        # import ipdb; ipdb.set_trace()
         self.data_path = None
         self.start_year = start_year
         self.end_year = end_year
@@ -333,10 +345,6 @@ class Dataset(object):
     def update_status(self, status, params=None):
         # write out the status to the status file, and update the 
         # self.state variable
-
-        if not self.status_path or not self.status_path.exists():
-            self.status_path.touch(mode=0o755, exist_ok=True)
-
 
         self.status = status
         with open(self.status_path, 'a') as outstream:
