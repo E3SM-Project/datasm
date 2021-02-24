@@ -63,7 +63,7 @@ class Dataset(object):
     def __init__(self, dataset_id, pub_base=None, warehouse_base=None, archive_base=None, start_year=None, end_year=None, datavars=None, path='', versions={}, stat=None, comm=None, *args, **kwargs):
         super().__init__()
         self.dataset_id = dataset_id
-        self.status = DatasetStatus.UNITITIALIZED.name
+        self._status = DatasetStatus.UNITITIALIZED.name
 
         if (status_path := Path(warehouse_base, '.status')):
             self.status_path = status_path
@@ -140,12 +140,12 @@ class Dataset(object):
     
     @property
     def status(self):
-        return self.status
+        return self._status
     
     @status.setter
     def status(self, status):
         if status is not None:
-            self.status = status
+            self._status = status
     
     def lock(self, path):
         if self.is_locked(path):
