@@ -5,7 +5,7 @@ NAME = 'RectifyTimeIndex'
 class RectifyTimeIndex(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
         self.name = NAME
         self._cmd = f"""
 cd {self.scripts_path}

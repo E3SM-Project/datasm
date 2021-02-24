@@ -5,6 +5,6 @@ NAME = 'GenerateAtmCmor'
 class GenerateAtmCmor(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
         self.name = NAME
         self.cmd = ''
