@@ -22,28 +22,28 @@ VALIDATION:Ready:
 
 ATMVALIDATION:Pass:
     default:
-        - Pass
+        - VALIDATION:Pass
 ATMVALIDATION:Fail:
     default:
-        - Fail
+        - VALIDATION:Fail
 
 LNDVALIDATION:Pass:
     default:
-        - Pass
+        - VALIDATION:Pass
 LNDVALIDATION:Fail:
     default:
-        - Fail
+        - VALIDATION:Fail
 
 MPASVALIDATION:Pass:
     default:
-        - Pass
+        - VALIDATION:Pass
 MPASVALIDATION:Fail:
     default:
-        - Fail
+        - VALIDATION:Fail
 
-WAREHOUSE:Pass:
+VALIDATION:Pass:
     default:
         - Pass
-WAREHOUSE:Fail:
+VALIDATION:Fail:
     default:
         - Fail

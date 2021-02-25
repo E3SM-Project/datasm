@@ -15,6 +15,14 @@ def load_file_lines(file_path):
     with open(file_path, "r") as instream:
         retlist = [[i for i in x.split('\n') if i].pop() for x in instream.readlines() if x[:-1]]
     return retlist
+
+def get_last_status_line(file_path):
+    with open(file_path, 'r') as instream:
+        last_line = None
+        for line in instream.readlines():
+            if "STAT" in line:
+                last_line = line
+        return last_line
 # -----------------------------------------------
 
 def print_list(prefix, items):

@@ -85,51 +85,6 @@ class AutoWarehouse():
         with open(self.spec_path, 'r') as instream:
             self.dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
 
-    def status_was_updated(self, path):
-        """
-        This should be called whenever a datasets status file is updated
-        Parameters: path (str) -> the path to the directory containing the status file
-        """
-        # import ipdb; ipdb.set_trace()
-        dataset_id = None
-        with open(path, 'r') as instream:
-            for line in instream.readlines():
-                if 'DATASETID' in line:
-                    dataset_id = line.split('=')[-1].strip()
-        # path_split = path.split(os.sep)
-        # length = len(path_split)
-        # for i in range(1, length):
-        #     test = '.'.join(path_split[length - i : -1])
-        #     if test in self.datasets.keys():
-        #         dataset_id = test
-        #         break
-        if dataset_id is None:
-            print("something went wrong")
-            import ipdb; ipdb.set_trace()
-
-        # update the datasets status with the value just put into the status file
-        print(f"Got a status update from {dataset_id}")
-        dataset = self.datasets[dataset_id]
-        dataset.load_dataset_status_file()
-
-        # check to see of there's a slurm ID in the second to last status
-        # and if there is, and the latest is either Pass or Fail, then 
-        # remove the job from the job_pool
-        latest, second_latest = dataset.get_latest_status()
-        if second_latest is not None:
-            latest_attrs = latest.split(':')
-            second_latest_attrs = second_latest.split(':')
-            if "slurm_id" in second_latest_attrs[-1]:
-                job_id = int(second_latest_attrs[-1][second_latest_attrs[-1].index('=')+1:])
-                if second_latest_attrs[-3] == latest_attrs[-3]:
-                    if 'Pass' in latest_attrs[-2] or 'Fail' in latest_attrs[-2]:
-                        for job, slurm_id in self.job_pool.items():
-                            if slurm_id == job_id:
-                                self.job_pool.pop(job)
-                                break
-        dataset.status = latest
-        self.start_datasets()
-
     def __call__(self, check_esgf=True):
         try:
             # find missing datasets
@@ -283,89 +238,116 @@ class AutoWarehouse():
     def workflow_success(self, dataset):
         cprint(f"Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}", 'cyan')
 
+    def status_was_updated(self, path):
+        """
+        This should be called whenever a datasets status file is updated
+        Parameters: path (str) -> the path to the directory containing the status file
+        """
+        # import ipdb; ipdb.set_trace()
+        dataset_id = None
+        with open(path, 'r') as instream:
+            for line in instream.readlines():
+                if 'DATASETID' in line:
+                    dataset_id = line.split('=')[-1].strip()
+        if dataset_id is None:
+            print("something went wrong")
+            import ipdb; ipdb.set_trace()
+
+        # print(f"Got a status update from {dataset_id}")
+        dataset = self.datasets[dataset_id]
+        dataset.update_from_status_file()
+
+        # check to see of there's a slurm ID in the second to last status
+        # and if there is, and the latest is either Pass or Fail, then 
+        # remove the job from the job_pool
+        latest, second_latest = dataset.get_latest_status()
+        # print(f"status_was_updated: *{latest}*")
+        if second_latest is not None:
+            latest_attrs = latest.split(':')
+            second_latest_attrs = second_latest.split(':')
+            if "slurm_id" in second_latest_attrs[-1]:
+                job_id = int(second_latest_attrs[-1][second_latest_attrs[-1].index('=')+1:])
+                if second_latest_attrs[-3] == latest_attrs[-3]:
+                    if 'Pass' in latest_attrs[-2] or 'Fail' in latest_attrs[-2]:
+                        for job, slurm_id in self.job_pool.items():
+                            if slurm_id == job_id:
+                                self.job_pool.pop(job)
+                                break
+        self.start_datasets()
+
     def start_datasets(self):
         """
         Resolve next steps for datasets and create job objects for them
         Parameters: datasets dict of string dataset_ids to dataset objects
         Returns: list of new job objects
         """
+        
         new_jobs = []
         for dataset_id, dataset in self.datasets.items():
-            if dataset.status in [DatasetStatus.SUCCESS.name, DatasetStatus.FAILED.name]:
-                continue
-            if dataset.status not in [x.name for x in DatasetStatus]:
-                if 'Ready' in dataset.status or 'Pass' in dataset.status or 'Fail' in dataset.status:
-                    # we keep a reference to the workflow instance, so when
-                    # we make a job we can reconstruct the parent workflow name
-                    # for the status file
-                    params = {}
-                    if (parameters := dataset.status.split(':')[-1]):
-                        for item in parameters.split(','):
-                            key, value = item.split('=')
-                            params[key] = value.replace('^', ':')
+            if 'Ready' in dataset.status or 'Pass' in dataset.status or 'Fail' in dataset.status:
+                # we keep a reference to the workflow instance, so when
+                # we make a job we can reconstruct the parent workflow name
+                # for the status file
+                params = {}
+                # import ipdb;ipdb.set_trace()
+                if (parameters := dataset.status.split(':')[-1].strip()):
+                    for item in parameters.split(','):
+                        key, value = item.split('=')
+                        params[key] = value.replace('^', ':')
 
-                    next_states = [(dataset.status, self.workflow, params)]
-                    engaged_states = []
-                    while next_states:
-
-                        state, workflow, params = next_states.pop(0)
-                        if dataset.is_blocked(state):
-                            continue
-                        if 'Engaged' in state:
-                            engaged_states.append((state, workflow, params))
-                            continue
-                        elif "WAREHOUSE:Pass" in state:
-                            self.workflow_success(dataset)
-                            dataset.status = state
-                            # import ipdb;ipdb.set_trace()
-                            continue
-                        elif "Exit:Fail" in state:
-                            self.workflow_error(dataset)
-                            dataset.status = state
-                            continue
-                        elif 'Fail' in state:
-                            self.workflow_error(dataset)
-                            new_state = self.workflow.next_state(dataset, state, params)
-                            if new_state:
-                                new_state, _, _ = new_state.pop()
-                                dataset.update_status(new_state, params)
-                            continue
-                        elif 'Pass' in state:
-                            self.workflow_success(dataset)
-                            new_state = self.workflow.next_state(dataset, state, params)
-                            if new_state:
-                                new_state, _, _ = new_state.pop()
-                                dataset.update_status(new_state, params)
-                            continue
-
-                        new_states = self.workflow.next_state(dataset, state, params)
-                        if new_states is None:
-                            continue
-                        next_states.extend(new_states)
-                    
-                    if not engaged_states:
-                        self.check_done()
-                        return
-
-                    for state, workflow, params in engaged_states:
-                        newjob = self.workflow.get_job(
-                            dataset,
-                            state,
-                            params,
-                            self.scripts_path,
-                            self.slurm_path,
-                            workflow=workflow,
-                            job_workers=self.job_workers)
-
-                        if (matching_job := self.find_matching_job(newjob)) is None:
-                            new_jobs.append(newjob)
+                # next_states = [(dataset.status, self.workflow, params)]
+                state = dataset.status
+                workflow = self.workflow
+                engaged_states = []
+                
+                # while next_states:
+                # print(f"start_datasets: *{state}*")
+                # import ipdb;ipdb.set_trace()
+                if dataset.is_blocked(state):
+                    continue
+                elif f"{self.workflow.name.upper()}:Pass:" == state:
+                    self.workflow_success(dataset)
+                    self.check_done()
+                    return
+                elif f"{self.workflow.name.upper()}:Fail:" == state:
+                    self.workflow_error(dataset)
+                    self.check_done()
+                    return
+                else:
+                    state_list = self.workflow.next_state(dataset, state, params)
+                    for item in state_list:
+                        new_state, workflow, params = item
+                        if 'Engaged' in new_state:
+                            engaged_states.append((new_state, workflow, params))
                         else:
-                            matching_job.setup_requisites(newjob.dataset)
+                            # import ipdb;ipdb.set_trace()
+                            dataset.status = (new_state, params)
+                        
+                
+                if not engaged_states:
+                    self.check_done()
+                    return
+
+                for state, workflow, params in engaged_states:
+                    newjob = self.workflow.get_job(
+                        dataset,
+                        state,
+                        params,
+                        self.scripts_path,
+                        self.slurm_path,
+                        workflow=workflow,
+                        job_workers=self.job_workers)
+
+                    if (matching_job := self.find_matching_job(newjob)) is None:
+                        new_jobs.append(newjob)
+                    else:
+                        matching_job.setup_requisites(newjob.dataset)
+            # end for
         if new_jobs is not None:
             self.job_pool.update({
                 x: None for x in new_jobs
             })
-    
+
         # start the jobs in the job_pool if they're ready
         self.filter_job_pool(self.job_pool, self.datasets)
 
@@ -376,9 +358,9 @@ class AutoWarehouse():
                 else:
                     cprint(f"Error starting up job {job}", 'red')
 
-        self.check_done()
+        # self.check_done()
         return
-    
+
     def start_listener(self):
         self.listener = Listener(
             warehouse=self,
@@ -389,12 +371,14 @@ class AutoWarehouse():
     def check_done(self):
         all_done = True
         for dataset in self.datasets.values():
-            if "WAREHOUSE:Pass" not in dataset.status:
+            if f"{self.workflow.name.upper()}:Pass:" != dataset.status:
                 all_done = False
         if all_done:
+            # print("SHOULD EXIT")
             self.listener.observer.stop()
             self.should_exit = True
             sys.exit(0)
+        # print("should NOT exit")
         return
 
     def find_matching_job(self, searchjob):
@@ -452,19 +436,19 @@ class AutoWarehouse():
         p.add_argument(
             '-w', '--warehouse-path',
             default=DEFAULT_WAREHOUSE_PATH,
-            help="The root path for pre-publication dataset staging")
+            help=f"The root path for pre-publication dataset staging, default={DEFAULT_WAREHOUSE_PATH}")
         p.add_argument(
             '-p', '--publication-path',
             default=DEFAULT_PUBLICATION_PATH,
-            help="The root path for data publication")
+            help=f"The root path for data publication, default={DEFAULT_PUBLICATION_PATH}")
         p.add_argument(
             '-a', '--archive-path',
             default=DEFAULT_ARCHIVE_PATH,
-            help="The root path for the data archive")
+            help=f"The root path for the data archive, default={DEFAULT_ARCHIVE_PATH}")
         p.add_argument(
             '-d', '--dataset-spec',
             default=DEFAULT_SPEC_PATH,
-            help='The path to the dataset specification yaml file')
+            help=f'The path to the dataset specification yaml file, default={DEFAULT_SPEC_PATH}')
         p.add_argument(
             '--dataset-id',
             nargs='*',
@@ -474,7 +458,7 @@ class AutoWarehouse():
             '--job-workers',
             type=int,
             default=8,
-            help='number of parallel workers each job should create when running')
+            help='number of parallel workers each job should create when running, default=8')
         p.add_argument(
             '--testing',
             action="store_true",
@@ -488,7 +472,7 @@ class AutoWarehouse():
             '--slurm-path',
             required=False,
             default='slurm_scripts',
-            help='The directory to hold slurm batch scripts as well as console output from batch jobs')
+            help=f'The directory to hold slurm batch scripts as well as console output from batch jobs, default={os.environ["PWD"]}/slurm_scripts')
         p.add_argument(
             '--report-missing',
             required=False,

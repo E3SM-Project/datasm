@@ -25,9 +25,9 @@ class WorkflowJob(object):
         return f"{self.parent}:{self.name}:{self.dataset.dataset_id}"
 
     def __call__(self, slurm):
-        print(f"starting up {str(self)}")
         if not self.meets_requirements():
             return None
+        print(f"Starting job: {str(self)}")
 
         working_dir = self.dataset.working_dir
         if self.dataset.is_locked(working_dir):
@@ -49,7 +49,7 @@ class WorkflowJob(object):
         self.add_cmd_suffix(working_dir)
         slurm.render_script(self.cmd, tmp.name, self._slurm_opts)
         self._job_id = slurm.sbatch(tmp.name)
-        self.dataset.update_status(f"{self._parent}:{self.name}:Engaged:slurm_id={self.job_id}")
+        self.dataset.status = (f"{self._parent}:{self.name}:Engaged:", {"slurm_id": self.job_id})
         return self._job_id
 
     

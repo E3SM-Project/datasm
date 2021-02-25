@@ -6,7 +6,7 @@ from enum import Enum
 from pathlib import Path
 from pprint import pprint
 from datetime import datetime
-from warehouse.util import load_file_lines, sproket_with_id
+from warehouse.util import load_file_lines, sproket_with_id, get_last_status_line
 
 
 class DatasetStatus(Enum):
@@ -69,7 +69,13 @@ class Dataset(object):
         if not found_id:
             with open(self.status_path, 'a') as outstream:
                 outstream.write(f'DATASETID={self.dataset_id}\n')
-    
+        
+        # import ipdb; ipdb.set_trace()
+        if (status := get_last_status_line(self.status_path)):
+            self._status = f"{status.split(':')[-3]}:{status.split(':')[-2]}:"
+        else:
+            self._status = DatasetStatus.UNITITIALIZED.name
+
     def __init__(self, dataset_id, pub_base=None, warehouse_base=None, archive_base=None, start_year=None, end_year=None, datavars=None, path='', versions={}, stat=None, comm=None, *args, **kwargs):
         super().__init__()
         self.dataset_id = dataset_id
@@ -80,7 +86,6 @@ class Dataset(object):
         else:
             self.status_path = None
         
-        self.initialize_status_file()
         # import ipdb; ipdb.set_trace()
         self.data_path = None
         self.start_year = start_year
@@ -135,6 +140,17 @@ class Dataset(object):
             self.ensemble = facets[8]
             self.activity = None
             self.table = None
+        self.initialize_status_file()
+    
+    def update_from_status_file(self):
+        # import ipdb; ipdb.set_trace()
+        self.load_dataset_status_file()
+        latest = get_last_status_line(self.status_path).split(':')
+
+        new_status = ":".join(latest[3:]).strip()
+        # new_status = new_status
+        # print(f"update_from_status_file: *{new_status}*")
+        self._status = new_status
     
     @property
     def working_dir(self):
@@ -156,9 +172,21 @@ class Dataset(object):
     
     @status.setter
     def status(self, status):
-        if status is not None:
-            self._status = status
-    
+        # import ipdb; ipdb.set_trace()
+        if status is None or status == self._status:
+            return
+        params = None
+        if isinstance(status, tuple):
+            status, params = status
+
+        self._status = status
+        with open(self.status_path, 'a') as outstream:
+            msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:WAREHOUSE:{status}'
+            if params:
+                items = [f"{k}={v}".replace(":", "^") for k, v in params.items()]
+                msg += ",".join(items)
+            outstream.write(msg + "\n")
+
     def lock(self, path):
         if self.is_locked(path):
             return
@@ -330,7 +358,7 @@ class Dataset(object):
             # otherwise the "official" location should be the warehouse
             self.status_path = statfile
             self.data_path = self.publication_path
-            self.update_status(DatasetStatusMessage.PUBLICATION_READY.value)
+            self.status = DatasetStatusMessage.PUBLICATION_READY.value
 
             return DatasetStatus.IN_PUBLICATION
         else:
@@ -341,18 +369,6 @@ class Dataset(object):
             x: len([i for i in Path(path, x).glob('*')])
             for x in os.listdir(path) if x[0] == 'v'
         }
-
-    def update_status(self, status, params=None):
-        # write out the status to the status file, and update the 
-        # self.state variable
-
-        self.status = status
-        with open(self.status_path, 'a') as outstream:
-            msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:WAREHOUSE:{status}'
-            if params is not None:
-                items = [f"{k}={v}".replace(":", "^") for k, v in params.items()]
-                msg += ",".join(items)
-            outstream.write(msg + "\n")
 
     def get_status_from_warehouse(self):
         if self.project == 'CMIP6':
