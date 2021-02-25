@@ -371,7 +371,7 @@ class AutoWarehouse():
     def check_done(self):
         all_done = True
         for dataset in self.datasets.values():
-            if f"{self.workflow.name.upper()}:Pass:" != dataset.status:
+            if dataset.status not in [f"{self.workflow.name.upper()}:Pass:", f"{self.workflow.name.upper()}:Fail:"]:
                 all_done = False
         if all_done:
             # print("SHOULD EXIT")
