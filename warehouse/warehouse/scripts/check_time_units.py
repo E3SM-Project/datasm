@@ -58,12 +58,25 @@ def main():
             files[idx].units = units
         pbar.close()
 
+
+    # walk through the files in order
+    # the first file we find that doesnt match the expected units
+    # is the first one in the bad batch
+    # the offset output should be equal to the time of the first bad file
+    # with the expected value (previous file end + freq)
     expected_units = files[0].units
     for idx, info in enumerate(files):
         if expected_units != files[idx].units:
+            # we load the values of the previous file
             with xr.open_dataset(files[idx-1].path, decode_times=False) as ds:
                 freq = ds['time_bnds'].values[0][1] - ds['time_bnds'].values[0][0]
-                offset = ds['time'].values[-1] + freq
+                prev_segment_end = ds['time'].values[-1] + freq
+            # now we load the current file to get its first time value
+            with xr.open_dataset(files[idx].path, decode_times=False) as ds:
+                cur_segment_start = ds['time'].values[0]
+
+            # we assume that the second file is always going to have a LOWER time value
+            offset = prev_segment_end - cur_segment_start
             message = f"correct_units={expected_units},offset={offset}"
             if (messages_path := os.environ.get('message_file')):
                 with open(messages_path, 'w') as outstream:
