@@ -1,16 +1,6 @@
 ATMVALIDATION:Ready:
   default:
-    - CheckFileIntegrity:Ready
-
-CheckFileIntegrity:Ready:
-    default:
-      - CheckFileIntegrity:Engaged
-CheckFileIntegrity:Pass:
-    default:
-      - CheckTimeUnit:Ready
-CheckFileIntegrity:Fail:
-    default:
-      - Fail
+    - CheckTimeUnit:Ready
 
 CheckTimeUnit:Ready:
   default:
