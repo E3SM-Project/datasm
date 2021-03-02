@@ -811,6 +811,213 @@ project:
                 grid: 180x360
                 data_types:
                   - time-series.mon
+      damip_hist-GHG:
+        start: 1850
+        end: 2014
+        ens:
+          - ens1
+          - ens2
+          - ens3
+        campaign: DECK-v1
+        science driver: Water Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.day_cosp
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              -
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      damip_SSP585-GHG:
+        start: 2015
+        end: 2099
+        ens:
+          - ens1
+          - ens2
+          - ens3
+        campaign: DECK-v1
+        science driver: Water Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.day_cosp
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              -
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      projection:
+        start: 2015
+        end: 2099
+        ens:
+          - ens1
+          - ens2
+          - ens3
+          - ens4
+          - ens5
+        campaign: DECK-v1
+        science driver: Water Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.day_cosp
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              -
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+
+      1950-Control-21yrContHiVol-HR:
+        start: 0056
+        end: 0076
+        ens:
+          - ens1
+        campaign: HighResMIP-v1
+        science driver: Water Cycle
+        resolution:
+          0_25deg_atm_18-6km_ocean:
+            atmos:
+              -
+                grid: 720x1440
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.day_cosp
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              -
+                grid: 720x1440
+                data_types:
+                  - time-series.mon
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+
       F2010:
         start: 1
         end: 5

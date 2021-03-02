@@ -50,9 +50,10 @@ class Workflow(object):
             prefix = f'{self.name}:{prefix}'
             return self.parent.get_status_prefix(prefix)
         else:
-            return prefix
+            # return prefix
+            return self.name + ':' + prefix
 
-    def next_state(self, dataset, state, params, idx=0):
+    def next_state(self, dataset, state, params, idx=1):
         """
         Parameters: 
             dataset (Dataset) : The dataset which is changing state

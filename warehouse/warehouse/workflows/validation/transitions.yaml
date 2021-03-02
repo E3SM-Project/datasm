@@ -1,4 +1,14 @@
 VALIDATION:Ready:
+    default:
+        - CheckFileIntegrity:Ready
+
+CheckFileIntegrity:Ready:
+    default:
+        - CheckFileIntegrity:Engaged
+
+CheckFileIntegrity:Pass:
+    default:
+        - VALIDATION:Fail
     atmos-native-3hr:
         - ATMVALIDATION:Ready
     atmos-native-3hr_snap:
@@ -15,10 +25,16 @@ VALIDATION:Ready:
         - ATMVALIDATION:Ready
     land-native-mon:
         - LNDVALIDATION:Ready
+    river-native-mon:
+        - VALIDATION:Pass
     ocean-native-mon:
-        - MPASVALIDATION:Ready
-    sea-ice-native-mon:
-        - MPASVALIDATION:Ready
+        - VALIDATION:Pass
+    seaice-native-mon:
+        - VALIDATION:Pass
+
+CheckFileIntegrity:Fail:
+    default:
+        - Fail
 
 ATMVALIDATION:Pass:
     default:
@@ -34,12 +50,12 @@ LNDVALIDATION:Fail:
     default:
         - VALIDATION:Fail
 
-MPASVALIDATION:Pass:
-    default:
-        - VALIDATION:Pass
-MPASVALIDATION:Fail:
-    default:
-        - VALIDATION:Fail
+# MPASVALIDATION:Pass:
+#     default:
+#         - VALIDATION:Pass
+# MPASVALIDATION:Fail:
+#     default:
+#         - VALIDATION:Fail
 
 VALIDATION:Pass:
     default:
