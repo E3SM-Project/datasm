@@ -11,7 +11,7 @@ WAREHOUSE:Ready:
         - POSTPROCESS:Ready
     ocn-cmor-mon:
         - POSTPROCESS:Ready
-    ice-cmor-mon:
+    sea-ice-cmor-mon:
         - POSTPROCESS:Ready
     default:
         - EXTRACTION:Ready
