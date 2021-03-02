@@ -60,7 +60,7 @@ class Workflow(object):
             idx (int) : The recursive depth index
         Returns the name of the next state to transition to given the current state of the dataset
         """
-        # print(f"next_state: *{state}*")
+        print(f"next_state: *{state}*")
         # import ipdb; ipdb.set_trace()
         state_attrs = state.split(':')
         if len(state_attrs) < 3:
@@ -70,12 +70,13 @@ class Workflow(object):
         prefix = self.get_status_prefix()
         if target_state in self.transitions.keys():
             target_data_type = f'{dataset.realm}-{dataset.grid}-{dataset.freq}'
+            import ipdb; ipdb.set_trace()
             transitions = self.transitions[target_state].get(target_data_type)
             if transitions is None:
                 try:
                     return [(f'{prefix}{x}:', self, params) for x in self.transitions[target_state]['default']]
                 except KeyError as e:
-                    print(f"Dataset {dataset.dataset_id} tried to go to the 'default' transition from the {target_state}, but no default was found")
+                    cprint(f"Dataset {dataset.dataset_id} tried to go to the 'default' transition from the {target_state}, but no default was found", "red")
                     raise e
             else:
                 return [(f'{prefix}{x}:', self, params) for x in transitions]

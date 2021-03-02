@@ -153,4 +153,8 @@ rm $message_file
     @property
     def job_id(self):
         return self._job_id
+    
+    @job_id.setter
+    def job_id(self, new_id):
+        self._job_id = new_id
 

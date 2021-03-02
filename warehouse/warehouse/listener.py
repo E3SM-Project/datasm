@@ -35,10 +35,11 @@ class Listener(object):
         print(f"{event.src_path} has been created")
 
     def on_modified(self, event):
-        with open(event.src_path, 'r') as instream:
-            lines = [line for line in instream.readlines() if 'STAT' in line]
-        if 'Engaged' not in lines[-1]:
-            self.warehouse.status_was_updated(event.src_path)
+        # with open(event.src_path, 'r') as instream:
+        #     lines = [line for line in instream.readlines() if 'STAT' in line]
+        # print(f"on_modified: {lines[-1]}")
+        # if 'Engaged' not in lines[-1]:
+        self.warehouse.status_was_updated(event.src_path)
 
 
 if __name__ == "__main__":

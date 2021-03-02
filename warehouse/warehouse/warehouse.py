@@ -64,7 +64,8 @@ class AutoWarehouse():
             self.workflow.load_transitions()
 
             # this is a list of WorkflowJob objects
-            self.job_pool = {}
+            # self.job_pool = {}
+            self.job_pool = []
 
             # create the local Slurm object
             self.slurm = Slurm()
@@ -135,6 +136,7 @@ class AutoWarehouse():
         if self.testing:
             e3sm_ids = e3sm_ids[:100]
         dataset_ids = cmip6_ids + e3sm_ids
+        # import ipdb; ipdb.set_trace()
         
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
@@ -153,7 +155,7 @@ class AutoWarehouse():
         if not dataset_ids:
             cprint('No datasets match pattern from --dataset-id flag', 'red')
             sys.exit(1)
-        # import ipdb; ipdb.set_trace()
+        
 
         # instantiate the dataset objects with the paths to
         # where they should look for their data files
@@ -224,11 +226,12 @@ class AutoWarehouse():
             if not job.meets_requirements():
                 for dataset in datasets.values():
                     if job.dataset.experiment == dataset.experiment \
-                            and job.dataset.experiment == dataset.experiment \
-                            and job.dataset.model_version == dataset.model_version \
-                            and job.dataset.ensemble == dataset.ensemble \
-                            and job.matches_requirement(dataset) \
-                            and (dataset.status == DatasetStatus.SUCCESS.name or job.name in dataset.get_latest_status()):
+                    and job.dataset.experiment == dataset.experiment \
+                    and job.dataset.model_version == dataset.model_version \
+                    and job.dataset.ensemble == dataset.ensemble \
+                    and job.matches_requirement(dataset) \
+                    and (dataset.status == DatasetStatus.SUCCESS.name or job.name in dataset.get_latest_status()):
+                        print(f"Attaching job {job.name} to dataset {dataset.dataset_id}")
                         job.setup_requisites(dataset)
         return
 
@@ -245,6 +248,7 @@ class AutoWarehouse():
         """
         # import ipdb; ipdb.set_trace()
         dataset_id = None
+
         with open(path, 'r') as instream:
             for line in instream.readlines():
                 if 'DATASETID' in line:
@@ -269,9 +273,9 @@ class AutoWarehouse():
                 job_id = int(second_latest_attrs[-1][second_latest_attrs[-1].index('=')+1:])
                 if second_latest_attrs[-3] == latest_attrs[-3]:
                     if 'Pass' in latest_attrs[-2] or 'Fail' in latest_attrs[-2]:
-                        for job, slurm_id in self.job_pool.items():
-                            if slurm_id == job_id:
-                                self.job_pool.pop(job)
+                        for job in self.job_pool:
+                            if job.job_id == job_id:
+                                self.job_pool.remove(job)
                                 break
         self.start_datasets()
 
@@ -284,7 +288,11 @@ class AutoWarehouse():
         
         new_jobs = []
         for dataset_id, dataset in self.datasets.items():
-            if 'Ready' in dataset.status or 'Pass' in dataset.status or 'Fail' in dataset.status:
+            if 'Engaged' in dataset.status:
+                continue
+            else:
+                print(f"start_datasets: *{dataset.status}*")
+            # if 'Ready' in dataset.status or 'Pass' in dataset.status or 'Fail' in dataset.status:
                 # we keep a reference to the workflow instance, so when
                 # we make a job we can reconstruct the parent workflow name
                 # for the status file
@@ -314,13 +322,13 @@ class AutoWarehouse():
                     self.check_done()
                     return
                 else:
+                    # import ipdb;ipdb.set_trace()
                     state_list = self.workflow.next_state(dataset, state, params)
                     for item in state_list:
                         new_state, workflow, params = item
                         if 'Engaged' in new_state:
                             engaged_states.append((new_state, workflow, params))
                         else:
-                            # import ipdb;ipdb.set_trace()
                             dataset.status = (new_state, params)
                         
                 
@@ -329,6 +337,8 @@ class AutoWarehouse():
                     return
 
                 for state, workflow, params in engaged_states:
+                    # import ipdb;ipdb.set_trace()
+                    print(f"Creating jobs from state: {state}")
                     newjob = self.workflow.get_job(
                         dataset,
                         state,
@@ -342,19 +352,48 @@ class AutoWarehouse():
                         new_jobs.append(newjob)
                     else:
                         matching_job.setup_requisites(newjob.dataset)
-            # end for
-        if new_jobs is not None:
-            self.job_pool.update({
-                x: None for x in new_jobs
-            })
+        #     # end for
+        # if new_jobs is not None:
+        #     self.job_pool.update({
+        #         x: None for x in new_jobs
+        #     })
+        #     self.job_pool.update({
+        #         x: None for x in new_jobs
+        #     })
+        # if not new_jobs:
+        #     return
 
         # start the jobs in the job_pool if they're ready
-        self.filter_job_pool(self.job_pool, self.datasets)
+        # self.filter_job_pool(self.job_pool, self.datasets)
+        # for job_item in self.job_pool:
+        #     job = job_item["job"]
+        #     job_id = job_item["job_id"]
+        #     print(f"Checking jobs: {job}")
+        #     if job_id is None and job.meets_requirements():
+        #         print(f"About to start job: {job}")
+        #         new_id = job(self.slurm)
+        #         if new_id is not None:
+        #             print(f"Job started: {job}")
+        #             self.job_pool[job] = job_id
+        #         else:
+        #             cprint(f"Error starting up job {job}", 'red')
 
+        # import ipdb;ipdb.set_trace()
+        if new_jobs is not None:
+            # self.job_pool.update({
+            #     x: None for x in new_jobs
+            # })
+            self.job_pool = self.job_pool + new_jobs
+
+        # start the jobs in the job_pool if they're ready
+        # self.filter_job_pool(self.job_pool, self.datasets)
+        # import ipdb;ipdb.set_trace()
         for job in self.job_pool:
-            if job.meets_requirements():
-                if (job_id := job(self.slurm)) is not None:
-                    self.job_pool[job] = job_id
+            if job.job_id is None and job.meets_requirements():
+                job_id = job(self.slurm)
+                if job_id is not None:
+                    # self.job_pool[job] = job_id
+                    job.job_id = job_id
                 else:
                     cprint(f"Error starting up job {job}", 'red')
 
@@ -382,14 +421,14 @@ class AutoWarehouse():
         return
 
     def find_matching_job(self, searchjob):
-        for job in self.job_pool.keys():
+        for job in self.job_pool:
             if job.name == searchjob.name \
-                    and job.dataset.experiment == searchjob.dataset.experiment \
-                    and job.dataset.model_version == searchjob.dataset.model_version \
-                    and job.dataset.ensemble == searchjob.dataset.ensemble \
-                    and not job.meets_requirements() and not searchjob.meets_requirements() \
-                    and job.matches_requirement(searchjob.dataset) \
-                    and searchjob.matches_requirement(job.dataset):
+            and job.dataset.experiment == searchjob.dataset.experiment \
+            and job.dataset.model_version == searchjob.dataset.model_version \
+            and job.dataset.ensemble == searchjob.dataset.ensemble \
+            and not job.meets_requirements() and not searchjob.meets_requirements() \
+            and job.matches_requirement(searchjob.dataset) \
+            and searchjob.matches_requirement(job.dataset):
                 return job
         return
 
