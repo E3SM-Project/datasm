@@ -71,7 +71,7 @@ class Workflow(object):
         prefix = self.get_status_prefix()
         if target_state in self.transitions.keys():
             target_data_type = f'{dataset.realm}-{dataset.grid}-{dataset.freq}'
-            import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
             transitions = self.transitions[target_state].get(target_data_type)
             if transitions is None:
                 try:
