@@ -8,7 +8,7 @@ from warehouse.dataset import Dataset, DatasetStatusMessage
 NAME = 'Validation'
 COMMAND = 'validate'
 
-HELP_TEXT = f"""
+HELP_TEXT = """
 Runs the Validation workflow on a single dataset. The input directory should be 
 one level up from the data directory which should me named v0, the input path 
 will be used to hold the .status file and intermediate working directories for the workflow steps. 
@@ -24,7 +24,6 @@ class Validation(Workflow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME.upper()
-        self.datasets = None
 
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse

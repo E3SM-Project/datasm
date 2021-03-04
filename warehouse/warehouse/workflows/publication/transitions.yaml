@@ -20,7 +20,7 @@ ValidateMapfile:Pass:
     - ValidateMapfile:Ready
 ValidateMapfile:Fail:
   default:
-    - Fail
+    - PUBLICATION:Fail
 
 MoveToPublication:Ready:
   default:
@@ -30,7 +30,7 @@ MoveToPublication:Pass:
     - FixMapfilePaths:Ready
 MoveToPublication:Fail:
   default:
-    - Fail
+    - PUBLICATION:Fail
 
 FixMapfilePaths:Ready:
   default:
@@ -40,7 +40,7 @@ FixMapfilePaths:Pass:
     - ESGFPublish:Ready
 FixMapfilePaths:Fail:
   default:
-    - Fail
+    - PUBLICATION:Fail
 
 PublishESGF:Ready:
   default:
@@ -50,14 +50,23 @@ PublishESGF:Pass:
     - ValidateESGF:Ready
 PublishESGF:Fail:
   default:
-    - ValidateFail
+    - PUBLICATION:Fail
 
-Validate:Ready:
+ValidateESGF:Ready:
   default:
-    - Validate:Engaged
-Validate:Pass:
+    - ValidateESGF:Engaged
+ValidateESGF:Pass:
+  default:
+    - PUBLICATION:Pass
+ValidateESGF:Fail:
+  default:
+    - PUBLICATION:Fail
+
+
+
+PUBLICATION:Pass:
   default:
     - Pass
-Validate:Fail:
+PUBLICATION:Fail:
   default:
     - Fail
