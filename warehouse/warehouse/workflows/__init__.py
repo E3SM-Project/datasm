@@ -23,6 +23,7 @@ class Workflow(object):
         self.jobs = self.load_jobs()
         self.params = kwargs
         self.job_workers = kwargs.get('job_workers')
+        self.debug = kwargs.get('debug')
 
     def load_jobs(self):
         """
@@ -40,7 +41,6 @@ class Workflow(object):
             job_class = getattr(module, module.NAME)
             modules[module.NAME] = job_class
         return modules
-
 
     def get_status_prefix(self, prefix=""):
         """
@@ -61,8 +61,7 @@ class Workflow(object):
             idx (int) : The recursive depth index
         Returns the name of the next state to transition to given the current state of the dataset
         """
-        print(f"next_state: *{state}*")
-        # import ipdb; ipdb.set_trace()
+        self.print_debug(f"next_state: *{state}*")
         state_attrs = state.split(':')
         if len(state_attrs) < 3:
             target_state = state
@@ -71,17 +70,17 @@ class Workflow(object):
         prefix = self.get_status_prefix()
         if target_state in self.transitions.keys():
             target_data_type = f'{dataset.realm}-{dataset.grid}-{dataset.freq}'
-            # import ipdb; ipdb.set_trace()
             transitions = self.transitions[target_state].get(target_data_type)
             if transitions is None:
                 try:
                     return [(f'{prefix}{x}:', self, params) for x in self.transitions[target_state]['default']]
                 except KeyError as e:
-                    cprint(f"Dataset {dataset.dataset_id} tried to go to the 'default' transition from the {target_state}, but no default was found", "red")
+                    cprint(
+                        f"Dataset {dataset.dataset_id} tried to go to the 'default' transition from the {target_state}, but no default was found", "red")
                     raise e
             else:
                 return [(f'{prefix}{x}:', self, params) for x in transitions]
-            
+
         elif state_attrs[idx] == "WAREHOUSE":
             return self.next_state(dataset, state, params, idx + 1)
 
@@ -97,25 +96,23 @@ class Workflow(object):
         job_name = state_attrs[-3]
 
         if job_name == state_attrs[1]:
-            parent = state_attrs[0] 
+            parent = state_attrs[0]
         else:
             parent = f"{state_attrs[0]}:{state_attrs[1]}"
 
-    
         job = self.jobs[job_name]
         job_instance = job(
-            dataset, 
-            state, 
-            scripts_path, 
+            dataset,
+            state,
+            scripts_path,
             slurm_out_path,
             params=params,
-            slurm_opts=kwargs.get('slurm_opts', []), 
+            slurm_opts=kwargs.get('slurm_opts', []),
             parent=parent,
             job_workers=self.job_workers)
 
         job_instance.setup_requisites()
         return job_instance
-        
 
     def load_transitions(self):
         transition_path = Path(Path(inspect.getfile(
@@ -144,12 +141,12 @@ class Workflow(object):
             else:
                 module_name = f'warehouse.workflows.{str(my_path)[idx+len(workflows_string) + 1:].replace(os.sep, ".")}.{d.name}'
 
-            print(f"loading workflow module {module_name}")
+            self.print_debug(f"loading workflow module {module_name}")
 
             module = importlib.import_module(module_name)
             workflow_class = getattr(module, module.NAME)
             workflow_instance = workflow_class(
-                parent=self, 
+                parent=self,
                 slurm_scripts=self.slurm_scripts)
             workflow_instance.load_children()
             workflow_instance.load_transitions()
@@ -169,6 +166,10 @@ class Workflow(object):
                 return info
             else:
                 return self.transitions
+
+    def print_debug(self, msg):
+        if self.debug:
+            print(msg)
 
     @staticmethod
     def add_args(parser):
@@ -191,15 +192,20 @@ class Workflow(object):
                  "\t\t for example: 'E3SM.1_3.G-IAF-DIB-ISMF-3dGM.1deg_atm_60-30km_ocean.ocean.native.model-output.mon.ens1' "
                  "If its a CMIP6 dataset, the ID should be in the format 'CMIP6.activity.source.model-version.case.variant.table.variable.gr'  "
                  "\t\t for example: 'CMIP6.CMIP.E3SM-Project.E3SM-1-1.historical.r1i1p1f1.CFmon.cllcalipso.gr' ")
+        parser.add_argument(
+            '--debug',
+            action='store_true',
+            help='Print additional debug information to the console')
         return parser
-    
+
     @staticmethod
     def arg_checker(args, command=NAME):
         if args.data_path and not args.dataset_id:
-            cprint("\nError: If the data_path is given, please also give a dataset ID for the data at the path\n", 'red')
+            cprint(
+                "\nError: If the data_path is given, please also give a dataset ID for the data at the path\n", 'red')
             return False, command
         if not args.dataset_id and not args.data_path:
-            cprint("\nError: please specify either the dataset-ids to process, or the data-path to find datasets\n", 'red')
+            cprint(
+                "\nError: please specify either the dataset-ids to process, or the data-path to find datasets\n", 'red')
             return False, command
         return True, command
-

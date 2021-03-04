@@ -53,28 +53,28 @@ class AutoWarehouse():
         self.datasets_from_path = kwargs.get('datasets_from_path', False)
         os.makedirs(self.slurm_path, exist_ok=True)
         self.should_exit = False
+        self.debug = kwargs.get('debug')
 
         self.scripts_path = Path(Path(inspect.getfile(
             self.__class__)).parent.absolute(), 'scripts').resolve()
 
         if not self.report_missing:
-            self.workflow = kwargs.get('workflow', Workflow(slurm_scripts=self.slurm_path))
-            
+            self.workflow = kwargs.get(
+                'workflow',
+                Workflow(
+                    slurm_scripts=self.slurm_path,
+                    debug=self.debug))
+
             self.workflow.load_children()
             self.workflow.load_transitions()
 
             # this is a list of WorkflowJob objects
-            # self.job_pool = {}
             self.job_pool = []
 
             # create the local Slurm object
             self.slurm = Slurm()
 
-            # create the filesystem listener
-            # self.listener = Listener(
-            #     warehouse=self,
-            #     root=self.warehouse_path)
-            # self.listener.start()
+            # dont setup the listener until after we've gathered the datasets
             self.listener = None
 
         if self.serial:
@@ -98,7 +98,6 @@ class AutoWarehouse():
             self.start_listener()
 
             # start a workflow for each dataset as needed
-            # import ipdb; ipdb.set_trace()
             self.start_datasets()
 
             # wait around while jobs run
@@ -112,9 +111,8 @@ class AutoWarehouse():
             exit(1)
 
         return 0
-    
+
     def print_missing(self):
-        # import ipdb; ipdb.set_trace()
         found_missing = False
         for x in self.datasets.values():
             if x.missing:
@@ -125,7 +123,6 @@ class AutoWarehouse():
                 cprint(f"No files in dataset {x.dataset_id}", 'red')
         if not found_missing:
             cprint("No missing files in datasets", 'red')
-            
 
     def setup_datasets(self, check_esgf=True):
         cprint("Initializing the warehouse", 'green')
@@ -136,8 +133,7 @@ class AutoWarehouse():
         if self.testing:
             e3sm_ids = e3sm_ids[:100]
         dataset_ids = cmip6_ids + e3sm_ids
-        # import ipdb; ipdb.set_trace()
-        
+
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
         if self.dataset_ids is not None:
@@ -151,11 +147,10 @@ class AutoWarehouse():
                 if found:
                     ndataset_ids.append(i)
             dataset_ids = ndataset_ids
-        
+
         if not dataset_ids:
             cprint('No datasets match pattern from --dataset-id flag', 'red')
             sys.exit(1)
-        
 
         # instantiate the dataset objects with the paths to
         # where they should look for their data files
@@ -202,7 +197,7 @@ class AutoWarehouse():
             if not self.serial:
                 pool = ProcessPoolExecutor(max_workers=self.num_workers)
                 futures = [pool.submit(x.find_status)
-                        for x in self.datasets.values()]
+                           for x in self.datasets.values()]
                 for future in tqdm(as_completed(futures), total=len(futures), desc="Searching ESGF for datasets"):
                     dataset_id, status, missing = future.result()
                     if isinstance(status, DatasetStatus):
@@ -226,27 +221,33 @@ class AutoWarehouse():
             if not job.meets_requirements():
                 for dataset in datasets.values():
                     if job.dataset.experiment == dataset.experiment \
-                    and job.dataset.experiment == dataset.experiment \
-                    and job.dataset.model_version == dataset.model_version \
-                    and job.dataset.ensemble == dataset.ensemble \
-                    and job.matches_requirement(dataset) \
-                    and (dataset.status == DatasetStatus.SUCCESS.name or job.name in dataset.get_latest_status()):
-                        print(f"Attaching job {job.name} to dataset {dataset.dataset_id}")
+                            and job.dataset.experiment == dataset.experiment \
+                            and job.dataset.model_version == dataset.model_version \
+                            and job.dataset.ensemble == dataset.ensemble \
+                            and job.matches_requirement(dataset) \
+                            and (dataset.status == DatasetStatus.SUCCESS.name or job.name in dataset.get_latest_status()):
+                        print(
+                            f"Attaching job {job.name} to dataset {dataset.dataset_id}")
                         job.setup_requisites(dataset)
         return
 
     def workflow_error(self, dataset):
-        cprint(f"Dataset {dataset.dataset_id} FAILED from {dataset.status}", 'red')
+        cprint(
+            f"Dataset {dataset.dataset_id} FAILED from {dataset.status}", 'red')
 
     def workflow_success(self, dataset):
-        cprint(f"Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}", 'cyan')
+        cprint(
+            f"Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}", 'cyan')
+
+    def print_debug(self, msg):
+        if self.debug:
+            print(msg)
 
     def status_was_updated(self, path):
         """
         This should be called whenever a datasets status file is updated
         Parameters: path (str) -> the path to the directory containing the status file
         """
-        # import ipdb; ipdb.set_trace()
         dataset_id = None
 
         with open(path, 'r') as instream:
@@ -255,22 +256,25 @@ class AutoWarehouse():
                     dataset_id = line.split('=')[-1].strip()
         if dataset_id is None:
             print("something went wrong")
-            import ipdb; ipdb.set_trace()
+            import ipdb
+            ipdb.set_trace()
 
-        # print(f"Got a status update from {dataset_id}")
+        # import ipdb; ipdb.set_trace()
+        self.print_debug(f"Got a status update from {dataset_id}")
         dataset = self.datasets[dataset_id]
         dataset.update_from_status_file()
 
         # check to see of there's a slurm ID in the second to last status
-        # and if there is, and the latest is either Pass or Fail, then 
+        # and if there is, and the latest is either Pass or Fail, then
         # remove the job from the job_pool
         latest, second_latest = dataset.get_latest_status()
-        # print(f"status_was_updated: *{latest}*")
+        self.print_debug(f"status_was_updated: *{latest}*")
         if second_latest is not None:
             latest_attrs = latest.split(':')
             second_latest_attrs = second_latest.split(':')
             if "slurm_id" in second_latest_attrs[-1]:
-                job_id = int(second_latest_attrs[-1][second_latest_attrs[-1].index('=')+1:])
+                job_id = int(
+                    second_latest_attrs[-1][second_latest_attrs[-1].index('=')+1:])
                 if second_latest_attrs[-3] == latest_attrs[-3]:
                     if 'Pass' in latest_attrs[-2] or 'Fail' in latest_attrs[-2]:
                         for job in self.job_pool:
@@ -285,32 +289,26 @@ class AutoWarehouse():
         Parameters: datasets dict of string dataset_ids to dataset objects
         Returns: list of new job objects
         """
-        
+
         new_jobs = []
         for dataset_id, dataset in self.datasets.items():
             if 'Engaged' in dataset.status:
                 continue
             else:
-                print(f"start_datasets: *{dataset.status}*")
-            # if 'Ready' in dataset.status or 'Pass' in dataset.status or 'Fail' in dataset.status:
+                self.print_debug(f"start_datasets: *{dataset.status}*")
                 # we keep a reference to the workflow instance, so when
                 # we make a job we can reconstruct the parent workflow name
                 # for the status file
                 params = {}
-                # import ipdb;ipdb.set_trace()
                 if (parameters := dataset.status.split(':')[-1].strip()):
                     for item in parameters.split(','):
                         key, value = item.split('=')
                         params[key] = value.replace('^', ':')
 
-                # next_states = [(dataset.status, self.workflow, params)]
                 state = dataset.status
                 workflow = self.workflow
                 engaged_states = []
-                
-                # while next_states:
-                # print(f"start_datasets: *{state}*")
-                # import ipdb;ipdb.set_trace()
+
                 if dataset.is_blocked(state):
                     continue
                 elif f"{self.workflow.name.upper()}:Pass:" == state:
@@ -322,23 +320,22 @@ class AutoWarehouse():
                     self.check_done()
                     return
                 else:
-                    # import ipdb;ipdb.set_trace()
-                    state_list = self.workflow.next_state(dataset, state, params)
+                    state_list = self.workflow.next_state(
+                        dataset, state, params)
                     for item in state_list:
                         new_state, workflow, params = item
                         if 'Engaged' in new_state:
-                            engaged_states.append((new_state, workflow, params))
+                            engaged_states.append(
+                                (new_state, workflow, params))
                         else:
                             dataset.status = (new_state, params)
-                        
-                
+
                 if not engaged_states:
                     self.check_done()
                     return
 
                 for state, workflow, params in engaged_states:
-                    # import ipdb;ipdb.set_trace()
-                    print(f"Creating jobs from state: {state}")
+                    self.print_debug(f"Creating jobs from state: {state}")
                     newjob = self.workflow.get_job(
                         dataset,
                         state,
@@ -346,58 +343,25 @@ class AutoWarehouse():
                         self.scripts_path,
                         self.slurm_path,
                         workflow=workflow,
-                        job_workers=self.job_workers)
+                        job_workers=self.job_workers,
+                        debug=self.debug)
 
                     if (matching_job := self.find_matching_job(newjob)) is None:
                         new_jobs.append(newjob)
                     else:
                         matching_job.setup_requisites(newjob.dataset)
-        #     # end for
-        # if new_jobs is not None:
-        #     self.job_pool.update({
-        #         x: None for x in new_jobs
-        #     })
-        #     self.job_pool.update({
-        #         x: None for x in new_jobs
-        #     })
-        # if not new_jobs:
-        #     return
 
-        # start the jobs in the job_pool if they're ready
-        # self.filter_job_pool(self.job_pool, self.datasets)
-        # for job_item in self.job_pool:
-        #     job = job_item["job"]
-        #     job_id = job_item["job_id"]
-        #     print(f"Checking jobs: {job}")
-        #     if job_id is None and job.meets_requirements():
-        #         print(f"About to start job: {job}")
-        #         new_id = job(self.slurm)
-        #         if new_id is not None:
-        #             print(f"Job started: {job}")
-        #             self.job_pool[job] = job_id
-        #         else:
-        #             cprint(f"Error starting up job {job}", 'red')
-
-        # import ipdb;ipdb.set_trace()
         if new_jobs is not None:
-            # self.job_pool.update({
-            #     x: None for x in new_jobs
-            # })
             self.job_pool = self.job_pool + new_jobs
 
         # start the jobs in the job_pool if they're ready
-        # self.filter_job_pool(self.job_pool, self.datasets)
-        # import ipdb;ipdb.set_trace()
         for job in self.job_pool:
             if job.job_id is None and job.meets_requirements():
                 job_id = job(self.slurm)
                 if job_id is not None:
-                    # self.job_pool[job] = job_id
                     job.job_id = job_id
                 else:
                     cprint(f"Error starting up job {job}", 'red')
-
-        # self.check_done()
         return
 
     def start_listener(self):
@@ -413,25 +377,22 @@ class AutoWarehouse():
             if dataset.status not in [f"{self.workflow.name.upper()}:Pass:", f"{self.workflow.name.upper()}:Fail:"]:
                 all_done = False
         if all_done:
-            # print("SHOULD EXIT")
             self.listener.observer.stop()
             self.should_exit = True
             sys.exit(0)
-        # print("should NOT exit")
         return
 
     def find_matching_job(self, searchjob):
         for job in self.job_pool:
             if job.name == searchjob.name \
-            and job.dataset.experiment == searchjob.dataset.experiment \
-            and job.dataset.model_version == searchjob.dataset.model_version \
-            and job.dataset.ensemble == searchjob.dataset.ensemble \
-            and not job.meets_requirements() and not searchjob.meets_requirements() \
-            and job.matches_requirement(searchjob.dataset) \
-            and searchjob.matches_requirement(job.dataset):
+                    and job.dataset.experiment == searchjob.dataset.experiment \
+                    and job.dataset.model_version == searchjob.dataset.model_version \
+                    and job.dataset.ensemble == searchjob.dataset.ensemble \
+                    and not job.meets_requirements() and not searchjob.meets_requirements() \
+                    and job.matches_requirement(searchjob.dataset) \
+                    and searchjob.matches_requirement(job.dataset):
                 return job
         return
-
 
     def collect_cmip_datasets(self, **kwargs):
         for activity_name, activity_val in self.dataset_spec['project']['CMIP6'].items():
@@ -517,6 +478,10 @@ class AutoWarehouse():
             required=False,
             action='store_true',
             help='After collecting the datasets, print out any that have missing files and exit')
+        p.add_argument(
+            '--debug',
+            action='store_true',
+            help='Print additional debug information to the console')
         return NAME, parser
 
     @staticmethod
