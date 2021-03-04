@@ -39,12 +39,20 @@ class FileItem:
 def main():
     parsed_args = parse_args()
     
+
+    # populate and sort the list of FileItems
+    # the list will be sorted based on its name 
     futures = []
     files = sorted([
         FileItem(units=None, path=str(x.resolve()))
         for x in Path(parsed_args.input).glob('*.nc')],
         key=operator.attrgetter('path'))
 
+    # setup a process pool, then iterate of all the files
+    # for each file submit a job, and get a future, for its units
+    
+    # once the future returns, stick its output into its 
+    # corresponding position in the output array
     with ProcessPoolExecutor(max_workers=parsed_args.processes) as pool:
         for idx, item in enumerate(files):
             futures.append(

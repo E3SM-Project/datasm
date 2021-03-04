@@ -19,14 +19,12 @@ The --dataset-id flag should be in the facet format of the ESGF project.
 """
 
 
-
 class Validation(Workflow):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
         self.name = NAME.upper()
         self.datasets = None
-        
 
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse
@@ -39,21 +37,19 @@ class Validation(Workflow):
                 dataset_id=dataset_ids,
                 warehouse_path=data_path,
                 serial=True,
-                job_worker=self.job_workers)
+                job_worker=self.job_workers,
+                debug=self.debug)
         else:
             warehouse = AutoWarehouse(
                 workflow=self,
                 dataset_id=dataset_ids,
                 serial=True,
-                job_worker=self.job_workers)
-        
+                job_worker=self.job_workers,
+                debug=self.debug)
+
         warehouse.setup_datasets(check_esgf=False)
         dataset_id, dataset = next(iter(warehouse.datasets.items()))
         dataset.warehouse_path = Path(data_path)
-        # import ipdb; ipdb.set_trace()
-        # dataset.load_dataset_status_file()
-        # latest, _ = dataset.get_latest_status()
-        # dataset.status = latest
 
         warehouse.start_listener()
 
@@ -62,11 +58,11 @@ class Validation(Workflow):
         else:
             warehouse.start_datasets()
 
-        while True:
-            if warehouse.should_exit:
-                sys.exit(0)
+        while not warehouse.should_exit:
             sleep(2)
-
+        print(
+            f"Validation complete, dataset {dataset.dataset_id} is in state {dataset.status}")
+        sys.exit(0)
 
     @staticmethod
     def add_args(parser):

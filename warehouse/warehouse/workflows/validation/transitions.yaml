@@ -29,12 +29,14 @@ CheckFileIntegrity:Pass:
         - VALIDATION:Pass
     ocean-native-mon:
         - VALIDATION:Pass
-    seaice-native-mon:
+    ocean-native-5day_snap:
+        - VALIDATION:Pass
+    sea-ice-native-mon:
         - VALIDATION:Pass
 
 CheckFileIntegrity:Fail:
     default:
-        - Fail
+        - VALIDATION:Fail
 
 ATMVALIDATION:Pass:
     default:

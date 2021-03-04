@@ -19,15 +19,20 @@ class WorkflowJob(object):
         self._parameters = params
         self._job_workers = kwargs.get('job_workers', 8)
         self._job_id = None
+        self.debug = kwargs.get('debug')
 
     
     def __str__(self):
         return f"{self.parent}:{self.name}:{self.dataset.dataset_id}"
+    
+    def print_debug(self, msg):
+        if self.debug:
+            print(msg)
 
     def __call__(self, slurm):
         if not self.meets_requirements():
             return None
-        print(f"Starting job: {str(self)}")
+        self.print_debug(f"Starting job: {str(self)}")
 
         working_dir = self.dataset.working_dir
         if self.dataset.is_locked(working_dir):
@@ -153,4 +158,8 @@ rm $message_file
     @property
     def job_id(self):
         return self._job_id
+    
+    @job_id.setter
+    def job_id(self, new_id):
+        self._job_id = new_id
 

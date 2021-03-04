@@ -35,8 +35,8 @@ def main():
     if not file_one.exists() or not file_two.exists():
         raise ValueError("One of more input files does not exist")
 
-    data1 = xr.open_dataset(str(file_one.resolve()))
-    data2 = xr.open_dataset(str(file_two.resolve()))
+    data1 = xr.open_dataset(str(file_one.resolve()), decode_times=False)
+    data2 = xr.open_dataset(str(file_two.resolve()), decode_times=False)
 
     all_match = True
     dont_match = []
