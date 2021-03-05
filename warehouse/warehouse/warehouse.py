@@ -19,12 +19,15 @@ from warehouse.listener import Listener
 import warehouse.resources as resources
 
 
-DEFAULT_WAREHOUSE_PATH = '/p/user_pub/e3sm/warehouse/'
-DEFAULT_PUBLICATION_PATH = '/p/user_pub/work/'
-DEFAULT_ARCHIVE_PATH = '/p/user_pub/e3sm/archive'
-
 resource_path, _ = os.path.split(resources.__file__)
 DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
+DEFAULT_CONF_PATH = os.path.join(resource_path, 'warehouse_config.yaml')
+
+with open(DEFAULT_CONF_PATH, 'r') as instream:
+    warehouse_conf = yaml.load(instream, Loader=yaml.SafeLoader)
+DEFAULT_WAREHOUSE_PATH = warehouse_conf['DEFAULT_WAREHOUSE_PATH']
+DEFAULT_PUBLICATION_PATH = warehouse_conf['DEFAULT_PUBLICATION_PATH']
+DEFAULT_ARCHIVE_PATH = warehouse_conf['DEFAULT_ARCHIVE_PATH']
 NAME = 'auto'
 
 
@@ -446,14 +449,20 @@ class AutoWarehouse():
             default=DEFAULT_ARCHIVE_PATH,
             help=f"The root path for the data archive, default={DEFAULT_ARCHIVE_PATH}")
         p.add_argument(
-            '-d', '--dataset-spec',
-            default=DEFAULT_SPEC_PATH,
-            help=f'The path to the dataset specification yaml file, default={DEFAULT_SPEC_PATH}')
-        p.add_argument(
             '--dataset-id',
             nargs='*',
             help='Only run the automated processing for the given datasets, this can the the complete dataset_id, '
                  'or a wildcard such as E3SM.1_0.')
+        p.add_argument(
+            '--warehouse-config',
+            default=DEFAULT_CONF_PATH,
+            help="The default warehouse/publication/archives paths are drawn from a config yaml file "
+                 "you can change the values via the command line or change the contents of the file here "
+                f"{DEFAULT_CONF_PATH}")
+        p.add_argument(
+            '--dataset-spec',
+            default=DEFAULT_SPEC_PATH,
+            help=f'The path to the dataset specification yaml file, default={DEFAULT_SPEC_PATH}')
         p.add_argument(
             '--job-workers',
             type=int,
