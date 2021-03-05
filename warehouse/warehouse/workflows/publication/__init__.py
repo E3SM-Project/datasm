@@ -24,7 +24,7 @@ class Publication(Workflow):
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse
 
-        dataset_id = self.params['dataset_id']
+        dataset_id = self.params['dataset_id'].pop()
 
         if (pub_base := self.params.get('publication_base')):
             self.pub_path = Path(pub_base, dataset_id.replace('.', os.sep))
@@ -57,8 +57,8 @@ class Publication(Workflow):
 
         warehouse.start_listener()
 
-        if DatasetStatusMessage.VALIDATION_READY.value not in dataset.status:
-            dataset.status = DatasetStatusMessage.VALIDATION_READY.value
+        if DatasetStatusMessage.PUBLICATION_READY.value not in dataset.status:
+            dataset.status = DatasetStatusMessage.PUBLICATION_READY.value
         else:
             warehouse.start_datasets()
 

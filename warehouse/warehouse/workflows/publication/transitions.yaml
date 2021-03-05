@@ -4,27 +4,27 @@ PUBLICATION:Ready:
 
 GenerateMapfile:Ready:
   default:
-    - GenerateMapfile:Engaged
+    - GenerateMapfile:Pass
 GenerateMapfile:Pass:
   default:
     - ValidateMapfile:Ready
 GenerateMapfile:Fail:
   default:
-    - Fail
+    - PUBLICATION:Fail
 
 ValidateMapfile:Ready:
   default:
-    - ValidateMapfile:Engaged
+    - ValidateMapfile:Pass
 ValidateMapfile:Pass:
   default:
-    - ValidateMapfile:Ready
+    - MoveToPublication:Ready
 ValidateMapfile:Fail:
   default:
     - PUBLICATION:Fail
 
 MoveToPublication:Ready:
   default:
-    - MoveToPublication:Engaged
+    - MoveToPublication:Pass
 MoveToPublication:Pass:
   default:
     - FixMapfilePaths:Ready
@@ -34,17 +34,17 @@ MoveToPublication:Fail:
 
 FixMapfilePaths:Ready:
   default:
-    - FixMapfilePaths:Engaged
+    - FixMapfilePaths:Pass
 FixMapfilePaths:Pass:
   default:
-    - ESGFPublish:Ready
+    - PublishESGF:Ready
 FixMapfilePaths:Fail:
   default:
     - PUBLICATION:Fail
 
 PublishESGF:Ready:
   default:
-    - PublishESGF:Engaged
+    - PublishESGF:Pass
 PublishESGF:Pass:
   default:
     - ValidateESGF:Ready
@@ -54,15 +54,13 @@ PublishESGF:Fail:
 
 ValidateESGF:Ready:
   default:
-    - ValidateESGF:Engaged
+    - ValidateESGF:Pass
 ValidateESGF:Pass:
   default:
     - PUBLICATION:Pass
 ValidateESGF:Fail:
   default:
     - PUBLICATION:Fail
-
-
 
 PUBLICATION:Pass:
   default:
