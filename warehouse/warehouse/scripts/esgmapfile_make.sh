@@ -62,6 +62,9 @@ else
     echo "TS_$ts:STATUS:ESGMM: dataset ET = $ds_et"
 fi
 
+if [ $retcode -ne 0 ]; then
+    retcode=1
+fi
 
 exit $retcode
 
