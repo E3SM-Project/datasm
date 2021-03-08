@@ -9,5 +9,5 @@ class GenerateMapfile(WorkflowJob):
         self.name = NAME
         self.cmd = '''
             cd {self.scripts_path}
-            ./esgmapfile_make.sh -p {self._job_workers} {self.dataset.working_dir}
+            ./generate_esgmapfile.sh -p {self._job_workers} {self.dataset.working_dir}
             '''
