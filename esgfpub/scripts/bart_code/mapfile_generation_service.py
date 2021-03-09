@@ -105,10 +105,10 @@ def get_dataset_dirs_loc(anydir,loc):   # loc in ['P','W']
 gv_WH_root = '/p/user_pub/e3sm/warehouse/E3SM'
 gv_PUB_root = '/p/user_pub/work/E3SM'
 
-def get_version_dir(enspath)
+def get_version_dir(enspath):
     if gv_WH_root in enspath:
         loc = 'W'
-    else
+    else:
         loc = 'P'
 
     _, vpaths = get_dataset_dirs_loc(enspath,loc)
