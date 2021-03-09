@@ -36,8 +36,10 @@ else
     exit 1
 fi
 
-mapfile_name=${dsid}.map
-# echo $mapfile_name
+mapfile_name=mapfile.map
+echo "DATASET_ENS_PATH: $dataset_ens_path"
+echo "DATASET_FULLPATH: $dataset_fullpath"
+echo "MAPFILE_NAME: $mapfile_name"
 
 ts=`date +%Y%m%d.%H%M%S`
 if [ $self_log -eq 1 ]; then
@@ -51,22 +53,9 @@ ds_tm1=`date +%s`
 #conda init bash
 source ~/anaconda3/etc/profile.d/conda.sh
 conda activate pub
-esgmapfile make --debug -i $ini_path --max-processes $proc_num --project e3sm --outdir $dataset_ens_path $dataset_fullpath
+esgmapfile make --debug -i $ini_path --max-processes $proc_num --project e3sm --mapfile .mapfile --outdir $dataset_ens_path $dataset_fullpath
 retcode=$?
 conda deactivate
-
-mv $dataset_ens_path/$mapfile_name $dataset_ens_path/.mapfile
-mv_code=$?
-ts=`date +%Y%m%d.%H%M%S`
-if [ $mv_code -ne 0 ]; then
-    if [ $self_log -eq 1 ]; then
-        echo "TS_$ts:STATUS:ESGMM: FAILURE: mv_code=$mv_code: dataset $dataset_fullpath" >> $rlog 2>&1
-    else
-        echo "TS_$ts:STATUS:ESGMM: FAILURE: mv_code=$mv_code: dataset $dataset_fullpath"
-    fi
-    exit $mv_code
-fi
-
 
 ds_tm2=`date +%s`
 ds_et=$(($ds_tm2 - $ds_tm1))

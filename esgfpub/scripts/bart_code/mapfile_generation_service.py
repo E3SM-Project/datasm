@@ -276,7 +276,7 @@ def main():
             # write logfile entry, then
             logMessage('STATUS',f'MAPFILE_GEN:Fail:Bad_mapfile')
             if warehouse_persona:
-                setStatus(statfile,'WAREHOUSE',f'MAPFILE_GEN:Fail:Bad_mapfile')
+                setStatus(statfile,'WAREHOUSE',f'MAPFILE_GEN:Fail:Bad_mapfile_validate')
             continue
         # write logfile entry, then
         logMessage('STATUS',f'MAPFILE_GEN:Pass')
