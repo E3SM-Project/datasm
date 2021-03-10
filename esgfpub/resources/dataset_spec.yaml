@@ -157,9 +157,6 @@ time-series:
     - TGCLDCWP
     - RELHUM
     - FSNTOA
-    # - ICEFRAC
-    # - LANDFRAC
-    # - OCNFRAC
     - PHIS
     - LWCF
     - SWCF
@@ -186,6 +183,9 @@ time-series:
     - Z3
     - Q
     - O3
+    # - ICEFRAC
+    # - LANDFRAC
+    # - OCNFRAC
   land:
     - SOILWATER_10CM
     - SOILICE
@@ -202,216 +202,211 @@ time-series:
 
 project:
   CMIP6:
-    E3SM-1-0:
-      -
-        experiment: piControl
-        start: 1
-        end: 500
-        ens:
-          - r1i1p1f1
-        except:
-          - cLitter 
-          - cProduct
-          - cSoil
-          - fFire
-          - fHarvest
-          - cVeg
-          - nbp
-          - gpp
-          - rh
-          - ra
-      -
-        experiment: 1pctCO2
-        start: 1
-        end: 150
-        ens:
-          - r1i1p1f1
-        except:
-          - cLitter 
-          - cProduct
-          - cSoil
-          - fFire
-          - fHarvest
-          - cVeg
-          - nbp
-          - gpp
-          - rh
-          - ra
-      -
-        experiment: abrupt-4xCO2
-        start: 1
-        end: 150
-        ens:
-          - r1i1p1f1
-        except:
-          - cLitter 
-          - cProduct
-          - cSoilFast
-          - cSoilMedium
-          - cSoilSlow
-          - fFire
-          - fHarvest
-          - cVeg
-          - nbp
-          - gpp
-          - rh
-          - ra
-      -
-        experiment: amip
-        start: 1870
-        end: 2014
-        ens: 
-          - r1i1p1f1
-          - r2i1p1f1
-          - r3i1p1f1
-        except:
-          - Omon
-          - Ofx
-          - SImon
-          - cLitter 
-          - cProduct
-          - cSoilFast
-          - cSoilMedium
-          - cSoilSlow
-          - fFire
-          - fHarvest
-          - cVeg
-          - nbp
-          - gpp
-          - rh
-          - ra
-      -
-        experiment: historical
-        start: 1850
-        end: 2014
-        ens: 
-          - r1i1p1f1
-          - r2i1p1f1
-          - r3i1p1f1
-          - r4i1p1f1
-          - r5i1p1f1
-        except:
-          - cLitter 
-          - cProduct
-          - cSoilFast
-          - cSoilMedium
-          - cSoilSlow
-          - fFire
-          - fHarvest
-          - cVeg
-          - nbp
-          - gpp
-          - rh
-          - ra
-          
-    E3SM-1-1:
-      -
-        experiment: piControl
-        start: 1850
-        end: 2100
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: hist-bgc
-        start: 1850
-        end: 2014
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: historical
-        start: 1850
-        end: 2014
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: ssp585
-        start: 2015
-        end: 2100
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: ssp585-bgc
-        start: 2015
-        end: 2100
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
+    C4MIP:
+      E3SM-1-1:
+        hist-bgc:
+          start: 1850
+          end: 2014
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+        ssp585-bgc:
+          start: 2015
+          end: 2100
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+      E3SM-1-1-ECA:
+        ssp585-bgc:
+          start: 2015
+          end: 2100
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+        hist-bgc:
+          start: 1850
+          end: 2014
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+    ScenarioMIP:
+      E3SM-1-1:
+        ssp585:
+          start: 2015
+          end: 2100
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+      E3SM-1-1-ECA:
+        ssp585:
+          start: 2015
+          end: 2100
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+    CMIP:
+      E3SM-1-0:
+        piControl:
+          start: 1
+          end: 500
+          ens:
+            - r1i1p1f1
+          except:
+            - cLitter 
+            - cProduct
+            - cSoilFast
+            - cSoilMedium
+            - cSoilSlow
+            - fFire
+            - fHarvest
+            - cVeg
+            - nbp
+            - gpp
+            - rh
+            - ra
+        1pctCO2:
+          start: 1
+          end: 150
+          ens:
+            - r1i1p1f1
+          except:
+            - cLitter 
+            - cProduct
+            - cSoilFast
+            - cSoilMedium
+            - cSoilSlow
+            - fFire
+            - fHarvest
+            - cVeg
+            - nbp
+            - gpp
+            - rh
+            - ra
+        abrupt-4xCO2:
+          start: 1
+          end: 150
+          ens:
+            - r1i1p1f1
+          except:
+            - cLitter 
+            - cProduct
+            - cSoilFast
+            - cSoilMedium
+            - cSoilSlow
+            - fFire
+            - fHarvest
+            - cVeg
+            - nbp
+            - gpp
+            - rh
+            - ra
+        amip:
+          start: 1870
+          end: 2014
+          ens: 
+            - r1i1p1f1
+            - r2i1p1f1
+            - r3i1p1f1
+          except:
+            - Omon
+            - Ofx
+            - SImon
+            - cLitter 
+            - cProduct
+            - cSoilFast
+            - cSoilMedium
+            - cSoilSlow
+            - fFire
+            - fHarvest
+            - cVeg
+            - nbp
+            - gpp
+            - rh
+            - ra
+        historical:
+          start: 1850
+          end: 2014
+          ens: 
+            - r1i1p1f1
+            - r2i1p1f1
+            - r3i1p1f1
+            - r4i1p1f1
+            - r5i1p1f1
+          except:
+            - cLitter 
+            - cProduct
+            - cSoilFast
+            - cSoilMedium
+            - cSoilSlow
+            - fFire
+            - fHarvest
+            - cVeg
+            - nbp
+            - gpp
+            - rh
+            - ra
+            
+      E3SM-1-1:
+        piControl:
+          start: 1850
+          end: 2100
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+        historical:
+          start: 1850
+          end: 2014
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+      E3SM-1-1-ECA:
+        piControl:
+          start: 1850
+          end: 2100
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+        historical:
+          start: 1850
+          end: 2014
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
 
-    E3SM-1-1-ECA:
-      -
-        experiment: piControl
-        start: 1850
-        end: 2100
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: hist-bgc
-        start: 1850
-        end: 2014
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: historical
-        start: 1850
-        end: 2014
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: ssp585
-        start: 2015
-        end: 2100
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
-      -
-        experiment: ssp585-bgc
-        start: 2015
-        end: 2100
-        ens:
-          - r1i1p1f1
-        except:
-          - siu
-          - siv
-          - clcalipso
 
   E3SM:
     '1_0':
-      -
-        experiment: piControl
+      piControl:
         start: 1
         end: 500
         ens:
@@ -420,7 +415,7 @@ project:
         - PRECSCS
         - PRECSCL
         campaign: DECK-v1
-        science driver: Water Cycle
+        science_driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             land:
@@ -467,8 +462,7 @@ project:
                 grid: native
                 data_types:
                   - mapping.fixed
-      -
-        experiment: 1950-Control
+      1950-Control:
         start: 26
         end: 55
         ens:
@@ -484,12 +478,19 @@ project:
               -
                 grid: 720x1440
                 data_types:
-                  - model-output.5day_snap
                   - model-output.3hr
-                  - model-output.6hr_ave
+                  - model-output.6hr
                   - model-output.6hr_snap
+                  - model-output.day
                   - model-output.mon
-                  - climo.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.3hr
+                  - model-output.6hr
+                  - model-output.6hr_snap
+                  - model-output.day
+                  - model-output.mon
             land:
               -
                 grid: 180x360
@@ -526,11 +527,11 @@ project:
                 grid: 180x360
                 data_types:
                   - climo.mon
-                  - model-output.mon
                   - model-output.3hr
-                  - model-output.6hr_ave
+                  - model-output.6hr
                   - model-output.6hr_snap
                   - model-output.day
+                  - model-output.mon
             land:
               -
                 grid: 180x360
@@ -545,7 +546,7 @@ project:
               -
                 grid: native
                 data_types:
-                  - model-output.fixed
+                  - mapping.fixed
             ocean:
               -
                 grid: native
@@ -561,8 +562,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: 1pctCO2
+      1pctCO2:
         start: 1
         end: 150
         ens:
@@ -571,7 +571,7 @@ project:
           - PRECSCS
           - PRECSCL
         campaign: DECK-v1
-        science driver: Water Cycle
+        science_driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -608,8 +608,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: abrupt-4xCO2
+      abrupt-4xCO2:
         start: 1
         end: 150
         ens:
@@ -618,7 +617,7 @@ project:
           - PRECSCS
           - PRECSCL
         campaign: DECK-v1
-        science driver: Water Cycle
+        science_driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -654,17 +653,17 @@ project:
               -
                 grid: native
                 data_types:
-                  - model-output.mon
-      -
-        experiment: amip
-        start: 1870
-        end: 2014
+                  - mode-output.mon
+      abrupt-4xCO2-ext300yrs:
+        start: 140
+        end: 300
         ens:
           - ens1
-          - ens2
-          - ens3
+        except:
+          - PRECSCS
+          - PRECSCL
         campaign: DECK-v1
-        science driver: Water Cycle
+        science_driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -691,8 +690,23 @@ project:
                 grid: 180x360
                 data_types:
                   - time-series.mon
-      -
-        experiment: amip_1850_aeroF
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      amip:
         start: 1870
         end: 2014
         ens:
@@ -700,7 +714,7 @@ project:
           - ens2
           - ens3
         campaign: DECK-v1
-        science driver: Water Cycle
+        science_driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -727,8 +741,7 @@ project:
                 grid: 180x360
                 data_types:
                   - time-series.mon
-      -
-        experiment: amip_1850_allF
+      amip_1850_aeroF:
         start: 1870
         end: 2014
         ens:
@@ -736,7 +749,7 @@ project:
           - ens2
           - ens3
         campaign: DECK-v1
-        science driver: Water Cycle
+        science_driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -763,14 +776,255 @@ project:
                 grid: 180x360
                 data_types:
                   - time-series.mon
-      -
-        experiment: F2010
+      amip_1850_allF:
+        start: 1870
+        end: 2014
+        ens:
+          - ens1
+          - ens2
+          - ens3
+        campaign: DECK-v1
+        science_driver: Water Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.day_cosp
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+      hist-GHG:
+        start: 1850
+        end: 2014
+        ens:
+          - ens1
+          - ens2
+          - ens3
+        campaign: DECK-v1
+        science_driver: Water Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.day_cosp
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              -
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      ssp585-GHG:
+        start: 2015
+        end: 2099
+        ens:
+          - ens1
+          - ens2
+          - ens3
+        campaign: DECK-v1
+        science_driver: Water Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.day_cosp
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              -
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      ssp585:
+        start: 2015
+        end: 2099
+        ens:
+          - ens1
+          - ens2
+          - ens3
+          - ens4
+          - ens5
+        campaign: DECK-v1
+        science_driver: Water Cycle
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.day_cosp
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              -
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+
+      1950-Control-21yrContHiVol-HR:
+        start: 56
+        end: 76
+        ens:
+          - ens1
+        campaign: HighResMIP-v1
+        science_driver: Water Cycle
+        resolution:
+          0_25deg_atm_18-6km_ocean:
+            atmos:
+              -
+                grid: 720x1440
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.day_cosp
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              -
+                grid: 720x1440
+                data_types:
+                  - time-series.mon
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+
+      F2010:
         start: 1
         end: 5
         ens:
           - ens1
         campaign: HighResMIP-v1
-        science driver: Water Cycle
+        science_driver: Water Cycle
         resolution:
           0_25deg_atm_18-6km_ocean:
             highres.atmos:
@@ -788,14 +1042,13 @@ project:
                 grid: 180x360
                 data_types:
                   - model-output.mon
-      -
-        experiment: F2010-nudgeUV
+      F2010-nudgeUV:
         start: 2010
         end: 2010
         ens:
           - ens1
         campaign: HighResMIP-v1
-        science driver: Water Cycle
+        science_driver: Water Cycle
         resolution:
           0_25deg_atm_18-6km_ocean:
             highres.atmos:
@@ -813,14 +1066,13 @@ project:
                 grid: 180x360
                 data_types:
                   - model-output.mon
-      -
-        experiment: F2010-nudgeUV-1850aero
+      F2010-nudgeUV-1850aero:
         start: 2010
         end: 2010
         ens:
           - ens1
         campaign: HighResMIP-v1
-        science driver: Water Cycle
+        science_driver: Water Cycle
         resolution:
           0_25deg_atm_18-6km_ocean:
             highres.atmos:
@@ -838,14 +1090,13 @@ project:
                 grid: 180x360
                 data_types:
                   - model-output.mon
-      -
-        experiment: F2010plus4k
+      F2010plus4k:
         start: 1
         end: 5
         ens:
           - ens1
         campaign: HighResMIP-v1
-        science driver: Water Cycle
+        science_driver: Water Cycle
         resolution:
           0_25deg_atm_18-6km_ocean:
             highres.atmos:
@@ -863,8 +1114,7 @@ project:
                 grid: 180x360
                 data_types:
                   - model-output.mon
-      -
-        experiment: historical
+      historical:
         start: 1850
         end: 2014
         ens:
@@ -874,7 +1124,7 @@ project:
           - ens4
           - ens5
         campaign: DECK-v1
-        science driver: Water Cycle
+        science_driver: Water Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -912,14 +1162,13 @@ project:
                 data_types:
                   - model-output.mon
     '1_1':
-      -
-        experiment: piControl
+      piControl:
         start: 1850
         end: 2100
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -954,14 +1203,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BDRD
+      hist-BDRD:
         start: 1850
         end: 2014
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -996,14 +1244,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BDRC
+      hist-BDRC:
         start: 1850
         end: 2014
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1038,14 +1285,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BCRD
+      hist-BCRD:
         start: 1850
         end: 2014
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1080,14 +1326,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BCRC
+      hist-BCRC:
         start: 1850
         end: 2014
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1122,14 +1367,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BDRD
+      ssp585-BDRD:
         start: 2015
         end: 2100
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1164,14 +1408,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BDRC
+      ssp585-BDRC:
         start: 2015
         end: 2100
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1206,14 +1449,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BCRD
+      ssp585-BCRD:
         start: 2015
         end: 2100
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1248,14 +1490,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BCRC
+      ssp585-BCRC:
         start: 2015
         end: 2100
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1291,14 +1532,13 @@ project:
                 data_types:
                   - model-output.mon
     '1_1_ECA':
-      -
-        experiment: piControl
+      piControl:
         start: 1850
         end: 2100
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1333,14 +1573,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BDRD
+      hist-BDRD:
         start: 1850
         end: 2014
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1375,14 +1614,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BDRC
+      hist-BDRC:
         start: 1850
         end: 2014
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1417,14 +1655,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BCRD
+      hist-BCRD:
         start: 1850
         end: 2014
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1459,14 +1696,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: hist-BCRC
+      hist-BCRC:
         start: 1850
         end: 2014
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1501,14 +1737,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BDRD
+      ssp585-BDRD:
         start: 2015
         end: 2100
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1543,14 +1778,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BDRC
+      ssp585-BDRC:
         start: 2015
         end: 2100
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1585,14 +1819,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BCRD
+      ssp585-BCRD:
         start: 2015
         end: 2100
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1627,14 +1860,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: ssp585-BCRC
+      ssp585-BCRC:
         start: 2015
         end: 2100
         ens:
           - ens1
         campaign: BGC-v1
-        science driver: Biogeochemical Cycle
+        science_driver: Biogeochemical Cycle
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1670,14 +1902,13 @@ project:
                 data_types:
                   - model-output.mon
     '1_2':
-      -
-        experiment: G-IAF
+      G-IAF:
         start: 1
         end: 100
         ens:
           - ens1
         campaign: Cryosphere-v1
-        science driver: Cryosphere
+        science_driver: Cryosphere
         resolution:
           1deg_atm_60-30km_ocean:
             ocean:
@@ -1691,14 +1922,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: B-1850
+      B-1850:
         start: 1
         end: 100
         ens:
           - ens1
         campaign: Cryosphere-v1
-        science driver: Cryosphere
+        science_driver: Cryosphere
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1735,14 +1965,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: B-1850-DIB-ISMF
+      B-1850-DIB-ISMF:
         start: 1
         end: 156
         ens:
           - ens1
         campaign: Cryosphere-v1
-        science driver: Cryosphere
+        science_driver: Cryosphere
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1779,14 +2008,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-      -
-        experiment: G-IAF-DIB-ISMF
+      G-IAF-DIB-ISMF:
         start: 1
         end: 174
         ens:
           - ens1
         campaign: Cryosphere-v1
-        science driver: Cryosphere
+        science_driver: Cryosphere
         resolution:
           1deg_atm_60-30km_ocean:
             ocean:
@@ -1801,14 +2029,13 @@ project:
                 data_types:
                   - model-output.mon
     '1_2_1':
-      -
-        experiment: B-1850-DIB-ISMF-3dGM
+      B-1850-DIB-ISMF-3dGM:
         start: 1
         end: 100
         ens:
           - ens1
         campaign: Cryosphere-v1
-        science driver: Cryosphere
+        science_driver: Cryosphere
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1842,14 +2069,13 @@ project:
                 data_types:
                   - model-output.mon
     '1_3':
-      -
-        experiment: G-IAF-DIB-ISMF-3dGM
+      G-IAF-DIB-ISMF-3dGM:
         start: 1
         end: 187
         ens:
           - ens1
         campaign: Cryosphere-v1
-        science driver: Cryosphere
+        science_driver: Cryosphere
         resolution:
           1deg_atm_60-30km_ocean:
             ocean:
