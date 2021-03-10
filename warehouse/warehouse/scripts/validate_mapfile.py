@@ -87,9 +87,9 @@ def main():
     success = validate_mapfile(args.mapfile,args.datapath)
     if do_logging:
         if success:
-            logMessage('STATUS',f'MAPFILE_GEN:Pass')
+            logMessage('STATUS',f'VALIDATE_MAPFILE:Pass')
         else:
-            logMessage('STATUS',f'MAPFILE_GEN:Fail:Bad_mapfile')
+            logMessage('STATUS',f'VALIDATE_MAPFILE:Fail:Bad_mapfile')
 
     sys.exit(success)
  
