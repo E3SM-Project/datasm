@@ -27,6 +27,9 @@ def parse_args():
         'dataset_id', type=str,
         help="The ESGF dataset id")
     parser.add_argument(
+        'version_number', type=int,
+        help="The version number of the dataset")
+    parser.add_argument(
         '--outpath',
         type=str,
         help="Output path for the mapfile including the file name, " 
@@ -56,6 +59,7 @@ def main():
 
     input_path = Path(parsed_args.input)
     dataset_id = parsed_args.dataset_id
+    version_nm = parsed_args.version_number
     numberproc = parsed_args.processes
 
     if not input_path.exists() or not input_path.is_dir():
@@ -79,7 +83,7 @@ def main():
             for future in tqdm(as_completed(futures), total=len(futures)):
                 filehash, pathstr = future.result()
                 filestat = Path(pathstr).stat()
-                line = f"{dataset_id} | {pathstr} | {filestat.st_size} | mod_time={filestat.st_mtime} | checksum={filehash} | checksum_type=SHA256\n"
+                line = f"{dataset_id}#{version_nm} | {pathstr} | {filestat.st_size} | mod_time={filestat.st_mtime} | checksum={filehash} | checksum_type=SHA256\n"
                 outstream.write(line)
 
         except KeyboardInterrupt:
