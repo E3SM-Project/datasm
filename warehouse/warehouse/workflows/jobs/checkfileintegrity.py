@@ -11,5 +11,5 @@ class CheckFileIntegrity(WorkflowJob):
         self._requires = { '*-*-*': None }
         self._cmd = f"""
 cd {self.scripts_path}
-python check_file_integrity.py -p {self._job_workers} {self.dataset.working_dir}
+python check_file_integrity.py -p {self._job_workers} {self.dataset.latest_warehouse_dir}
 """

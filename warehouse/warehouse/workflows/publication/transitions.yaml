@@ -4,7 +4,7 @@ PUBLICATION:Ready:
 
 GenerateMapfile:Ready:
   default:
-    - GenerateMapfile:Pass
+    - GenerateMapfile:Engaged
 GenerateMapfile:Pass:
   default:
     - ValidateMapfile:Ready
@@ -14,7 +14,7 @@ GenerateMapfile:Fail:
 
 ValidateMapfile:Ready:
   default:
-    - ValidateMapfile:Pass
+    - ValidateMapfile:Engaged
 ValidateMapfile:Pass:
   default:
     - MoveToPublication:Ready

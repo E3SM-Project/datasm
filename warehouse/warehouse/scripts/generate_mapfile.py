@@ -94,6 +94,13 @@ def main():
         except Exception as e:
             print(e)
             return 1
+    
+    message = f"mapfile_path={outpath}"
+    if (messages_path := os.environ.get('message_file')):
+        with open(messages_path, 'w') as outstream:
+            outstream.write(message)
+    else:
+        print(message)
     return 0
 
 
