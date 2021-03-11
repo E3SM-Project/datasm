@@ -143,13 +143,11 @@ class Dataset(object):
         self.initialize_status_file()
     
     def update_from_status_file(self):
-        # import ipdb; ipdb.set_trace()
         self.load_dataset_status_file()
         latest = get_last_status_line(self.status_path).split(':')
 
         new_status = ":".join(latest[3:]).strip()
-        # new_status = new_status
-        # print(f"update_from_status_file: *{new_status}*")
+        # self.print_debug(f"update_from_status_file: *{new_status}*")
         self._status = new_status
     
     @property
@@ -165,6 +163,42 @@ class Dataset(object):
             path = self.warehouse_path
         latest_version = sorted(self.versions.keys())[-1]
         return str(Path(path, latest_version).resolve())
+    
+    @property
+    def latest_warehouse_dir(self):
+        if not self.warehouse_path and not self.warehouse_path.exists():
+            raise ValueError(f"The dataset {self.dataset_id} does not have a warehouse path")
+        if not self.warehouse_path.exists():
+            self.warehouse_path.mkdir(parents=True)
+
+        # we assume that the warehouse directory contains only directories named "v0.#" or "v#"
+        # import ipdb; ipdb.set_trace()
+        latest_version = sorted([float(str(x.name)[1:]) for x in self.warehouse_path.iterdir() if x.is_dir()]).pop()
+        return str(Path(self.warehouse_path, f"v{latest_version}").resolve())
+    
+    @property
+    def latest_pub_dir(self):
+        if not self.publication_path and not self.publication_path.exists():
+            raise ValueError(f"The dataset {self.dataset_id} does not have a publication path")
+        if not self.publication_path.exists():
+            self.publication_path.mkdir(parents=True)
+
+        # we assume that the publication directory contains only directories named "v0.#" or "v#"
+        latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
+        return str(Path(self.publication_path, f"v{latest_version}").resolve())
+    
+    @property
+    def pub_version(self):
+        """
+        Returns the latest version number in the publication directory. If not version exists
+        then it returns 0
+        """
+        if not self.publication_path or not self.publication_path.exists():
+            return 0
+
+        # we assume that the publication directory contains only directories named "v0.#" or "v#"
+        latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
+        return latest_version
     
     @property
     def status(self):
