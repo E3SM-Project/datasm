@@ -28,7 +28,7 @@ def get_facet_info(datasetID):
     res = ds_split[3]
 
     try:
-        casespec = [x for x in spec['project'][project][model_version] if x['experiment'] == casename].pop()
+        casespec = spec['project'][project][model_version][casename]
     except IndexError as e:
         print(f"Does this experiment {casename} have the correct entry in the dataset spec?")
         raise e
@@ -36,7 +36,7 @@ def get_facet_info(datasetID):
     campaign = casespec.get('campaign')
     if not campaign:
         return None, None, None
-    science_driver = casespec.get('science driver')
+    science_driver = casespec.get('science_driver')
     if not science_driver:
         return None, None, None
     period = f"{casespec['start']}-{casespec['end']}"
@@ -80,9 +80,9 @@ def publish_maps(mapfiles, mapsin, mapsout, mapserr, logpath, sproket='spoket', 
                 if campaign and driver and period:
                     project_metadata_path = os.path.join(tmpdir, f'{datasetID}.json')
                     project_metadata = {
-                        'Campaign': campaign,
-                        'Science Driver': driver,
-                        'Period': period
+                        'campaign': campaign,
+                        'science_driver': driver,
+                        'period': period
                     }
                     with open(project_metadata_path, 'w') as op:
                         json.dump(project_metadata, op)
