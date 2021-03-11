@@ -48,6 +48,8 @@ class AutoWarehouse():
         self.serial = kwargs.get('serial', False)
         self.testing = kwargs.get('testing', False)
         self.dataset_ids = kwargs.get('dataset_id')
+        if not isinstance(self.dataset_ids, list):
+            self.dataset_ids = [self.dataset_ids]
         self.sproket_path = kwargs.get('sproket', 'sproket')
         self.slurm_path = kwargs.get('slurm', 'slurm_scripts')
         self.report_missing = kwargs.get('report_missing')
@@ -139,12 +141,13 @@ class AutoWarehouse():
 
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
+        # import ipdb; ipdb.set_trace()
         if self.dataset_ids is not None:
             ndataset_ids = []
             for i in dataset_ids:
                 found = False
                 for ii in self.dataset_ids:
-                    if ii in i:
+                    if ii == i or ii in i:
                         found = True
                         break
                 if found:
@@ -152,7 +155,7 @@ class AutoWarehouse():
             dataset_ids = ndataset_ids
 
         if not dataset_ids:
-            cprint('No datasets match pattern from --dataset-id flag', 'red')
+            cprint(f'No datasets match pattern from --dataset-id {self.dataset_ids} flag', 'red')
             sys.exit(1)
 
         # instantiate the dataset objects with the paths to
@@ -339,6 +342,7 @@ class AutoWarehouse():
 
                 for state, workflow, params in engaged_states:
                     self.print_debug(f"Creating jobs from state: {state}")
+                    # import ipdb; ipdb.set_trace()
                     newjob = self.workflow.get_job(
                         dataset,
                         state,
