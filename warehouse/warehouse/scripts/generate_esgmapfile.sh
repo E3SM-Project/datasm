@@ -31,7 +31,7 @@ ds_tm1=`date +%s`
 #conda init bash
 source /p/user_pub/e3sm/bartoletti1/anaconda3/etc/profile.d/conda.sh    # HARDCODED!
 conda activate pub
-esgmapfile make --debug -i $ini_path --max-processes $proc_num --project e3sm --mapfile .mpafile --outdir $out_path $dataset_fullpath
+esgmapfile make --debug -i $ini_path --max-processes $proc_num --project e3sm --mapfile .mapfile --outdir $out_path $dataset_fullpath
 retcode=$?
 conda deactivate
 
