@@ -6,8 +6,8 @@ import subprocess
 import time
 from pathlib import Path
 from datetime import datetime
+from tqdm import tqdm
 
-# gv_logname = ''
 
 '''
     Usage:  validate_mapfile --data-path version_path --mapfile mapfile_path
@@ -29,12 +29,15 @@ def parse_args():
         type=str, 
         required=True, 
         help="mapfile to be validated")
+    parser.add_argument(
+        '-q', '--quiet',
+        action="store_true",
+        help="Dont print out a progress bar")
     return parser.parse_args()
 
 
-def loadFileLines(file: str):
+def loadFileLines(filepath: Path):
     retlist = []
-    filepath = Path(file)
     if not filepath.exists():
         raise ValueError(f"Cannot load lines from file {filepath} as it does not exist")
     
@@ -43,7 +46,7 @@ def loadFileLines(file: str):
     return retlist
 
 
-def validate_mapfile(mapfile: str, srcdir: Path):
+def validate_mapfile(mapfile: str, srcdir: Path, quiet: bool):
     ''' 
     at this point, the srcdir should contain the datafiles (*.nc)
     and the parent dir/.mapfile, so we can do a name-by-name comparison.
@@ -55,7 +58,8 @@ def validate_mapfile(mapfile: str, srcdir: Path):
     Returns:
         True if the mapfile is valid, False otherwise
     '''
-    dataset_files = sorted([x for x in srcdir.glob('*.nc')])
+
+    dataset_files = sorted([str(x.resolve()) for x in srcdir.glob('*.nc')])
     mapfile_lines = sorted(loadFileLines(mapfile))
 
     if not len(dataset_files) == len(mapfile_lines):
@@ -63,7 +67,7 @@ def validate_mapfile(mapfile: str, srcdir: Path):
         
     # MUST assume both lists sort identically - O(n) > O(n^2)
     pairlist = list(zip(dataset_files, mapfile_lines))
-    for file, mapentry in pairlist:
+    for file, mapentry in tqdm(pairlist, disable=quiet):
         if file not in mapentry: 
             return False
 
@@ -74,9 +78,17 @@ def main():
 
     parsed_args = parse_args()
 
-    if validate_mapfile(parsed_args.mapfile, parsed_args.datapath):
+    success = validate_mapfile(
+        Path(parsed_args.mapfile), 
+        Path(parsed_args.datapath),
+        parsed_args.quiet)
+    if success:
+        if not parsed_args.quiet:
+            print("Mapfile includes all files")
         return 0
     else:
+        if not parsed_args.quiet:
+            print("Mapfile is missing one or more files")
         return 1
  
 if __name__ == "__main__":
