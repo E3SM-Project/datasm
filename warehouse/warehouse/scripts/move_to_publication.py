@@ -4,16 +4,31 @@ import argparse
 from pathlib import Path
 from subprocess import Popen, PIPE
 
+
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Move all files from given source directory to given destination directory.  Move parent source directory \".mapfile\", if it exists, to the parent destination directory, along with the corresponding \".status\" file.")
-    parser.add_argument('--src-path', type=str, dest='src', required=True, help="source directory of netCDF files to be moved")
-    parser.add_argument('--dst-path', type=str, dest='dst', required=True, help="destination directory for netCDF files to be moved")
+        description="Move all files from given source directory to given destination directory.  "
+                    "Move parent source directory \".mapfile\", if it exists, to the parent destination directory, "
+                    "along with the corresponding \".status\" file.")
+    parser.add_argument(
+        '--src-path',
+        type=str,
+        dest='src',
+        required=True,
+        help="source directory of netCDF files to be moved")
+    parser.add_argument(
+        '--dst-path',
+        type=str,
+        dest='dst',
+        required=True,
+        help="destination directory for netCDF files to be moved")
     return parser.parse_args()
 
+
 def validate_args(args):
-    ''' Ensure the src path exists and is not empty.
-        Ensure the dst path exists and is empty.
+    ''' 
+    Ensure the src path exists and is not empty.
+    Ensure the dst path exists and is empty.
     '''
     src_path = Path(args.src)
     dst_path = Path(args.dst)
@@ -27,9 +42,7 @@ def validate_args(args):
         return False
 
     if not dst_path.exists() or not dst_path.is_dir():
-        # raise ValueError("Destination directory does not exist or is not a directory")
-        print("Destination directory does not exist or is not a directory")
-        return False
+        dst_path.mkdir(parents=True)
     if any(dst_path.iterdir()):
         # raise ValueError("Destination directory is not empty")
         print("Destination directory is not empty")
@@ -37,16 +50,21 @@ def validate_args(args):
 
     return True
 
+
 def conduct_move(args):
     src_path = Path(args.src)
     dst_path = Path(args.dst)
-    
-    for afile in src_path.glob('*.nc'): # all .nc files
-        result = afile.replace(dst_path / afile.name)
+
+    for afile in src_path.glob('*.nc'):  # all .nc files
+        destination = dst_path / afile.name
+        if destination.exists():
+            raise ValueError(f"Trying to move file {afile} to {destination}, but the destination already exists")
+        result = afile.replace(destination)
 
     # should do more testing here - (Path).replace offers no status.
 
     return 0
+
 
 def main():
     parsed_args = parse_args()
@@ -57,9 +75,8 @@ def main():
     retcode = conduct_move(parsed_args)
     sys.exit(retcode)
 
-
     return True
+
 
 if __name__ == "__main__":
     sys.exit(main())
-
