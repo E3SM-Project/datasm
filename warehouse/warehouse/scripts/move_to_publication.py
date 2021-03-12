@@ -44,6 +44,8 @@ def conduct_move(args):
     for afile in src_path.glob('*.nc'): # all .nc files
         result = afile.replace(dst_path / afile.name)
 
+    # should do more testing here - (Path).replace offers no status.
+
     return 0
 
 def main():
