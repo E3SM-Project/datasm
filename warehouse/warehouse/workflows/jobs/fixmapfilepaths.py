@@ -9,6 +9,6 @@ class FixMapfilePaths(WorkflowJob):
         self.name = NAME
         self._cmd = f"""
 cd {self.scripts_path}
-./fix_mapfile_paths.sh {self.params["mapfile_path"]}
+./fix_mapfile_paths.sh {self.params["mapfile_path"]} {self.warehouse_base} {self.pub_base}
 """
 
