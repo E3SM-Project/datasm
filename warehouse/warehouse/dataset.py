@@ -92,7 +92,7 @@ class Dataset(object):
         self.end_year = end_year
         self.datavars = datavars
         self.missing = None
-        self.publication_path = Path(path) if path != '' else None
+        self._publication_path = Path(path) if path != '' else None
         self.pub_base = pub_base
         self.warehouse_path = Path(path) if path != '' else None
         self.warehouse_base = warehouse_base
@@ -155,10 +155,8 @@ class Dataset(object):
         """
         Return the path to the latest working directory for the data files as a string
         """
-        if self.publication_path and self.publication_path.exists():
-            self.update_versions(self.publication_path)
-            path = self.publication_path
-        elif self.warehouse_path and self.warehouse_path.exists():
+        
+        if self.warehouse_path and self.warehouse_path.exists():
             self.update_versions(self.warehouse_path)
             path = self.warehouse_path
         latest_version = sorted(self.versions.keys())[-1]
@@ -169,7 +167,7 @@ class Dataset(object):
         if not self.warehouse_path and not self.warehouse_path.exists():
             raise ValueError(f"The dataset {self.dataset_id} does not have a warehouse path")
         if not self.warehouse_path.exists():
-            self.warehouse_path.mkdir(parents=True)
+            self.warehouse_path.mkdir(parents=True, exist_ok=True)
 
         # we assume that the warehouse directory contains only directories named "v0.#" or "v#"
         # import ipdb; ipdb.set_trace()
@@ -178,11 +176,6 @@ class Dataset(object):
     
     @property
     def latest_pub_dir(self):
-        if not self.publication_path and not self.publication_path.exists():
-            raise ValueError(f"The dataset {self.dataset_id} does not have a publication path")
-        if not self.publication_path.exists():
-            self.publication_path.mkdir(parents=True)
-
         # we assume that the publication directory contains only directories named "v0.#" or "v#"
         latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
         return str(Path(self.publication_path, f"v{latest_version}").resolve())
@@ -197,8 +190,27 @@ class Dataset(object):
             return 0
 
         # we assume that the publication directory contains only directories named "v0.#" or "v#"
-        latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
+        try:
+            latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
+        except IndexError:
+            return 0
         return latest_version
+    
+    @property
+    def publication_path(self):
+        import ipdb; ipdb.set_trace
+        if not self._publication_path or not self._publication_path.exists():
+            if self.project == 'CMIP6':
+                pubpath = Path(self.pub_base, self.project, self.activity,
+                               self.model_version, self.experiment, self.ensemble,
+                               self.table, self.grid)
+            else:
+                pubpath = Path(self.pub_base, self.project, self.model_version,
+                               self.experiment, self.resolution, self.realm,
+                               self.grid, self.data_type, self.freq, self.ensemble)
+            self._publication_path = pubpath
+            self._publication_path.mkdir(parents=True, exist_ok=True)
+        return self._publication_path
     
     @property
     def status(self):
@@ -369,7 +381,7 @@ class Dataset(object):
                 self.freq,
                 self.ensemble)
 
-        self.publication_path = pubpath
+        self._publication_path = pubpath
         if not self.publication_path.exists():
             return DatasetStatus.NOT_IN_PUBLICATION
 

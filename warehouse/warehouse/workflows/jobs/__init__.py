@@ -19,6 +19,7 @@ class WorkflowJob(object):
         self._parameters = params
         self._job_workers = kwargs.get('job_workers', 8)
         self._job_id = None
+        self._spec_path = kwargs.get('spec_path')
         self.debug = kwargs.get('debug')
 
     

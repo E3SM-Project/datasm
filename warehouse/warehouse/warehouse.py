@@ -351,6 +351,7 @@ class AutoWarehouse():
                         self.slurm_path,
                         workflow=workflow,
                         job_workers=self.job_workers,
+                        spec_path=self.spec_path,
                         debug=self.debug)
 
                     if (matching_job := self.find_matching_job(newjob)) is None:

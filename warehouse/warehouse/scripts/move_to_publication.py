@@ -42,7 +42,7 @@ def validate_args(args):
         return False
 
     if not dst_path.exists() or not dst_path.is_dir():
-        dst_path.mkdir(parents=True)
+        dst_path.mkdir(parents=True, exist_ok=True)
     if any(dst_path.iterdir()):
         # raise ValueError("Destination directory is not empty")
         print("Destination directory is not empty")
@@ -58,7 +58,8 @@ def conduct_move(args):
     for afile in src_path.glob('*.nc'):  # all .nc files
         destination = dst_path / afile.name
         if destination.exists():
-            raise ValueError(f"Trying to move file {afile} to {destination}, but the destination already exists")
+            raise ValueError(
+                f"Trying to move file {afile} to {destination}, but the destination already exists")
         result = afile.replace(destination)
 
     # should do more testing here - (Path).replace offers no status.
@@ -72,10 +73,7 @@ def main():
     if not validate_args(parsed_args):
         sys.exit(1)
 
-    retcode = conduct_move(parsed_args)
-    sys.exit(retcode)
-
-    return True
+    return conduct_move(parsed_args)
 
 
 if __name__ == "__main__":

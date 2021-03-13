@@ -24,7 +24,7 @@ ValidateMapfile:Fail:
 
 MoveToPublication:Ready:
   default:
-    - MoveToPublication:Pass
+    - MoveToPublication:Engaged
 MoveToPublication:Pass:
   default:
     - FixMapfilePaths:Ready
@@ -34,31 +34,31 @@ MoveToPublication:Fail:
 
 FixMapfilePaths:Ready:
   default:
-    - FixMapfilePaths:Pass
+    - FixMapfilePaths:Engaged
 FixMapfilePaths:Pass:
   default:
-    - PublishESGF:Ready
+    - PublishEsgf:Ready
 FixMapfilePaths:Fail:
   default:
     - PUBLICATION:Fail
 
-PublishESGF:Ready:
+PublishEsgf:Ready:
   default:
-    - PublishESGF:Pass
-PublishESGF:Pass:
+    - PublishEsgf:Engaged
+PublishEsgf:Pass:
   default:
-    - ValidateESGF:Ready
-PublishESGF:Fail:
+    - PublishEsgf:Ready
+PublishEsgf:Fail:
   default:
     - PUBLICATION:Fail
 
-ValidateESGF:Ready:
+ValidateEsgf:Ready:
   default:
-    - ValidateESGF:Pass
-ValidateESGF:Pass:
+    - ValidateEsgf:Engaged
+ValidateEsgf:Pass:
   default:
     - PUBLICATION:Pass
-ValidateESGF:Fail:
+ValidateEsgf:Fail:
   default:
     - PUBLICATION:Fail
 

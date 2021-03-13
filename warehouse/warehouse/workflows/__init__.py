@@ -109,7 +109,8 @@ class Workflow(object):
             params=params,
             slurm_opts=kwargs.get('slurm_opts', []),
             parent=parent,
-            job_workers=self.job_workers)
+            job_workers=self.job_workers,
+            spec_path=kwargs.get('spec_path'))
 
         job_instance.setup_requisites()
         return job_instance
@@ -174,11 +175,6 @@ class Workflow(object):
     @staticmethod
     def add_args(parser):
         parser.add_argument(
-            '--job-workers',
-            type=int,
-            default=8,
-            help='number of parallel workers each job should create when running, default is 8')
-        parser.add_argument(
             '-d', '--dataset-id',
             nargs="*",
             help="Dataset IDs that should have the workflow applied to them. If this is "
@@ -192,6 +188,15 @@ class Workflow(object):
                  "\t\t for example: 'E3SM.1_3.G-IAF-DIB-ISMF-3dGM.1deg_atm_60-30km_ocean.ocean.native.model-output.mon.ens1' "
                  "If its a CMIP6 dataset, the ID should be in the format 'CMIP6.activity.source.model-version.case.variant.table.variable.gr'  "
                  "\t\t for example: 'CMIP6.CMIP.E3SM-Project.E3SM-1-1.historical.r1i1p1f1.CFmon.cllcalipso.gr' ")
+        parser.add_argument(
+            '--force',
+            action="store_true",
+            help="Force the workflow you're calling to start from its beginning. Otherwise it will pick up from wherever the status file says the ")
+        parser.add_argument(
+            '--job-workers',
+            type=int,
+            default=8,
+            help='number of parallel workers each job should create when running, default is 8')
         parser.add_argument(
             '--debug',
             action='store_true',
