@@ -7,7 +7,6 @@ import subprocess
 import time
 from datetime import datetime
 
-parentName = 'WAREHOUSE'
 subcommand = ''
 gv_logname = ''
 
@@ -17,8 +16,12 @@ gv_logname = ''
     INTENTION:  To be launched and remain in background, seek files from
        staging/mapfiles/mapfile_requests/
     where
-       filenames are "mapfile_request-<ts>" and contain a single dataset fullpath
-       NOTE: The "dataset fullpath" may be either a publication or warehouse version path.
+       filenames are "mapfile_request-<ts>" and contain a single dataset ensemble path.
+       NOTE: The "dataset ensemble path" may be either a publication or warehouse path.
+
+    The service must open a given mapfile request, supply the ensemble directory as the
+    mapfile destination path, and determine and append the highest version directory to
+    that ensemble directory to form the dataset_path.
 
     I was going to make this a flag:
         [--warehouse-persona]   (act "warehouse compliant", check/update dataset status file)
@@ -102,6 +105,16 @@ def get_dataset_dirs_loc(anydir,loc):   # loc in ['P','W']
 gv_WH_root = '/p/user_pub/e3sm/warehouse/E3SM'
 gv_PUB_root = '/p/user_pub/work/E3SM'
 
+def get_version_dir(enspath):
+    if gv_WH_root in enspath:
+        loc = 'W'
+    else:
+        loc = 'P'
+
+    _, vpaths = get_dataset_dirs_loc(enspath,loc)
+    return vpaths[-1]
+
+
 def get_statusfile_dir(apath):
     global gv_WH_root
     global gv_PUB_root
@@ -156,20 +169,20 @@ def get_statusfile_dir(apath):
     return os.path.join(gv_PUB_root, ens_part)
         
 
-def setStatus(edir,statspec):
-    statfile = os.path.join(edir,'.status')
+def setStatus(statfile,parent,statspec):
     tsval = ts('')
-    statline = f'STAT:{tsval}:{parentName}:{statspec}\n'
+    statline = f'STAT:{tsval}:{parent}:{statspec}\n'
     with open(statfile, 'a') as f:
         f.write(statline)
 
-def mapfile_validate(srcdir):
-    ''' at this point, the srcdir should contain both datafiles (*.nc)
-        and the .mapfile, so we can do a name-by-name comparison.
+
+def mapfile_validate(mapfile,srcdir):
+    ''' at this point, the srcdir should contain the datafiles (*.nc)
+        and the parent dir/.mapfile, so we can do a name-by-name comparison.
         MUST test for each srcdir datafile in mapfile listing.
     '''
     dataset_files = sorted(glob.glob(srcdir + '/*.nc'))
-    mapfile_lines = sorted(loadFileLines(os.path.join(srcdir,'.mapfile')))
+    mapfile_lines = sorted(loadFileLines(mapfile))
 
     if not len(dataset_files) == len(mapfile_lines):
         logMessage('ERROR',f'non-matching count of files and mapfile lines: {srcdir}')
@@ -179,7 +192,7 @@ def mapfile_validate(srcdir):
     pairlist = list(zip(dataset_files,mapfile_lines))
     for atup in pairlist:
         if not atup[0] in atup[1]: 
-            logMessage('ERROR',f'dataset file not listed in mapfile: {srcdir}')
+            logMessage('ERROR',f'dataset file not listed in mapfile: {mapfile}')
             logMessage('ERROR',f'{atup[0]} not in {atup[1]}')
             return False
 
@@ -189,6 +202,7 @@ def mapfile_validate(srcdir):
 input_dir = '/p/user_pub/e3sm/staging/mapfiles/mapfile_requests'
 exput_dir = '/p/user_pub/e3sm/staging/mapfiles/mapfiles_output'
 ini_path = '/p/user_pub/e3sm/staging/ini_std/'
+# calls esgmapfile make, moves finished mapfile to pub_path/.../ens#/.mapfile
 esgmapfile_make = '/p/user_pub/e3sm/bartoletti1/Pub_Work/2_Mapwork/esgmapfile_make.sh'
 
 searchpath = os.path.join(input_dir,'mapfile_request.*')
@@ -198,7 +212,6 @@ pwd = os.getcwd()
 req_done = os.path.join(pwd,'requests_processed')
 
 def main():
-    global parentName
 
     # assess_args()
     logMessageInit('runlog_mapfile_gen_loop')
@@ -225,11 +238,20 @@ def main():
                 time.sleep(5)
                 continue        # error message already given
 
+        statfile = os.path.join(stat_path,'.status')
+
         logMessage('INFO',f'MAPGENLOOP:Launching Request Path:{request_path}')
         tm_start = time.time()
         # CALL the Mapfile Maker
         # WAIT here until esgmapfile_make returns
-        retcode = os.system(f'{esgmapfile_make} {request_path}')
+        if warehouse_persona:
+            setStatus(statfile,'WAREHOUSE',f'MAPFILE_GEN:Engaged')
+
+        # from "request_path" (ensemble dir), obtain tghe full (highest) version dir.
+        data_path = get_version_dir(request_path)
+
+        retcode = os.system(f'{esgmapfile_make} {request_path} {data_path}')  # map_gen request file - holds ensemble path
+
         tm_final = time.time()
         ET = tm_final - tm_start
         opath, basep = os.path.split(request_file)
@@ -247,18 +269,19 @@ def main():
             # write logfile entry, then
             logMessage('STATUS',f'MAPFILE_GEN:Fail:ret_code={retcode}')
             if warehouse_persona:
-                setStatus(stat_path,f'MAPFILE_GEN:Fail:ret_code={retcode}')
+                setStatus(statfile,'WAREHOUSE',f'MAPFILE_GEN:Fail:ret_code={retcode}')
             continue
-        if not mapfile_validate(request_path):
+        mapfile_path = os.path.join(request_path,'.mapfile')
+        if not mapfile_validate(mapfile_path,data_path): 
             # write logfile entry, then
             logMessage('STATUS',f'MAPFILE_GEN:Fail:Bad_mapfile')
             if warehouse_persona:
-                setStatus(stat_path,f'MAPFILE_GEN:Fail:Bad_mapfile')
+                setStatus(statfile,'WAREHOUSE',f'MAPFILE_GEN:Fail:Bad_mapfile_validate')
             continue
         # write logfile entry, then
         logMessage('STATUS',f'MAPFILE_GEN:Pass')
         if warehouse_persona:
-            setStatus(stat_path,'MAPFILE_GEN:Pass')
+            setStatus(statfile,'WAREHOUSE','MAPFILE_GEN:Pass')
 
       
 if __name__ == "__main__":
