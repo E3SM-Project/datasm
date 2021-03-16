@@ -62,7 +62,8 @@ def conduct_move(args):
                 f"Trying to move file {afile} to {destination}, but the destination already exists")
         result = afile.replace(destination)
 
-    # should do more testing here - (Path).replace offers no status.
+    src_path.rmdir()
+    
 
     return 0
 
