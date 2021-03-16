@@ -18,10 +18,17 @@ First, install the sproket utility for communication with the ESGF API: https://
 ```
 git clone https://github.com/E3SM-Project/esgfpub.git
 cd esgfpub/warehouse
-conda create -n warehouse -c conda-forge xarray netCDF4 termcolor numpy tqdm yaml watchdog -y
+conda create -n warehouse -c conda-forge -c esgf-forge autocurator cmor pip esgconfigparser xarray netCDF4 tqdm termcolor numpy yaml watchdog -y
 conda activate warehouse
 python setup.py install
 python setup.py clean
+```
+
+You'll also need the custom E3SM branch of the esgf publisher
+```
+git clone https://github.com/sashakames/esg-publisher -b e3sm-custom
+cd esg-publisher/pkg
+python setup.py install
 ```
 
 ### usage
