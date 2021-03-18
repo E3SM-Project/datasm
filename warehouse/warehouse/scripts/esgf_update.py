@@ -4,6 +4,7 @@ import argparse
 import configparser as cfg
 from datetime import datetime
 from pathlib import Path
+from tqdm import tqdm
 
 
 DEFAULT_INDEX_NODE = "esgf-node.llnl.gov"
@@ -50,9 +51,9 @@ def main():
         required=True,
         help="Path to ESGF cert")
     parser.add_argument(
-        '-d', '--dataset-id',
+        '-s', '--search',
         required=True,
-        help="Dataset-id to be updated, this should be the whole dataset_id with the version number at the end")
+        help="Search criteria, for example master_id=<dataset-id>, or experiment=1950-Control&model_version=1_0")
     parser.add_argument(
         '--index-node',
         default=DEFAULT_INDEX_NODE,
@@ -69,9 +70,7 @@ def main():
     args = parser.parse_args()
 
     cert_path = args.cert
-    dataset_id = args.dataset_id
-    # trim off the version number to get the master id
-    master_id = '.'.join(dataset_id.split('.')[:-1])
+    search = args.search
     index_node = args.index_node
     data_node = args.data_node
     verbose = args.verbose
@@ -81,7 +80,7 @@ def main():
         key, value = item.split('=')
         facets[key] = value
 
-    url = f'https://{index_node}/esg-search/search/?offset=0&limit=1&type=Dataset&format=application%2Fsolr%2Bjson&latest=true&query=*&master_id={master_id}'
+    url = f'https://{index_node}/esg-search/search/?type=Dataset&format=application%2Fsolr%2Bjson&latest=true&query=*&{search}'
     if verbose:
         print(url)
     res = requests.get(url)
@@ -95,8 +94,15 @@ def main():
     res = json.loads(res.text)
     
     docs = res['response']["docs"]
-    if docs:
-        dataset_id = docs[0]['id']
+    if len(docs) == 0:
+        print(f"Unable to find records matching search {search}")
+        return 1
+    
+    import warnings
+    warnings.filterwarnings("ignore")
+    for doc in tqdm(res['response']["docs"]):
+
+        dataset_id = doc['id']
         client = publisherClient(cert_path, index_node)
         update_record = gen_xml(dataset_id, "datasets", facets)
         if verbose:
@@ -106,9 +112,7 @@ def main():
         if verbose:
             print(update_record)
         client.update(update_record)
-    else:
-        print(f"Unable to find recods for dataset {dataseta_id}")
-        return 1
+        
     
     return 0
 
