@@ -63,6 +63,10 @@ def main():
         default=DEFAULT_DATA__NODE,
         help=f"Path to ESGF cert, default={DEFAULT_DATA__NODE}")
     parser.add_argument(
+        '-y', '--yes',
+        action="store_true",
+        help="skip the manual verification")
+    parser.add_argument(
         '--verbose',
         action="store_true",
         help="Print more verbose status messages")
@@ -80,13 +84,11 @@ def main():
         key, value = item.split('=')
         facets[key] = value
 
-    url = f'https://{index_node}/esg-search/search/?type=Dataset&format=application%2Fsolr%2Bjson&latest=true&query=*&{search}'
+    url = f'https://{index_node}/esg-search/search/?offset=0&limit=100&type=Dataset&format=application%2Fsolr%2Bjson&latest=true&query=*&{search}'
     if verbose:
         print(url)
     res = requests.get(url)
 
-    if verbose:
-        print(res.text)
     if not res.status_code == 200:
         print('Error', file=sys.stderr)
         return 1
@@ -98,12 +100,22 @@ def main():
         print(f"Unable to find records matching search {search}")
         return 1
     
+    
+    print("Found the following datasets:")
+    for doc in docs:
+        print(f"\t{doc['id']}")
+
+    if not args.yes:
+        response = input(f"Found {len(docs)} datasets, would you like to update them all? y/[n]")
+        if response.lower() != 'y':
+            return 1
+        
     import warnings
     warnings.filterwarnings("ignore")
-    for doc in tqdm(res['response']["docs"]):
 
+    client = publisherClient(cert_path, index_node)
+    for doc in tqdm(docs):
         dataset_id = doc['id']
-        client = publisherClient(cert_path, index_node)
         update_record = gen_xml(dataset_id, "datasets", facets)
         if verbose:
             print(update_record)
