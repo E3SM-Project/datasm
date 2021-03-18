@@ -18,18 +18,19 @@ def gen_xml(dataset_id, datatype, facets):
     txt = f"""<updates core="{datatype}" action="set">
         <update>
           <query>{idfield}={dataset_id}</query>
+          <field name="_timestamp">
+             <value>{ts}</value>
+          </field>
           """
 
+    # import ipdb; ipdb.set_trace()
     for key, value in facets.items():
-        txt += """<field name="{key}">
+        txt += f"""<field name="{key}">
                        <value>{value}</value>
                    </field>
         """
 
     txt += f"""
-          <field name="_timestamp">
-             <value>{ts}</value>
-          </field>
         </update>
     </updates>"""
 
@@ -80,7 +81,7 @@ def main():
         key, value = item.split('=')
         facets[key] = value
 
-    url = f'https://{index_node}/esg-search/search/?latest=true&distrib=false&format=application%2Fsolr%2Bjson&data_node={data_node}&master_id={master_id}&fields=version,id'
+    url = f'https://{index_node}/esg-search/search/?offset=0&limit=1&type=Dataset&format=application%2Fsolr%2Bjson&latest=true&query=*&master_id={master_id}'
     if verbose:
         print(url)
     res = requests.get(url)
@@ -92,13 +93,11 @@ def main():
         return 1
 
     res = json.loads(res.text)
-
-    if res['response']['numFound'] > 0:
-        docs = res['response']["docs"]
+    
+    docs = res['response']["docs"]
+    if docs:
         dataset_id = docs[0]['id']
-        # update_rec = gen_hide_xml(dsetid, "datasets")
         client = publisherClient(cert_path, index_node)
-
         update_record = gen_xml(dataset_id, "datasets", facets)
         if verbose:
             print(update_record)
@@ -107,6 +106,9 @@ def main():
         if verbose:
             print(update_record)
         client.update(update_record)
+    else:
+        print(f"Unable to find recods for dataset {dataseta_id}")
+        return 1
     
     return 0
 
