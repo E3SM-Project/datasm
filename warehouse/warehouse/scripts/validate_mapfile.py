@@ -15,19 +15,20 @@ from tqdm import tqdm
     Returns 0 if every file in version path is listed in the mapfile
 '''
 
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Ensure every datafile in supplied data-path exists in the given mapfile.")
     parser.add_argument(
-        '--data-path', 
-        type=str, 
-        dest='datapath', 
-        required=True, 
+        '--data-path',
+        type=str,
+        dest='datapath',
+        required=True,
         help="source directory of netCDF files to seek in mapfile")
     parser.add_argument(
-        '--mapfile', 
-        type=str, 
-        required=True, 
+        '--mapfile',
+        type=str,
+        required=True,
         help="mapfile to be validated")
     parser.add_argument(
         '-q', '--quiet',
@@ -39,10 +40,11 @@ def parse_args():
 def loadFileLines(filepath: Path):
     retlist = []
     if not filepath.exists():
-        raise ValueError(f"Cannot load lines from file {filepath} as it does not exist")
-    
+        raise ValueError(
+            f"Cannot load lines from file {filepath} as it does not exist")
+
     with open(filepath.resolve(), "r") as instream:
-        retlist = [x for x in instream.read().split('\n') if x[:-1]]
+        retlist = [Path(x.split('|')[1]).name for x in instream.readlines()]
     return retlist
 
 
@@ -59,16 +61,18 @@ def validate_mapfile(mapfile: str, srcdir: Path, quiet: bool):
         True if the mapfile is valid, False otherwise
     '''
 
-    dataset_files = sorted([str(x.resolve()) for x in srcdir.glob('*.nc')])
+    dataset_files = sorted([x.name for x in srcdir.glob('*.nc')])
     mapfile_lines = sorted(loadFileLines(mapfile))
 
+    # import ipdb; ipdb.set_trace()
     if not len(dataset_files) == len(mapfile_lines):
-        raise ValueError("Number of files does not match number of entries in the mapfile")
-        
+        raise ValueError(
+            "Number of files does not match number of entries in the mapfile")
+
     # MUST assume both lists sort identically - O(n) > O(n^2)
     pairlist = list(zip(dataset_files, mapfile_lines))
     for file, mapentry in tqdm(pairlist, disable=quiet):
-        if file not in mapentry: 
+        if file not in mapentry:
             return False
 
     return True
@@ -79,20 +83,19 @@ def main():
     parsed_args = parse_args()
 
     success = validate_mapfile(
-        Path(parsed_args.mapfile), 
+        Path(parsed_args.mapfile),
         Path(parsed_args.datapath),
         parsed_args.quiet)
     if success:
         if not parsed_args.quiet:
             print("Mapfile includes all files")
+
         return 0
     else:
         if not parsed_args.quiet:
             print("Mapfile is missing one or more files")
         return 1
- 
+
+
 if __name__ == "__main__":
-  sys.exit(main())
-
-
-
+    sys.exit(main())

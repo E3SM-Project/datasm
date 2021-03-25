@@ -45,7 +45,7 @@ def parse_args():
 def hash_file(filepath: Path):
 
     sha256 = hashlib.sha256()
-    fullpath = str(filepath.resolve())
+    fullpath = str(filepath)
     # handle content in binary form
     with open(fullpath, "rb") as instream:
         while chunk := instream.read(4096):

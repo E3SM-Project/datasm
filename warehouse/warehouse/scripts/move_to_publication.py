@@ -2,6 +2,7 @@ import sys
 import os
 import argparse
 from pathlib import Path
+from shutil import rmtree
 from subprocess import Popen, PIPE
 
 
@@ -60,10 +61,14 @@ def conduct_move(args):
         if destination.exists():
             raise ValueError(
                 f"Trying to move file {afile} to {destination}, but the destination already exists")
-        result = afile.replace(destination)
-
-    src_path.rmdir()
+        afile.replace(destination)
     
+    for mapfile in src_path.parent.glob(".mapfile"):
+        with open(mapfile, 'r') as instream:
+            dataset_id = instream.readline().split('|')[0].strip().split('#')[0]
+        dst = Path(dst_path.parent, f"{dataset_id}.map")
+        print(f"Moving the mapfile to {dst}")
+        mapfile.replace(dst)
 
     return 0
 

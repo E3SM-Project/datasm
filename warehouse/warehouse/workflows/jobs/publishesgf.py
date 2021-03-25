@@ -11,7 +11,9 @@ class PublishEsgf(WorkflowJob):
         super().__init__(*args, **kwargs)
         self.name = NAME
         self._requires = { '*-*-*': None }
-        mapfile_path = Path(self.dataset.publication_path, '.mapfile')
+
+        mapfile_path = sorted([x for x in self.dataset.publication_path.glob('*.map')]).pop()
+        # import ipdb; ipdb.set_trace()
 
         optional_facets = {}
         if 'CMIP6' not in self.dataset.dataset_id:
@@ -31,8 +33,9 @@ class PublishEsgf(WorkflowJob):
                     optional_facets['period'] = f"{experiment_info['start']} - {experiment_info['end']}"
 
         self._cmd = f"""
-cd {self.scripts_path}
-python publish_to_esgf.py --src-path {mapfile_path} --log-path {self._slurm_out} """
-        if (optional_facets := self.params.get("optional_facets")):
-            self._cmd += f"--optional-facets {', '.join([f'{key}={value}' for key, value in optional_facets.items()])}"
+            cd {self.scripts_path}
+            python publish_to_esgf.py --src-path {mapfile_path} --log-path {self._slurm_out.resolve()} """
+        
+        if optional_facets:
+            self._cmd += '--optional-facets "' + '" "'.join([f"{key}={value}" for key, value in optional_facets.items()]) + '"'
         
