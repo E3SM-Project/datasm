@@ -27,13 +27,14 @@ class Publication(Workflow):
         dataset_id = self.params['dataset_id'].pop()
 
         if (pub_base := self.params.get('publication_base')):
-            self.pub_path = Path(pub_base, dataset_id.replace('.', os.sep))
-        else:
-            self.pub_path = Path(self.params['publication_path'])
-        if not self.pub_path.exists():
-            os.makedirs(self.pub_path.resolve())
+            self.pub_path = Path(pub_base)
+            if not self.pub_path.exists():
+                os.makedirs(self.pub_path.resolve())
+        data_path = self.params.get('data_path')
         
-        if (data_path := self.params.get('data_path')):
+        
+        # import ipdb; ipdb.set_trace()
+        if self.pub_path is not None and data_path is not None:
             warehouse = AutoWarehouse(
                 workflow=self,
                 dataset_id=dataset_id,
@@ -42,11 +43,18 @@ class Publication(Workflow):
                 serial=True,
                 job_worker=self.job_workers,
                 debug=self.debug)
+        elif data_path is not None and self.pub_path is None:
+            warehouse = AutoWarehouse(
+                workflow=self,
+                dataset_id=dataset_id,
+                warehouse_path=data_path,
+                serial=True,
+                job_worker=self.job_workers,
+                debug=self.debug)
         else:
             warehouse = AutoWarehouse(
                 workflow=self,
                 dataset_id=dataset_id,
-                publication_path=self.pub_path,
                 serial=True,
                 job_worker=self.job_workers,
                 debug=self.debug)
@@ -54,6 +62,7 @@ class Publication(Workflow):
         warehouse.setup_datasets(check_esgf=False)
         dataset_id, dataset = next(iter(warehouse.datasets.items()))
         dataset.warehouse_path = Path(data_path)
+        dataset.warehouse_base = Path(self.params['warehouse_base'])
 
         warehouse.start_listener()
 
@@ -78,6 +87,11 @@ class Publication(Workflow):
             type=str,
             help="Base path for the publication directory structure. If it doesnt "
                  "already exist, the facet structure for the dataset will be created.")
+        parser.add_argument(
+            '--warehouse-base',
+            type=str,
+            required=True,
+            help="Base path for the warehouse directory structure.")
         parser = Workflow.add_args(parser)
         return COMMAND, parser
 
@@ -85,9 +99,5 @@ class Publication(Workflow):
     def arg_checker(args):
         check_pass, _ = Workflow.arg_checker(args, COMMAND)
         if not check_pass:
-            return False, COMMAND
-        if not args.publication_base:
-            print("Please supply either the base path where the "
-                  "publication directory structure should be generated.")
             return False, COMMAND
         return True, COMMAND

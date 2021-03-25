@@ -47,7 +47,7 @@ PublishEsgf:Ready:
     - PublishEsgf:Engaged
 PublishEsgf:Pass:
   default:
-    - PublishEsgf:Ready
+    - ValidateEsgf:Ready
 PublishEsgf:Fail:
   default:
     - PUBLICATION:Fail
