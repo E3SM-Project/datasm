@@ -269,6 +269,7 @@ class AutoWarehouse():
         self.print_debug(f"Got a status update from {dataset_id}")
         dataset = self.datasets[dataset_id]
         dataset.update_from_status_file()
+        dataset.unlock(dataset.latest_warehouse_dir)
 
         # check to see of there's a slurm ID in the second to last status
         # and if there is, and the latest is either Pass or Fail, then
