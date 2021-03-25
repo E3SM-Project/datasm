@@ -189,6 +189,8 @@ class Dataset(object):
             latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
         except IndexError:
             latest_version = "0"
+        if latest_version.is_integer():
+            latest_version = int(latest_version)
         return str(Path(self.publication_path, f"v{latest_version}").resolve())
     
     @property
