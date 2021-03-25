@@ -93,6 +93,7 @@ class Dataset(object):
         self.datavars = datavars
         self.missing = None
         self._publication_path = Path(path) if path != '' else None
+        # import ipdb; ipdb.set_trace()
         self.pub_base = pub_base
         self.warehouse_path = Path(path) if path != '' else None
         self.warehouse_base = warehouse_base
@@ -150,17 +151,16 @@ class Dataset(object):
         # self.print_debug(f"update_from_status_file: *{new_status}*")
         self._status = new_status
     
-    @property
-    def working_dir(self):
-        """
-        Return the path to the latest working directory for the data files as a string
-        """
-        
-        if self.warehouse_path and self.warehouse_path.exists():
-            self.update_versions(self.warehouse_path)
-            path = self.warehouse_path
-        latest_version = sorted(self.versions.keys())[-1]
-        return str(Path(path, latest_version).resolve())
+    # @property
+    # def working_dir(self):
+    #     """
+    #     Return the path to the latest working directory for the data files as a string
+    #     """
+    #     if self.warehouse_path and self.warehouse_path.exists():
+    #         self.update_versions(self.warehouse_path)
+    #         path = self.warehouse_path
+    #     latest_version = sorted(self.versions.keys())[-1]
+    #     return str(Path(path, latest_version).resolve())
     
     @property
     def latest_warehouse_dir(self):
@@ -171,13 +171,21 @@ class Dataset(object):
 
         # we assume that the warehouse directory contains only directories named "v0.#" or "v#"
         # import ipdb; ipdb.set_trace()
-        latest_version = sorted([float(str(x.name)[1:]) for x in self.warehouse_path.iterdir() if x.is_dir()]).pop()
+        try:
+            latest_version = sorted([float(str(x.name)[1:]) for x in self.warehouse_path.iterdir() if x.is_dir()]).pop()
+        except IndexError:
+            latest_version = "0"
+        if latest_version < 0.1:
+            latest_version = "0"
         return str(Path(self.warehouse_path, f"v{latest_version}").resolve())
     
     @property
     def latest_pub_dir(self):
         # we assume that the publication directory contains only directories named "v0.#" or "v#"
-        latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
+        try:
+            latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
+        except IndexError:
+            latest_version = "0"
         return str(Path(self.publication_path, f"v{latest_version}").resolve())
     
     @property
@@ -194,11 +202,10 @@ class Dataset(object):
             latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
         except IndexError:
             return 0
-        return latest_version
+        return int(latest_version)
     
     @property
     def publication_path(self):
-        import ipdb; ipdb.set_trace
         if not self._publication_path or not self._publication_path.exists():
             if self.project == 'CMIP6':
                 pubpath = Path(self.pub_base, self.project, self.activity,
@@ -236,12 +243,20 @@ class Dataset(object):
     def lock(self, path):
         if self.is_locked(path):
             return
+        path = Path(path)
+        if not path.exists():
+            return
         Path(path, '.lock').touch()
     
     def is_locked(self, path=None):
         if path is None:
-            path = self.working_dir
-        for item in Path(path).glob('.lock'):
+            path = self.latest_warehouse_dir
+        else:
+            path = Path(path)
+
+        if not path.exists():
+            return False
+        for item in path.glob('.lock'):
             return True
         return False
     
