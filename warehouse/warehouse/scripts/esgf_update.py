@@ -1,5 +1,7 @@
 from esgcet.pub_client import publisherClient
-import sys, json, requests
+import sys
+import json
+import requests
 import argparse
 import configparser as cfg
 from datetime import datetime
@@ -10,26 +12,25 @@ from tqdm import tqdm
 DEFAULT_INDEX_NODE = "esgf-node.llnl.gov"
 DEFAULT_DATA__NODE = "esgf-data2.llnl.gov"
 
+
 def gen_xml(dataset_id, datatype, facets):
     now = datetime.utcnow()
     ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    idfield = "id"
-    if datatype == "files":
-        idfield = "dataset_id"
-    txt = f"""<updates core="{datatype}" action="set">
+    id_field = "id" if datatype != "files" else "dataset_id"
+    txt = f"""
+    <updates core="{datatype}" action="set">
         <update>
-          <query>{idfield}={dataset_id}</query>
-          <field name="_timestamp">
-             <value>{ts}</value>
-          </field>
+            <query>{id_field}={dataset_id}</query>
+            <field name="_timestamp">
+                <value>{ts}</value>
+            </field>
           """
 
-    # import ipdb; ipdb.set_trace()
     for key, value in facets.items():
-        txt += f"""<field name="{key}">
-                       <value>{value}</value>
-                   </field>
-        """
+        txt += f"""
+            <field name="{key}">
+                <value>{value}</value>
+            </field>"""
 
     txt += f"""
         </update>
@@ -78,13 +79,13 @@ def main():
     index_node = args.index_node
     data_node = args.data_node
     verbose = args.verbose
-    
+
     facets = {}
     for item in args.facets:
         key, value = item.split('=')
         facets[key] = value
 
-    url = f'https://{index_node}/esg-search/search/?offset=0&limit=100&type=Dataset&format=application%2Fsolr%2Bjson&latest=true&query=*&{search}'
+    url = f'https://{index_node}/esg-search/search/?offset=0&limit=10000&type=Dataset&format=application%2Fsolr%2Bjson&latest=true&{search}'
     if verbose:
         print(url)
     res = requests.get(url)
@@ -94,22 +95,23 @@ def main():
         return 1
 
     res = json.loads(res.text)
-    
+
     docs = res['response']["docs"]
     if len(docs) == 0:
         print(f"Unable to find records matching search {search}")
         return 1
-    
-    
+
     print("Found the following datasets:")
     for doc in docs:
         print(f"\t{doc['id']}")
 
     if not args.yes:
-        response = input(f"Found {len(docs)} datasets, would you like to update them all? y/[n]")
+        response = input(
+            f"Found {len(docs)} datasets, would you like to update them all? y/[n]")
         if response.lower() != 'y':
+            print("User failed to answer 'y', exiting")
             return 1
-        
+
     import warnings
     warnings.filterwarnings("ignore")
 
@@ -124,9 +126,9 @@ def main():
         if verbose:
             print(update_record)
         client.update(update_record)
-        
-    
+
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
