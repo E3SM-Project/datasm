@@ -170,11 +170,14 @@ class Dataset(object):
             self.warehouse_path.mkdir(parents=True, exist_ok=True)
 
         # we assume that the warehouse directory contains only directories named "v0.#" or "v#"
-        # import ipdb; ipdb.set_trace()
         try:
             latest_version = sorted([float(str(x.name)[1:]) for x in self.warehouse_path.iterdir() if x.is_dir()]).pop()
         except IndexError:
             latest_version = "0"
+        
+        if latest_version.is_integer():
+            latest_version = int(latest_version)
+
         if latest_version < 0.1:
             latest_version = "0"
         return str(Path(self.warehouse_path, f"v{latest_version}").resolve())
