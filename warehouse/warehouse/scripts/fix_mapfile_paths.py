@@ -37,16 +37,16 @@ def main():
     mapfile_path = Path(parsed_args.mapfile_path)
     ware_base = parsed_args.warehouse_base
     pub_base = parsed_args.pub_base
-    ware_version = parsed_args.warehouse_version
-    pub_version = parsed_args.pub_version
+    ware_version = "/" + parsed_args.warehouse_version + "/"
+    pub_version = "/" + parsed_args.pub_version + "/"
 
-    tempfile = NamedTemporaryFile(mode='w', delete=False)
+    tempfile = NamedTemporaryFile(mode='w', delete=False, dir=str(mapfile_path.parent))
     with open(mapfile_path, 'r') as instream:
         for line in instream.readlines():
             items = line.split('|')
             items[1] = items[1].replace(ware_base, pub_base, 1)
             items[1] = items[1].replace(ware_version, pub_version, 1)
-            line = ' | '.join(items)
+            line = '|'.join(items)
             tempfile.write(line)
 
     mapfile_temp = str(mapfile_path.resolve())

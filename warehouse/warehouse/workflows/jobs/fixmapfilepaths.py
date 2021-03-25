@@ -17,5 +17,5 @@ class FixMapfilePaths(WorkflowJob):
 
         self._cmd = f"""
 cd {self.scripts_path}
-python fix_mapfile_paths.py {mapfile_path} {self.dataset.warehouse_base} {self.dataset.pub_base} {self.dataset.latest_warehouse_dir} {self.dataset.latest_pub_dir}
+python fix_mapfile_paths.py {self.params['mapfile_path']} {self.dataset.warehouse_base} {self.dataset.pub_base} {self.params['ware_name']} {self.params['pub_name']}
 """

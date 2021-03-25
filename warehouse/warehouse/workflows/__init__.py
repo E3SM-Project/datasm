@@ -189,10 +189,6 @@ class Workflow(object):
                  "If its a CMIP6 dataset, the ID should be in the format 'CMIP6.activity.source.model-version.case.variant.table.variable.gr'  "
                  "\t\t for example: 'CMIP6.CMIP.E3SM-Project.E3SM-1-1.historical.r1i1p1f1.CFmon.cllcalipso.gr' ")
         parser.add_argument(
-            '--force',
-            action="store_true",
-            help="Force the workflow you're calling to start from its beginning. Otherwise it will pick up from wherever the status file says the ")
-        parser.add_argument(
             '--job-workers',
             type=int,
             default=8,

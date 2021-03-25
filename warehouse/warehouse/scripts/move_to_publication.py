@@ -69,6 +69,13 @@ def conduct_move(args):
         dst = Path(dst_path.parent, f"{dataset_id}.map")
         print(f"Moving the mapfile to {dst}")
         mapfile.replace(dst)
+    
+    message = f"mapfile_path={dst},pub_name={dst_path.name},ware_name={src_path.name}"
+    if (messages_path := os.environ.get('message_file')):
+        with open(messages_path, 'w') as outstream:
+            outstream.write(message)
+    else:
+        print(message)
 
     return 0
 

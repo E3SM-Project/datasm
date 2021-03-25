@@ -64,16 +64,23 @@ def validate_mapfile(mapfile: str, srcdir: Path, quiet: bool):
     dataset_files = sorted([x.name for x in srcdir.glob('*.nc')])
     mapfile_lines = sorted(loadFileLines(mapfile))
 
-    # import ipdb; ipdb.set_trace()
+    
     if not len(dataset_files) == len(mapfile_lines):
         raise ValueError(
             "Number of files does not match number of entries in the mapfile")
 
     # MUST assume both lists sort identically - O(n) > O(n^2)
     pairlist = list(zip(dataset_files, mapfile_lines))
+    error = []
+    # import ipdb; ipdb.set_trace()
     for file, mapentry in tqdm(pairlist, disable=quiet):
         if file not in mapentry:
-            return False
+            error.append(file)
+    
+    if error:
+        for e in error:
+            print(e)
+        return False
 
     return True
 
