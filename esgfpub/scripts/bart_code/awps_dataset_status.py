@@ -1,5 +1,9 @@
-import os, sys, argparse, re
+import os, sys
+import argparse
+import re
 from argparse import RawTextHelpFormatter
+import time
+from datetime import datetime
 
 '''
 The Big Idea:  Using the Archive_Map and the (sproket-based) ESGF publication report,
@@ -39,11 +43,16 @@ arch_map  = '/p/user_pub/e3sm/archive/.cfg/Archive_Map'
 warehouse = '/p/user_pub/e3sm/warehouse/E3SM'
 publicati = '/p/user_pub/work/E3SM'
 esgf_pr   = ''
+
+# output_mode
+gv_csv = False
+
 # esgf_pr   = '/p/user_pub/e3sm/bartoletti1/Pub_Status/sproket/ESGF_publication_report-20200915.144250'
 
 def assess_args():
     global thePWD
     global esgf_pr
+    global gv_csv
 
     thePWD = os.getcwd()
     # parser = argparse.ArgumentParser(description=helptext, prefix_chars='-')
@@ -53,10 +62,13 @@ def assess_args():
     optional = parser.add_argument_group('optional arguments')
 
     required.add_argument('-s', action='store', dest="esgf_pr", type=str, required=True)
+    optional.add_argument('--csv', action='store_true', dest="csv", required=False)
 
     args = parser.parse_args()
 
     esgf_pr = args.esgf_pr
+    if args.csv:
+        gv_csv = args.csv
 
 # Generic Convenience Functions =============================
 
@@ -138,8 +150,128 @@ def isVLeaf(_):
         return True
     return False
 
-def dataset_print_csv( akey, dkey ):
-    print(f'{akey[0]},{akey[1]},{akey[2]},{dkey}')
+def get_maxv_info(edir):
+    ''' given an ensemble directory, return the max "v#" subdirectory and its file count '''
+    tuplist = []
+    for root, dirs, files in os.walk(edir):
+        if not dirs:
+            tuplist.append(tuple([os.path.split(root)[1],len(files)]))
+    tuplist.sort()
+    return tuplist[-1]
+    
+def dataset_print_csv( akey, dkey, newln ):
+    outstr = f'{akey[0]},{akey[1]},{akey[2]},{dkey}'
+    if gv_csv:
+        if newln == 1:
+            print(f'{outstr},')
+        else:
+            print(f'{outstr},', end = '')
+    else:
+        if newln == 1:
+            print(f'{outstr:60}')
+        else:
+            print(f'{outstr:60}', end = '')
+
+
+def get_dataset_dirs_loc(anydir,loc):   # loc in ['P','W']
+
+    '''
+        Return tuple (ensemblepath,[version_paths])
+        for the dataset indicated by "anydir" whose
+        "dataset_id" part identifies a dataset, and
+        whose root part is warehouse or publication.
+    '''
+
+    ''' WARNING: HARDCODED PATHS '''
+    WH_root = "/p/user_pub/e3sm/warehouse"
+    PB_root = "/p/user_pub/work"
+
+    if not loc in ['P','W']:
+        print(f'ERROR: invalid dataset location indicator:{loc}')
+        return '',[]
+    if not (WH_root in anydir or PB_root in anydir):
+        print(f'ERROR: invalid dataset source path - bad root:{anydir}')
+        return '',[]
+    if WH_root in anydir:
+        ds_part = anydir[1+len(WH_root):]
+    else:
+        ds_part = anydir[1+len(PB_root):]
+
+    tpath, leaf = os.path.split(ds_part)
+
+    if len(leaf) == 0:
+        tpath, leaf = os.path.split(tpath)
+    if leaf[0] == 'v' and leaf[1] in '0123456789':
+        ens_part = tpath
+    elif (leaf[0:3] == 'ens' and leaf[3] in '123456789'):
+        ens_part = ds_part
+    else:
+        print(f'ERROR: invalid dataset source path:{anydir}')
+        return '',[]
+
+    if loc == 'P':
+        a_enspath = os.path.join(PB_root, ens_part)
+    else:
+        a_enspath = os.path.join(WH_root, ens_part)
+
+    vpaths = []
+    if os.path.exists(a_enspath):
+        vpaths = [ f.path for f in os.scandir(a_enspath) if f.is_dir() ]      # use f.path for the fullpath
+        vpaths.sort()
+
+    # print(f'DEBUG: get_dataset_dirs_loc: RETURNING: a_enspath = {a_enspath}, vpaths = {vpaths}',flush=True)
+    return a_enspath, vpaths
+
+def get_statfile_path(ds_dir):
+    w_enspath, _ = get_dataset_dirs_loc(ds_dir,'W')
+    p_enspath, _ = get_dataset_dirs_loc(ds_dir,'P')
+
+    if w_enspath == '' and p_enspath == '':
+        return ''
+
+    w_sf = os.path.join(w_enspath,'.status')
+    p_sf = os.path.join(p_enspath,'.status')
+
+    if not os.path.exists(w_sf) and not os.path.exists(p_sf):
+        print(f'ERROR: no status file can be found for ds_dir {ds_dir}', file=sys.stderr)
+        return ''
+    if os.path.exists(w_sf) and os.path.exists(p_sf):
+        print(f'ERROR: ambiguous status files exist: {ds_dir}', file=sys.stderr)
+        return ''
+    
+    if os.path.exists(w_sf):
+        return w_sf
+
+    return p_sf
+
+
+# sf_status = get_sf_laststat(epath)
+
+def get_sf_laststat(epath):
+    if epath == '':
+        return ':NO_STATUS_FILE_PATH'
+    sf_path = get_statfile_path(epath)
+    if sf_path == '':
+        return ':NO_STATUS_FILE_AT_PATH'
+    sf_list = loadFileLines(sf_path)
+    sf_last = sf_list[-1]
+    last_stat = ':'.join(sf_last.split(':')[1:])
+    return last_stat
+
+def set_statcode(stat_rec):
+    statlist = ['_','_','_','_']
+    if stat_rec['A']:
+        statlist[0] = 'A'
+    if stat_rec['W']:
+        statlist[1] = 'W'
+    if stat_rec['P']:
+        statlist[2] = 'P'
+    if stat_rec['S']:
+        statlist[3] = 'S'
+    statcode = ''.join(statlist)
+    stat_rec['statcode'] = statcode
+    return statcode
+
 
 debug = False
 
@@ -176,7 +308,17 @@ def main():
     for _ in am_list:
         akey = tuple([_[1],_[2],_[3]])
         dkey = _[4]
-        dataset_status[akey][dkey]['A'] = True
+        stat_rec = dataset_status[akey][dkey]
+        stat_rec['w_epath'] = ''
+        stat_rec['w_maxv'] = ''
+        stat_rec['w_maxc'] = 0
+        stat_rec['p_epath'] = ''
+        stat_rec['p_maxv'] = ''
+        stat_rec['p_maxc'] = 0
+        stat_rec['s_vers'] = ''
+        stat_rec['scount'] = 0
+        stat_rec['A'] = True
+        dataset_status[akey][dkey] = stat_rec
     
     ##########
     # walk the warehouse.  Need to assign "model,experiment,ensemble" to each extracted dataset (how to identify?)
@@ -216,6 +358,11 @@ def main():
         else:  # just set Warehouse to True
             dataset_status[akey][dkey]['W'] = True
 
+        maxv, maxc = get_maxv_info(atup[0])
+        dataset_status[akey][dkey]['w_epath'] = atup[0]
+        dataset_status[akey][dkey]['w_maxv'] = maxv
+        dataset_status[akey][dkey]['w_maxc'] = maxc
+
 
     ##########
     # walk the publicati.  Need to assign "model,experiment,ensemble" to each extracted dataset (how to identify?)
@@ -234,7 +381,7 @@ def main():
             continue
         for root, dirs, files in os.walk(adir):
             if files:
-                pub_nonempty.append( tuple([ensdir,os.path.basename(ensdir),len(files)]))
+                pub_nonempty.append( tuple([ensdir,vleaf,len(files)]))
 
     for atup in pub_nonempty:
         dsid = get_idval(atup[0]) # ensdir
@@ -254,6 +401,16 @@ def main():
         else:  # just set Publication to True
             dataset_status[akey][dkey]['P'] = True
 
+        if not 'w_epath' in dataset_status[akey][dkey] or not len(dataset_status[akey][dkey]['w_epath']):
+            dataset_status[akey][dkey]['w_epath'] = ''
+            dataset_status[akey][dkey]['w_maxv'] = ''
+            dataset_status[akey][dkey]['w_maxc'] = 0
+
+        maxv, maxc = get_maxv_info(atup[0])
+        dataset_status[akey][dkey]['p_epath'] = atup[0]
+        dataset_status[akey][dkey]['p_maxv'] = maxv
+        dataset_status[akey][dkey]['p_maxc'] = maxc
+
 
     ##########
     # extract the datasetID from each published dataset listed in the ESGF_publication_report
@@ -264,22 +421,27 @@ def main():
 
     esgf_pr_list = [ aline.split(',') for aline in contents if aline[:-1] and not aline[0] == 'NOMATCH' ]
 
-    # add S_counts
+    # add S_version and S_counts
     S_count = dict()
+    S_vers = dict()
     for aline in esgf_pr_list:
         tline = aline[2]
         dsid = '.'.join(tline.split('.')[:-1])
         akey = get_dsid_arch_key( dsid )
         S_count[akey] = dict()
+        S_vers[akey] = dict()
 
     for aline in esgf_pr_list:
         filecount = aline[1]
         tline = aline[2]
         dsid = '.'.join(tline.split('.')[:-1])
+        vers = tline.split('.')[-1]
         akey = get_dsid_arch_key( dsid )
         dkey = get_dsid_type_key( dsid )
+        # print(f'DEBUG FC={filecount}: {akey},{dkey}')
         S_count[akey][dkey] = filecount
-    # end add S_counts
+        S_vers[akey][dkey] = vers
+    # end add S_version and S_counts
 
     esgf_pr_list = [ _[2] for _ in esgf_pr_list ]
     dsid_list = [ '.'.join(_.split('.')[:-1]) for _ in esgf_pr_list ]
@@ -314,37 +476,90 @@ def main():
             dataset_status[akey][dkey] = { 'A': False, 'W': False, 'P': False, 'S': True }
         else:  # just set Publication to True
             dataset_status[akey][dkey]['S'] = True
-    
-    # print all combos (model,experiment,ensemble,dataset_type)
 
-    if debug:
-        for akey in dataset_status:
-            # print(f'{ akey }:')
-            for dkey in dataset_status[akey]:
-                # print(f'    { dkey } : { dataset_status[akey][dkey] }')
-                dataset_print_csv(akey,dkey)
-        sys.exit(0)
+        dataset_status[akey][dkey]['scount'] = S_count[akey][dkey]
+        dataset_status[akey][dkey]['s_vers'] = S_vers[akey][dkey]
+    
+        if not 'w_epath' in dataset_status[akey][dkey] or not len(dataset_status[akey][dkey]['w_epath']):
+            dataset_status[akey][dkey]['w_epath'] = ''
+            dataset_status[akey][dkey]['w_maxv'] = ''
+            dataset_status[akey][dkey]['w_maxc'] = 0
+        if not 'p_epath' in dataset_status[akey][dkey] or not len(dataset_status[akey][dkey]['p_epath']):
+            dataset_status[akey][dkey]['p_epath'] = ''
+            dataset_status[akey][dkey]['p_maxv'] = ''
+            dataset_status[akey][dkey]['p_maxc'] = 0
+
+    # print all combos (model,experiment,ensemble,dataset_type)
+    '''
+    o   AWPS: AWPS,[opt S-count],model,experiment,ensemble,ds_type,[opt wh_path]
+    n   AWPS: AWPS,model,experiment,ensemble,ds_type,w_maxv,w_maxc,p_maxv,p_maxc,s_count,w_epath,p_epath]
+    '''
+
+    repsep = ':'
+    if gv_csv:
+        repsep = ','
+
+    
+    for akey in dataset_status:
+        for dkey in dataset_status[akey]:
+            set_statcode(dataset_status[akey][dkey])
+
+    sf_status = 'NONE'
+    for akey in dataset_status:
+        for dkey in dataset_status[akey]:
+            stat_rec = dataset_status[akey][dkey]
+            if not 'w_epath' in stat_rec:
+                stat_rec['w_epath'] = ''
+                stat_rec['w_maxv'] = ''
+                stat_rec['w_maxc'] = 0
+            if not 'p_epath' in stat_rec:
+                stat_rec['p_epath'] = ''
+                stat_rec['p_maxv'] = ''
+                stat_rec['p_maxc'] = 0
+            if not 's_vers' in stat_rec:
+                stat_rec['s_vers'] = ''
+                stat_rec['scount'] = 0
+            # print(f'{stat_rec["statcode"]}:{akey},{dkey}:',end='')
+            epath = ''
+            if 'w_epath' in stat_rec and len(stat_rec['w_epath']):
+                epath = stat_rec['w_epath']
+                # print(f'LAST_GASP: epath (W) = {epath}')
+            elif 'p_epath' in stat_rec and len(stat_rec['p_epath']):
+                epath = stat_rec['p_epath']
+                # print(f'LAST_GASP: epath (P) = {epath}')
+            else:
+                epath = ''
+                # print(f'LAST_GASP: NO_PATH for {akey},{dkey}')
+            sf_status = get_sf_laststat(epath)
+            # print(f'DEBUG: GASP: sf_status={sf_status}: {akey},{dkey}')
+            stat_rec['sf_laststat'] = sf_status
+            dataset_status[akey][dkey] = stat_rec
+
 
     for akey in dataset_status:
         for dkey in dataset_status[akey]:
-            statlist = ['_','_','_','_']
-            if dataset_status[akey][dkey]['A']:
-                statlist[0] = 'A'
-            if dataset_status[akey][dkey]['W']:
-                statlist[1] = 'W'
-            if dataset_status[akey][dkey]['P']:
-                statlist[2] = 'P'
-            if dataset_status[akey][dkey]['S']:
-                statlist[3] = 'S'
-            statcode = ''.join(statlist)
-            if dataset_status[akey][dkey]['S']:
-                statcode = statcode + f':[S={int(S_count[akey][dkey]):4d}]'
-            else:
-                statcode = statcode + ':[      ]'
+            stat_rec = dataset_status[akey][dkey]
+            out_list = []
+            out_list.append(stat_rec['statcode'])
+            out_list.append(akey[0])
+            out_list.append(akey[1])
+            out_list.append(akey[2])
+            out_list.append(dkey)
+            out_list.append(stat_rec['w_maxv'])
+            out_list.append(str(stat_rec['w_maxc']))
+            out_list.append(stat_rec['p_maxv'])
+            out_list.append(str(stat_rec['p_maxc']))
+            out_list.append(stat_rec['s_vers'])
+            out_list.append(str(stat_rec['scount']))
+            out_list.append(stat_rec['sf_laststat'])
+            out_list.append(stat_rec['w_epath'])
+            out_list.append(stat_rec['p_epath'])
+            
 
-            print(f'STATUS={statcode}:',end ='')
-            dataset_print_csv(akey,dkey)
-
+            if gv_csv:
+                out_line = ','.join(out_list)
+                print(f'{out_line}')
+                
     sys.exit(0)
 
 if __name__ == "__main__":

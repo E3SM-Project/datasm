@@ -7,7 +7,7 @@ from datetime import datetime
 acomment = 'Hangs on Links'
 
 helptext = '''
-(may hang if links are encountered?)'
+(may hang if links are encountered?)
 
 '''
 
@@ -18,24 +18,21 @@ gv_WH_root = '/p/user_pub/e3sm/warehouse/E3SM'
 ts=datetime.now().strftime('%Y%m%d_%H%M%S')
 ensem_out = 'warehouse_ensem-' + ts
 paths_out = 'warehouse_paths-' + ts
-stats_out = 'warehouse_status-' + ts
+stats_out = 'Warehouse_Status_Report-' + ts
 
 # vs_mode = 4  # from 'v0__' to 'v1:P'
 
 gv_all = True
 gv_empty = False
 gv_nonempty = False
+gv_csv = False
 
 def assess_args():
-    global gv_WH_root
-    global gv_SelectionFile
-    global gv_Force
-    global gv_SetVers
-    global gv_setstat
-    global gv_Setstat
-    global gv_getstat
-    global gv_Getstat
-    global gv_PathSpec
+    global gv_all
+    global gv_empty
+    global gv_nonempty
+    global gv_csv
+    global stats_out
 
     parser = argparse.ArgumentParser(description=helptext, prefix_chars='-', formatter_class=RawTextHelpFormatter)
     parser._action_groups.pop()
@@ -45,6 +42,7 @@ def assess_args():
     optional.add_argument('--all', action='store_true', dest="gv_all", required=False)
     optional.add_argument('--empty', action='store_true', dest="gv_empty", required=False)
     optional.add_argument('--nonempty', action='store_true', dest="gv_nonempty", required=False)
+    optional.add_argument('--CSV', action='store_true', dest="gv_csv", required=False)
 
     args = parser.parse_args()
 
@@ -61,6 +59,10 @@ def assess_args():
     if ac > 1:
         print('ERROR:  only one of --all, --empty or gv_nonempty may be specified. Default is --all.')
         sys.exit(0)
+
+    if args.gv_csv:
+        gv_csv = args.gv_csv
+        stats_out = stats_out + '.csv'
 
 
 # Generic Convenience Functions =============================
@@ -381,7 +383,8 @@ def produce_status_listing_vcounts(datasets):
             if len(corepath) == 0:
                 continue
             vdict = ds_status['VDIR']      # { 'v0': fcount , 'v1': fcount, ... }
-            statlist = ['__________','__________','__________','__________','__________','__________']
+            # statlist = ['__________','__________','__________','__________','__________','__________']
+            statlist = ['__________','__________','__________','__________']
             spos = 0
             vkeys = list(vdict.keys())
             vkeys.sort()
@@ -390,7 +393,8 @@ def produce_status_listing_vcounts(datasets):
                 statlist[spos] = f"{vleaf}[{vdict[vdir]:4d}]"
                 spos += 1
                 
-            statbar = f'{statlist[0]}.{statlist[1]}.{statlist[2]}.{statlist[3]}.{statlist[4]}.{statlist[5]}'
+            # statbar = f'{statlist[0]}.{statlist[1]}.{statlist[2]}.{statlist[3]}.{statlist[4]}.{statlist[5]}'
+            statbar = f'{statlist[0]}.{statlist[1]}.{statlist[2]}.{statlist[3]}'
             ds_spec = f'{akey[0]},{akey[1]},{akey[2]},{dkey}'
             ds_stat_list = ds_status['STAT']
             ds_comm_list = ds_status['COMM']
@@ -400,12 +404,16 @@ def produce_status_listing_vcounts(datasets):
             if len(ds_warehouse):
                 latest = ds_warehouse[-1]
                 stat_general = f"{latest[0]}:{latest[1]}"
+                stat_general.replace(',',';')
 
             # TEST: reconstitute status file from structures
             # if len(ds_stat_list):       # have .status file data
             #     write_status_file(adict,ds_stat_struct,ds_comm_list)
 
-            statline = f'{ds_spec:60}|{stat_general:40}|{statbar}|{corepath}'
+            if gv_csv:
+                statline = f'{ds_spec},{stat_general},{statbar},{corepath}'
+            else:    
+                statline = f'{ds_spec:60}|{stat_general:60}|{statbar}|{corepath}'
             # statline = f'{ds_spec}|{stat_general}|{statbar}|{corepath}'       # for CSV output from pipe-delimiters
             statlinelist.append(statline)
             
