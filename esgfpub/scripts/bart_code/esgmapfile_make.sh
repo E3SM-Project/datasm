@@ -13,6 +13,7 @@ startTime=`date +%s`
 ts=`date +%Y%m%d.%H%M%S`
 rlog=$workpath/mfg_runlog-$ts
 
+
 dataset_ens_path=$1
 dataset_fullpath=$2
 
@@ -21,6 +22,7 @@ self_log=0
 # Obtain the expected mapfile name, "<dsid>.map"
 # must determine if "fullpath" begins with "/p/user_pub/e3sm" (warehouse) or "/p/user_pub/work" (publication)
 # this is brittle - should be generalized
+
 home=`echo $dataset_ens_path | cut -f4 -d/`
 if [ $home == "e3sm" ]; then
     part=`echo $dataset_ens_path | cut -f7- -d/ | tr / .`
@@ -53,6 +55,7 @@ ds_tm1=`date +%s`
 #conda init bash
 source ~/anaconda3/etc/profile.d/conda.sh
 conda activate pub
+
 esgmapfile make --debug -i $ini_path --max-processes $proc_num --project e3sm --mapfile .mapfile --outdir $dataset_ens_path $dataset_fullpath
 retcode=$?
 conda deactivate
