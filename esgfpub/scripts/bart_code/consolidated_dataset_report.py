@@ -84,9 +84,10 @@ for adir in src_selected:
 '''
 
 '''
-    AWPS: AWPS,[opt S-count],model,experiment,ensemble,ds_type,[opt wh_path]
+o   AWPS: AWPS,[opt S-count],model,experiment,ensemble,ds_type,[opt wh_path]
+n   AWPS: AWPS,model,experiment,ensemble,ds_type,w_maxv,w_maxc,p_maxv,p_maxc,s_vers,s_count,statusfile,w_epath,p_epath]
     WREP: model,experiment,ensemble,ds_type,statusfile,wh_dir_counts,wh_ens_path
-    WANT: Campaign,Model,experiment,ensemble,ds_type,AWPS,A,W,P,S,statusfile,wh_dircounts,pubdir_count,sproket_count,Archive,WH_ens_path,Pub_ver_path
+    WANT: Campaign,Model,experiment,ensemble,ds_type,realm,grid,freq,AWPS,A,W,P,S,statusdate,statusval,wh_dircounts,pubdir_count,sproket_count,Archive,WH_ens_path,Pub_ver_path
 '''
 
 def load_report_structure(a_list,w_list):
@@ -99,16 +100,16 @@ def load_report_structure(a_list,w_list):
         w_dict[akey] = arec
 
 
-    print('Campaign,Model,Experiment,Ensemble,DatasetType,Realm,Grid,Freq,AWPS,A,W,P,S,StatDate,Status,')
+    print('Campaign,Model,Experiment,Ensemble,DatasetType,Realm,Grid,Freq,AWPS,A,W,P,S,StatDate,Status,W_Version,W_Count,P_Version,P_Count,S_Version,S_Count,WarehousePath,PublicationPath')
     for aline in a_list:
         arec = aline.split(',')
-        akey = ','.join([arec[2],arec[3],arec[4],arec[5]])
+        # print(f'DEBUG: arec = {arec}')
+        akey = ','.join([arec[1],arec[2],arec[3],arec[4]])
         r_awpsv = arec[0]
-        r_srcnt = arec[1]
-        r_model = arec[2]
-        r_exper = arec[3]
-        r_ensem = arec[4]
-        r_dstyp = arec[5]
+        r_model = arec[1]
+        r_exper = arec[2]
+        r_ensem = arec[3]
+        r_dstyp = arec[4]
         r_campa = campaign_via_model_experiment(r_model,r_exper)
         dstyp_list = r_dstyp.split('_')
         r_realm = dstyp_list[0]
@@ -117,24 +118,22 @@ def load_report_structure(a_list,w_list):
             r_freqv = dstyp_list[2]
         else:
             r_freqv = '_'.join([dstyp_list[2],dstyp_list[3]])
-        if arec[6]:
-            r_pbdir = arec[6]
-        else:
-            r_pbdir=''
-
-        w_rec = []
-        if akey in w_dict:
-            w_rec = w_dict[akey]
-            r_statf = w_rec[4]
-            r_st_sd = r_statf.split(':')[0]
-            r_st_sv = ':'.join(r_statf.split(':')[1:])
-        else:
-            r_st_sd = ''
-            r_st_sv = ''
-         
+        r_w_maxv = arec[5]
+        r_w_maxc = arec[6]
+        r_p_maxv = arec[7]
+        r_p_maxc = arec[8]
+        r_s_maxv = arec[9]
+        r_s_maxc = arec[10]
+        sf_data = arec[11]
+        r_st_sd = sf_data.split(':')[0]
+        r_st_sv = ':'.join(sf_data.split(':')[1:])
+        r_w_path = arec[12]
+        r_p_path = arec[13]
+        
+        
         # print(f'dstype: {r_dstyp} : {r_realm} _ {r_gridv} _ {r_freqv}')
 
-        print(f'{r_campa},{r_model},{r_exper},{r_ensem},{r_dstyp},{r_realm},{r_gridv},{r_freqv},{r_awpsv},{r_awpsv[0]},{r_awpsv[1]},{r_awpsv[2]},{r_awpsv[3]},{r_st_sd},{r_st_sv},')
+        print(f'{r_campa},{r_model},{r_exper},{r_ensem},{r_dstyp},{r_realm},{r_gridv},{r_freqv},{r_awpsv},{r_awpsv[0]},{r_awpsv[1]},{r_awpsv[2]},{r_awpsv[3]},{r_st_sd},{r_st_sv},{r_w_maxv},{r_w_maxc},{r_p_maxv},{r_p_maxc},{r_s_maxv},{r_s_maxc},{r_w_path},{r_p_path}')
 
 # can use os.path.islink to test if "files" are actually "links"
 
@@ -146,8 +145,6 @@ def main():
     raw_w_list = loadFileLines(args.wh_report)
 
     load_report_structure(raw_a_list,raw_w_list)
-
-    sys.exit(0)
 
     sys.exit(0)
 
