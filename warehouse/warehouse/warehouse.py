@@ -19,12 +19,15 @@ from warehouse.listener import Listener
 import warehouse.resources as resources
 
 
-DEFAULT_WAREHOUSE_PATH = '/p/user_pub/e3sm/warehouse/'
-DEFAULT_PUBLICATION_PATH = '/p/user_pub/work/'
-DEFAULT_ARCHIVE_PATH = '/p/user_pub/e3sm/archive'
-
 resource_path, _ = os.path.split(resources.__file__)
 DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
+DEFAULT_CONF_PATH = os.path.join(resource_path, 'warehouse_config.yaml')
+
+with open(DEFAULT_CONF_PATH, 'r') as instream:
+    warehouse_conf = yaml.load(instream, Loader=yaml.SafeLoader)
+DEFAULT_WAREHOUSE_PATH = warehouse_conf['DEFAULT_WAREHOUSE_PATH']
+DEFAULT_PUBLICATION_PATH = warehouse_conf['DEFAULT_PUBLICATION_PATH']
+DEFAULT_ARCHIVE_PATH = warehouse_conf['DEFAULT_ARCHIVE_PATH']
 NAME = 'auto'
 
 
@@ -45,6 +48,8 @@ class AutoWarehouse():
         self.serial = kwargs.get('serial', False)
         self.testing = kwargs.get('testing', False)
         self.dataset_ids = kwargs.get('dataset_id')
+        if not isinstance(self.dataset_ids, list):
+            self.dataset_ids = [self.dataset_ids]
         self.sproket_path = kwargs.get('sproket', 'sproket')
         self.slurm_path = kwargs.get('slurm', 'slurm_scripts')
         self.report_missing = kwargs.get('report_missing')
@@ -136,12 +141,13 @@ class AutoWarehouse():
 
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
+        # import ipdb; ipdb.set_trace()
         if self.dataset_ids is not None:
             ndataset_ids = []
             for i in dataset_ids:
                 found = False
                 for ii in self.dataset_ids:
-                    if ii in i:
+                    if ii == i or ii in i:
                         found = True
                         break
                 if found:
@@ -149,7 +155,7 @@ class AutoWarehouse():
             dataset_ids = ndataset_ids
 
         if not dataset_ids:
-            cprint('No datasets match pattern from --dataset-id flag', 'red')
+            cprint(f'No datasets match pattern from --dataset-id {self.dataset_ids} flag', 'red')
             sys.exit(1)
 
         # instantiate the dataset objects with the paths to
@@ -263,6 +269,7 @@ class AutoWarehouse():
         self.print_debug(f"Got a status update from {dataset_id}")
         dataset = self.datasets[dataset_id]
         dataset.update_from_status_file()
+        dataset.unlock(dataset.latest_warehouse_dir)
 
         # check to see of there's a slurm ID in the second to last status
         # and if there is, and the latest is either Pass or Fail, then
@@ -336,6 +343,7 @@ class AutoWarehouse():
 
                 for state, workflow, params in engaged_states:
                     self.print_debug(f"Creating jobs from state: {state}")
+                    # import ipdb; ipdb.set_trace()
                     newjob = self.workflow.get_job(
                         dataset,
                         state,
@@ -344,6 +352,7 @@ class AutoWarehouse():
                         self.slurm_path,
                         workflow=workflow,
                         job_workers=self.job_workers,
+                        spec_path=self.spec_path,
                         debug=self.debug)
 
                     if (matching_job := self.find_matching_job(newjob)) is None:
@@ -446,14 +455,20 @@ class AutoWarehouse():
             default=DEFAULT_ARCHIVE_PATH,
             help=f"The root path for the data archive, default={DEFAULT_ARCHIVE_PATH}")
         p.add_argument(
-            '-d', '--dataset-spec',
-            default=DEFAULT_SPEC_PATH,
-            help=f'The path to the dataset specification yaml file, default={DEFAULT_SPEC_PATH}')
-        p.add_argument(
             '--dataset-id',
             nargs='*',
             help='Only run the automated processing for the given datasets, this can the the complete dataset_id, '
                  'or a wildcard such as E3SM.1_0.')
+        p.add_argument(
+            '--warehouse-config',
+            default=DEFAULT_CONF_PATH,
+            help="The default warehouse/publication/archives paths are drawn from a config yaml file "
+                 "you can change the values via the command line or change the contents of the file here "
+                f"{DEFAULT_CONF_PATH}")
+        p.add_argument(
+            '--dataset-spec',
+            default=DEFAULT_SPEC_PATH,
+            help=f'The path to the dataset specification yaml file, default={DEFAULT_SPEC_PATH}')
         p.add_argument(
             '--job-workers',
             type=int,

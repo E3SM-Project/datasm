@@ -10,7 +10,7 @@ class WorkflowJob(object):
         self._dataset = dataset
         self._starting_state = state
         self._scripts_path = scripts_path
-        self._slurm_out = slurm_out_path
+        self._slurm_out = Path(slurm_out_path)
         self._slurm_opts = slurm_opts
         self._cmd = None
         self._outname = None
@@ -19,6 +19,7 @@ class WorkflowJob(object):
         self._parameters = params
         self._job_workers = kwargs.get('job_workers', 8)
         self._job_id = None
+        self._spec_path = kwargs.get('spec_path')
         self.debug = kwargs.get('debug')
 
     
@@ -34,7 +35,7 @@ class WorkflowJob(object):
             return None
         self.print_debug(f"Starting job: {str(self)}")
 
-        working_dir = self.dataset.working_dir
+        working_dir = self.dataset.latest_warehouse_dir
         if self.dataset.is_locked(working_dir):
             print(f"Cant start job working dir is locked: {working_dir}")
             return None
@@ -66,7 +67,6 @@ then
 else
     echo STAT:`date +%Y%m%d_%H%M%S`:WAREHOUSE:{self.parent}:{self.name}:Pass:`cat $message_file` >> {self.dataset.status_path}
 fi
-rm {Path(working_dir, ".lock")}
 rm $message_file
 """
         self._cmd = self._cmd + suffix
@@ -117,7 +117,7 @@ rm $message_file
         return True
 
     def find_outpath(self):
-        latest_path = self._dataset.working_dir
+        latest_path = self._dataset.latest_warehouse_dir
         # assuming the path ends in something like "v0" or "v0.1"
         version = latest_path.split('v')[-1]
         if '.' in version:
@@ -125,7 +125,7 @@ rm $message_file
         else:
             version_number = int(version)
         new_version = version_number + 1
-        return Path(Path(self._dataset.working_dir).parents[0], f"v0.{new_version}")
+        return Path(Path(self._dataset.latest_warehouse_dir).parents[0], f"v0.{new_version}")
 
     @property
     def cmd(self):

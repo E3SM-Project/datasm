@@ -10,5 +10,5 @@ class FixTimeUnits(WorkflowJob):
         self._requires = { '*-native-*': None }
         self._cmd = f"""
 cd {self.scripts_path}
-python fix_time_units.py -p {self._job_workers} --time-units "{self.params["correct_units"]}" --time-offset {self.params["offset"]} {self.dataset.working_dir} {self.find_outpath()}
+python fix_time_units.py -p {self._job_workers} --time-units "{self.params["correct_units"]}" --time-offset {self.params["offset"]} {self.dataset.latest_warehouse_dir} {self.find_outpath()}
 """

@@ -92,7 +92,8 @@ class Dataset(object):
         self.end_year = end_year
         self.datavars = datavars
         self.missing = None
-        self.publication_path = Path(path) if path != '' else None
+        self._publication_path = Path(path) if path != '' else None
+        # import ipdb; ipdb.set_trace()
         self.pub_base = pub_base
         self.warehouse_path = Path(path) if path != '' else None
         self.warehouse_base = warehouse_base
@@ -143,28 +144,85 @@ class Dataset(object):
         self.initialize_status_file()
     
     def update_from_status_file(self):
-        # import ipdb; ipdb.set_trace()
         self.load_dataset_status_file()
         latest = get_last_status_line(self.status_path).split(':')
 
         new_status = ":".join(latest[3:]).strip()
-        # new_status = new_status
-        # print(f"update_from_status_file: *{new_status}*")
+        # self.print_debug(f"update_from_status_file: *{new_status}*")
         self._status = new_status
     
+    # @property
+    # def working_dir(self):
+    #     """
+    #     Return the path to the latest working directory for the data files as a string
+    #     """
+    #     if self.warehouse_path and self.warehouse_path.exists():
+    #         self.update_versions(self.warehouse_path)
+    #         path = self.warehouse_path
+    #     latest_version = sorted(self.versions.keys())[-1]
+    #     return str(Path(path, latest_version).resolve())
+    
     @property
-    def working_dir(self):
+    def latest_warehouse_dir(self):
+        if not self.warehouse_path and not self.warehouse_path.exists():
+            raise ValueError(f"The dataset {self.dataset_id} does not have a warehouse path")
+        if not self.warehouse_path.exists():
+            self.warehouse_path.mkdir(parents=True, exist_ok=True)
+
+        # we assume that the warehouse directory contains only directories named "v0.#" or "v#"
+        try:
+            latest_version = sorted([float(str(x.name)[1:]) for x in self.warehouse_path.iterdir() if x.is_dir()]).pop()
+        except IndexError:
+            latest_version = "0"
+        
+        if latest_version.is_integer():
+            latest_version = int(latest_version)
+
+        if latest_version < 0.1:
+            latest_version = "0"
+        return str(Path(self.warehouse_path, f"v{latest_version}").resolve())
+    
+    @property
+    def latest_pub_dir(self):
+        # we assume that the publication directory contains only directories named "v0.#" or "v#"
+        try:
+            latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
+        except IndexError:
+            latest_version = "0"
+        if latest_version.is_integer():
+            latest_version = int(latest_version)
+        return str(Path(self.publication_path, f"v{latest_version}").resolve())
+    
+    @property
+    def pub_version(self):
         """
-        Return the path to the latest working directory for the data files as a string
+        Returns the latest version number in the publication directory. If not version exists
+        then it returns 0
         """
-        if self.publication_path and self.publication_path.exists():
-            self.update_versions(self.publication_path)
-            path = self.publication_path
-        elif self.warehouse_path and self.warehouse_path.exists():
-            self.update_versions(self.warehouse_path)
-            path = self.warehouse_path
-        latest_version = sorted(self.versions.keys())[-1]
-        return str(Path(path, latest_version).resolve())
+        if not self.publication_path or not self.publication_path.exists():
+            return 0
+
+        # we assume that the publication directory contains only directories named "v0.#" or "v#"
+        try:
+            latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
+        except IndexError:
+            return 0
+        return int(latest_version)
+    
+    @property
+    def publication_path(self):
+        if not self._publication_path or not self._publication_path.exists():
+            if self.project == 'CMIP6':
+                pubpath = Path(self.pub_base, self.project, self.activity,
+                               self.model_version, self.experiment, self.ensemble,
+                               self.table, self.grid)
+            else:
+                pubpath = Path(self.pub_base, self.project, self.model_version,
+                               self.experiment, self.resolution, self.realm,
+                               self.grid, self.data_type, self.freq, self.ensemble)
+            self._publication_path = pubpath
+            self._publication_path.mkdir(parents=True, exist_ok=True)
+        return self._publication_path
     
     @property
     def status(self):
@@ -190,12 +248,20 @@ class Dataset(object):
     def lock(self, path):
         if self.is_locked(path):
             return
+        path = Path(path)
+        if not path.exists():
+            return
         Path(path, '.lock').touch()
     
     def is_locked(self, path=None):
         if path is None:
-            path = self.working_dir
-        for item in Path(path).glob('.lock'):
+            path = self.latest_warehouse_dir
+        else:
+            path = Path(path)
+
+        if not path.exists():
+            return False
+        for item in path.glob('.lock'):
             return True
         return False
     
@@ -335,7 +401,7 @@ class Dataset(object):
                 self.freq,
                 self.ensemble)
 
-        self.publication_path = pubpath
+        self._publication_path = pubpath
         if not self.publication_path.exists():
             return DatasetStatus.NOT_IN_PUBLICATION
 
