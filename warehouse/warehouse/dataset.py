@@ -80,11 +80,6 @@ class Dataset(object):
         super().__init__()
         self.dataset_id = dataset_id
         self._status = DatasetStatus.UNITITIALIZED.name
-
-        if (status_path := Path(warehouse_base, '.status')):
-            self.status_path = status_path
-        else:
-            self.status_path = None
         
         # import ipdb; ipdb.set_trace()
         self.data_path = None
@@ -129,6 +124,16 @@ class Dataset(object):
                 self.realm = 'fixed'
             self.freq = None  # the frequency and realm are part of the CMIP table
             self.grid = 'gr'
+            if not self.warehouse_path:
+                self.warehouse_path = Path(
+                    self.warehouse_base,
+                    self.project,
+                    self.activity,
+                    self.model_version,
+                    self.experiment,
+                    self.ensemble,
+                    self.table,
+                    self.grid)
         else:
             self.project = 'E3SM'
             self.model_version = facets[1]
@@ -141,6 +146,23 @@ class Dataset(object):
             self.ensemble = facets[8]
             self.activity = None
             self.table = None
+            if not self.warehouse_path:
+                self.warehouse_path = Path(
+                    self.warehouse_base,
+                    self.project,
+                    self.model_version,
+                    self.experiment,
+                    self.resolution,
+                    self.realm,
+                    self.grid,
+                    self.data_type,
+                    self.freq,
+                    self.ensemble)
+        
+        self.status_path = Path(self.warehouse_path, '.status')
+        if not self.status_path.exists():
+            self.status_path.touch()
+
         self.initialize_status_file()
     
     def update_from_status_file(self):
@@ -164,14 +186,14 @@ class Dataset(object):
     
     @property
     def latest_warehouse_dir(self):
-        if not self.warehouse_path and not self.warehouse_path.exists():
+        if self.warehouse_path is None or (not self.warehouse_path and not self.warehouse_path.exists()):
             raise ValueError(f"The dataset {self.dataset_id} does not have a warehouse path")
         if not self.warehouse_path.exists():
             self.warehouse_path.mkdir(parents=True, exist_ok=True)
 
         # we assume that the warehouse directory contains only directories named "v0.#" or "v#"
         try:
-            latest_version = sorted([float(str(x.name)[1:]) for x in self.warehouse_path.iterdir() if x.is_dir()]).pop()
+            latest_version = sorted([float(str(x.name)[1:]) for x in self.warehouse_path.iterdir() if x.is_dir() and any(x.iterdir())]).pop()
         except IndexError:
             latest_version = "0"
         
