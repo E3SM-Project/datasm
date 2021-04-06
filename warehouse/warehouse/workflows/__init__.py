@@ -7,7 +7,18 @@ from pathlib import Path
 from termcolor import colored, cprint
 
 import warehouse.workflows.jobs
+import warehouse.resources as resources
 
+
+resource_path, _ = os.path.split(resources.__file__)
+DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
+DEFAULT_CONF_PATH = os.path.join(resource_path, 'warehouse_config.yaml')
+
+with open(DEFAULT_CONF_PATH, 'r') as instream:
+    warehouse_conf = yaml.load(instream, Loader=yaml.SafeLoader)
+DEFAULT_WAREHOUSE_PATH = warehouse_conf['DEFAULT_WAREHOUSE_PATH']
+DEFAULT_PUBLICATION_PATH = warehouse_conf['DEFAULT_PUBLICATION_PATH']
+DEFAULT_ARCHIVE_PATH = warehouse_conf['DEFAULT_ARCHIVE_PATH']
 
 NAME = 'Warehouse'
 
@@ -178,21 +189,33 @@ class Workflow(object):
             '-d', '--dataset-id',
             nargs="*",
             help="Dataset IDs that should have the workflow applied to them. If this is "
-                 "given without the data-path, the default warehouse value will be used.")
+                 "given without the data-path, the default warehouse value will be used."
+                 "If its an E3SM dataset, the ID should be in the form 'E3SM.model_version.experiment.(atm_res)_atm_(ocn_res)_ocean.realm.grid.data-type.freq.ensemble-number' "
+                 "\t\t for example: 'E3SM.1_3.G-IAF-DIB-ISMF-3dGM.1deg_atm_60-30km_ocean.ocean.native.model-output.mon.ens1' "
+                 "If its a CMIP6 dataset, the ID should be in the format 'CMIP6.activity.source.model-version.case.variant.table.variable.grid-name'  "
+                 "\t\t for example: 'CMIP6.CMIP.E3SM-Project.E3SM-1-1.historical.r1i1p1f1.CFmon.cllcalipso.gr' ")
         parser.add_argument(
             '--data-path',
             help="Path to a directory containing a single dataset that should have "
                  "the workflow applied to them. If given, also use the --dataset-id flag "
-                 "to specify the dataset-id that should be applied to the data\n"
-                 "If its an E3SM dataset, the ID should be in the form 'E3SM.model_version.experiment.(atm_res)_atm_(ocn_res)_ocean.realm.grid.data-type.freq.ensemble_number' "
-                 "\t\t for example: 'E3SM.1_3.G-IAF-DIB-ISMF-3dGM.1deg_atm_60-30km_ocean.ocean.native.model-output.mon.ens1' "
-                 "If its a CMIP6 dataset, the ID should be in the format 'CMIP6.activity.source.model-version.case.variant.table.variable.gr'  "
-                 "\t\t for example: 'CMIP6.CMIP.E3SM-Project.E3SM-1-1.historical.r1i1p1f1.CFmon.cllcalipso.gr' ")
+                 "to specify the dataset-id that should be applied to the data\n")
         parser.add_argument(
             '--job-workers',
             type=int,
             default=8,
             help='number of parallel workers each job should create when running, default is 8')
+        parser.add_argument(
+            '-w', '--warehouse-path',
+            default=DEFAULT_WAREHOUSE_PATH,
+            help=f"The root path for pre-publication dataset staging, default={DEFAULT_WAREHOUSE_PATH}")
+        parser.add_argument(
+            '-p', '--publication-path',
+            default=DEFAULT_PUBLICATION_PATH,
+            help=f"The root path for data publication, default={DEFAULT_PUBLICATION_PATH}")
+        parser.add_argument(
+            '-a', '--archive-path',
+            default=DEFAULT_ARCHIVE_PATH,
+            help=f"The root path for the data archive, default={DEFAULT_ARCHIVE_PATH}")
         parser.add_argument(
             '--debug',
             action='store_true',
@@ -208,5 +231,10 @@ class Workflow(object):
         if not args.dataset_id and not args.data_path:
             cprint(
                 "\nError: please specify either the dataset-ids to process, or the data-path to find datasets\n", 'red')
+            return False, command
+        if isinstance(args.dataset_id, list) and len(args.dataset_id) > 1 and args.data_path:
+            cprint(
+                "\nMultiple datasets were given along with the --data-path, for multiple datasets you must use the --warehouse-path"
+                " and the E3SM publication directory structure")
             return False, command
         return True, command

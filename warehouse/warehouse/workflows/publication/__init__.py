@@ -2,14 +2,16 @@ import os
 import sys
 from pathlib import Path
 from time import sleep
+from termcolor import colored, cprint
 from warehouse.workflows import Workflow
 from warehouse.dataset import Dataset, DatasetStatusMessage
+
 
 NAME = 'Publication'
 COMMAND = 'publish'
 
 HELP_TEXT = """
-Publish an E3SM dataset to ESGF. The input directory should be 
+Publish a set of E3SM datasets to ESGF. If used, the --data-path argument should be 
 one level up from the data directory (which should be named vN where N is an integer 0 or greater), 
 and will be used to hold the .status file and intermediate working directories for the workflow steps.
 """
@@ -24,7 +26,7 @@ class Publication(Workflow):
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse
 
-        dataset_id = self.params['dataset_id'].pop()
+        dataset_id = self.params['dataset_id']
 
         if (pub_base := self.params.get('publication_base')):
             self.pub_path = Path(pub_base)
@@ -60,21 +62,25 @@ class Publication(Workflow):
                 debug=self.debug)
 
         warehouse.setup_datasets(check_esgf=False)
-        dataset_id, dataset = next(iter(warehouse.datasets.items()))
-        dataset.warehouse_path = Path(data_path)
-        dataset.warehouse_base = Path(self.params['warehouse_base'])
+        for dataset_id, dataset in warehouse.datasets.items():
+            dataset.warehouse_base = Path(self.params['warehouse_base'])
+            if data_path:
+                dataset.warehouse_path = Path(data_path)
 
+            if DatasetStatusMessage.PUBLICATION_READY.value not in dataset.status:
+                dataset.status = DatasetStatusMessage.PUBLICATION_READY.values
+        
         warehouse.start_listener()
-
-        if DatasetStatusMessage.PUBLICATION_READY.value not in dataset.status:
-            dataset.status = DatasetStatusMessage.PUBLICATION_READY.value
-        else:
-            warehouse.start_datasets()
+        warehouse.start_datasets()
 
         while not warehouse.should_exit:
             sleep(2)
-        print(
-            f"Publication complete, dataset {dataset.dataset_id} is in state {dataset.status}")
+        if "Pass" in dataset.status:
+            color = "green"
+        else:
+            color = "red"
+        cprint(
+            f"Publication complete, dataset {dataset.dataset_id} is in state {dataset.status}", color)
         sys.exit(0)
 
     @staticmethod
@@ -82,16 +88,6 @@ class Publication(Workflow):
         parser = parser.add_parser(
             name=COMMAND,
             description=HELP_TEXT)
-        parser.add_argument(
-            '--publication-base',
-            type=str,
-            help="Base path for the publication directory structure. If it doesnt "
-                 "already exist, the facet structure for the dataset will be created.")
-        parser.add_argument(
-            '--warehouse-base',
-            type=str,
-            required=True,
-            help="Base path for the warehouse directory structure.")
         parser = Workflow.add_args(parser)
         return COMMAND, parser
 
