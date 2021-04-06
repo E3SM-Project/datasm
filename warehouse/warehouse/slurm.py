@@ -83,7 +83,7 @@ class Slurm(object):
             out = out.decode('utf-8')
             if err:
                 err = err.decode('utf-8')
-                print_debug(err, status='err')
+                print_debug(err)
                 logging.error(err)
                 tries += 1
                 sleep(tries * 2)
