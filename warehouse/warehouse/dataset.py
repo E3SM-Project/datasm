@@ -124,16 +124,15 @@ class Dataset(object):
                 self.realm = 'fixed'
             self.freq = None  # the frequency and realm are part of the CMIP table
             self.grid = 'gr'
-            if not self.warehouse_path:
-                self.warehouse_path = Path(
-                    self.warehouse_base,
-                    self.project,
-                    self.activity,
-                    self.model_version,
-                    self.experiment,
-                    self.ensemble,
-                    self.table,
-                    self.grid)
+            self.warehouse_path = Path(
+                self.warehouse_base,
+                self.project,
+                self.activity,
+                self.model_version,
+                self.experiment,
+                self.ensemble,
+                self.table,
+                self.grid)
         else:
             self.project = 'E3SM'
             self.model_version = facets[1]
@@ -146,18 +145,17 @@ class Dataset(object):
             self.ensemble = facets[8]
             self.activity = None
             self.table = None
-            if not self.warehouse_path:
-                self.warehouse_path = Path(
-                    self.warehouse_base,
-                    self.project,
-                    self.model_version,
-                    self.experiment,
-                    self.resolution,
-                    self.realm,
-                    self.grid,
-                    self.data_type,
-                    self.freq,
-                    self.ensemble)
+            self.warehouse_path = Path(
+                self.warehouse_base,
+                self.project,
+                self.model_version,
+                self.experiment,
+                self.resolution,
+                self.realm,
+                self.grid,
+                self.data_type,
+                self.freq,
+                self.ensemble)
         
         self.status_path = Path(self.warehouse_path, '.status')
         if not self.status_path.exists():
@@ -195,13 +193,13 @@ class Dataset(object):
         try:
             latest_version = sorted([float(str(x.name)[1:]) for x in self.warehouse_path.iterdir() if x.is_dir() and any(x.iterdir())]).pop()
         except IndexError:
-            latest_version = "0"
+            latest_version = 0
         
         if latest_version.is_integer():
             latest_version = int(latest_version)
 
         if latest_version < 0.1:
-            latest_version = "0"
+            latest_version = 0
         return str(Path(self.warehouse_path, f"v{latest_version}").resolve())
     
     @property
