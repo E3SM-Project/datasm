@@ -266,7 +266,7 @@ class AutoWarehouse():
             ipdb.set_trace()
 
         # import ipdb; ipdb.set_trace()
-        self.print_debug(f"Got a status update from {dataset_id}")
+        # self.print_debug(f"Got a status update from {dataset_id}")
         dataset = self.datasets[dataset_id]
         dataset.update_from_status_file()
         dataset.unlock(dataset.latest_warehouse_dir)
@@ -275,7 +275,7 @@ class AutoWarehouse():
         # and if there is, and the latest is either Pass or Fail, then
         # remove the job from the job_pool
         latest, second_latest = dataset.get_latest_status()
-        self.print_debug(f"status_was_updated: *{latest}*")
+        # self.print_debug(f"status_was_updated: *{latest}*")
         if second_latest is not None:
             latest_attrs = latest.split(':')
             second_latest_attrs = second_latest.split(':')
@@ -288,9 +288,9 @@ class AutoWarehouse():
                             if job.job_id == job_id:
                                 self.job_pool.remove(job)
                                 break
-        self.start_datasets()
+        self.start_datasets({dataset_id: dataset})
 
-    def start_datasets(self):
+    def start_datasets(self, datasets=None):
         """
         Resolve next steps for datasets and create job objects for them
         Parameters: datasets dict of string dataset_ids to dataset objects
@@ -298,11 +298,14 @@ class AutoWarehouse():
         """
 
         new_jobs = []
-        for dataset_id, dataset in self.datasets.items():
+        
+        if datasets is None:
+            datasets = self.datasets
+        for dataset_id, dataset in datasets.items():
             if 'Engaged' in dataset.status:
                 continue
             else:
-                self.print_debug(f"start_datasets: *{dataset.status}*")
+                # self.print_debug(f"start_datasets: *{dataset.status}*")
                 # we keep a reference to the workflow instance, so when
                 # we make a job we can reconstruct the parent workflow name
                 # for the status file
@@ -342,8 +345,7 @@ class AutoWarehouse():
                     return
 
                 for state, workflow, params in engaged_states:
-                    self.print_debug(f"Creating jobs from state: {state}")
-                    # import ipdb; ipdb.set_trace()
+                    self.print_debug(f"Creating jobs from {state} for dataset {dataset_id}")
                     newjob = self.workflow.get_job(
                         dataset,
                         state,
@@ -360,24 +362,31 @@ class AutoWarehouse():
                     else:
                         matching_job.setup_requisites(newjob.dataset)
 
-        if new_jobs is not None:
-            self.job_pool = self.job_pool + new_jobs
-
         # start the jobs in the job_pool if they're ready
-        for job in self.job_pool:
+        for job in new_jobs:
+            cprint(f"{job}", "cyan")
             if job.job_id is None and job.meets_requirements():
                 job_id = job(self.slurm)
                 if job_id is not None:
                     job.job_id = job_id
+                    self.job_pool.append(job)
                 else:
                     cprint(f"Error starting up job {job}", 'red')
         return
 
     def start_listener(self):
-        self.listener = Listener(
-            warehouse=self,
-            root=self.warehouse_path)
-        self.listener.start()
+        self.listener = []
+        for dataset_id, dataset in self.datasets.items():
+            print(f"starting listener for {dataset.warehouse_path}")
+            listener = Listener(
+                warehouse=self,
+                root=dataset.warehouse_path)
+            listener.start()
+            self.listener.append(listener)
+        # self.listener = Listener(
+        #     warehouse=self,
+        #     root=self.warehouse_path)
+        # self.listener.start()
         cprint("Listener setup complete", "green")
 
     def check_done(self):
@@ -386,7 +395,8 @@ class AutoWarehouse():
             if dataset.status not in [f"{self.workflow.name.upper()}:Pass:", f"{self.workflow.name.upper()}:Fail:"]:
                 all_done = False
         if all_done:
-            self.listener.observer.stop()
+            for listener in self.listener:
+                listener.observer.stop()
             self.should_exit = True
             sys.exit(0)
         return

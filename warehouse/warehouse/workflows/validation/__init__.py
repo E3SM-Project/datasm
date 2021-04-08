@@ -59,9 +59,7 @@ class Validation(Workflow):
                 debug=self.debug)
 
         warehouse.setup_datasets(check_esgf=False)
-        warehouse.start_listener()
 
-        # import ipdb; ipdb.set_trace()
         for dataset_id, dataset in warehouse.datasets.items():
             if data_path:
                 dataset.warehouse_path = Path(data_path)
@@ -69,17 +67,18 @@ class Validation(Workflow):
             if DatasetStatusMessage.VALIDATION_READY.value not in dataset.status:
                 dataset.status = DatasetStatusMessage.VALIDATION_READY.value
         
-        warehouse.start_datasets()
+        warehouse.start_listener()
+
+        for dataset_id, dataset in warehouse.datasets.items():
+            warehouse.start_datasets({dataset_id: dataset})
 
         while not warehouse.should_exit:
             sleep(2)
         
-        if "Pass" in dataset.status:
-            color = "green"
-        else:
-            color = "red"
-        cprint(
-            f"Validation complete, dataset {dataset.dataset_id} is in state {dataset.status}", color)
+        for dataset_id in warehouse.datasets.keys():
+            color = "green" if "Pass" in dataset.status else "red"
+            cprint(
+                f"Validation complete, dataset {dataset.dataset_id} is in state {dataset.status}", color)
 
         sys.exit(0)
 

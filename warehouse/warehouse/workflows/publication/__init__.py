@@ -28,15 +28,13 @@ class Publication(Workflow):
 
         dataset_id = self.params['dataset_id']
 
-        if (pub_base := self.params.get('publication_base')):
+        if (pub_base := self.params.get('publication_path')):
             self.pub_path = Path(pub_base)
             if not self.pub_path.exists():
                 os.makedirs(self.pub_path.resolve())
         data_path = self.params.get('data_path')
-        
-        
-        # import ipdb; ipdb.set_trace()
-        if self.pub_path is not None and data_path is not None:
+
+        if data_path is not None:
             warehouse = AutoWarehouse(
                 workflow=self,
                 dataset_id=dataset_id,
@@ -45,42 +43,38 @@ class Publication(Workflow):
                 serial=True,
                 job_worker=self.job_workers,
                 debug=self.debug)
-        elif data_path is not None and self.pub_path is None:
-            warehouse = AutoWarehouse(
-                workflow=self,
-                dataset_id=dataset_id,
-                warehouse_path=data_path,
-                serial=True,
-                job_worker=self.job_workers,
-                debug=self.debug)
         else:
             warehouse = AutoWarehouse(
                 workflow=self,
                 dataset_id=dataset_id,
+                warehouse_path=self.params['warehouse_path'],
+                publication_path=self.pub_path,
                 serial=True,
                 job_worker=self.job_workers,
                 debug=self.debug)
 
         warehouse.setup_datasets(check_esgf=False)
+
         for dataset_id, dataset in warehouse.datasets.items():
-            dataset.warehouse_base = Path(self.params['warehouse_base'])
+            dataset.warehouse_base = Path(self.params['warehouse_path'])
             if data_path:
                 dataset.warehouse_path = Path(data_path)
 
             if DatasetStatusMessage.PUBLICATION_READY.value not in dataset.status:
-                dataset.status = DatasetStatusMessage.PUBLICATION_READY.values
+                dataset.status = DatasetStatusMessage.PUBLICATION_READY.value
         
         warehouse.start_listener()
-        warehouse.start_datasets()
+        
+        for dataset_id, dataset in warehouse.datasets.items():
+            warehouse.start_datasets({dataset_id: dataset})
 
         while not warehouse.should_exit:
             sleep(2)
-        if "Pass" in dataset.status:
-            color = "green"
-        else:
-            color = "red"
-        cprint(
-            f"Publication complete, dataset {dataset.dataset_id} is in state {dataset.status}", color)
+        
+        for dataset_id in warehouse.datasets.keys():
+            color = "green" if "Pass" in dataset.status else "red"
+            cprint(
+                f"Publication complete, dataset {dataset.dataset_id} is in state {dataset.status}", color)
         sys.exit(0)
 
     @staticmethod

@@ -72,7 +72,7 @@ class Workflow(object):
             idx (int) : The recursive depth index
         Returns the name of the next state to transition to given the current state of the dataset
         """
-        self.print_debug(f"next_state: *{state}*")
+        # self.print_debug(f"next_state: *{state}*")
         state_attrs = state.split(':')
         if len(state_attrs) < 3:
             target_state = state
@@ -121,7 +121,8 @@ class Workflow(object):
             slurm_opts=kwargs.get('slurm_opts', []),
             parent=parent,
             job_workers=self.job_workers,
-            spec_path=kwargs.get('spec_path'))
+            spec_path=kwargs.get('spec_path'),
+            debug=kwargs.get('debug'))
 
         job_instance.setup_requisites()
         return job_instance
