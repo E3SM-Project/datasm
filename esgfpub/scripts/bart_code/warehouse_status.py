@@ -185,7 +185,7 @@ def get_dsid_type_key( dsid ):
         grid = 'climo'
         freq = 'season'
     elif otype == 'time-series':
-        grid = 'reg'
+        grid = gridv
         freq = 'ts-' + freq
     elif gridv == 'namefile':
         grid = 'namefile'
@@ -194,7 +194,7 @@ def get_dsid_type_key( dsid ):
         grid = 'restart'
         freq = 'fixed'
     else:
-        grid = 'reg'
+        grid = gridv
     return '_'.join([realm,grid,freq])
 
 # dsid:  root,model,experiment.resolution. ... .realm.grid.otype.ens.vcode

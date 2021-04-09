@@ -9,7 +9,7 @@ from datetime import datetime
 The Big Idea:  Using the Archive_Map and the (sproket-based) ESGF publication report,
 produce from each the list of "canonical" experiment/dataset "keys" where
 
-	akey = ( <model>, <experiment>, <ensemble> )
+	akey = ( <model>, <experiment>, <resolution>, <ensemble> )
 and
 	dkey = <realm_grid_freq>
 
@@ -99,12 +99,13 @@ def specialize_expname(expn, reso, tune):
 
 def get_idval(ensdir):
     return '.'.join(ensdir.split(os.sep)[5:])
+    # should be from /p/user_pub/e3sm/warehouse/E3SM/model/...
 
 def get_dsid_arch_key(dsid):    # dsid:  see above 
     # print(f'DSID: {dsid}')
-    comps=dsid.split('.')
+    comps=dsid.split('.')       # E3SM model exper resol (realm|tuning) . . . ensemble
     expname = specialize_expname(comps[2],comps[3],comps[4])
-    return comps[1],expname,comps[-1]
+    return comps[1],expname,comps[3],comps[-1]
 
 def get_dsid_type_key( dsid ):
     comps=dsid.split('.')
@@ -131,7 +132,7 @@ def get_dsid_type_key( dsid ):
         grid = 'climo'
         freq = 'season'
     elif otype == 'time-series':
-        grid = 'reg'
+        grid = gridv
         freq = 'ts-' + freq
     elif gridv == 'namefile':
         grid = 'namefile'
@@ -140,7 +141,7 @@ def get_dsid_type_key( dsid ):
         grid = 'restart'
         freq = 'fixed'
     else:
-        grid = 'reg'
+        grid = gridv
     return '_'.join([realm,grid,freq])
 
 #### COMPLETED rationalizing archive and publication experiment-case names, and dataset-type names ####
@@ -234,10 +235,10 @@ def get_statfile_path(ds_dir):
 
     if not os.path.exists(w_sf) and not os.path.exists(p_sf):
         print(f'ERROR: no status file can be found for ds_dir {ds_dir}', file=sys.stderr)
-        return ''
+        return 'ERROR:NO_STATUS_FILE_PATH'
     if os.path.exists(w_sf) and os.path.exists(p_sf):
         print(f'ERROR: ambiguous status files exist: {ds_dir}', file=sys.stderr)
-        return ''
+        return 'ERROR:AMBIGUOUS_STATUS_FILES'
     
     if os.path.exists(w_sf):
         return w_sf
@@ -252,7 +253,9 @@ def get_sf_laststat(epath):
         return ':NO_STATUS_FILE_PATH'
     sf_path = get_statfile_path(epath)
     if sf_path == '':
-        return ':NO_STATUS_FILE_AT_PATH'
+        return ':NO_STATUS_FILE_PATH'
+    if sf_path[0:5] == 'ERROR':
+        return sf_path[5:]
     sf_list = loadFileLines(sf_path)
     sf_last = sf_list[-1]
     last_stat = ':'.join(sf_last.split(':')[1:])
@@ -285,17 +288,19 @@ def main():
     am_list = [ aline.split(',') for aline in contents if aline[:-1] ]
 
     # create a sorted list of unique dataset types
-    dstype_list = [ arch_rec[4] for arch_rec in am_list ]
+    dstype_list = [ arch_rec[5] for arch_rec in am_list ]
     dstype_list = list(set(dstype_list))
     dstype_list.sort()
 
     # create a dictionary keyed by 'arch_loc_key' = tuple (Model,Experiment,Ensemble) with value the SET of archive path(s)
     # (Not really needed here, but nice to have, and we can reuse its keys for the dataset_status table)
+    # AM_lines (old) = Camp,Model,Exper,Ensem,DSTYPE,Arch_Path,Arch_Patt
+    # AM_lines (new) = Camp,Model,Exper,Resol,Ensem,DSTYPE,Arch_Path,Arch_Patt
     arch_loc_dict = {}
     for _ in am_list:
-        arch_loc_dict[ tuple([_[1],_[2],_[3]]) ] = set()
+        arch_loc_dict[ tuple([_[1],_[2],_[3],_[4]]) ] = set()
     for _ in am_list:
-        arch_loc_dict[ tuple([_[1],_[2],_[3]]) ] |= {_[5]}  # add another archive path to the set - may be more than one.
+        arch_loc_dict[ tuple([_[1],_[2],_[3],_[4]]) ] |= {_[6]}  # add another archive path to the set - may be more than one.
 
     # create a dictionary keyed by 'arch_loc_key', each value a dictionary keyed by dstype, value a Boolean dictionary (A,W,P)
     # For each (model,experiment,ensemble), create a dataset_type entry for every allowable dataset-type
@@ -306,8 +311,8 @@ def main():
     
     # for each record in the ArchiveMap, set the corresponding [archive_key][dataset_key]['A'] = True
     for _ in am_list:
-        akey = tuple([_[1],_[2],_[3]])
-        dkey = _[4]
+        akey = tuple([_[1],_[2],_[3],_[4]])
+        dkey = _[5]
         stat_rec = dataset_status[akey][dkey]
         stat_rec['w_epath'] = ''
         stat_rec['w_maxv'] = ''
@@ -319,6 +324,14 @@ def main():
         stat_rec['scount'] = 0
         stat_rec['A'] = True
         dataset_status[akey][dkey] = stat_rec
+    
+    # DEBUG #####
+    '''
+    for akey in dataset_status:
+        for dkey in dstype_list:
+            print(f'(akey={akey}), (dkey={dkey}), {dataset_status[akey][dkey]}')
+    sys.exit(0)
+    '''
     
     ##########
     # walk the warehouse.  Need to assign "model,experiment,ensemble" to each extracted dataset (how to identify?)
@@ -364,6 +377,18 @@ def main():
         dataset_status[akey][dkey]['w_maxc'] = maxc
 
 
+    # DEBUG #####
+    '''
+    for akey in dataset_status:
+        for dkey in dstype_list:
+            stat_rec = dataset_status[akey][dkey]
+            if stat_rec['A'] or stat_rec['W']:
+                print(f'(akey={akey}), (dkey={dkey}), {dataset_status[akey][dkey]}')
+            else:
+                print(f'(akey={akey}), (dkey={dkey}), NO SUCH DATASET')
+    sys.exit(0)
+    '''
+    
     ##########
     # walk the publicati.  Need to assign "model,experiment,ensemble" to each extracted dataset (how to identify?)
     ##########
@@ -544,6 +569,7 @@ def main():
             out_list.append(akey[0])
             out_list.append(akey[1])
             out_list.append(akey[2])
+            out_list.append(akey[3])
             out_list.append(dkey)
             out_list.append(stat_rec['w_maxv'])
             out_list.append(str(stat_rec['w_maxc']))
