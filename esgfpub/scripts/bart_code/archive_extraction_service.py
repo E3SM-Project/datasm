@@ -103,7 +103,7 @@ def load_file_lines(file_path):
         return list()
     # file_path = Path(file_path)
     if not os.path.exists(file_path):
-        logMessage('ERROR',f'File {file_path} either doesnt exist or is not a regular file')
+        logMessage('ERROR',f'File {file_path} either does not exist or is not a regular file')
     with open(file_path, "r") as instream:
         retlist = [[i for i in x.split('\n') if i].pop() for x in instream.readlines() if x[:-1]]
     return retlist
@@ -126,17 +126,11 @@ def get_archspec(archline):
     archspec['campa'] = archvals[0]
     archspec['model'] = archvals[1]
     archspec['exper'] = archvals[2]
-    archspec['ensem'] = archvals[3]
-    archspec['dstyp'] = archvals[4]
-    archspec['apath'] = archvals[5]
-    archspec['apatt'] = archvals[6]
-
-    if 'ne30' in archspec['apath']:
-        archspec['resol'] = '1deg_atm_60-30km_ocean'
-    elif 'ne120' in archspec['apath']:
-        archspec['resol'] = '0_25deg_atm_18-6km_ocean'
-    else:
-        archspec['resol'] = gv_jobset_config['resolution']
+    archspec['resol'] = archvals[3]
+    archspec['ensem'] = archvals[4]
+    archspec['dstyp'] = archvals[5]
+    archspec['apath'] = archvals[6]
+    archspec['apatt'] = archvals[7]
 
     return archspec
 
@@ -189,6 +183,31 @@ def setStatus(statfile,parent,statspec):
     with open(statfile, 'a') as statf:
         statf.write(statline)
 
+# return path to unique status file (warehouse or publication)
+# create in warehouse if not found
+
+def ensureStatusFile(enspath):
+    if not os.path.exists(ens_path):
+        os.makedirs(ens_path,exist_ok=True)
+        os.chmod(ens_path,0o775)
+        newstat = True
+    statfile = os.path.join(ens_path,'.status')
+    if not os.path.exists(statfile):
+        open(statfile,"w+").close()
+        newstat = True
+
+    if newstat:
+        setStatus(statfile,'WAREHOUSE','EXTRACTION:Ready')
+        setStatus(statfile,'WAREHOUSE','VALIDATION:Unblocked:')
+        setStatus(statfile,'WAREHOUSE','POSTPROCESS:Unblocked:')
+        setStatus(statfile,'WAREHOUSE','PUBLICATION:Blocked:')
+        setStatus(statfile,'WAREHOUSE','PUBLICATION:Unapproved:')
+                setStatus(statfile,'WAREHOUSE','CLEANUP:Blocked:')
+                logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Created new status file for request:{am_spec_line}')
+                time.sleep(5)
+
+    return statfile
+
 
 # Must ensure we have a DSID name for the dataset status file, before warehouse facet directory exists.
 # Must test for existence of facet dest, if augmenting.  May create to 0_extraction/init_status_files/, move later
@@ -206,9 +225,9 @@ def main():
         logMessage('ERROR',f'ARCHIVE_EXTRACTION_SERVICE: zstash version ({zstashversion})is not 0.4.1 or greater, or is unavailable')
         sys.exit(1)
 
-    gv_jobset_config = parse_jobset_config(gv_jobset_configfile)
-
     logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Startup:zstash version = {zstashversion}')
+
+    gv_jobset_config = parse_jobset_config(gv_jobset_configfile)
 
     # The outer request loop:
     while True:
@@ -244,24 +263,7 @@ def main():
 
             # logMessage('DEBUG',f'Preparing to create ens_path {ens_path}')
 
-            if not os.path.exists(ens_path):
-                os.makedirs(ens_path,exist_ok=True)
-                os.chmod(ens_path,0o775)
-                newstat = True
-            statfile = os.path.join(ens_path,'.status')
-            if not os.path.exists(statfile):
-                open(statfile,"w+").close()
-                newstat = True
-
-            if newstat:
-                setStatus(statfile,'WAREHOUSE','EXTRACTION:Ready')
-                setStatus(statfile,'WAREHOUSE','VALIDATION:Unblocked:')
-                setStatus(statfile,'WAREHOUSE','POSTPROCESS:Unblocked:')
-                setStatus(statfile,'WAREHOUSE','PUBLICATION:Blocked:')
-                setStatus(statfile,'WAREHOUSE','PUBLICATION:Unapproved:')
-                setStatus(statfile,'WAREHOUSE','CLEANUP:Blocked:')
-                logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Created new status file for request:{am_spec_line}')
-                time.sleep(5)
+            statfile = ensureStatusFile(enspath)
 
             setStatus(statfile,'WAREHOUSE','EXTRACTION:Engaged')
             setStatus(statfile,'EXTRACTION','SETUP:Engaged')
