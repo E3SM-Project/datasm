@@ -320,6 +320,7 @@ class AutoWarehouse():
                 engaged_states = []
 
                 if dataset.is_blocked(state):
+                    cprint(f"Dataset {dataset.dataset_id} at state {state} is marked as Blocked", 'yellow')
                     continue
                 elif f"{self.workflow.name.upper()}:Pass:" == state:
                     self.workflow_success(dataset)

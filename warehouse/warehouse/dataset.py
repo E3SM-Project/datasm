@@ -786,9 +786,12 @@ class Dataset(object):
         if status_attrs[0] in self.stat['WAREHOUSE'].keys():
             state_messages = sorted(self.stat['WAREHOUSE'][status_attrs[0]])
             for ts, message in state_messages:
-                if 'Blocked' in message:
+                message_items = message.split(':')
+                if message_items[0] not in state:
+                    continue
+                if 'Blocked' in message_items[1]:
                     blocked = True
-                elif 'Unblocked' in message:
+                elif 'Unblocked' in message_items[1]:
                     blocked = False
         return blocked
         
