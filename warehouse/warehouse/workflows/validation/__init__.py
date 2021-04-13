@@ -75,10 +75,10 @@ class Validation(Workflow):
         while not warehouse.should_exit:
             sleep(2)
         
-        for dataset_id in warehouse.datasets.keys():
+        for dataset_id, dataset in warehouse.datasets.items():
             color = "green" if "Pass" in dataset.status else "red"
             cprint(
-                f"Validation complete, dataset {dataset.dataset_id} is in state {dataset.status}", color)
+                f"Validation complete, dataset {dataset_id} is in state {dataset.status}", color)
 
         sys.exit(0)
 
