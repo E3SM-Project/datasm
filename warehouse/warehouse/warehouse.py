@@ -265,7 +265,6 @@ class AutoWarehouse():
             import ipdb
             ipdb.set_trace()
 
-        # self.print_debug(f"Got a status update from {dataset_id}")
         dataset = self.datasets[dataset_id]
         dataset.update_from_status_file()
         dataset.unlock(dataset.latest_warehouse_dir)
@@ -274,7 +273,6 @@ class AutoWarehouse():
         # and if there is, and the latest is either Pass or Fail, then
         # remove the job from the job_pool
         latest, second_latest = dataset.get_latest_status()
-        # self.print_debug(f"status_was_updated: *{latest}*")
         if second_latest is not None:
             latest_attrs = latest.split(':')
             second_latest_attrs = second_latest.split(':')
@@ -304,7 +302,6 @@ class AutoWarehouse():
             if 'Engaged' in dataset.status:
                 continue
             else:
-                # self.print_debug(f"start_datasets: *{dataset.status}*")
                 # we keep a reference to the workflow instance, so when
                 # we make a job we can reconstruct the parent workflow name
                 # for the status file

@@ -170,19 +170,7 @@ class Dataset(object):
         latest = get_last_status_line(self.status_path).split(':')
 
         new_status = ":".join(latest[3:]).strip()
-        # self.print_debug(f"update_from_status_file: *{new_status}*")
         self._status = new_status
-
-    # @property
-    # def working_dir(self):
-    #     """
-    #     Return the path to the latest working directory for the data files as a string
-    #     """
-    #     if self.warehouse_path and self.warehouse_path.exists():
-    #         self.update_versions(self.warehouse_path)
-    #         path = self.warehouse_path
-    #     latest_version = sorted(self.versions.keys())[-1]
-    #     return str(Path(path, latest_version).resolve())
 
     @property
     def latest_warehouse_dir(self):
@@ -256,7 +244,6 @@ class Dataset(object):
 
     @status.setter
     def status(self, status):
-        # import ipdb; ipdb.set_trace()
         if status is None or status == self._status:
             return
         params = None
