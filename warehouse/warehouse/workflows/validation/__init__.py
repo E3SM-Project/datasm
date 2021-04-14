@@ -66,7 +66,7 @@ class Validation(Workflow):
 
             if DatasetStatusMessage.VALIDATION_READY.value not in dataset.status:
                 dataset.status = DatasetStatusMessage.VALIDATION_READY.value
-        
+
         warehouse.start_listener()
 
         for dataset_id, dataset in warehouse.datasets.items():
@@ -74,7 +74,7 @@ class Validation(Workflow):
 
         while not warehouse.should_exit:
             sleep(2)
-        
+
         for dataset_id, dataset in warehouse.datasets.items():
             color = "green" if "Pass" in dataset.status else "red"
             cprint(

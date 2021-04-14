@@ -28,6 +28,7 @@ class DatasetStatusMessage(Enum):
     WAREHOUSE_READY = "WAREHOUSE:Ready:"
     VALIDATION_READY = "VALIDATION:Ready:"
 
+
 non_binding_status = ['Blocked:', 'Unblocked:', 'Approved:', 'Unapproved:']
 
 
@@ -57,6 +58,7 @@ SEASONS = [{
 class Dataset(object):
     def get_status_from_archive(self):
         ...
+
     def initialize_status_file(self):
         if not self.status_path.exists():
             self.status_path.touch(mode=0o755, exist_ok=True)
@@ -69,7 +71,7 @@ class Dataset(object):
         if not found_id:
             with open(self.status_path, 'a') as outstream:
                 outstream.write(f'DATASETID={self.dataset_id}\n')
-        
+
         # import ipdb; ipdb.set_trace()
         if (status := get_last_status_line(self.status_path)):
             self._status = f"{status.split(':')[-3]}:{status.split(':')[-2]}:"
@@ -80,7 +82,7 @@ class Dataset(object):
         super().__init__()
         self.dataset_id = dataset_id
         self._status = DatasetStatus.UNITITIALIZED.name
-        
+
         # import ipdb; ipdb.set_trace()
         self.data_path = None
         self.start_year = start_year
@@ -156,13 +158,13 @@ class Dataset(object):
                 self.data_type,
                 self.freq,
                 self.ensemble)
-        
+
         self.status_path = Path(self.warehouse_path, '.status')
         if not self.status_path.exists():
             self.status_path.touch()
 
         self.initialize_status_file()
-    
+
     def update_from_status_file(self):
         self.load_dataset_status_file()
         latest = get_last_status_line(self.status_path).split(':')
@@ -170,7 +172,7 @@ class Dataset(object):
         new_status = ":".join(latest[3:]).strip()
         # self.print_debug(f"update_from_status_file: *{new_status}*")
         self._status = new_status
-    
+
     # @property
     # def working_dir(self):
     #     """
@@ -181,38 +183,41 @@ class Dataset(object):
     #         path = self.warehouse_path
     #     latest_version = sorted(self.versions.keys())[-1]
     #     return str(Path(path, latest_version).resolve())
-    
+
     @property
     def latest_warehouse_dir(self):
         if self.warehouse_path is None or (not self.warehouse_path and not self.warehouse_path.exists()):
-            raise ValueError(f"The dataset {self.dataset_id} does not have a warehouse path")
+            raise ValueError(
+                f"The dataset {self.dataset_id} does not have a warehouse path")
         if not self.warehouse_path.exists():
             self.warehouse_path.mkdir(parents=True, exist_ok=True)
 
         # we assume that the warehouse directory contains only directories named "v0.#" or "v#"
         try:
-            latest_version = sorted([float(str(x.name)[1:]) for x in self.warehouse_path.iterdir() if x.is_dir() and any(x.iterdir())]).pop()
+            latest_version = sorted([float(str(x.name)[1:]) for x in self.warehouse_path.iterdir(
+            ) if x.is_dir() and any(x.iterdir())]).pop()
         except IndexError:
             latest_version = 0
-        
+
         if latest_version.is_integer():
             latest_version = int(latest_version)
 
         if latest_version < 0.1:
             latest_version = 0
         return str(Path(self.warehouse_path, f"v{latest_version}").resolve())
-    
+
     @property
     def latest_pub_dir(self):
         # we assume that the publication directory contains only directories named "v0.#" or "v#"
         try:
-            latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
+            latest_version = sorted([float(
+                str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
         except IndexError:
             latest_version = "0"
         if latest_version.is_integer():
             latest_version = int(latest_version)
         return str(Path(self.publication_path, f"v{latest_version}").resolve())
-    
+
     @property
     def pub_version(self):
         """
@@ -224,11 +229,12 @@ class Dataset(object):
 
         # we assume that the publication directory contains only directories named "v0.#" or "v#"
         try:
-            latest_version = sorted([float(str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
+            latest_version = sorted([float(
+                str(x.name)[1:]) for x in self.publication_path.iterdir() if x.is_dir()]).pop()
         except IndexError:
             return 0
         return int(latest_version)
-    
+
     @property
     def publication_path(self):
         if not self._publication_path or not self._publication_path.exists():
@@ -243,11 +249,11 @@ class Dataset(object):
             self._publication_path = pubpath
             self._publication_path.mkdir(parents=True, exist_ok=True)
         return self._publication_path
-    
+
     @property
     def status(self):
         return self._status
-    
+
     @status.setter
     def status(self, status):
         # import ipdb; ipdb.set_trace()
@@ -261,7 +267,8 @@ class Dataset(object):
         with open(self.status_path, 'a') as outstream:
             msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:WAREHOUSE:{status}'
             if params:
-                items = [f"{k}={v}".replace(":", "^") for k, v in params.items()]
+                items = [f"{k}={v}".replace(":", "^")
+                         for k, v in params.items()]
                 msg += ",".join(items)
             outstream.write(msg + "\n")
 
@@ -272,7 +279,7 @@ class Dataset(object):
         if not path.exists():
             return
         Path(path, '.lock').touch()
-    
+
     def is_locked(self, path=None):
         if path is None:
             path = self.latest_warehouse_dir
@@ -284,7 +291,7 @@ class Dataset(object):
         for item in path.glob('.lock'):
             return True
         return False
-    
+
     def unlock(self, path):
         Path(path, '.lock').unlink(missing_ok=True)
 
@@ -304,12 +311,11 @@ class Dataset(object):
             for minor in self.stat[major].keys():
                 for item in self.stat[major][minor]:
                     if item[0] >= latest \
-                    and item[1] not in non_binding_status:
+                            and item[1] not in non_binding_status:
                         latest = item[0]
                         second_latest = latest_val
                         latest_val = f'{major}:{minor}:{item[1]}'
         return latest_val, second_latest
-
 
     def check_dataset_is_complete(self, files):
 
@@ -322,10 +328,10 @@ class Dataset(object):
             nfiles.append((version, file))
 
         latest_version = sorted(nfiles)[-1][0]
-        files = [x for version, x in nfiles 
-                 if version == latest_version 
+        files = [x for version, x in nfiles
+                 if version == latest_version
                  and x != '.lock' and x != '.mapfile']
-        
+
         self.versions[latest_version] = len(files)
 
         if not self.start_year or not self.end_year:
@@ -375,12 +381,12 @@ class Dataset(object):
         Check ESGF to see of the dataset has already been published,
         if it exists check that the dataset is complete"""
 
-
         # TODO: fix this at some point
         if self.table == 'fx':
             return DatasetStatus.SUCCESS
-        
-        _, files = sproket_with_id(f"{self.dataset_id}*" , sproket_path=self.sproket)
+
+        _, files = sproket_with_id(
+            f"{self.dataset_id}*", sproket_path=self.sproket)
         if not files:
             return DatasetStatus.UNITITIALIZED
 
@@ -389,8 +395,9 @@ class Dataset(object):
             version_dir = int(f.split(os.sep)[-2][1:])
             if version_dir > latest_version:
                 latest_version = version_dir
-        
-        files = [x for x in files if x.split(os.sep)[-2] == f"v{latest_version}"]
+
+        files = [x for x in files if x.split(
+            os.sep)[-2] == f"v{latest_version}"]
 
         if self.check_dataset_is_complete(files):
             return DatasetStatus.SUCCESS
@@ -513,7 +520,6 @@ class Dataset(object):
             self.load_dataset_status_file()
             self.status = self.get_latest_status()
 
-
         # if the dataset is UNITITIALIZED, then we need to build up the status from scratch
         if self.status == DatasetStatus.UNITITIALIZED:
             # returns either NOT_PUBLISHED or SUCCESS or PARTIAL_PUBLISHED or UNITITIALIZED
@@ -528,13 +534,11 @@ class Dataset(object):
             # returns IN_PUBLICATION or NOT_IN_PUBLICATION
             self.status = self.get_status_from_pub_dir()
             ...
-            
 
         if self.status in [DatasetStatus.NOT_IN_PUBLICATION, DatasetStatus.UNITITIALIZED]:
             # returns IN_WAREHOUSE or NOT_IN_WAREHOUSE
             self.status = self.get_status_from_warehouse()
             ...
-            
 
         if self.status in [DatasetStatus.NOT_IN_WAREHOUSE, DatasetStatus.UNITITIALIZED] and self.data_type not in ['time-series', 'climo']:
             # returns IN_ARCHIVE OR NOT_IN_ARCHIVE
@@ -543,9 +547,8 @@ class Dataset(object):
 
         return self.dataset_id, self.status, self.missing
 
-
     def check_submonthly(self, files):
-        
+
         missing = list()
         files = sorted(files)
 
@@ -636,8 +639,9 @@ class Dataset(object):
         try:
             idx = re.search(pattern=pattern, string=files[0])
         except Exception as e:
-            raise ValueError(f"file {files[0]} does not match expected pattern for monthly files")
-        
+            raise ValueError(
+                f"file {files[0]} does not match expected pattern for monthly files")
+
         if not idx:
             raise ValueError(f'Unexpected file format: {files[0]}')
 
@@ -718,7 +722,6 @@ class Dataset(object):
                 msg = f"{self.dataset_id}-{prev_end:04d}-{file_start:04d}"
                 missing.append(msg)
             prev_end = file_end
-                
 
         file_start, file_end = self.get_file_start_end(files[-1])
         if file_end != self.end_year:
@@ -776,8 +779,9 @@ class Dataset(object):
 
     def is_blocked(self, state):
         if not self.status_path or not self.status_path.exists():
-            raise ValueError(f"Status file for {self.dataset_id} cannot be found")
-        
+            raise ValueError(
+                f"Status file for {self.dataset_id} cannot be found")
+
         # reload the status file in case somethings changed
         self.load_dataset_status_file(self.status_path)
 
@@ -798,7 +802,6 @@ class Dataset(object):
                 elif 'Unblocked' in message_items[1]:
                     blocked = False
         return blocked
-        
 
     def __str__(self):
         return f"""id: {self.dataset_id},
@@ -836,7 +839,7 @@ comm: {self.comm}"""
                     self.stat[major] = {}
                 if minor not in self.stat[major]:
                     self.stat[major][minor] = []
-                
+
                 message = (timestamp, ':'.join(line_info[4:]))
                 # make sure not to load duplicate messages
                 if message not in self.stat[major][minor]:

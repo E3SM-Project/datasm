@@ -16,6 +16,7 @@ one level up from the data directory (which should be named vN where N is an int
 and will be used to hold the .status file and intermediate working directories for the workflow steps.
 """
 
+
 class Publication(Workflow):
 
     def __init__(self, *args, **kwargs):
@@ -62,20 +63,20 @@ class Publication(Workflow):
 
             if DatasetStatusMessage.PUBLICATION_READY.value not in dataset.status:
                 dataset.status = DatasetStatusMessage.PUBLICATION_READY.value
-        
+
         warehouse.start_listener()
-        
+
         for dataset_id, dataset in warehouse.datasets.items():
             warehouse.start_datasets({dataset_id: dataset})
 
         while not warehouse.should_exit:
             sleep(2)
-        
+
         for dataset_id, dataset in warehouse.datasets.items():
             color = "green" if "Pass" in dataset.status else "red"
             cprint(
                 f"Publication complete, dataset {dataset_id} is in state {dataset.status}", color)
-        
+
         sys.exit(0)
 
     @staticmethod
