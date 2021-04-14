@@ -22,10 +22,9 @@ class WorkflowJob(object):
         self._spec_path = kwargs.get('spec_path')
         self.debug = kwargs.get('debug')
 
-    
     def __str__(self):
         return f"{self.parent}:{self.name}:{self.dataset.dataset_id}"
-    
+
     def print_debug(self, msg):
         if self.debug:
             print(msg)
@@ -43,11 +42,16 @@ class WorkflowJob(object):
             self.dataset.lock(working_dir)
 
         self._outname = f'{self._dataset.experiment}-{self.name}-{self._dataset.realm}-{self._dataset.grid}-{self._dataset.freq}.out'
-        output_option = ('-o', f'{Path(self._slurm_out, self._outname).resolve()}')
-        self._slurm_opts.extend([output_option])
+        output_option = (
+            '-o', f'{Path(self._slurm_out, self._outname).resolve()}')
+
+        # node_request = [('-N', 1), ('-c', self._job_workers)]
+        self._slurm_opts.extend(
+            [output_option, ('-N', 1), ('-c', self._job_workers)])
 
         script_name = f'{self._dataset.experiment}-{self.name}-{self._dataset.realm}-{self._dataset.grid}-{self._dataset.freq}.'
-        tmp = NamedTemporaryFile(dir=self._slurm_out, delete=False, prefix=script_name)
+        tmp = NamedTemporaryFile(
+            dir=self._slurm_out, delete=False, prefix=script_name)
         message_file = NamedTemporaryFile(dir=self._slurm_out, delete=False)
         Path(message_file.name).touch()
         self._cmd = f"export message_file={message_file.name}\n" + self._cmd
@@ -55,10 +59,10 @@ class WorkflowJob(object):
         self.add_cmd_suffix(working_dir)
         slurm.render_script(self.cmd, tmp.name, self._slurm_opts)
         self._job_id = slurm.sbatch(tmp.name)
-        self.dataset.status = (f"{self._parent}:{self.name}:Engaged:", {"slurm_id": self.job_id})
+        self.dataset.status = (f"{self._parent}:{self.name}:Engaged:", {
+                               "slurm_id": self.job_id})
         return self._job_id
 
-    
     def add_cmd_suffix(self, working_dir):
         suffix = f"""
 if [ $? -ne 0 ]
@@ -83,9 +87,9 @@ rm $message_file
             datasets.extend(input_datasets)
 
         for dataset in datasets:
-            if (req:=self.matches_requirement(dataset)) is not None:
+            if (req := self.matches_requirement(dataset)) is not None:
                 self._requires[req] = dataset
-    
+
     def matches_requirement(self, dataset):
         """
         Checks that the self.dataset matches the jobs requirements, as well
@@ -93,8 +97,8 @@ rm $message_file
         """
 
         if dataset.experiment != self.dataset.experiment \
-        or dataset.model_version != self.dataset.model_version \
-        or dataset.ensemble != self.dataset.ensemble:
+                or dataset.model_version != self.dataset.model_version \
+                or dataset.ensemble != self.dataset.ensemble:
             return None
 
         for req, ds in self._requires.items():
@@ -102,8 +106,8 @@ rm $message_file
                 continue
             req_attrs = req.split('-')
             if (dataset.realm == req_attrs[0] or req_attrs[0] == '*') \
-            and (dataset.grid == req_attrs[1] or req_attrs[1] == '*') \
-            and (dataset.freq == req_attrs[2] or req_attrs[2] == '*'):
+                    and (dataset.grid == req_attrs[1] or req_attrs[1] == '*') \
+                    and (dataset.freq == req_attrs[2] or req_attrs[2] == '*'):
                 return req
         return None
 
@@ -146,11 +150,11 @@ rm $message_file
     @property
     def requires(self):
         return self._requires
-    
+
     @property
     def parent(self):
         return self._parent
-    
+
     @property
     def params(self):
         return self._parameters
@@ -158,8 +162,7 @@ rm $message_file
     @property
     def job_id(self):
         return self._job_id
-    
+
     @job_id.setter
     def job_id(self, new_id):
         self._job_id = new_id
-

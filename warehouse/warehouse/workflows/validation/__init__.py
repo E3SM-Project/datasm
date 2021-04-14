@@ -3,15 +3,19 @@ from pathlib import Path
 from time import sleep
 from warehouse.workflows import Workflow
 from warehouse.dataset import Dataset, DatasetStatusMessage
+from termcolor import colored, cprint
 
 
 NAME = 'Validation'
 COMMAND = 'validate'
 
 HELP_TEXT = """
-Runs the Validation workflow on a single dataset. The input directory should be 
-one level up from the data directory which should me named v0, the input path 
-will be used to hold the .status file and intermediate working directories for the workflow steps. 
+Runs the Validation workflow on a single dataset or list of datasets. If running on
+a single dataset, the --data-path should point one level up from the data directory 
+which should me named v0, the input path will be used to hold the .status file and intermediate working directories for the workflow steps. 
+
+Multiple datasets can be run at once as long as the datasets exist under the --warehouse-path directory in the expected
+faceted structure. This structure should mirror the E3SM publication directory structure.
 
 The --dataset-id flag should be in the facet format of the ESGF project. 
     For CMIP6: CMIP6.ScenarioMIP.CCCma.CanESM5.ssp126.r12i1p2f1.Amon.wap.gn
@@ -29,12 +33,17 @@ class Validation(Workflow):
         from warehouse.warehouse import AutoWarehouse
 
         dataset_ids = self.params['dataset_id']
+        warehouse_path = self.params['warehouse_path']
+        publication_path = self.params['publication_path']
+        archive_path = self.params['archive_path']
 
         if (data_path := self.params.get('data_path')):
             warehouse = AutoWarehouse(
                 workflow=self,
                 dataset_id=dataset_ids,
                 warehouse_path=data_path,
+                publication_path=publication_path,
+                archive_path=archive_path,
                 serial=True,
                 job_worker=self.job_workers,
                 debug=self.debug)
@@ -42,25 +51,35 @@ class Validation(Workflow):
             warehouse = AutoWarehouse(
                 workflow=self,
                 dataset_id=dataset_ids,
+                warehouse_path=warehouse_path,
+                publication_path=publication_path,
+                archive_path=archive_path,
                 serial=True,
                 job_worker=self.job_workers,
                 debug=self.debug)
 
         warehouse.setup_datasets(check_esgf=False)
-        dataset_id, dataset = next(iter(warehouse.datasets.items()))
-        dataset.warehouse_path = Path(data_path)
+
+        for dataset_id, dataset in warehouse.datasets.items():
+            if data_path:
+                dataset.warehouse_path = Path(data_path)
+
+            if DatasetStatusMessage.VALIDATION_READY.value not in dataset.status:
+                dataset.status = DatasetStatusMessage.VALIDATION_READY.value
 
         warehouse.start_listener()
 
-        if DatasetStatusMessage.VALIDATION_READY.value not in dataset.status:
-            dataset.status = DatasetStatusMessage.VALIDATION_READY.value
-        else:
-            warehouse.start_datasets()
+        for dataset_id, dataset in warehouse.datasets.items():
+            warehouse.start_datasets({dataset_id: dataset})
 
         while not warehouse.should_exit:
             sleep(2)
-        print(
-            f"Validation complete, dataset {dataset.dataset_id} is in state {dataset.status}")
+
+        for dataset_id, dataset in warehouse.datasets.items():
+            color = "green" if "Pass" in dataset.status else "red"
+            cprint(
+                f"Validation complete, dataset {dataset_id} is in state {dataset.status}", color)
+
         sys.exit(0)
 
     @staticmethod

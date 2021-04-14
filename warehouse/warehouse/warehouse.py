@@ -141,7 +141,6 @@ class AutoWarehouse():
 
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
-        # import ipdb; ipdb.set_trace()
         if self.dataset_ids is not None:
             ndataset_ids = []
             for i in dataset_ids:
@@ -155,7 +154,8 @@ class AutoWarehouse():
             dataset_ids = ndataset_ids
 
         if not dataset_ids:
-            cprint(f'No datasets match pattern from --dataset-id {self.dataset_ids} flag', 'red')
+            cprint(
+                f'No datasets match pattern from --dataset-id {self.dataset_ids} flag', 'red')
             sys.exit(1)
 
         # instantiate the dataset objects with the paths to
@@ -265,8 +265,6 @@ class AutoWarehouse():
             import ipdb
             ipdb.set_trace()
 
-        # import ipdb; ipdb.set_trace()
-        self.print_debug(f"Got a status update from {dataset_id}")
         dataset = self.datasets[dataset_id]
         dataset.update_from_status_file()
         dataset.unlock(dataset.latest_warehouse_dir)
@@ -275,7 +273,6 @@ class AutoWarehouse():
         # and if there is, and the latest is either Pass or Fail, then
         # remove the job from the job_pool
         latest, second_latest = dataset.get_latest_status()
-        self.print_debug(f"status_was_updated: *{latest}*")
         if second_latest is not None:
             latest_attrs = latest.split(':')
             second_latest_attrs = second_latest.split(':')
@@ -288,9 +285,9 @@ class AutoWarehouse():
                             if job.job_id == job_id:
                                 self.job_pool.remove(job)
                                 break
-        self.start_datasets()
+        self.start_datasets({dataset_id: dataset})
 
-    def start_datasets(self):
+    def start_datasets(self, datasets=None):
         """
         Resolve next steps for datasets and create job objects for them
         Parameters: datasets dict of string dataset_ids to dataset objects
@@ -298,11 +295,13 @@ class AutoWarehouse():
         """
 
         new_jobs = []
-        for dataset_id, dataset in self.datasets.items():
+
+        if datasets is None:
+            datasets = self.datasets
+        for dataset_id, dataset in datasets.items():
             if 'Engaged' in dataset.status:
                 continue
             else:
-                self.print_debug(f"start_datasets: *{dataset.status}*")
                 # we keep a reference to the workflow instance, so when
                 # we make a job we can reconstruct the parent workflow name
                 # for the status file
@@ -317,6 +316,8 @@ class AutoWarehouse():
                 engaged_states = []
 
                 if dataset.is_blocked(state):
+                    cprint(
+                        f"Dataset {dataset.dataset_id} at state {state} is marked as Blocked", 'yellow')
                     continue
                 elif f"{self.workflow.name.upper()}:Pass:" == state:
                     self.workflow_success(dataset)
@@ -342,8 +343,8 @@ class AutoWarehouse():
                     return
 
                 for state, workflow, params in engaged_states:
-                    self.print_debug(f"Creating jobs from state: {state}")
-                    # import ipdb; ipdb.set_trace()
+                    self.print_debug(
+                        f"Creating jobs from {state} for dataset {dataset_id}")
                     newjob = self.workflow.get_job(
                         dataset,
                         state,
@@ -360,24 +361,27 @@ class AutoWarehouse():
                     else:
                         matching_job.setup_requisites(newjob.dataset)
 
-        if new_jobs is not None:
-            self.job_pool = self.job_pool + new_jobs
-
         # start the jobs in the job_pool if they're ready
-        for job in self.job_pool:
+        for job in new_jobs:
+            cprint(f"{job}", "cyan")
             if job.job_id is None and job.meets_requirements():
                 job_id = job(self.slurm)
                 if job_id is not None:
                     job.job_id = job_id
+                    self.job_pool.append(job)
                 else:
                     cprint(f"Error starting up job {job}", 'red')
         return
 
     def start_listener(self):
-        self.listener = Listener(
-            warehouse=self,
-            root=self.warehouse_path)
-        self.listener.start()
+        self.listener = []
+        for dataset_id, dataset in self.datasets.items():
+            print(f"starting listener for {dataset.warehouse_path}")
+            listener = Listener(
+                warehouse=self,
+                root=dataset.warehouse_path)
+            listener.start()
+            self.listener.append(listener)
         cprint("Listener setup complete", "green")
 
     def check_done(self):
@@ -386,7 +390,8 @@ class AutoWarehouse():
             if dataset.status not in [f"{self.workflow.name.upper()}:Pass:", f"{self.workflow.name.upper()}:Fail:"]:
                 all_done = False
         if all_done:
-            self.listener.observer.stop()
+            for listener in self.listener:
+                listener.observer.stop()
             self.should_exit = True
             sys.exit(0)
         return
@@ -464,7 +469,7 @@ class AutoWarehouse():
             default=DEFAULT_CONF_PATH,
             help="The default warehouse/publication/archives paths are drawn from a config yaml file "
                  "you can change the values via the command line or change the contents of the file here "
-                f"{DEFAULT_CONF_PATH}")
+            f"{DEFAULT_CONF_PATH}")
         p.add_argument(
             '--dataset-spec',
             default=DEFAULT_SPEC_PATH,

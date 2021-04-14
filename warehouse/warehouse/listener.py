@@ -23,10 +23,11 @@ class Listener(object):
 
     def start(self):
         print("Starting up filesystem listener")
-        go_recursively = True
         self.observer = Observer()
-        self.observer.schedule(self.my_event_handler,
-                               self.root, recursive=go_recursively)
+        self.observer.schedule(
+            self.my_event_handler,
+            self.root, 
+            recursive=False)
         self.observer.start()
 
     def stop(self):

@@ -276,6 +276,9 @@ def main():
             # {units.split(' ')[0]}
             msg = f"There's a time gap between the end of {s1['files'][-1]} and the start of {s2['files'][0]} of {s2['start'] - s1['end']} "
             if args.no_gaps:
+                outpath = Path(outpath)
+                if not any(outpath.iterdir()):
+                    outpath.rmdir()
                 raise ValueError(msg)
             else:
                 print(msg)
