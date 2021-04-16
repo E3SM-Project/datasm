@@ -70,6 +70,8 @@ def conduct_move(args):
         print(f"Moving the mapfile to {dst}")
         mapfile.replace(dst)
     
+    consolidate_statusfile_location(src_path.parent, dst_path.parent)
+    
     message = f"mapfile_path={dst},pub_name={dst_path.name},ware_name={src_path.name}"
     if (messages_path := os.environ.get('message_file')):
         with open(messages_path, 'w') as outstream:

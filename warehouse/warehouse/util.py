@@ -49,7 +49,7 @@ def print_debug(e):
     print('5', traceback.print_tb(tb))
 # -----------------------------------------------
 
-def consolidate_statusfile_to(src_path, dst_path):
+def consolidate_statusfile_location(src_path, dst_path):
     '''
         Seek .status file in parent directories.
         If none exists, take no action and return an ERROR message(?)
