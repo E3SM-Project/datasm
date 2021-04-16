@@ -49,51 +49,34 @@ def print_debug(e):
     print('5', traceback.print_tb(tb))
 # -----------------------------------------------
 
-def consolidate_statusfile_to(dsid, loc, w_root, p_root):
+def consolidate_statusfile_to(src_path, dst_path):
     '''
-        Convert dsid to full warehouse and publication statusfile paths.
+        Seek .status file in parent directories.
         If none exists, take no action and return an ERROR message(?)
         If only one exists, and it is already in "loc", return path.
         If only one exists, and it is not in the "loc", move it there, return path.
         If both exist, sort-merge the lines of both to "loc", delete the other, return path.
     '''
-    ds_part = dsid.replace('.'.os.sep)
-    w_path = os.path.join(w_root,ds_part,'.status')
-    p_path = os.path.join(p_root,ds_part,'.status')
-    have_w = os.path.exists(w_path)
-    have_p = os.path.exists(p_path)
-    if not have_w and not have_p:
-        logging.error(f'No status file can be found for dataset_id {dsid}')
+    s_path = os.path.join(src_path.parent,'.status')
+    d_path = os.path.join(dst_path.parent,'.status')
+    have_s = os.path.exists(s_path)
+    have_d = os.path.exists(d_path)
+    if not have_s and not have_d:
+        logging.error(f'No status file can be found for dataset')
         return ''
         # return 'ERROR:NO_STATUS_FILE_PATH'
-    if (have_w != have_p):
-        if (have_w and loc = 'W'):
-            return w_path
-        if (have_p and loc = 'P'):
-            return p_path
-        if (have_w and loc = 'P'):
-            subprocess.run(['mv', w_path, p_path])
-            return p_path
-        if (have_p and loc = 'W'):
-            subprocess.run(['mv', p_path, w_path])
-            return w_path
+    if have_s != have_d:
+        if have_s:
+            subprocess.run(['mv', s_path, d_path])
+        return d_path
     # must consolidate two status files
-    w_list = loadFileLines(w_path)
-    p_list = loadFileLines(p_path)
-    s_list = w_list + p_list
-    s_list.sort()
-    if loc == 'W':
-        print_file_list(w_path,s_list)
-        subprocess.run(['rm', '-f', p_path])
-        return w_path
-    if loc == 'P':
-        print_file_list(p_path,s_list)
-        subprocess.run(['rm', '-f', w_path])
-        return p_path
+    s_list = loadFileLines(s_path)
+    d_list = loadFileLines(d_path)
+    f_list = s_list + d_list
+    f_list.sort()
+    print_file_list(d_path, f_list)
+    return d_path
     
-    logging.error(f'Unrecognized loc specifier: {loc}');
-    return ''
-    # return f'ERROR: unrecognized loc specifier: {loc}'
 
 def sproket_with_id(dataset_id, sproket_path='sproket', **kwargs):
 
