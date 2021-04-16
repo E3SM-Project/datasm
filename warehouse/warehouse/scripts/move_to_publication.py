@@ -52,6 +52,41 @@ def validate_args(args):
     return True
 
 
+def consolidate_statusfile_location(src_path, dst_path):
+    '''
+        Seek .status file in parent directories.
+        If none exists, take no action and return an ERROR message(?)
+        If only one exists, and it is already in "loc", return path.
+        If only one exists, and it is not in the "loc", move it there, return path.
+        If both exist, sort-merge the lines of both to "loc", delete the other, return path.
+    '''
+    s_path = os.path.join(src_path.parent,'.status')
+    d_path = os.path.join(dst_path.parent,'.status')
+
+    if s_path == d_path:
+        # need a special action for robustness in this case (upgrade publication)
+        logging.error(f'Cannot determine statusfile atomicity - src.parent == dst.parent')
+        return ''
+
+    have_s = os.path.exists(s_path)
+    have_d = os.path.exists(d_path)
+    if not have_s and not have_d:
+        logging.error(f'No status file can be found for dataset')
+        return ''
+        # return 'ERROR:NO_STATUS_FILE_PATH'
+    if have_s != have_d:
+        if have_s:
+            subprocess.run(['mv', s_path, d_path])
+        return d_path
+    # must consolidate two status files
+    s_list = loadFileLines(s_path)
+    d_list = loadFileLines(d_path)
+    f_list = s_list + d_list
+    f_list.sort()
+    print_file_list(d_path, f_list)
+    return d_path
+    
+
 def conduct_move(args):
     src_path = Path(args.src)
     dst_path = Path(args.dst)
