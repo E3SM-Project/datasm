@@ -49,7 +49,7 @@ def print_debug(e):
     print('5', traceback.print_tb(tb))
 # -----------------------------------------------
 
-def consolidate_statusfile_to(dsid,loc,w_root,p_root):
+def consolidate_statusfile_to(dsid, loc, w_root, p_root):
     '''
         Convert dsid to full warehouse and publication statusfile paths.
         If none exists, take no action and return an ERROR message(?)
@@ -72,10 +72,10 @@ def consolidate_statusfile_to(dsid,loc,w_root,p_root):
         if (have_p and loc = 'P'):
             return p_path
         if (have_w and loc = 'P'):
-            subprocess.run(['mv',w_path,p_path])
+            subprocess.run(['mv', w_path, p_path])
             return p_path
         if (have_p and loc = 'W'):
-            subprocess.run(['mv',p_path,w_path])
+            subprocess.run(['mv', p_path, w_path])
             return w_path
     # must consolidate two status files
     w_list = loadFileLines(w_path)
