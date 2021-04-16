@@ -1,6 +1,7 @@
 import sys
 import json
 import traceback
+import logging
 
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
@@ -62,8 +63,9 @@ def consolidate_statusfile_to(dsid,loc,w_root,p_root):
     have_w = os.path.exists(w_path)
     have_p = os.path.exists(p_path)
     if not have_w and not have_p:
-        print(f'ERROR: no status file can be found for dataset_id {dsid}', file=sys.stderr)
-        return 'ERROR:NO_STATUS_FILE_PATH'
+        logging.error(f'No status file can be found for dataset_id {dsid}')
+        return ''
+        # return 'ERROR:NO_STATUS_FILE_PATH'
     if (have_w != have_p):
         if (have_w and loc = 'W'):
             return w_path
@@ -89,8 +91,9 @@ def consolidate_statusfile_to(dsid,loc,w_root,p_root):
         subprocess.run(['rm', '-f', w_path])
         return p_path
     
-    print(f'ERROR: unrecognized loc specifier: {loc}');
-    return f'ERROR: unrecognized loc specifier: {loc}'
+    logging.error(f'Unrecognized loc specifier: {loc}');
+    return ''
+    # return f'ERROR: unrecognized loc specifier: {loc}'
 
 def sproket_with_id(dataset_id, sproket_path='sproket', **kwargs):
 
