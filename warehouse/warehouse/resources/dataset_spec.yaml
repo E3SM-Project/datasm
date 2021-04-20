@@ -452,6 +452,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.5day_snap
             sea-ice:
               -
                 grid: native
@@ -479,7 +480,7 @@ project:
                 grid: 720x1440
                 data_types:
                   - model-output.3hr
-                  - model-output.6hr
+                  - model-output.6hr_ave
                   - model-output.6hr_snap
                   - model-output.day
                   - model-output.mon
@@ -510,16 +511,19 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.5day_snap
             sea-ice:
               -
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.day
             misc:
               -
                 grid: native
                 data_types:
                   - mapping.fixed
+                  - restart.fixed
             
           1deg_atm_60-30km_ocean:
             atmos:
@@ -528,7 +532,7 @@ project:
                 data_types:
                   - climo.mon
                   - model-output.3hr
-                  - model-output.6hr
+                  - model-output.6hr_ave
                   - model-output.6hr_snap
                   - model-output.day
                   - model-output.mon
@@ -603,7 +607,13 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.5day_snap
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            river:
               -
                 grid: native
                 data_types:
@@ -649,11 +659,17 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.5day_snap
             sea-ice:
               -
                 grid: native
                 data_types:
                   - mode-output.mon
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
       abrupt-4xCO2-ext300yrs:
         start: 140
         end: 300
@@ -1036,10 +1052,36 @@ project:
                 grid: 720x1440
                 data_types:
                   - model-output.mon
+              - 
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.3hr
+                  - model-output.6hr
+                  - model-output.6hr_snap
+            highres.land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
           1deg_atm_60-30km_ocean:
             lowres.atmos:
               - 
                 grid: 180x360
+                data_types:
+                  - model-output.mon
+              - 
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.3hr
+                  - model-output.6hr
+                  - model-output.6hr_snap
+            lowres.land:
+              -
+                grid: native
                 data_types:
                   - model-output.mon
       F2010-nudgeUV:
@@ -1060,10 +1102,30 @@ project:
                 grid: 720x1440
                 data_types:
                   - model-output.mon
+              - 
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+            highres.land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
           1deg_atm_60-30km_ocean:
             lowres.atmos:
               - 
                 grid: 180x360
+                data_types:
+                  - model-output.mon
+              - 
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+            lowres.land:
+              - 
+                grid: native
                 data_types:
                   - model-output.mon
       F2010-nudgeUV-1850aero:
@@ -1108,10 +1170,36 @@ project:
                 grid: 720x1440
                 data_types:
                   - model-output.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.6hr
+                  - model-output.6hr_snap
+                  - model-output.3hr
+            highres.land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
           1deg_atm_60-30km_ocean:
             lowres.atmos:
               - 
                 grid: 180x360
+                data_types:
+                  - model-output.mon
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.6hr
+                  - model-output.6hr_snap
+                  - model-output.3hp
+            lowres.land:
+              -
+                grid: native
                 data_types:
                   - model-output.mon
       historical:
@@ -1156,8 +1244,14 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.5day_snap
             sea-ice:
               -
+                grid: native
+                data_types:
+                  - model-output.mon
+            river:
+              - 
                 grid: native
                 data_types:
                   - model-output.mon
@@ -1198,7 +1292,15 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1240,7 +1342,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1282,7 +1391,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1324,7 +1440,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1366,7 +1489,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1408,7 +1538,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1450,7 +1587,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1492,7 +1636,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1534,7 +1685,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1576,7 +1734,15 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1618,7 +1784,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1660,7 +1833,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1702,7 +1882,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1744,7 +1931,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1786,7 +1980,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1828,7 +2029,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1870,7 +2078,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1912,7 +2127,14 @@ project:
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
+                  - model-output.fixed
             sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
               -
                 grid: native
                 data_types:
@@ -1976,6 +2198,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.5day_snap
             sea-ice:
               -
                 grid: native
@@ -2019,6 +2242,7 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.5day_snap
             sea-ice:
               -
                 grid: native
