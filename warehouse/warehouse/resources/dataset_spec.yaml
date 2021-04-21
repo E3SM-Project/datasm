@@ -664,7 +664,7 @@ project:
               -
                 grid: native
                 data_types:
-                  - mode-output.mon
+                  - model-output.mon
             river:
               -
                 grid: native
