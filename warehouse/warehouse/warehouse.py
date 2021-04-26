@@ -11,6 +11,8 @@ from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from termcolor import colored, cprint
 
+import logging
+from pprint import pformat
 
 from warehouse.workflows import Workflow
 from warehouse.dataset import Dataset, DatasetStatus
@@ -46,7 +48,6 @@ class AutoWarehouse():
         self.sproket_path = kwargs.get('sproket', 'sproket')
         self.num_workers = kwargs.get('num', 8)
         self.serial = kwargs.get('serial', False)
-        self.testing = kwargs.get('testing', False)
         self.dataset_ids = kwargs.get('dataset_id')
         if not isinstance(self.dataset_ids, list):
             self.dataset_ids = [self.dataset_ids]
@@ -59,6 +60,10 @@ class AutoWarehouse():
         os.makedirs(self.slurm_path, exist_ok=True)
         self.should_exit = False
         self.debug = kwargs.get('debug')
+        self.log_path = kwargs.get('log_path')
+        self.log_level = kwargs.get('log_level')
+        self.logger = None
+        self.setup_logger()
 
         self.scripts_path = Path(Path(inspect.getfile(
             self.__class__)).parent.absolute(), 'scripts').resolve()
@@ -70,6 +75,7 @@ class AutoWarehouse():
                     slurm_scripts=self.slurm_path,
                     debug=self.debug))
 
+            logging.info(f"Loaded workflow {self.workflow.name}")
             self.workflow.load_children()
             self.workflow.load_transitions()
 
@@ -83,12 +89,16 @@ class AutoWarehouse():
             self.listener = None
 
         if self.serial:
-            cprint("Running warehouse in serial mode", 'cyan')
+            msg = "Running warehouse in serial mode"
+            cprint(msg, 'cyan')
+            logging.info(msg)
         else:
-            cprint(
-                f"Running warehouse in parallel mode with {self.num_workers} workers", 'white')
+            msg = f"Running warehouse in parallel mode with {self.num_workers} workers"
+            cprint(msg, 'white')
+            logging.info(msg)
 
         with open(self.spec_path, 'r') as instream:
+            logging.info(f"Loading dataspec")
             self.dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
 
     def __call__(self, check_esgf=True):
@@ -116,6 +126,19 @@ class AutoWarehouse():
             exit(1)
 
         return 0
+    
+    def setup_logger(self):
+        if self.log_level == 'error':
+            level = logging.ERROR
+        elif self.log_level == 'warning':
+            level = logging.WARNING
+        else:
+            level = logging.INFO
+        logging.basicConfig(
+            filename=self.log_path,
+            format="%(asctime)s:%(levelname)s:%(module)s:%(message)s",
+            level=level)
+        logging.info(f"Starting up the warehouse with parameters: \n{pformat(self.__dict__)}")
 
     def print_missing(self):
         found_missing = False
@@ -130,13 +153,8 @@ class AutoWarehouse():
             cprint("No missing files in datasets", 'red')
 
     def setup_datasets(self, check_esgf=True):
-        cprint("Initializing the warehouse", 'green')
         cmip6_ids = [x for x in self.collect_cmip_datasets()]
-        if self.testing:
-            cmip6_ids = cmip6_ids[:100]
         e3sm_ids = [x for x in self.collect_e3sm_datasets()]
-        if self.testing:
-            e3sm_ids = e3sm_ids[:100]
         dataset_ids = cmip6_ids + e3sm_ids
 
         # if the user gave us a wild card, filter out anything
@@ -157,6 +175,7 @@ class AutoWarehouse():
             cprint(
                 f'No datasets match pattern from --dataset-id {self.dataset_ids} flag', 'red')
             sys.exit(1)
+        logging.info(f"Running with dataset_ids {pformat(dataset_ids)}")
 
         # instantiate the dataset objects with the paths to
         # where they should look for their data files
@@ -200,6 +219,7 @@ class AutoWarehouse():
 
         # find the state of each dataset
         if check_esgf:
+            logging.info("Starting ESGF status check")
             if not self.serial:
                 pool = ProcessPoolExecutor(max_workers=self.num_workers)
                 futures = [pool.submit(x.find_status)
@@ -212,7 +232,6 @@ class AutoWarehouse():
                     self.datasets[dataset_id].missing = missing
             else:
                 for dataset in tqdm(self.datasets.values()):
-                    # import ipdb; ipdb.set_trace()
                     dataset_id, status, _ = dataset.find_status()
                     if isinstance(status, DatasetStatus):
                         status = status.name
@@ -268,6 +287,7 @@ class AutoWarehouse():
         dataset = self.datasets[dataset_id]
         dataset.update_from_status_file()
         dataset.unlock(dataset.latest_warehouse_dir)
+        logging.info(f"State change for {dataset.dataset_id} to {dataset.status}")
 
         # check to see of there's a slurm ID in the second to last status
         # and if there is, and the latest is either Pass or Fail, then
@@ -480,10 +500,6 @@ class AutoWarehouse():
             default=8,
             help='number of parallel workers each job should create when running, default=8')
         p.add_argument(
-            '--testing',
-            action="store_true",
-            help='run the warehouse in testing mode')
-        p.add_argument(
             '--sproket',
             required=False,
             default='sproket',
@@ -502,8 +518,20 @@ class AutoWarehouse():
             '--debug',
             action='store_true',
             help='Print additional debug information to the console')
+        p.add_argument(
+            '--log-level',
+            default="error",
+            help="The log level that should be used, valid options are 'debug', 'warning', and 'info'. Default is error")
+        p.add_argument(
+            '--log-path',
+            default="warehouse-log.txt",
+            help=f"The path that the log should be saved to, default is ./warehouse-log.txt")
         return NAME, parser
 
     @staticmethod
     def arg_checker(args):
+        valid_log_levels = ['debug', 'warning', 'info']
+        if args.log_level and args.log_level not in valid_log_levels:
+            print(f"{args.log} is not a valid log level, please use one of {', '.join(valid_log_levels)}")
+            return False, NAME
         return True, NAME

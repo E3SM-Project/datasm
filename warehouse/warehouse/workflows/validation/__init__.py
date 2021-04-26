@@ -46,7 +46,9 @@ class Validation(Workflow):
                 archive_path=archive_path,
                 serial=True,
                 job_worker=self.job_workers,
-                debug=self.debug)
+                debug=self.debug,
+                log_level=self.params['log_level'],
+                log_path=self.params['log_path'])
         else:
             warehouse = AutoWarehouse(
                 workflow=self,
@@ -56,7 +58,9 @@ class Validation(Workflow):
                 archive_path=archive_path,
                 serial=True,
                 job_worker=self.job_workers,
-                debug=self.debug)
+                debug=self.debug,
+                log_level=self.params['log_level'],
+                log_path=self.params['log_path'])
 
         warehouse.setup_datasets(check_esgf=False)
 

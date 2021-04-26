@@ -221,6 +221,14 @@ class Workflow(object):
             '--debug',
             action='store_true',
             help='Print additional debug information to the console')
+        parser.add_argument(
+            '--log-level',
+            default="error",
+            help="The log level that should be used, valid options are 'debug', 'warning', and 'info'. Default is error")
+        parser.add_argument(
+            '--log-path',
+            default="warehouse-log.txt",
+            help=f"The path that the log should be saved to, default is ./warehouse-log.txt")
         return parser
 
     @staticmethod
