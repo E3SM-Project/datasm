@@ -1052,36 +1052,15 @@ project:
                 grid: 720x1440
                 data_types:
                   - model-output.mon
-              - 
-                grid: native
-                data_types:
-                  - model-output.mon
-                  - model-output.day
-                  - model-output.3hr
-                  - model-output.6hr
-                  - model-output.6hr_snap
-            highres.land:
-              -
-                grid: native
-                data_types:
-                  - model-output.mon
           1deg_atm_60-30km_ocean:
-            lowres.atmos:
+            highres.atmos:
               - 
                 grid: 180x360
                 data_types:
                   - model-output.mon
+            lowres.atmos:
               - 
-                grid: native
-                data_types:
-                  - model-output.mon
-                  - model-output.day
-                  - model-output.3hr
-                  - model-output.6hr
-                  - model-output.6hr_snap
-            lowres.land:
-              -
-                grid: native
+                grid: 180x360
                 data_types:
                   - model-output.mon
       F2010-nudgeUV:
@@ -1102,30 +1081,15 @@ project:
                 grid: 720x1440
                 data_types:
                   - model-output.mon
-              - 
-                grid: native
-                data_types:
-                  - model-output.mon
-                  - model-output.day
-            highres.land:
-              -
-                grid: native
-                data_types:
-                  - model-output.mon
           1deg_atm_60-30km_ocean:
             lowres.atmos:
               - 
                 grid: 180x360
                 data_types:
                   - model-output.mon
-              - 
-                grid: native
-                data_types:
-                  - model-output.mon
-                  - model-output.day
-            lowres.land:
-              - 
-                grid: native
+            highres.atmos:
+              -
+                grid: 180x360
                 data_types:
                   - model-output.mon
       F2010-nudgeUV-1850aero:
@@ -1147,6 +1111,11 @@ project:
                 data_types:
                   - model-output.mon
           1deg_atm_60-30km_ocean:
+            highres.atmos:
+              - 
+                grid: 180x360
+                data_types:
+                  - model-output.mon
             lowres.atmos:
               - 
                 grid: 180x360
@@ -1170,36 +1139,15 @@ project:
                 grid: 720x1440
                 data_types:
                   - model-output.mon
-              -
-                grid: native
-                data_types:
-                  - model-output.mon
-                  - model-output.day
-                  - model-output.6hr
-                  - model-output.6hr_snap
-                  - model-output.3hr
-            highres.land:
-              -
-                grid: native
-                data_types:
-                  - model-output.mon
           1deg_atm_60-30km_ocean:
-            lowres.atmos:
+            highres.atmos:
               - 
                 grid: 180x360
                 data_types:
                   - model-output.mon
-              -
-                grid: native
-                data_types:
-                  - model-output.mon
-                  - model-output.day
-                  - model-output.6hr
-                  - model-output.6hr_snap
-                  - model-output.3hp
-            lowres.land:
-              -
-                grid: native
+            lowres.atmos:
+              - 
+                grid: 180x360
                 data_types:
                   - model-output.mon
       historical:
