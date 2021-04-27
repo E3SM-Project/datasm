@@ -14,16 +14,11 @@ DEFAULT_DATA__NODE = "esgf-data2.llnl.gov"
 
 
 def gen_xml(dataset_id, datatype, facets):
-    now = datetime.utcnow()
-    ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
     id_field = "id" if datatype != "files" else "dataset_id"
     txt = f"""
     <updates core="{datatype}" action="set">
         <update>
             <query>{id_field}={dataset_id}</query>
-            <field name="_timestamp">
-                <value>{ts}</value>
-            </field>
           """
 
     for key, value in facets.items():
