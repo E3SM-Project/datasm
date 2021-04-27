@@ -1,3 +1,7 @@
 DEFAULT_WAREHOUSE_PATH: /p/user_pub/e3sm/warehouse/
 DEFAULT_PUBLICATION_PATH: /p/user_pub/work/
 DEFAULT_ARCHIVE_PATH: /p/user_pub/e3sm/archive
+
+grids:
+  ne30_to_180x360: /export/zender1/data/maps/map_ne30np4_to_cmip6_180x360_aave.20181001.nc
+  oEC60to30_to_180x360: /export/zender1/data/maps/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc
