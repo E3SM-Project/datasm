@@ -1,9 +1,9 @@
 from warehouse.workflows.jobs import WorkflowJob
 
-NAME = 'ValidateCmor'
+NAME = 'ValidateCMIP'
 
 
-class ValidateCmor(WorkflowJob):
+class ValidateCMIP(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

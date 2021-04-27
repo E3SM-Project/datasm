@@ -1,8 +1,8 @@
 from warehouse.workflows.jobs import WorkflowJob
 
-NAME = 'GenerateLndCmor'
+NAME = 'GenerateLndCMIP'
 
-class GenerateLndCmor(WorkflowJob):
+class GenerateLndCMIP(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

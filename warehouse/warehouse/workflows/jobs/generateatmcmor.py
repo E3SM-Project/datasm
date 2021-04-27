@@ -1,8 +1,8 @@
 from warehouse.workflows.jobs import WorkflowJob
 
-NAME = 'GenerateAtmCmor'
+NAME = 'GenerateAtmCMIP'
 
-class GenerateAtmCmor(WorkflowJob):
+class GenerateAtmCMIP(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -1,8 +1,8 @@
 from warehouse.workflows.jobs import WorkflowJob
 
-NAME = 'GenerateOcnCmor'
+NAME = 'GenerateOcnCMIP'
 
-class GenerateOcnCmor(WorkflowJob):
+class GenerateOcnCMIP(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

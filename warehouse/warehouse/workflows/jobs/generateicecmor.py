@@ -1,8 +1,8 @@
 from warehouse.workflows.jobs import WorkflowJob
 
-NAME = 'GenerateIceCmor'
+NAME = 'GenerateIceCMIP'
 
-class GenerateIceCmor(WorkflowJob):
+class GenerateIceCMIP(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
