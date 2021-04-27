@@ -74,13 +74,10 @@ class PostProcess(Workflow):
     def add_args(parser):
         parser = parser.add_parser(
             name=COMMAND,
-            description='postprocess a dataset')
+            description='postprocess datasets')
         parser = Workflow.add_args(parser)
         return COMMAND, parser
 
     @staticmethod
     def arg_checker(args):
-        if not os.path.exists(args.path):
-            print("The given path {args.path} does not exist")
-            return False, COMMAND
-        return True, COMMAND
+        return Workflow.arg_checker(args, COMMAND)

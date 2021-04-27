@@ -27,6 +27,7 @@ class DatasetStatusMessage(Enum):
     PUBLICATION_READY = "PUBLICATION:Ready:"
     WAREHOUSE_READY = "WAREHOUSE:Ready:"
     VALIDATION_READY = "VALIDATION:Ready:"
+    POSTPROCESS_READY = "POSTPROCESS:Ready:"
 
 
 non_binding_status = ['Blocked:', 'Unblocked:', 'Approved:', 'Unapproved:']
@@ -158,6 +159,9 @@ class Dataset(object):
                 self.data_type,
                 self.freq,
                 self.ensemble)
+
+        if not self.warehouse_path.exists():
+            self.warehouse_path.mkdir(parents=True)
 
         self.status_path = Path(self.warehouse_path, '.status')
         if not self.status_path.exists():
