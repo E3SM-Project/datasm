@@ -9,7 +9,6 @@ class FixMapfilePaths(WorkflowJob):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        self._requires = {'*-*-*': None}
         mapfile_path = Path(self.dataset.publication_path, f'{self.dataset.dataset_id}.map')
         if not mapfile_path.exists():
             raise ValueError(

@@ -7,6 +7,7 @@ class WorkflowJob(object):
     def __init__(self, dataset, state, scripts_path, slurm_out_path, slurm_opts=[], params={}, **kwargs):
         super().__init__()
         self.name = "WorkflowJobBase"
+        self._requires = { '*-*-*': None }
         self._dataset = dataset
         self._starting_state = state
         self._scripts_path = scripts_path
@@ -31,6 +32,7 @@ class WorkflowJob(object):
 
     def __call__(self, slurm):
         if not self.meets_requirements():
+            print(f"Job does not meet requirements! {self.requires}")
             return None
         self.print_debug(f"Starting job: {str(self)}")
 
