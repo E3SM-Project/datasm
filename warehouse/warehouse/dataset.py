@@ -84,14 +84,13 @@ class Dataset(object):
         self.dataset_id = dataset_id
         self._status = DatasetStatus.UNITITIALIZED.name
 
-        # import ipdb; ipdb.set_trace()
         self.data_path = None
+        self.cmip_var = None
         self.start_year = start_year
         self.end_year = end_year
         self.datavars = datavars
         self.missing = None
         self._publication_path = Path(path) if path != '' else None
-        # import ipdb; ipdb.set_trace()
         self.pub_base = pub_base
         self.warehouse_path = Path(path) if path != '' else None
         self.warehouse_base = warehouse_base
@@ -108,14 +107,15 @@ class Dataset(object):
         facets = self.dataset_id.split('.')
         if facets[0] == 'CMIP6':
             self.project = 'CMIP6'
-            self.data_type = 'CMIP'
+            self.data_type = 'cmip'
             self.activity = facets[1]
             self.model_version = facets[3]
             self.experiment = facets[4]
             self.ensemble = facets[5]
             self.table = facets[6]
+            self.cmip_var = facets[7]
             self.resolution = None
-            if facets[6] in ['Amon', '3hr', 'day']:
+            if facets[6] in ['Amon', '3hr', 'day', '6hr']:
                 self.realm = 'atmos'
             elif facets[6] == 'Lmon':
                 self.realm = 'land'
@@ -125,7 +125,15 @@ class Dataset(object):
                 self.realm = 'sea-ice'
             else:
                 self.realm = 'fixed'
-            self.freq = None  # the frequency and realm are part of the CMIP table
+            
+            self.freq = None
+            for i in ["mon", "day", "3hr", "6hr"]:
+                if i in self.table:
+                    self.freq = i
+                    break
+            if self.table == "fx" or self.table == "Ofx":
+                self.freq = "fixed"
+
             self.grid = 'gr'
             self.warehouse_path = Path(
                 self.warehouse_base,
@@ -135,6 +143,7 @@ class Dataset(object):
                 self.experiment,
                 self.ensemble,
                 self.table,
+                self.cmip_var,
                 self.grid)
         else:
             self.project = 'E3SM'
@@ -191,12 +200,16 @@ class Dataset(object):
         except IndexError:
             latest_version = 0
 
-        if latest_version.is_integer():
+        if not isinstance(latest_version, int) and latest_version.is_integer():
             latest_version = int(latest_version)
 
         if latest_version < 0.1:
             latest_version = 0
-        return str(Path(self.warehouse_path, f"v{latest_version}").resolve())
+        
+        path_to_latest = Path(self.warehouse_path, f"v{latest_version}").resolve()
+        if not path_to_latest.exists():
+            path_to_latest.mkdir(parents=True)
+        return str(path_to_latest)
 
     @property
     def latest_pub_dir(self):
@@ -248,6 +261,11 @@ class Dataset(object):
 
     @status.setter
     def status(self, status):
+        """
+        Write out to the datasets status file and update its record of the latest state
+        Because this is a @property you have to pass in the parameters along with the 
+        status as a tuple. Would love to have a solution for that uglyness
+        """
         if status is None or status == self._status:
             return
         params = None
@@ -257,7 +275,7 @@ class Dataset(object):
         self._status = status
         with open(self.status_path, 'a') as outstream:
             msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:WAREHOUSE:{status}'
-            if params:
+            if params is not None:
                 items = [f"{k}={v}".replace(":", "^")
                          for k, v in params.items()]
                 msg += ",".join(items)
