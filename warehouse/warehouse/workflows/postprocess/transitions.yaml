@@ -1,47 +1,39 @@
 POSTPROCESS:Ready:
-  atmos-native-mon:
-    - GenerateAtmClimo:Ready
-    - GenerateAtmMonTimeseries:Ready
-    - GenerateAtmMonCMIP:Ready
-    - GenerateOcnCMIP:Ready
   atmos-climo-mon:
     - GenerateAtmClimo:Ready
-  atmos-ts-mon:
+  atmos-timeseries-mon:
     - GenerateAtmMonTimeseries:Ready
   atmos-cmip-mon:
     - GenerateAtmMonCMIP:Ready
-
-  atmos-native-day:
-    - GenerateAtmDayCMIP:Ready
   atmos-cmip-day:
     - GenerateAtmDayCMIP:Ready
+  atmos-cmip-3hr:
+    - GenerateAtm3hrCMIP:Ready
+  atmos-cmip-fixed:
+    - GenerateAtmFixedCMIP:Ready
 
-
-  lnd-native-mon:
-    - GenerateLndTimeseries:Ready
-    - GenerateLndCMIP:Ready
-  lnd-ts-mon:
+  lnd-timeseries-mon:
     - GenerateLndTimeseries:Ready
   lnd-cmip-mon:
     - GenerateLndCMIP:Ready
+  
+  ocean-cmip-mon:
+    - GenerateOceanCMIP:Ready
+  ocean-cmip-fixed:
+    - GenerateOceanFixedCMIP:Ready
 
-  ocn-native-mon:
-    - GenerateOcnCMIP:Ready
-  ocn-cmip-mon:
-    - GenerateOcnCMIP:Ready
-
-  ice-native-mon:
-    - GenerateIceCMIP:Ready
   ice-cmip-mon:
     - GenerateIceCMIP:Ready
-
-GenerateAtmClimo:Ready:
-  default:
-    - GenerateAtmClimo:Engaged
-GenerateAtmClimo:Pass:
   default:
     - POSTPROCESS:Pass
-GenerateAtmClimo:Fail:
+
+GenerateAtmMonClimo:Ready:
+  default:
+    - GenerateAtmMonClimo:Engaged
+GenerateAtmMonClimo:Pass:
+  default:
+    - POSTPROCESS:Pass
+GenerateAtmMonClimo:Fail:
   default:
     - POSTPROCESS:Fail
 
@@ -95,13 +87,13 @@ GenerateLndCMIP:Fail:
   default:
     - POSTPROCESS:Fail
 
-GenerateOcnCMIP:Ready:
+GenerateOceanCMIP:Ready:
   default:
-    - GenerateOcnCMIP:Engaged
-GenerateOcnCMIP:Pass:
+    - GenerateOceanCMIP:Engaged
+GenerateOceanCMIP:Pass:
   default:
     - POSTPROCESS:Pass
-GenerateOcnCMIP:Fail:
+GenerateOceanCMIP:Fail:
   default:
     - POSTPROCESS:Fail
 
