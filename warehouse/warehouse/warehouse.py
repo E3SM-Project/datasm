@@ -157,7 +157,7 @@ class AutoWarehouse():
             cprint(
                 f'No datasets match pattern from --dataset-id {self.dataset_ids} flag', 'red')
             sys.exit(1)
-
+        
         # instantiate the dataset objects with the paths to
         # where they should look for their data files
         self.datasets = {
@@ -220,22 +220,6 @@ class AutoWarehouse():
 
         return
 
-    def filter_job_pool(self, jobs, datasets):
-        # search all datasets to see if there's one that matches
-        # the requirements for the job
-        for job in self.job_pool:
-            if not job.meets_requirements():
-                for dataset in datasets.values():
-                    if job.dataset.experiment == dataset.experiment \
-                            and job.dataset.experiment == dataset.experiment \
-                            and job.dataset.model_version == dataset.model_version \
-                            and job.dataset.ensemble == dataset.ensemble \
-                            and job.matches_requirement(dataset) \
-                            and (dataset.status == DatasetStatus.SUCCESS.name or job.name in dataset.get_latest_status()):
-                        print(
-                            f"Attaching job {job.name} to dataset {dataset.dataset_id}")
-                        job.setup_requisites(dataset)
-        return
 
     def workflow_error(self, dataset):
         cprint(
@@ -359,6 +343,7 @@ class AutoWarehouse():
                         job_workers=self.job_workers,
                         spec_path=self.spec_path,
                         debug=self.debug,
+                        config=warehouse_conf,
                         other_datasets=list(self.datasets.values()))
 
                     # check if the new job is a duplicate

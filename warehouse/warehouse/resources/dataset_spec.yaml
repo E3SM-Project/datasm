@@ -44,9 +44,11 @@ tables:
     - va
     - wap
     - zg
+    - all
   AERmon:
     - abs550aer
     - od550aer
+    - all
   CFmon:
     - clisccp
     - cltisccp
@@ -57,6 +59,15 @@ tables:
     - cllcalipso
     - clmcalipso
     - clhcalipso
+    - all
+  day:
+    - pr_day
+    - tas
+    - huss
+    - tasmin
+    - tasmax
+    - rlut
+    - all
   Lmon:
     - mrsos
     - mrso
@@ -81,6 +92,7 @@ tables:
     - gpp
     - rh
     - ra
+    - all
   Omon:
     - masso
     - pbo
@@ -113,8 +125,10 @@ tables:
     - zhalfo
     - volcello
     - thkcello
+    - all
   Ofx:
     - areacello
+    - all
   SImon:
     - sitimefrac
     - siconc
@@ -125,10 +139,12 @@ tables:
     - sitemptop
     - siu
     - siv
+    - all
   fx:
     - areacella
     - sftlf
     - orog
+    - all
 
 time-series:
   atmos:
