@@ -115,16 +115,18 @@ class Dataset(object):
             self.table = facets[6]
             self.cmip_var = facets[7]
             self.resolution = None
-            if facets[6] in ['Amon', '3hr', 'day', '6hr']:
+            if facets[6] in ['Amon', '3hr', 'day', '6hr', 'CFmon', 'AERmon']:
                 self.realm = 'atmos'
             elif facets[6] == 'Lmon':
                 self.realm = 'land'
-            elif facets[6] == 'Omon':
+            elif facets[6] in ['Omon', 'Ofx']:
                 self.realm = 'ocean'
             elif facets[6] == 'SImon':
                 self.realm = 'sea-ice'
-            else:
+            elif facets[6] == 'fx':
                 self.realm = 'fixed'
+            else:
+                raise ValueError(f"{facets[6]} is not an expected CMIP6 table")
             
             self.freq = None
             for i in ["mon", "day", "3hr", "6hr"]:
@@ -196,7 +198,7 @@ class Dataset(object):
         # we assume that the warehouse directory contains only directories named "v0.#" or "v#"
         try:
             latest_version = sorted([float(str(x.name)[1:]) for x in self.warehouse_path.iterdir(
-            ) if x.is_dir() and any(x.iterdir())]).pop()
+            ) if x.is_dir() and any(x.iterdir()) and 'tmp' not in x.name]).pop()
         except IndexError:
             latest_version = 0
 
