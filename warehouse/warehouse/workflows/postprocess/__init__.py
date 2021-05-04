@@ -6,7 +6,7 @@ from termcolor import colored, cprint
 from warehouse.workflows import Workflow
 from warehouse.dataset import Dataset, DatasetStatusMessage
 
-NAME = 'Post-Process'
+NAME = 'PostProcess'
 COMMAND = 'postprocess'
 
 HELP_TEXT = """
@@ -24,6 +24,7 @@ class PostProcess(Workflow):
         from warehouse.warehouse import AutoWarehouse
 
         dataset_id = self.params['dataset_id']
+        cprint(f'Starting with datasets {dataset_id}', color="green")
 
         if (metadata_path := self.params.get('metadata_path')):
             self.metadata_path = Path(metadata_path)
