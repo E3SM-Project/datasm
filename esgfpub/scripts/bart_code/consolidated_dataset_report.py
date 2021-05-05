@@ -271,7 +271,7 @@ def dsid_from_archive_map(amline):
     tuning = 0
     if amap_items[2][0:5] == 'F2010':
         tuning = 1
-    if amap_items[2][0:12] == '1950-Control':
+    if amap_items[2][0:12] == '1950-Control' and not amap_items[2] == '1950-Control-21yrContHiVol-HR':
         amap_items[2] = '1950-Control'
     dsid_items = list()
     dsid_items.append('E3SM')
