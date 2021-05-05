@@ -421,6 +421,21 @@ project:
 
 
   E3SM:
+    'test':
+      test:
+        start: 1
+        end: 5
+        ens:
+          - ens1
+        campaign: test
+        science_driver: test
+        resolution:
+          test:
+            test:
+              -
+                grid: test
+                data_types:
+                  - test.test
     '1_0':
       piControl:
         start: 1
