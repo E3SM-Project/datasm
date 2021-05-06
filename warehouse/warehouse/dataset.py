@@ -141,6 +141,7 @@ class Dataset(object):
                 self.warehouse_base,
                 self.project,
                 self.activity,
+                'E3SM-Project',
                 self.model_version,
                 self.experiment,
                 self.ensemble,

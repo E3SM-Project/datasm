@@ -3,6 +3,7 @@ import os
 import string
 from pathlib import Path
 from subprocess import Popen, PIPE
+from tempfile import NamedTemporaryFile
 from warehouse.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateAtmDayCMIP'
@@ -40,24 +41,21 @@ class GenerateAtmDayCMIP(WorkflowJob):
             cmip_var = [cmip_var]
 
         e3sm_vars = []
-        cmd = f"e3sm_to_cmip --info --freq day -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']}"
+        info_file = NamedTemporaryFile(delete=False)
+        cmd = f"e3sm_to_cmip --info --freq day -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-        out, err = proc.communicate()
+        _, err = proc.communicate()
         if err:
             print(err)
             return None
-        for line in out.decode('utf-8').splitlines():
-
-            if 'E3SM Variables' not in line:
-                continue
-            for var in line.strip().split(':')[1].split(','):
-                i = 0
-                for letter in var:
-                    if letter not in string.printable:
-                        break
-                    i += 1
-                variable = var[:i].strip()
-                e3sm_vars.append(variable)
+    
+        with open(info_file.name, 'r') as instream:
+            variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
+        for item in variable_info:
+            if ',' in item['E3SM Variables']:
+                e3sm_vars.extend([v for v in item['E3SM Variables'].split(',')])
+            else:
+                e3sm_vars.append(item['E3SM Variables'])
 
         parameters['std_var_list'] = e3sm_vars
         parameters['std_cmor_list'] = cmip_var
@@ -71,7 +69,7 @@ class GenerateAtmDayCMIP(WorkflowJob):
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else cmip_var[0]
         parameter_path = os.path.join(
-            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-mon-{var_id}.yaml")
+            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-day-{var_id}.yaml")
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 

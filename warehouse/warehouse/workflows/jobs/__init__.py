@@ -1,6 +1,6 @@
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from termcolor import colored, cprint
+from termcolor import cprint
 
 
 class WorkflowJob(object):
@@ -83,7 +83,7 @@ rm $message_file
 """
         self._cmd = self._cmd + suffix
 
-    def setup_requisites(self, input_datasets=None):
+    def setup_requisites(self, input_datasets=None, spec=None):
         """
         Checks that the self.dataset matches the jobs requirements, as well
         as an optional list of additional datasets
@@ -96,13 +96,13 @@ rm $message_file
 
         for dataset in datasets:
             # cprint(f"checking if {dataset.dataset_id} is a good match for {self.name}")
-            if (req := self.matches_requirement(dataset)) is not None:
+            if (req := self.matches_requirement(dataset, spec)) is not None:
                 # cprint(f'Found matching dataset! {dataset.dataset_id} for {self.dataset.dataset_id}', 'green')
                 self._requires[req] = dataset
             # else:
                 # cprint(f'{dataset.dataset_id} does not match for {self.dataset.dataset_id}', 'red')
 
-    def matches_requirement(self, dataset):
+    def matches_requirement(self, dataset, spec=None):
         """
         Checks that the self.dataset matches the jobs requirements, as well
         as an optional list of additional datasets
@@ -145,6 +145,17 @@ rm $message_file
         #     return None
         # import ipdb
         # ipdb.set_trace()
+        dataset_facets = dataset.dataset_id.split('.')
+        if spec is not None and 'CMIP' in self.dataset.dataset_id and dataset_facets[0] == 'E3SM':
+            e3sm_cmip_case = spec['projects']['E3SM'][dataset_facets[1]][dataset_facets[2]].get('cmip_case')
+            if not e3sm_cmip_case:
+                return None
+            
+            my_dataset_facets = self.dataset.dataset_id.split('.')
+            my_case_attrs = '.'.join(my_dataset_facets[:4])
+            if not my_case_attrs == e3sm_cmip_case:
+                return None
+            
         for req, ds in self._requires.items():
             if ds:
                 continue

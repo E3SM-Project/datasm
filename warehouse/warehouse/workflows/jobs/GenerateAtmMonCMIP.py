@@ -3,6 +3,7 @@ import os
 import string
 from pathlib import Path
 from subprocess import Popen, PIPE
+from tempfile import NamedTemporaryFile
 from warehouse.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateAtmMonCMIP'
@@ -33,53 +34,60 @@ class GenerateAtmMonCMIP(WorkflowJob):
         # if we want to run all the variables
         # we can pull them from the dataset spec
         if cmip_var == 'all':
+            is_all = True
             cmip_var = [x for x in spec['tables'][table] if x != 'all']
         else:
+            is_all = False
             cmip_var = [cmip_var]
 
-        e3sm_vars = []
-        # plev_vars = []
-        # plev_e3sm = []
+        std_var_list = []
+        std_cmor_list = []
+        plev_cmor_list = []
+        plev_var_list = []
         plev = False
         mlev = False
+        info_file = NamedTemporaryFile(delete=False)
         # import ipdb; ipdb.set_trace()
-        cmd = f"e3sm_to_cmip --info -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']}"
+        cmd = f"e3sm_to_cmip --info --freq day -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-        out, err = proc.communicate()
+        _, err = proc.communicate()
         if err:
             print(err)
-        for line in out.decode('utf-8').splitlines():
-            if 'plev' in line:
+            return None
+    
+        with open(info_file.name, 'r') as instream:
+            variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
+        for item in variable_info:
+            if ',' in item['E3SM Variables']:
+                e3sm_var = [v.strip() for v in item['E3SM Variables'].split(',')]
+            else:
+                e3sm_var = [item['E3SM Variables']]
+
+            if 'Levels' in item.keys() and item['Levels']['name'] == 'plev19':
                 plev = True
-                is_plev = True
+                plev_var_list.extend(e3sm_var)
+                plev_cmor_list.append(item['CMIP6 Name'])
             else:
                 mlev = True
-            if 'E3SM Variables' not in line:
-                continue
-            for var in line.strip().split(':')[1].split(','):
-                i = 0
-                for letter in var:
-                    if letter not in string.printable:
-                        break
-                    i += 1
-                variable = var[:i].strip()
-                e3sm_vars.append(variable)
+                std_var_list.extend(e3sm_var)
+                std_cmor_list.append(item['CMIP6 Name'])
+
 
         if plev and not mlev:
-            parameters['plev_var_list'] = e3sm_vars
-            parameters['plev_cmor_list'] = cmip_var
+            parameters['plev_var_list'] = plev_var_list
+            parameters['plev_cmor_list'] = plev_cmor_list
             parameters['vrt_map_path'] = self.config['vrt_map_path']
             cwl_workflow = "atm-mon-plev/atm-plev.cwl"
         if not plev and mlev:
-            parameters['std_var_list'] = e3sm_vars
-            parameters['std_cmor_list'] = cmip_var
+            parameters['std_var_list'] = std_var_list
+            parameters['std_cmor_list'] = std_cmor_list
             cwl_workflow = "atm-mon-model-lev/atm-std.cwl"
         if plev and mlev:
-            parameters['plev_var_list'] = e3sm_vars
-            parameters['plev_cmor_list'] = cmip_var
+            parameters['plev_var_list'] = plev_var_list
+            parameters['plev_cmor_list'] = plev_cmor_list
             
-            parameters['std_var_list'] = e3sm_vars
-            parameters['std_cmor_list'] = cmip_var
+            parameters['std_var_list'] = std_var_list
+            parameters['std_cmor_list'] = std_cmor_list
             
             parameters['vrt_map_path'] = self.config['vrt_map_path']
             cwl_workflow = "atm-unified/atm-unified.cwl"
@@ -90,8 +98,9 @@ class GenerateAtmMonCMIP(WorkflowJob):
         parameters['hrz_atm_map_path'] = self.config['grids']['ne30_to_180x360']
 
         # step two, write out the parameter file and setup the temp directory
+        var_id = 'all' if is_all else cmip_var[0]
         parameter_path = os.path.join(
-            self._slurm_out, f"atm-cmip-mon-job-{cmip_var[0]}.yaml")
+            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-mon-{var_id}.yaml")
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 
