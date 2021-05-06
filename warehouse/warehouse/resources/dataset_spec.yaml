@@ -217,7 +217,29 @@ time-series:
     - LAISUN
 
 project:
+
   CMIP6:
+    test:
+      test:
+        test:
+          start: 1
+          end: 1
+          ens:
+            - r1i1p1f1
+          # the test case uses the historical data
+          except:
+            - cLitter 
+            - cProduct
+            - cSoilFast
+            - cSoilMedium
+            - cSoilSlow
+            - fFire
+            - fHarvest
+            - cVeg
+            - nbp
+            - gpp
+            - rh
+            - ra
     C4MIP:
       E3SM-1-1:
         hist-bgc:
@@ -424,18 +446,19 @@ project:
     'test':
       test:
         start: 1
-        end: 5
+        end: 1
         ens:
           - ens1
         campaign: test
         science_driver: test
+        cmip_case: CMIP6.test.test.test.test
         resolution:
           test:
-            test:
+            atmos:
               -
-                grid: test
+                grid: native
                 data_types:
-                  - test.test
+                  - model-output.mon
     '1_0':
       piControl:
         start: 1
@@ -447,6 +470,7 @@ project:
         - PRECSCL
         campaign: DECK-v1
         science_driver: Water Cycle
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.piControl
         resolution:
           1deg_atm_60-30km_ocean:
             land:
@@ -607,6 +631,7 @@ project:
           - PRECSCL
         campaign: DECK-v1
         science_driver: Water Cycle
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.1pctCO2
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -659,6 +684,7 @@ project:
           - PRECSCL
         campaign: DECK-v1
         science_driver: Water Cycle
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.abrupt-4xCO2
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -762,6 +788,7 @@ project:
           - ens3
         campaign: DECK-v1
         science_driver: Water Cycle
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.amip
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1244,6 +1271,7 @@ project:
           - ens5
         campaign: DECK-v1
         science_driver: Water Cycle
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.historical
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1294,6 +1322,7 @@ project:
           - ens1
         campaign: BGC-v1
         science_driver: Biogeochemical Cycle
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1.piControl
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1343,6 +1372,7 @@ project:
           - ens1
         campaign: BGC-v1
         science_driver: Biogeochemical Cycle
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1.historical
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1392,6 +1422,7 @@ project:
           - ens1
         campaign: BGC-v1
         science_driver: Biogeochemical Cycle
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1.hist-bgc
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1539,6 +1570,7 @@ project:
           - ens1
         campaign: BGC-v1
         science_driver: Biogeochemical Cycle
+        cmip_case: CMIP6.ScenarioMIP.E3SM-Project.E3SM-1-1.ssp585
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1588,6 +1620,7 @@ project:
           - ens1
         campaign: BGC-v1
         science_driver: Biogeochemical Cycle
+        cmip_case: CMIP6.C4MIP.E3SM-Project.E3SM-1-1.ssp585-bgc
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1736,6 +1769,7 @@ project:
           - ens1
         campaign: BGC-v1
         science_driver: Biogeochemical Cycle
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1-ECA.piControl
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1785,6 +1819,7 @@ project:
           - ens1
         campaign: BGC-v1
         science_driver: Biogeochemical Cycle
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1-ECA.historical
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1834,6 +1869,7 @@ project:
           - ens1
         campaign: BGC-v1
         science_driver: Biogeochemical Cycle
+        cmip_case: CMIP6.C4MIP.E3SM-Project.E3SM-1-1-ECA.hist-bgc
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -1981,6 +2017,7 @@ project:
           - ens1
         campaign: BGC-v1
         science_driver: Biogeochemical Cycle
+        cmip_case: CMIP6.ScenarioMIP.E3SM-Project.E3SM-1-1-ECA.ssp585
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
@@ -2030,6 +2067,7 @@ project:
           - ens1
         campaign: BGC-v1
         science_driver: Biogeochemical Cycle
+        cmip_case: CMIP6.C4MIP.E3SM-Project.E3SM-1-1-ECA.ssp585-bgc
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
