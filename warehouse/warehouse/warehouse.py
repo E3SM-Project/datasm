@@ -167,11 +167,11 @@ class AutoWarehouse():
         self.datasets = {
             dataset_id: Dataset(
                 dataset_id,
+                status_path=os.path.join(self.status_path, f"{dataset_id}.status"),
                 pub_base=self.publication_path,
                 warehouse_base=self.warehouse_path,
                 archive_base=self.archive_path,
-                sproket=self.sproket_path,
-                status_path=os.path.join(self.status_path, f"{dataset_id}.status"))
+                sproket=self.sproket_path)
             for dataset_id in dataset_ids
         }
 

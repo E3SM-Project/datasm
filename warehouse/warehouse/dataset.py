@@ -60,8 +60,6 @@ class Dataset(object):
         ...
 
     def initialize_status_file(self):
-        if self.status is None:
-            self.status_path = Path(self.warehouse_path, '.status')
 
         if not self.status_path.exists():
             self.status_path.touch(mode=0o755, exist_ok=True)
@@ -82,7 +80,7 @@ class Dataset(object):
         else:
             self._status = DatasetStatus.UNITITIALIZED.name
 
-    def __init__(self, dataset_id, pub_base=None, warehouse_base=None, archive_base=None, start_year=None, end_year=None, datavars=None, path='', versions={}, stat=None, comm=None, *args, **kwargs):
+    def __init__(self, dataset_id, status_path, pub_base=None, warehouse_base=None, archive_base=None, start_year=None, end_year=None, datavars=None, path='', versions={}, stat=None, comm=None, *args, **kwargs):
         super().__init__()
         self.dataset_id = dataset_id
         self._status = DatasetStatus.UNITITIALIZED.name
@@ -97,7 +95,7 @@ class Dataset(object):
         self.warehouse_path = Path(path) if path != '' else None
         self.warehouse_base = warehouse_base
         self.archive_path = Path(path) if path != '' else None
-        self.status_path = Path(kwargs.get('status_path')) if kwargs.get('status_path') else None
+        self.status_path = status_path
 
         self.archive_base = archive_base
         self.sproket = kwargs.get('sproket')
