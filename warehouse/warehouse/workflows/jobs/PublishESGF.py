@@ -10,7 +10,6 @@ class PublishEsgf(WorkflowJob):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        self._requires = { '*-*-*': None }
 
         mapfile_path = sorted([x for x in self.dataset.publication_path.glob('*.map')]).pop()
 

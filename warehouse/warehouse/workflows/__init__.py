@@ -81,7 +81,11 @@ class Workflow(object):
             target_state = f"{state_attrs[-3]}:{state_attrs[-2]}"
         prefix = self.get_status_prefix()
         if target_state in self.transitions.keys():
-            target_data_type = f'{dataset.realm}-{dataset.grid}-{dataset.freq}'
+            if dataset.grid == "native":
+                target_data_type = f'{dataset.realm}-native-{dataset.freq}'
+            else:
+                target_data_type = f'{dataset.realm}-{dataset.data_type.replace("-", "")}-{dataset.freq}'
+
             transitions = self.transitions[target_state].get(target_data_type)
             if transitions is None:
                 try:
@@ -112,6 +116,8 @@ class Workflow(object):
         else:
             parent = f"{state_attrs[0]}:{state_attrs[1]}"
 
+        # print(f"initializing job {job_name} for {dataset.dataset_id} from state {state}:{params}")
+
         job = self.jobs[job_name]
         job_instance = job(
             dataset,
@@ -123,9 +129,16 @@ class Workflow(object):
             parent=parent,
             job_workers=self.job_workers,
             spec_path=kwargs.get('spec_path'),
+            config=kwargs.get('config'),
             debug=kwargs.get('debug'))
 
-        job_instance.setup_requisites()
+        other_datasets = kwargs.get('other_datasets')
+        job_instance.setup_requisites(other_datasets)
+        job_reqs = {k:v.dataset_id for k,v in job_instance.requires.items()}
+        if not job_instance.meets_requirements():
+            cprint(f"Job {job_instance} has unsatisfiable requirements {job_reqs}", "red")
+        else:
+            cprint(f"Job {job_instance} found requirements {job_reqs}", "green")
         return job_instance
 
     def load_transitions(self):

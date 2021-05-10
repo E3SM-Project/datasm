@@ -27,6 +27,7 @@ class DatasetStatusMessage(Enum):
     PUBLICATION_READY = "PUBLICATION:Ready:"
     WAREHOUSE_READY = "WAREHOUSE:Ready:"
     VALIDATION_READY = "VALIDATION:Ready:"
+    POSTPROCESS_READY = "POSTPROCESS:Ready:"
 
 
 non_binding_status = ['Blocked:', 'Unblocked:', 'Approved:', 'Unapproved:']
@@ -86,6 +87,7 @@ class Dataset(object):
         self._status = DatasetStatus.UNITITIALIZED.name
 
         self.data_path = None
+        self.cmip_var = None
         self.start_year = start_year
         self.end_year = end_year
         self.datavars = datavars
@@ -107,24 +109,35 @@ class Dataset(object):
         facets = self.dataset_id.split('.')
         if facets[0] == 'CMIP6':
             self.project = 'CMIP6'
-            self.data_type = 'CMIP'
+            self.data_type = 'cmip'
             self.activity = facets[1]
             self.model_version = facets[3]
             self.experiment = facets[4]
             self.ensemble = facets[5]
             self.table = facets[6]
+            self.cmip_var = facets[7]
             self.resolution = None
-            if facets[6] in ['Amon', '3hr', 'day']:
+            if facets[6] in ['Amon', '3hr', 'day', '6hr', 'CFmon', 'AERmon']:
                 self.realm = 'atmos'
             elif facets[6] == 'Lmon':
                 self.realm = 'land'
-            elif facets[6] == 'Omon':
+            elif facets[6] in ['Omon', 'Ofx']:
                 self.realm = 'ocean'
             elif facets[6] == 'SImon':
                 self.realm = 'sea-ice'
-            else:
+            elif facets[6] == 'fx':
                 self.realm = 'fixed'
-            self.freq = None  # the frequency and realm are part of the CMIP table
+            else:
+                raise ValueError(f"{facets[6]} is not an expected CMIP6 table")
+            
+            self.freq = None
+            for i in ["mon", "day", "3hr", "6hr"]:
+                if i in self.table:
+                    self.freq = i
+                    break
+            if self.table == "fx" or self.table == "Ofx":
+                self.freq = "fixed"
+
             self.grid = 'gr'
             self.warehouse_path = Path(
                 self.warehouse_base,
@@ -135,6 +148,7 @@ class Dataset(object):
                 self.experiment,
                 self.ensemble,
                 self.table,
+                self.cmip_var,
                 self.grid)
         else:
             self.project = 'E3SM'
@@ -245,6 +259,11 @@ class Dataset(object):
 
     @status.setter
     def status(self, status):
+        """
+        Write out to the datasets status file and update its record of the latest state
+        Because this is a @property you have to pass in the parameters along with the 
+        status as a tuple. Would love to have a solution for that uglyness
+        """
         if status is None or status == self._status:
             return
         params = None
@@ -254,7 +273,7 @@ class Dataset(object):
         self._status = status
         with open(self.status_path, 'a') as outstream:
             msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:WAREHOUSE:{status}'
-            if params:
+            if params is not None:
                 items = [f"{k}={v}".replace(":", "^")
                          for k, v in params.items()]
                 msg += ",".join(items)

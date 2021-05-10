@@ -2,3 +2,27 @@ DEFAULT_WAREHOUSE_PATH: /p/user_pub/e3sm/warehouse/
 DEFAULT_PUBLICATION_PATH: /p/user_pub/work/
 DEFAULT_ARCHIVE_PATH: /p/user_pub/e3sm/archive
 DEFAULT_STATUS_PATH: /p/user_pub/e3sm/staging/status
+
+grids:
+  ne30_to_180x360: /export/zender1/data/maps/map_ne30np4_to_cmip6_180x360_aave.20181001.nc
+  oEC60to30_to_180x360: /export/zender1/data/maps/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc
+
+cmip_metadata_path: /p/user_pub/e3sm/baldwin32/resources/CMIP6-Metadata/
+cmip_tables_path: /export/baldwin32/projects/cmip6-cmor-tables/Tables/
+vrt_map_path: /p/user_pub/e3sm/baldwin32/resources//vrt_remap_plev19.nc
+cwl_workflows_path: /export/baldwin32/projects/e3sm_to_cmip/scripts/cwl_workflows/
+
+cmip_atm_mon:
+  frequency: 25
+  num_workers: 12
+  account: e3sm
+  partition: debug
+  timeout: "2:00:00"
+
+cmip_atm_day:
+  frequency: 10
+  num_workers: 12
+  account: e3sm
+  partition: debug
+  timeout: "2:00:00"
+  sample_freq: day

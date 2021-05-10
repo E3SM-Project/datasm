@@ -1,91 +1,115 @@
 POSTPROCESS:Ready:
-  atmos-native-mon:
+  atmos-climo-mon:
     - GenerateAtmClimo:Ready
-  atmos-native-mon:
-    - GenerateAtmTimeseries:Ready
-  lnd-nat-mon:
+  atmos-timeseries-mon:
+    - GenerateAtmMonTimeseries:Ready
+  atmos-cmip-mon:
+    - GenerateAtmMonCMIP:Ready
+  atmos-cmip-day:
+    - GenerateAtmDayCMIP:Ready
+  atmos-cmip-3hr:
+    - GenerateAtm3hrCMIP:Ready
+  atmos-cmip-fixed:
+    - GenerateAtmFixedCMIP:Ready
+
+  lnd-timeseries-mon:
     - GenerateLndTimeseries:Ready
-  ocn-nat-mon:
-    - GenerateOcnCmor:Ready
-  ice-nat-mon:
-    - GenerateIceCmor:Ready
+  lnd-cmip-mon:
+    - GenerateLndCMIP:Ready
+  
+  ocean-cmip-mon:
+    - GenerateOceanCMIP:Ready
+  ocean-cmip-fixed:
+    - GenerateOceanFixedCMIP:Ready
 
-GenerateAtmClimo:Ready:
+  ice-cmip-mon:
+    - GenerateIceCMIP:Ready
   default:
-    - GenerateAtmCLimo:Engaged
-GenerateAtmClimo:Pass:
-  default:
-    - CreateAtmTimeseries:Ready
-GenerateAtmClimo:Fail:
-  default:
-    - Exit:exit_code
+    - POSTPROCESS:Pass
 
-GenerateAtmTimeseries:Ready:
+GenerateAtmMonClimo:Ready:
   default:
-    - GenerateAtmTimeseries:Engaged
-GenerateAtmTimeseries:Pass:
+    - GenerateAtmMonClimo:Engaged
+GenerateAtmMonClimo:Pass:
   default:
-    - GenerateAtmCmor:Ready
-GenerateAtmTimeseries:Fail:
+    - POSTPROCESS:Pass
+GenerateAtmMonClimo:Fail:
   default:
-    - Exit:exit_code
+    - POSTPROCESS:Fail
 
-GenerateAtmCmor:Ready:
+GenerateAtmMonTimeseries:Ready:
   default:
-    - GenerateAtmCmor:Engaged
-GenerateAtmCmor:Pass:
+    - GenerateAtmMonTimeseries:Engaged
+GenerateAtmMonTimeseries:Pass:
+  default:
+    - POSTPROCESS:Pass
+GenerateAtmMonTimeseries:Fail:
+  default:
+    - POSTPROCESS:Fail
+
+GenerateAtmMonCMIP:Ready:
+  default:
+    - GenerateAtmMonCMIP:Engaged
+GenerateAtmMonCMIP:Pass:
   default:
     - CMIPValidate:Ready
-GenerateAtmCmor:Fail:
+GenerateAtmMonCMIP:Fail:
   default:
-    - Exit:exit_code
+    - POSTPROCESS:Fail
+
+GenerateAtmDayCMIP:Ready:
+  default:
+    - GenerateAtmDayCMIP:Engaged
+GenerateAtmDayCMIP:Pass:
+  default:
+    - POSTPROCESS:Pass
+GenerateAtmDayCMIP:Fail:
+  default:
+    - POSTPROCESS:Fail
 
 GenerateLndTimeseries:Ready:
   default:
     - GenerateLndTimeseries:Engaged
 GenerateLndTimeseries:Pass:
   default:
-    - GenerateLndCmor:Ready
+    - POSTPROCESS:Pass
 GenerateLndTimeseries:Fail:
   default:
-    - Fail
+    - POSTPROCESS:Fail
 
-GenerateLndCmor:Ready:
+GenerateLndCMIP:Ready:
   default:
-    - GenerateLndCmor:Engaged
-GenerateLndCmor:Pass:
+    - GenerateLndCMIP:Engaged
+GenerateLndCMIP:Pass:
   default:
-    - CMIPValidate:Ready
-GenerateLndCmor:Fail:
+    - POSTPROCESS:Pass
+GenerateLndCMIP:Fail:
   default:
-    - Fail
+    - POSTPROCESS:Fail
 
-GenerateOcnCmor:Ready:
+GenerateOceanCMIP:Ready:
   default:
-    - GenerateOcnCmor:Engaged
-GenerateOcnCmor:Pass:
+    - GenerateOceanCMIP:Engaged
+GenerateOceanCMIP:Pass:
   default:
-    - CMIPValidate:Ready
-GenerateOcnCmor:Fail:
+    - POSTPROCESS:Pass
+GenerateOceanCMIP:Fail:
   default:
-    - Fail
+    - POSTPROCESS:Fail
 
-GenerateIceCmor:Ready:
+GenerateIceCMIP:Ready:
   default:
-    - GenerateIceCmor:Engaged
-GenerateIceCmor:Pass:
+    - GenerateIceCMIP:Engaged
+GenerateIceCMIP:Pass:
   default:
-    - CMIPValidate:Ready
-GenerateIceCmor:Fail:
+    - POSTPROCESS:Pass
+GenerateIceCMIP:Fail:
   default:
-    - Fail
+    - POSTPROCESS:Fail
 
-CMIPValidate:Ready:
-  default:
-    - CMIPValidate:Engaged
-CMIPValidate:Pass:
+POSTPROCESS:Pass:
   default:
     - Pass
-CMIPValidate:Fail:
+POSTPROCESS:Fail:
   default:
     - Fail

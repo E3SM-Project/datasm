@@ -159,7 +159,7 @@ class AutoWarehouse():
             cprint(
                 f'No datasets match pattern from --dataset-id {self.dataset_ids} flag', 'red')
             sys.exit(1)
-
+        
         # instantiate the dataset objects with the paths to
         # where they should look for their data files
         self.datasets = {
@@ -222,22 +222,6 @@ class AutoWarehouse():
 
         return
 
-    def filter_job_pool(self, jobs, datasets):
-        # search all datasets to see if there's one that matches
-        # the requirements for the job
-        for job in self.job_pool:
-            if not job.meets_requirements():
-                for dataset in datasets.values():
-                    if job.dataset.experiment == dataset.experiment \
-                            and job.dataset.experiment == dataset.experiment \
-                            and job.dataset.model_version == dataset.model_version \
-                            and job.dataset.ensemble == dataset.ensemble \
-                            and job.matches_requirement(dataset) \
-                            and (dataset.status == DatasetStatus.SUCCESS.name or job.name in dataset.get_latest_status()):
-                        print(
-                            f"Attaching job {job.name} to dataset {dataset.dataset_id}")
-                        job.setup_requisites(dataset)
-        return
 
     def workflow_error(self, dataset):
         cprint(
@@ -301,52 +285,56 @@ class AutoWarehouse():
         if datasets is None:
             datasets = self.datasets
         for dataset_id, dataset in datasets.items():
+            # this will hold a list of dataset,status pairs that need to get updated 
+            # after all the datasets find their next state. These datasets will be all the 
+            # ones that dont go to "Engaged" in this round of transitions.
+            datasets_to_update = []
             if 'Engaged' in dataset.status:
                 continue
+        
+            # we keep a reference to the workflow instance, so when
+            # we make a job we can reconstruct the parent workflow name
+            # for the status file
+            params = {}
+            if (parameters := dataset.status.split(':')[-1].strip()):
+                for item in parameters.split(','):
+                    key, value = item.split('=')
+                    params[key] = value.replace('^', ':')
+
+            state = dataset.status
+            workflow = self.workflow
+            engaged_states = []
+
+            if dataset.is_blocked(state):
+                cprint(
+                    f"Dataset {dataset.dataset_id} at state {state} is marked as Blocked", 'yellow')
+                continue
+            elif f"{self.workflow.name.upper()}:Pass:" == state:
+                self.workflow_success(dataset)
+                self.check_done()
+                return
+            elif f"{self.workflow.name.upper()}:Fail:" == state:
+                self.workflow_error(dataset)
+                self.check_done()
+                return
             else:
-                # we keep a reference to the workflow instance, so when
-                # we make a job we can reconstruct the parent workflow name
-                # for the status file
-                params = {}
-                if (parameters := dataset.status.split(':')[-1].strip()):
-                    for item in parameters.split(','):
-                        key, value = item.split('=')
-                        params[key] = value.replace('^', ':')
-
-                state = dataset.status
-                workflow = self.workflow
-                engaged_states = []
-
-                if dataset.is_blocked(state):
-                    cprint(
-                        f"Dataset {dataset.dataset_id} at state {state} is marked as Blocked", 'yellow')
-                    continue
-                elif f"{self.workflow.name.upper()}:Pass:" == state:
-                    self.workflow_success(dataset)
-                    self.check_done()
-                    return
-                elif f"{self.workflow.name.upper()}:Fail:" == state:
-                    self.workflow_error(dataset)
-                    self.check_done()
-                    return
-                else:
-                    state_list = self.workflow.next_state(
-                        dataset, state, params)
-                    for item in state_list:
-                        new_state, workflow, params = item
-                        if 'Engaged' in new_state:
-                            engaged_states.append(
-                                (new_state, workflow, params))
-                        else:
-                            dataset.status = (new_state, params)
-
-                if not engaged_states:
-                    self.check_done()
-                    return
-
+                # import ipdb; ipdb.set_trace()
+                state_list = self.workflow.next_state(
+                    dataset, state, params)
+                print(state_list)
+                for item in state_list:
+                    new_state, workflow, params = item
+                    print(f"Next state found for {dataset.dataset_id} from {state} to {new_state}")
+                    if 'Engaged' in new_state:
+                        engaged_states.append(
+                            (new_state, workflow, params))
+                    else:
+                        # dataset.status = (new_state, params)
+                        datasets_to_update.append((dataset, new_state, params))
+        
+            if engaged_states:
                 for state, workflow, params in engaged_states:
-                    self.print_debug(
-                        f"Creating jobs from {state} for dataset {dataset_id}")
+                    # import ipdb; ipdb.set_trace()
                     newjob = self.workflow.get_job(
                         dataset,
                         state,
@@ -356,9 +344,15 @@ class AutoWarehouse():
                         workflow=workflow,
                         job_workers=self.job_workers,
                         spec_path=self.spec_path,
-                        debug=self.debug)
+                        debug=self.debug,
+                        config=warehouse_conf,
+                        other_datasets=list(self.datasets.values()))
 
+                    # check if the new job is a duplicate
                     if (matching_job := self.find_matching_job(newjob)) is None:
+                        # import ipdb; ipdb.set_trace()
+                        self.print_debug(
+                            f"Created jobs from {state} for dataset {dataset_id}")
                         new_jobs.append(newjob)
                     else:
                         matching_job.setup_requisites(newjob.dataset)
@@ -373,6 +367,11 @@ class AutoWarehouse():
                     self.job_pool.append(job)
                 else:
                     cprint(f"Error starting up job {job}", 'red')
+        
+        for dataset, new_state, params in datasets_to_update:
+            print(f"Updating status for {dataset.dataset_id} to {new_state}:{params}")
+            dataset.status = (new_state, params)
+        
         return
 
     def start_listener(self):
@@ -384,7 +383,6 @@ class AutoWarehouse():
                 file_path=dataset.status_path)
             listener.start()
             self.listener.append(listener)
-        cprint("Listener setup complete", "green")
 
     def check_done(self):
         all_done = True
