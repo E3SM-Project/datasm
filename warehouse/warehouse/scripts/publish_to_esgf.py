@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from subprocess import Popen
 from tempfile import TemporaryDirectory
-from warehouse.util import sproket_with_id
+from warehouse.util import search_esgf
 
 
 def parse_args():
@@ -48,7 +48,6 @@ def publish_dataset(args):
 
     Returns 0 if successful, 1 otherwise
     """
-    # import ipdb; ipdb.set_trace()
     src_path = Path(args.src_path)
     optional_facets = None
     if args.optional_facets:
@@ -66,8 +65,17 @@ def publish_dataset(args):
     dataset_id = line.split('|')[0].replace('#', 'v').strip()
 
     # check that this dataset doesnt already exist
-    _, files = sproket_with_id(dataset_id)
-    if files is not None and files:
+    if 'CMIP6' in dataset_id:
+        project = 'cmip6'
+    else:
+        project = 'e3sm'
+    facets = {
+        'instance_id': dataset_id,
+        'type': 'Dataset'
+    }
+    docs = search_esgf(project, facets)
+
+    if docs and int(docs[0]['number_of_files']) != 0:
         print(
             f"Dataset {dataset_id} has already been published to ESGF and is marked as the latest version")
         return 1

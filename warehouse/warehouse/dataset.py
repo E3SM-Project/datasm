@@ -6,7 +6,7 @@ from enum import Enum
 from pathlib import Path
 from pprint import pprint
 from datetime import datetime
-from warehouse.util import load_file_lines, sproket_with_id, get_last_status_line
+from warehouse.util import load_file_lines, search_esgf, get_last_status_line
 
 
 class DatasetStatus(Enum):
@@ -95,10 +95,9 @@ class Dataset(object):
         self.warehouse_path = Path(path) if path != '' else None
         self.warehouse_base = warehouse_base
         self.archive_path = Path(path) if path != '' else None
-        self.status_path = status_path
+        self.status_path = Path(status_path)
 
         self.archive_base = archive_base
-        self.sproket = kwargs.get('sproket')
 
         self.stat = stat if stat else {}
         self.comm = comm if comm else []
@@ -365,7 +364,7 @@ class Dataset(object):
         else:
             return True
 
-    def get_esgf_status(self, sproket='sproket'):
+    def get_esgf_status(self):
         """
         Check ESGF to see of the dataset has already been published,
         if it exists check that the dataset is complete"""
@@ -374,10 +373,29 @@ class Dataset(object):
         if self.table == 'fx':
             return DatasetStatus.SUCCESS
 
-        _, files = sproket_with_id(
-            f"{self.dataset_id}*", sproket_path=self.sproket)
-        if not files:
+        facets = {
+            'master_id': self.dataset_id,
+            'type': 'Dataset'
+        }
+        if 'CMIP6' in self.dataset_id:
+            project = 'cmip6'
+        else:
+            project = 'e3sm'
+        docs = search_esgf(project, facets)
+
+        if not docs or int(docs[0]['number_of_files']) == 0:
             return DatasetStatus.UNITITIALIZED
+        
+        facets = {
+            'dataset_id': docs[0]['id'],
+            'type': 'File'
+        }
+
+        docs = search_esgf(project, facets)
+        if not docs or len(docs) == 0:
+            return DatasetStatus.UNITITIALIZED
+        
+        files = [x['title'] for x in docs]
 
         latest_version = 0
         for f in files:
@@ -440,7 +458,7 @@ class Dataset(object):
             else:
                 return DatasetStatus.NOT_IN_WAREHOUSE
 
-    def find_status(self, sproket='sproket'):
+    def find_status(self):
         """
         Lookup the datasets status in ESGF, or on the filesystem
         """
@@ -448,7 +466,7 @@ class Dataset(object):
         # if the dataset is UNITITIALIZED, then we need to build up the status from scratch
         if self.status == DatasetStatus.UNITITIALIZED:
             # returns either NOT_PUBLISHED or SUCCESS or PARTIAL_PUBLISHED or UNITITIALIZED
-            self.status = self.get_esgf_status(sproket)
+            self.status = self.get_esgf_status()
 
         # TODO: figure out how to update and finish a dataset thats been published
         # but is missing some of its files

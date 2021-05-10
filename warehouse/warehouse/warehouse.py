@@ -47,14 +47,12 @@ class AutoWarehouse():
             'status_path', DEFAULT_STATUS_PATH))
         self.spec_path = Path(kwargs.get(
             'spec_path', DEFAULT_SPEC_PATH))
-        self.sproket_path = kwargs.get('sproket', 'sproket')
         self.num_workers = kwargs.get('num', 8)
         self.serial = kwargs.get('serial', False)
         self.testing = kwargs.get('testing', False)
         self.dataset_ids = kwargs.get('dataset_id')
         if not isinstance(self.dataset_ids, list):
             self.dataset_ids = [self.dataset_ids]
-        self.sproket_path = kwargs.get('sproket', 'sproket')
         self.slurm_path = kwargs.get('slurm', 'slurm_scripts')
         self.report_missing = kwargs.get('report_missing')
         self.job_workers = kwargs.get('job_workers', 8)
@@ -170,8 +168,7 @@ class AutoWarehouse():
                 status_path=os.path.join(self.status_path, f"{dataset_id}.status"),
                 pub_base=self.publication_path,
                 warehouse_base=self.warehouse_path,
-                archive_base=self.archive_path,
-                sproket=self.sproket_path)
+                archive_base=self.archive_path)
             for dataset_id in dataset_ids
         }
 
@@ -492,11 +489,6 @@ class AutoWarehouse():
             '--testing',
             action="store_true",
             help='run the warehouse in testing mode')
-        p.add_argument(
-            '--sproket',
-            required=False,
-            default='sproket',
-            help='path to sproket binary if its not in your $PATH')
         p.add_argument(
             '--slurm-path',
             required=False,
