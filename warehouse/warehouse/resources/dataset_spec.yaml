@@ -465,6 +465,26 @@ project:
                   - model-output.day
                   - model-output.6hr
                   - model-output.3hr
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+                  - climo.mon
+            land:
+              - 
+                grid: native
+                data_types:
+                  - model-output.mon
+            ocean:
+              - 
+                grid: native
+                data_types:
+                  - model-output.mon
+            sea-ice:
+              - 
+                grid: native
+                data_types:
+                  - model-output.mon
     '1_0':
       piControl:
         start: 1
