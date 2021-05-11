@@ -12,10 +12,10 @@ POSTPROCESS:Ready:
   atmos-cmip-fixed:
     - GenerateAtmFixedCMIP:Ready
 
-  lnd-timeseries-mon:
+  land-timeseries-mon:
     - GenerateLndTimeseries:Ready
-  lnd-cmip-mon:
-    - GenerateLndCMIP:Ready
+  land-cmip-mon:
+    - GenerateLndMonCMIP:Ready
   
   ocean-cmip-mon:
     - GenerateOceanCMIP:Ready
@@ -87,13 +87,13 @@ GenerateLndTimeseries:Fail:
   default:
     - POSTPROCESS:Fail
 
-GenerateLndCMIP:Ready:
+GenerateLndMonCMIP:Ready:
   default:
-    - GenerateLndCMIP:Engaged
-GenerateLndCMIP:Pass:
+    - GenerateLndMonCMIP:Engaged
+GenerateLndMonCMIP:Pass:
   default:
     - POSTPROCESS:Pass
-GenerateLndCMIP:Fail:
+GenerateLndMonCMIP:Fail:
   default:
     - POSTPROCESS:Fail
 

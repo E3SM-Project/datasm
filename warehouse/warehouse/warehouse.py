@@ -266,9 +266,7 @@ class AutoWarehouse():
                 if 'DATASETID' in line:
                     dataset_id = line.split('=')[-1].strip()
         if dataset_id is None:
-            print("something went wrong")
-            import ipdb
-            ipdb.set_trace()
+            raise ValueError(f"Unable to determine datasets from status file {path}")
 
         dataset = self.datasets[dataset_id]
         dataset.update_from_status_file()
@@ -341,12 +339,11 @@ class AutoWarehouse():
                     dataset, state, params)
                 for item in state_list:
                     new_state, workflow, params = item
-                    print(f"Next state found for {dataset.dataset_id} from {state} to {new_state}")
+                    self.print_debug(f"Next state found for {dataset.dataset_id} from {state} to {new_state}")
                     if 'Engaged' in new_state:
                         engaged_states.append(
                             (new_state, workflow, params))
                     else:
-                        # dataset.status = (new_state, params)
                         datasets_to_update.append((dataset, new_state, params))
         
             if engaged_states:
@@ -368,7 +365,6 @@ class AutoWarehouse():
 
                     # check if the new job is a duplicate
                     if (matching_job := self.find_matching_job(newjob)) is None:
-                        # import ipdb; ipdb.set_trace()
                         self.print_debug(
                             f"Created jobs from {state} for dataset {dataset_id}")
                         new_jobs.append(newjob)
@@ -377,7 +373,6 @@ class AutoWarehouse():
 
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
-            cprint(f"{job}", "cyan")
             if job.job_id is None and job.meets_requirements():
                 job_id = job(self.slurm)
                 if job_id is not None:
@@ -387,7 +382,7 @@ class AutoWarehouse():
                     cprint(f"Error starting up job {job}", 'red')
         
         for dataset, new_state, params in datasets_to_update:
-            print(f"Updating status for {dataset.dataset_id} to {new_state}:{params}")
+            self.print_debug(f"Updating status for {dataset.dataset_id} to {new_state}:{params}")
             dataset.status = (new_state, params)
         
         return

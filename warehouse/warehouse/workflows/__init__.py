@@ -73,7 +73,7 @@ class Workflow(object):
             idx (int) : The recursive depth index
         Returns the name of the next state to transition to given the current state of the dataset
         """
-        # self.print_debug(f"next_state: *{state}*")
+        self.print_debug(f"next_state: *{state}*")
         state_attrs = state.split(':')
         if len(state_attrs) < 3:
             target_state = state
@@ -86,6 +86,7 @@ class Workflow(object):
             else:
                 target_data_type = f'{dataset.realm}-{dataset.data_type.replace("-", "")}-{dataset.freq}'
 
+            self.print_debug(f"target_data_type: {target_data_type}")
             transitions = self.transitions[target_state].get(target_data_type)
             if transitions is None:
                 try:

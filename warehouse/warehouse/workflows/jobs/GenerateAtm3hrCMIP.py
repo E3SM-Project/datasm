@@ -42,7 +42,7 @@ class GenerateAtm3hrCMIP(WorkflowJob):
 
         e3sm_vars = []
         info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip --info --freq day -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq 3hr -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
@@ -69,7 +69,7 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else cmip_var[0]
         parameter_path = os.path.join(
-            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-day-{var_id}.yaml")
+            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-3hr-{var_id}.yaml")
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 

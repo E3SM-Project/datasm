@@ -47,8 +47,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
         plev = False
         mlev = False
         info_file = NamedTemporaryFile(delete=False)
-        # import ipdb; ipdb.set_trace()
-        cmd = f"e3sm_to_cmip --info --freq day -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq mon -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
