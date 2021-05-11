@@ -67,6 +67,16 @@ GenerateAtmDayCMIP:Fail:
   default:
     - POSTPROCESS:Fail
 
+GenerateAtm3hrCMIP:Ready:
+  default:
+    - GenerateAtm3hrCMIP:Engaged
+GenerateAtm3hrCMIP:Pass:
+  default:
+    - POSTPROCESS:Pass
+GenerateAtm3hrCMIP:Fail:
+  default:
+    - POSTPROCESS:Fail
+
 GenerateLndTimeseries:Ready:
   default:
     - GenerateLndTimeseries:Engaged
