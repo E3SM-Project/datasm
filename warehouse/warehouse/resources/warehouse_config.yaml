@@ -9,7 +9,7 @@ grids:
 
 cmip_metadata_path: /p/user_pub/e3sm/baldwin32/resources/CMIP6-Metadata/
 cmip_tables_path: /export/baldwin32/projects/cmip6-cmor-tables/Tables/
-vrt_map_path: /p/user_pub/e3sm/baldwin32/resources//vrt_remap_plev19.nc
+vrt_map_path: /p/user_pub/e3sm/baldwin32/resources/vrt_remap_plev19.nc
 cwl_workflows_path: /export/baldwin32/projects/e3sm_to_cmip/scripts/cwl_workflows/
 
 cmip_atm_mon:
@@ -26,3 +26,11 @@ cmip_atm_day:
   partition: debug
   timeout: "2:00:00"
   sample_freq: day
+
+cmip_atm_3hr:
+  frequency: 10
+  num_workers: 12
+  account: e3sm
+  partition: debug
+  timeout: "2:00:00"
+  sample_freq: 3hr

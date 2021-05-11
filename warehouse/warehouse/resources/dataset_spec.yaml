@@ -61,12 +61,15 @@ tables:
     - clhcalipso
     - all
   day:
-    - pr_day
+    - pr_highfreq
     - tas
     - huss
     - tasmin
     - tasmax
     - rlut
+    - all
+  3hr:
+    - pr_highfreq
     - all
   Lmon:
     - mrsos
@@ -226,7 +229,7 @@ project:
           end: 1
           ens:
             - r1i1p1f1
-          # the test case uses the historical data
+          # the test case uses the piControl data
           except:
             - cLitter 
             - cProduct
@@ -459,6 +462,9 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+                  - model-output.day
+                  - model-output.6hr
+                  - model-output.3hr
     '1_0':
       piControl:
         start: 1

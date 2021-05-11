@@ -139,22 +139,41 @@ class AutoWarehouse():
         e3sm_ids = [x for x in self.collect_e3sm_datasets()]
         if self.testing:
             e3sm_ids = e3sm_ids[:100]
-        dataset_ids = cmip6_ids + e3sm_ids
+        all_dataset_ids = cmip6_ids + e3sm_ids
 
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
+
         if self.dataset_ids is not None:
             ndataset_ids = []
-            for i in dataset_ids:
+
+            for i in self.dataset_ids:
+                if i in all_dataset_ids:
+                    ndataset_ids.append(i)
+                    continue
                 found = False
-                for ii in self.dataset_ids:
-                    if ii == i or ii in i:
+                for j in all_dataset_ids:
+                    if i in j:
                         found = True
                         break
                 if found:
-                    ndataset_ids.append(i)
-            dataset_ids = ndataset_ids
+                    ndataset_ids.append(j)
+                if not found:
+                    cprint(f"Unable to find {i} in the dataset spec", "red")
 
+
+            # for i in dataset_ids:
+            #     found = False
+            #     for ii in self.dataset_ids:
+            #         if ii == i or ii in i:
+            #             found = True
+            #             break
+            #     if found:
+            #         ndataset_ids.append(i)
+            # if not found:
+            #     cprint(f"Unable to find {ii} in the dataset spec", 'red')
+            dataset_ids = ndataset_ids
+        del all_dataset_ids
         if not dataset_ids:
             cprint(
                 f'No datasets match pattern from --dataset-id {self.dataset_ids} flag', 'red')
@@ -318,10 +337,8 @@ class AutoWarehouse():
                 self.check_done()
                 return
             else:
-                # import ipdb; ipdb.set_trace()
                 state_list = self.workflow.next_state(
                     dataset, state, params)
-                print(state_list)
                 for item in state_list:
                     new_state, workflow, params = item
                     print(f"Next state found for {dataset.dataset_id} from {state} to {new_state}")
@@ -334,7 +351,6 @@ class AutoWarehouse():
         
             if engaged_states:
                 for state, workflow, params in engaged_states:
-                    # import ipdb; ipdb.set_trace()
                     newjob = self.workflow.get_job(
                         dataset,
                         state,
@@ -347,6 +363,8 @@ class AutoWarehouse():
                         debug=self.debug,
                         config=warehouse_conf,
                         other_datasets=list(self.datasets.values()))
+                    if newjob is None:
+                        continue
 
                     # check if the new job is a duplicate
                     if (matching_job := self.find_matching_job(newjob)) is None:

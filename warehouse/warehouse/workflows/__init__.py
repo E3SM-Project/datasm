@@ -134,7 +134,11 @@ class Workflow(object):
 
         other_datasets = kwargs.get('other_datasets')
         job_instance.setup_requisites(other_datasets)
-        job_reqs = {k:v.dataset_id for k,v in job_instance.requires.items()}
+        try:
+            job_reqs = {k:v.dataset_id for k,v in job_instance.requires.items()}
+        except AttributeError as error:
+            cprint(f"Job instance {job_instance} unable to find its requirements {job_instance.requires.items()}, is there a missing dataset?", "red")
+            return None
         if not job_instance.meets_requirements():
             cprint(f"Job {job_instance} has unsatisfiable requirements {job_reqs}", "red")
         else:
