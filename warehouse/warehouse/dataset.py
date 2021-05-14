@@ -188,8 +188,10 @@ class Dataset(object):
         if self.warehouse_path is None or (not self.warehouse_path and not self.warehouse_path.exists()):
             raise ValueError(
                 f"The dataset {self.dataset_id} does not have a warehouse path")
-        if not self.warehouse_path.exists():
+        if 'CMIP6' not in self.dataset_id and not self.warehouse_path.exists():
             self.warehouse_path.mkdir(parents=True, exist_ok=True)
+        if 'CMIP6' in self.dataset_id and not self.warehouse_path.exists():
+            return None
 
         # we assume that the warehouse directory contains only directories named "v0.#" or "v#"
         try:
@@ -205,7 +207,7 @@ class Dataset(object):
             latest_version = 0
         
         path_to_latest = Path(self.warehouse_path, f"v{latest_version}").resolve()
-        if not path_to_latest.exists():
+        if 'CMIP6' not in self.dataset_id and not path_to_latest.exists():
             path_to_latest.mkdir(parents=True)
         return str(path_to_latest)
 
@@ -240,7 +242,7 @@ class Dataset(object):
 
     @property
     def publication_path(self):
-        if not self._publication_path or not self._publication_path.exists():
+        if 'CMIP6' not in self.dataset_id and not self._publication_path or not self._publication_path.exists():
             if self.project == 'CMIP6':
                 pubpath = Path(self.pub_base, self.project, self.activity,
                                self.model_version, self.experiment, self.ensemble,
@@ -280,7 +282,7 @@ class Dataset(object):
             outstream.write(msg + "\n")
 
     def lock(self, path):
-        if self.is_locked(path):
+        if path is None or self.is_locked(path):
             return
         path = Path(path)
         if not path.exists():
@@ -289,7 +291,7 @@ class Dataset(object):
 
     def is_locked(self, path=None):
         if path is None:
-            path = self.latest_warehouse_dir
+            return False
         else:
             path = Path(path)
 
@@ -300,6 +302,8 @@ class Dataset(object):
         return False
 
     def unlock(self, path):
+        if path is None or not Path(path).exists():
+            return
         Path(path, '.lock').unlink(missing_ok=True)
 
     def datatype_from_id(self):
