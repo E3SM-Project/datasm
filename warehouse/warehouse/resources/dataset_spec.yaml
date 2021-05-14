@@ -66,7 +66,7 @@ tables:
     - huss
     - tasmin
     - tasmax
-    - rlut
+    - rlut_highfreq
     - all
   3hr:
     - pr_highfreq
@@ -117,7 +117,7 @@ tables:
     - uo
     - vo
     - wo
-    - msftmz
+    # - msftmz
     - fsitherm
     - wfo
     - sfdsi
@@ -455,6 +455,8 @@ project:
         campaign: test
         science_driver: test
         cmip_case: CMIP6.test.test.test.test
+        mpaso_namelist: /p/user_pub/e3sm/baldwin32/workshop/E3SM-1-1-ECA.hist-bgc/mpaso_in
+        mpas_restart: /p/user_pub/e3sm/baldwin32/workshop/E3SM-1-1-ECA.hist-bgc/mpaso.rst.1851-01-01_00000.nc
         resolution:
           test:
             atmos:
