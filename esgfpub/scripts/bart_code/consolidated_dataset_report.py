@@ -160,6 +160,11 @@ def get_dataset_path_tuples(rootpath):
                 path_tuples.append( tuple([ensdir,vleaf,0]))
     return path_tuples
                 
+def bookend_files(adir):
+    for root, dirs, files in os.walk(adir):
+        if files:
+            return sorted(files)[0], sorted(files)[-1]
+    return "", ""
 
 def get_statfile_path(dsid):
     s_path = os.path.join(DS_STAT,dsid + '.status')
@@ -184,7 +189,7 @@ def get_sf_laststat(dsid):
 
 ds_struct[] will be keyed by FULL DSID.  The Values with be a dictionary of 
 
-    Campaign, Model, Experiment, Resolution, Ensemble, Output_Type, DatasetType, Realm, Grid, Freq, AWPS, A, W, P, S, StatDate, Status, W_Version, W_Count, P_Version, P_Count, S_Version, S_Count, W_Path, P_Path
+    Campaign, Model, Experiment, Resolution, Ensemble, Output_Type, DatasetType, Realm, Grid, Freq, AWPS, A, W, P, S, StatDate, Status, W_Version, W_Count, P_Version, P_Count, S_Version, S_Count, W_Path, P_Path, FirstFile, LastFile
 
 '''
  
@@ -192,7 +197,7 @@ ds_struct[] will be keyed by FULL DSID.  The Values with be a dictionary of
 
 def new_ds_record():
     return { 'project':'', 'campaign':'', 'model':'', 'experiment':'', 'ensemble':'', 'output_type':'', 'datasettype':'', 'realm':'', 'grid':'', 'frequency':'', 'DAWPS':'', 'D':'_', 'A':'_', 'W':'_', 'P':'_', 'S':'_', 'StatDate':'', 'Status':'', \
-        'W_Version':'', 'W_Count':0, 'P_Version':'', 'P_Count':0, 'S_Version':'', 'S_Count':0, 'W_Path':'', 'P_Path':'' }
+        'W_Version':'', 'W_Count':0, 'P_Version':'', 'P_Count':0, 'S_Version':'', 'S_Count':0, 'W_Path':'', 'P_Path':'', 'FirstFile':'', 'LastFile':'' }
 
 def realm_grid_freq_from_dstype(dstype):
     dstlist = dstype.split('_')
@@ -346,7 +351,7 @@ def dumplist(alist):
         print(f'DUMPING: {item}', flush = True)
 
 def report_ds_struct(ds_struct):
-    out_line = 'Campaign,Model,Experiment,Resolution,Ensemble,OutputType,DatasetType,Realm,Grid,Freq,DAWPS,D,A,W,P,S,StatDate,Status,W_Version,W_Count,P_Version,P_Count,S_Version,S_Count,W_Path,P_Path'
+    out_line = 'Campaign,Model,Experiment,Resolution,Ensemble,OutputType,DatasetType,Realm,Grid,Freq,DAWPS,D,A,W,P,S,StatDate,Status,W_Version,W_Count,P_Version,P_Count,S_Version,S_Count,W_Path,P_Path,FirstFile,LastFile'
     print(f'{out_line}')
         
     for dsid in ds_struct:
@@ -378,6 +383,8 @@ def report_ds_struct(ds_struct):
         out_list.append(str(ds['S_Count']))
         out_list.append(ds['W_Path'])
         out_list.append(ds['P_Path'])
+        out_list.append(ds['FirstFile'])
+        out_list.append(ds['LastFile'])
         out_line = ','.join(out_list)
         print(f'{out_line}', flush=True)
 
@@ -386,7 +393,7 @@ debug = False
 
 ''' build
     Project, Campaign, Model, Experiment, Resolution, Ensemble, OutputType, DatasetType, Realm, Grid, Freq, DAWPS, D, A, W, P, S,
-        StatDate, Status, W_Version, W_Count, P_Version, P_Count, S_Version, S_Count, W_Path, P_Path
+        StatDate, Status, W_Version, W_Count, P_Version, P_Count, S_Version, S_Count, W_Path, P_Path, FirstFile, LastFile
 '''
 
 def main():
@@ -482,6 +489,32 @@ def main():
         ds['Status']  = ':'.join(sf_data.split(':')[1:])      # stat from last status value
         ds['DAWPS'] = ds['D']+ds['A']+ds['W']+ds['P']+ds['S']
 
+    # first file and last file of highest version in pub, else in warehouse
+
+    for pb_tup in pb_path_tuples:
+        if pb_tup[2] == 0:
+            continue
+        pb_path = os.path.join(pb_tup[0],pb_tup[1])
+        ffile, lfile = bookend_files(pb_path)
+        if len(ffile) and len(lfile):
+            dsid = dsid_from_publication_path(pb_tup[0])
+            ds = ds_struct[dsid]
+            ds['FirstFile'] = ffile
+            ds['LastFile'] = lfile
+
+    for wh_tup in wh_path_tuples:
+        if wh_tup[2] == 0:
+            continue
+        dsid = dsid_from_warehouse_path(wh_tup[0])
+        ds = ds_struct[dsid]
+        if len(ds['FirstFile']):
+            continue
+        wh_path = os.path.join(wh_tup[0],wh_tup[1])
+        ffile, lfile = bookend_files(wh_path)
+        if len(ffile) and len(lfile):
+            ds['FirstFile'] = ffile
+            ds['LastFile'] = lfile
+        
     ''' Print the Report '''
 
     report_ds_struct(ds_struct)
