@@ -233,7 +233,6 @@ class AutoWarehouse():
                     self.datasets[dataset_id].missing = missing
             else:
                 for dataset in tqdm(self.datasets.values()):
-                    # import ipdb; ipdb.set_trace()
                     dataset_id, status, _ = dataset.find_status()
                     if isinstance(status, DatasetStatus):
                         status = status.name
@@ -359,7 +358,8 @@ class AutoWarehouse():
                         spec_path=self.spec_path,
                         debug=self.debug,
                         config=warehouse_conf,
-                        other_datasets=list(self.datasets.values()))
+                        other_datasets=list(self.datasets.values()),
+                        serial=self.serial)
                     if newjob is None:
                         continue
 
