@@ -23,6 +23,7 @@ class WorkflowJob(object):
         self._spec_path = kwargs.get('spec_path')
         self._config = kwargs.get('config') 
         self.debug = kwargs.get('debug')
+        self.serial = kwargs.get('serial', True)
     
     def resolve_cmd(self):
         return
@@ -38,7 +39,7 @@ class WorkflowJob(object):
         if not self.meets_requirements():
             print(f"Job does not meet requirements! {self.requires}")
             return None
-        self.print_debug(f"Starting job: {str(self)} with reqs {[x.dataset_id for x in self.requires.values()]}")
+        # self.print_debug(f"Starting job: {str(self)} with reqs {[x.dataset_id for x in self.requires.values()]}")
 
         self.resolve_cmd()
 
@@ -88,6 +89,7 @@ rm $message_file
         Checks that the self.dataset matches the jobs requirements, as well
         as an optional list of additional datasets
         """
+        # cprint(f"incomming datasets {[x.dataset_id for x in input_datasets]}", "yellow")
         datasets = [self.dataset]
         if input_datasets:
             if not isinstance(input_datasets, list):
@@ -95,19 +97,21 @@ rm $message_file
             datasets.extend(input_datasets)
 
         for dataset in datasets:
-            # cprint(f"checking if {dataset.dataset_id} is a good match for {self.name}")
+            # cprint(f"checking if {dataset.dataset_id} is a good match for {self.name}", "yellow")
             if (req := self.matches_requirement(dataset, spec)) is not None:
-                # cprint(f'Found matching dataset! {dataset.dataset_id} for {self.dataset.dataset_id}', 'green')
+                # cprint(f'Found matching input requirements for {dataset.dataset_id}: {[x.dataset_id for x in self.requires.values()]}', 'green')
                 self._requires[req] = dataset
             # else:
-                # cprint(f'{dataset.dataset_id} does not match for {self.dataset.dataset_id}', 'red')
+            #     cprint(f'{dataset.dataset_id} does not match for {self.requires}', 'red')
 
     def matches_requirement(self, dataset, spec=None):
         """
         Checks that the self.dataset matches the jobs requirements, as well
         as an optional list of additional datasets
         """
-        
+        if self.dataset.dataset_id == dataset.dataset_id:
+            return None
+
         # cprint(f'checking {dataset.experiment} == {self.dataset.experiment}', "yellow")
         if dataset.experiment != self.dataset.experiment:
             # cprint(f'no match', "red")
@@ -139,14 +143,9 @@ rm $message_file
             return None
         # cprint(f'match', "green")
 
-        # if dataset.experiment != self.dataset.experiment \
-        #         or dataset.model_version != self.dataset.model_version \
-        #         or dataset.ensemble != self.dataset.ensemble:
-        #     return None
-        # import ipdb
-        # ipdb.set_trace()
         dataset_facets = dataset.dataset_id.split('.')
         if spec is not None and 'CMIP' in self.dataset.dataset_id and dataset_facets[0] == 'E3SM':
+            # cprint(f"Checking for CMIP dataset", "yellow")
             e3sm_cmip_case = spec['projects']['E3SM'][dataset_facets[1]][dataset_facets[2]].get('cmip_case')
             if not e3sm_cmip_case:
                 return None
@@ -155,7 +154,10 @@ rm $message_file
             my_case_attrs = '.'.join(my_dataset_facets[:4])
             if not my_case_attrs == e3sm_cmip_case:
                 return None
-            
+            # cprint(f"{my_case_attrs} matches {e3sm_cmip_case}", "green")
+        # else:
+        #     cprint(f"NOT a CMIP dataset", "yellow")
+        
         for req, ds in self._requires.items():
             if ds:
                 continue
@@ -164,23 +166,19 @@ rm $message_file
             # cprint(f'checking {dataset.realm} == {req_attrs[0]}', "yellow")
             if dataset.realm != req_attrs[0] and req_attrs[0] != '*':
                 # cprint(f'no match', "red")
-                return None
+                continue
             # cprint(f'match', "green")
             # cprint(f'checking {dataset.grid} == {req_attrs[1]}', "yellow")
             if dataset.grid != req_attrs[1] and req_attrs[1] != '*':
                 # cprint(f'no match', "red")
-                return None
+                continue
             # cprint(f'match', "green")
             # cprint(f'checking {dataset.freq} == {req_attrs[2]}', "yellow")
             if dataset.freq != req_attrs[2] and req_attrs[2] != '*':
                 # cprint(f'no match', "red")
-                return None
+                continue
             # cprint(f'match', "green")
             return req
-            # if (dataset.realm == req_attrs[0] or req_attrs[0] == '*') \
-            #         and (dataset.grid == req_attrs[1] or req_attrs[1] == '*') \
-            #         and (dataset.freq == req_attrs[2] or req_attrs[2] == '*'):
-            #     return req
         return None
 
     def meets_requirements(self):

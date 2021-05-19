@@ -18,6 +18,8 @@ class PostProcess(Workflow):
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
         self.name = NAME.upper()
+        parallel = self.params.get('parallel')
+        self.serial = False if parallel else True
         self.metadata_path = None
 
     def __call__(self):
@@ -35,7 +37,7 @@ class PostProcess(Workflow):
                 workflow=self,
                 dataset_id=dataset_id,
                 warehouse_path=data_path,
-                serial=True,
+                serial=self.serial,
                 job_worker=self.job_workers,
                 debug=self.debug)
         else:
@@ -43,7 +45,7 @@ class PostProcess(Workflow):
                 workflow=self,
                 dataset_id=dataset_id,
                 warehouse_path=self.params['warehouse_path'],
-                serial=True,
+                serial=self.serial,
                 job_worker=self.job_workers,
                 debug=self.debug)
 
@@ -76,6 +78,10 @@ class PostProcess(Workflow):
         parser = parser.add_parser(
             name=COMMAND,
             description='postprocess datasets')
+        parser.add_argument(
+            '--parallel',
+            action="store_true",
+            help="Submit CWL workflows with the --parallel flag, to run all their steps in parallel (where possible)")
         parser = Workflow.add_args(parser)
         return COMMAND, parser
 

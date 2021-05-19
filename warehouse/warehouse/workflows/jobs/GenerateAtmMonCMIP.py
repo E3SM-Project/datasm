@@ -108,4 +108,8 @@ class GenerateAtmMonCMIP(WorkflowJob):
             tmp_path.mkdir()
 
         # step three, render out the CWL run command
-        self._cmd = f"cwltool --tmpdir-prefix={tmp_path} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+        if not self.serial:
+            parallel = "--parallel"
+        else:
+            parallel = ''
+        self._cmd = f"cwltool --tmpdir-prefix={tmp_path} {parallel} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"

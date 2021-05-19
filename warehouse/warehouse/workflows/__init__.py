@@ -131,7 +131,8 @@ class Workflow(object):
             job_workers=self.job_workers,
             spec_path=kwargs.get('spec_path'),
             config=kwargs.get('config'),
-            debug=kwargs.get('debug'))
+            debug=kwargs.get('debug'),
+            serial=kwargs.get('serial', True))
 
         other_datasets = kwargs.get('other_datasets')
         job_instance.setup_requisites(other_datasets)
