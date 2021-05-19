@@ -57,35 +57,6 @@ def print_debug(e):
 # -----------------------------------------------
 
 
-# def sproket_with_id(dataset_id, sproket_path='sproket', **kwargs):
-
-#     # create the path to the config, write it out
-#     tempfile = NamedTemporaryFile(suffix='.json')
-#     with open(tempfile.name, mode='w') as tmp:
-#         config_string = json.dumps({
-#             'search_api': "https://esgf-node.llnl.gov/esg-search/search/",
-#             'data_node_priority': ["esgf-data2.llnl.gov", "aims3.llnl.gov", "esgf-data1.llnl.gov"],
-#             'fields': {
-#                 'dataset_id': dataset_id,
-#                 'latest': 'true'
-#             }
-#         })
-
-#         tmp.write(config_string)
-#         tmp.seek(0)
-
-#         cmd = [sproket_path, '-config', tempfile.name, '-y', '-urls.only']
-#         proc = Popen(cmd, shell=False, stdout=PIPE, stderr=PIPE)
-#         out, err = proc.communicate()
-#     if err:
-#         print(err.decode('utf-8'))
-#         return dataset_id, None
-
-#     files = sorted([i.decode('utf-8') for i in out.split()])
-#     return dataset_id, files
-# -----------------------------------------------
-
-
 def search_esgf(project, facets, node="esgf-node.llnl.gov", filter_values=['cf_standard_name', 'variable', 'variable_long_name', 'variable_units'], latest='true'):
     """
     Make a search request to an ESGF node and return information about the datasets that match the search parameters
