@@ -26,6 +26,7 @@ cmip_atm_day:
   partition: debug
   timeout: "2:00:00"
   sample_freq: day
+  time_steps_per_day: "1"
 
 cmip_atm_3hr:
   frequency: 10
@@ -34,6 +35,7 @@ cmip_atm_3hr:
   partition: debug
   timeout: "2:00:00"
   sample_freq: 3hr
+  time_steps_per_day: "8"
 
 cmip_lnd_mon:
   frequency: 25
