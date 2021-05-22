@@ -74,6 +74,7 @@ def print_debug(e):
 
 
 def setup_logging(loglevel, logpath):
+    logname = logpath + '-' + datetime.now().strftime("%Y%m%d_%H%M%S")
     if loglevel == "debug":
         level = logging.DEBUG
     elif loglevel == "error":
@@ -83,7 +84,7 @@ def setup_logging(loglevel, logpath):
     else:
         level = logging.INFO
     logging.basicConfig(
-        filename=logpath,
+        filename=logname,
         # format="%(asctime)s:%(levelname)s:%(module)s:%(message)s",
         format="%(asctime)s:%(levelname)s:%(message)s",
         datefmt="%m%d%Y_%H%M%S",

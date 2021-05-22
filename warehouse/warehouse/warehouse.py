@@ -31,8 +31,9 @@ DEFAULT_PUBLICATION_PATH = warehouse_conf['DEFAULT_PUBLICATION_PATH']
 DEFAULT_ARCHIVE_PATH = warehouse_conf['DEFAULT_ARCHIVE_PATH']
 NAME = 'auto'
 
-def wh_log_message(level,message):
+def wh_log(level,message):
     proc_name = os.path.splitext(os.path.basename(__file__))[0]
+    proc_name = proc_name.upper()
     message = f'{proc_name}:{message}'
     util.log_message(level,message)
 
@@ -70,6 +71,9 @@ class AutoWarehouse():
         self.scripts_path = Path(Path(inspect.getfile(
             self.__class__)).parent.absolute(), 'scripts').resolve()
 
+        # not sure where to put this - Tony
+        util.setup_logging('debug', f'{self.slurm_path}/warehouse.log')
+
         if not self.report_missing:
             self.workflow = kwargs.get(
                 'workflow',
@@ -90,9 +94,9 @@ class AutoWarehouse():
             self.listener = None
 
         if self.serial:
-            wh_log_message('debug','Running warehouse in serial mode')
+            wh_log('debug','Running warehouse in serial mode')
         else:
-            wh_log_message('info',f'Running warehouse in parallel mode with {self.num_workers} workers')
+            wh_log('info',f'Running warehouse in parallel mode with {self.num_workers} workers')
 
         with open(self.spec_path, 'r') as instream:
             self.dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
@@ -131,12 +135,12 @@ class AutoWarehouse():
                 for m in x.missing:
                     print(f"{m}")
             elif x.status == DatasetStatus.UNITITIALIZED.name:
-                wh_log_message('error',f'No files in dataset {x.dataset_id}')
+                wh_log('error',f'No files in dataset {x.dataset_id}')
         if not found_missing:
-            wh_log_message('info','No missing files in datasets')
+            wh_log('info','No missing files in datasets')
 
     def setup_datasets(self, check_esgf=True):
-        wh_log_message('info','Initializing the warehouse') # was green
+        wh_log('info','Initializing the warehouse') # was green
         cmip6_ids = [x for x in self.collect_cmip_datasets()]
         if self.testing:
             cmip6_ids = cmip6_ids[:100]
@@ -160,7 +164,7 @@ class AutoWarehouse():
             dataset_ids = ndataset_ids
 
         if not dataset_ids:
-            wh_log_message('error',f'No datasets match pattern from --dataset-id {self.dataset_ids} flag')
+            wh_log('error',f'No datasets match pattern from --dataset-id {self.dataset_ids} flag')
             sys.exit(1)
 
         # instantiate the dataset objects with the paths to
@@ -237,19 +241,19 @@ class AutoWarehouse():
                             and job.dataset.ensemble == dataset.ensemble \
                             and job.matches_requirement(dataset) \
                             and (dataset.status == DatasetStatus.SUCCESS.name or job.name in dataset.get_latest_status()):
-                        wh_log_message('info', f'Attaching job {job.name} to dataset {dataset.dataset_id}')
+                        wh_log('info', f'Attaching job {job.name} to dataset {dataset.dataset_id}')
                         job.setup_requisites(dataset)
         return
 
     def workflow_error(self, dataset):
-        wh_log_message('error',f'Dataset {dataset.dataset_id} FAILED from {dataset.status}')
+        wh_log('error',f'Dataset {dataset.dataset_id} FAILED from {dataset.status}')
 
     def workflow_success(self, dataset):
-        wh_log_message('info',f'Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}')
+        wh_log('info',f'Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}')
 
     def print_debug(self, msg):
         if self.debug:
-            wh_log_message('debug', msg)
+            wh_log('debug', msg)
 
     def status_was_updated(self, path):
         """
@@ -263,7 +267,7 @@ class AutoWarehouse():
                 if 'DATASETID' in line:
                     dataset_id = line.split('=')[-1].strip()
         if dataset_id is None:
-            wh_log_message('error', "something went wrong")
+            wh_log('error', "something went wrong")
             import ipdb
             ipdb.set_trace()
 
@@ -318,7 +322,7 @@ class AutoWarehouse():
                 engaged_states = []
 
                 if dataset.is_blocked(state):
-                    wh_log_message('warning', f'Dataset {dataset.dataset_id} at state {state} is marked as Blocked')
+                    wh_log('warning', f'Dataset {dataset.dataset_id} at state {state} is marked as Blocked')
                     continue
                 elif f"{self.workflow.name.upper()}:Pass:" == state:
                     self.workflow_success(dataset)
@@ -364,26 +368,26 @@ class AutoWarehouse():
 
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
-            wh_log_message('debug', f'{job}')
+            wh_log('debug', f'{job}')
             if job.job_id is None and job.meets_requirements():
                 job_id = job(self.slurm)
                 if job_id is not None:
                     job.job_id = job_id
                     self.job_pool.append(job)
                 else:
-                    wh_log_message('error', f'Error starting up job {job}')
+                    wh_log('error', f'Error starting up job {job}')
         return
 
     def start_listener(self):
         self.listener = []
         for dataset_id, dataset in self.datasets.items():
-            wh_log_message('info', f'starting listener for {dataset.warehouse_path}')
+            wh_log('info', f'starting listener for {dataset.warehouse_path}')
             listener = Listener(
                 warehouse=self,
                 root=dataset.warehouse_path)
             listener.start()
             self.listener.append(listener)
-        wh_log_message('info', 'Listener setup complete') # was green
+        wh_log('info', 'Listener setup complete') # was green
 
     def check_done(self):
         all_done = True
