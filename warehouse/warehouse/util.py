@@ -1,7 +1,9 @@
 import sys
 import json
 import traceback
+import inspect
 import logging
+
 
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
@@ -98,6 +100,12 @@ def setup_logging(loglevel, logpath):
 
 
 def log_message(level, message):
+
+    process_stack = inspect.stack()[1]
+    parent_module = inspect.getmodule(process_stack[0])
+    parent_name = parent_module.__name__.split('.')[1].upper()
+    message = f'{parent_name}:{message}'
+
     level = level.upper()
     colors = {"INFO": "white", "WARNING": "yellow", "ERROR": "red", "DEBUG": "cyan"}
     color = colors[level]
@@ -115,7 +123,6 @@ def log_message(level, message):
     # now to the console
     msg = f"{tstamp}:{level}:{message}"
     cprint(msg, color)
-
 
 # -----------------------------------------------
 
