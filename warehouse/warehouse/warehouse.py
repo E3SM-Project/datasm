@@ -32,17 +32,6 @@ DEFAULT_PUBLICATION_PATH = warehouse_conf['DEFAULT_PUBLICATION_PATH']
 DEFAULT_ARCHIVE_PATH = warehouse_conf['DEFAULT_ARCHIVE_PATH']
 NAME = 'auto'
 
-'''
-def wh_log(level,message):
-    util.log_message_test(level,message)
-
-def wh_log_prev(level,message):
-    proc_name = os.path.splitext(os.path.basename(__file__))[0]
-    proc_name = proc_name.upper()
-    message = f'{proc_name}:{message}'
-    util.log_message(level,message)
-'''
-
 # -------------------------------------------------------------
 
 class AutoWarehouse():
