@@ -28,6 +28,7 @@ with open(DEFAULT_CONF_PATH, 'r') as instream:
 DEFAULT_WAREHOUSE_PATH = warehouse_conf['DEFAULT_WAREHOUSE_PATH']
 DEFAULT_PUBLICATION_PATH = warehouse_conf['DEFAULT_PUBLICATION_PATH']
 DEFAULT_ARCHIVE_PATH = warehouse_conf['DEFAULT_ARCHIVE_PATH']
+DEFAULT_STATUS_PATH = warehouse_conf['DEFAULT_STATUS_PATH']
 NAME = 'auto'
 
 
@@ -42,15 +43,16 @@ class AutoWarehouse():
             'publication_path', DEFAULT_PUBLICATION_PATH))
         self.archive_path = Path(kwargs.get(
             'archive_path', DEFAULT_ARCHIVE_PATH))
-        self.spec_path = Path(kwargs.get('spec_path', DEFAULT_SPEC_PATH))
-        self.sproket_path = kwargs.get('sproket', 'sproket')
+        self.status_path = Path(kwargs.get(
+            'status_path', DEFAULT_STATUS_PATH))
+        self.spec_path = Path(kwargs.get(
+            'spec_path', DEFAULT_SPEC_PATH))
         self.num_workers = kwargs.get('num', 8)
         self.serial = kwargs.get('serial', False)
         self.testing = kwargs.get('testing', False)
         self.dataset_ids = kwargs.get('dataset_id')
         if not isinstance(self.dataset_ids, list):
             self.dataset_ids = [self.dataset_ids]
-        self.sproket_path = kwargs.get('sproket', 'sproket')
         self.slurm_path = kwargs.get('slurm', 'slurm_scripts')
         self.report_missing = kwargs.get('report_missing')
         self.job_workers = kwargs.get('job_workers', 8)
@@ -107,7 +109,7 @@ class AutoWarehouse():
 
             # wait around while jobs run
             while True:
-                if should_exit:
+                if self.should_exit:
                     sys.exit(0)
                 sleep(10)
 
@@ -137,36 +139,55 @@ class AutoWarehouse():
         e3sm_ids = [x for x in self.collect_e3sm_datasets()]
         if self.testing:
             e3sm_ids = e3sm_ids[:100]
-        dataset_ids = cmip6_ids + e3sm_ids
+        all_dataset_ids = cmip6_ids + e3sm_ids
 
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
+
         if self.dataset_ids is not None:
             ndataset_ids = []
-            for i in dataset_ids:
+
+            for i in self.dataset_ids:
+                if i in all_dataset_ids:
+                    ndataset_ids.append(i)
+                    continue
                 found = False
-                for ii in self.dataset_ids:
-                    if ii == i or ii in i:
+                for j in all_dataset_ids:
+                    if i in j:
                         found = True
                         break
                 if found:
-                    ndataset_ids.append(i)
-            dataset_ids = ndataset_ids
+                    ndataset_ids.append(j)
+                if not found:
+                    cprint(f"Unable to find {i} in the dataset spec", "red")
 
+
+            # for i in dataset_ids:
+            #     found = False
+            #     for ii in self.dataset_ids:
+            #         if ii == i or ii in i:
+            #             found = True
+            #             break
+            #     if found:
+            #         ndataset_ids.append(i)
+            # if not found:
+            #     cprint(f"Unable to find {ii} in the dataset spec", 'red')
+            dataset_ids = ndataset_ids
+        del all_dataset_ids
         if not dataset_ids:
             cprint(
                 f'No datasets match pattern from --dataset-id {self.dataset_ids} flag', 'red')
             sys.exit(1)
-
+        
         # instantiate the dataset objects with the paths to
         # where they should look for their data files
         self.datasets = {
             dataset_id: Dataset(
                 dataset_id,
+                status_path=os.path.join(self.status_path, f"{dataset_id}.status"),
                 pub_base=self.publication_path,
                 warehouse_base=self.warehouse_path,
-                archive_base=self.archive_path,
-                sproket=self.sproket_path)
+                archive_base=self.archive_path)
             for dataset_id in dataset_ids
         }
 
@@ -212,7 +233,6 @@ class AutoWarehouse():
                     self.datasets[dataset_id].missing = missing
             else:
                 for dataset in tqdm(self.datasets.values()):
-                    # import ipdb; ipdb.set_trace()
                     dataset_id, status, _ = dataset.find_status()
                     if isinstance(status, DatasetStatus):
                         status = status.name
@@ -220,22 +240,6 @@ class AutoWarehouse():
 
         return
 
-    def filter_job_pool(self, jobs, datasets):
-        # search all datasets to see if there's one that matches
-        # the requirements for the job
-        for job in self.job_pool:
-            if not job.meets_requirements():
-                for dataset in datasets.values():
-                    if job.dataset.experiment == dataset.experiment \
-                            and job.dataset.experiment == dataset.experiment \
-                            and job.dataset.model_version == dataset.model_version \
-                            and job.dataset.ensemble == dataset.ensemble \
-                            and job.matches_requirement(dataset) \
-                            and (dataset.status == DatasetStatus.SUCCESS.name or job.name in dataset.get_latest_status()):
-                        print(
-                            f"Attaching job {job.name} to dataset {dataset.dataset_id}")
-                        job.setup_requisites(dataset)
-        return
 
     def workflow_error(self, dataset):
         cprint(
@@ -261,9 +265,7 @@ class AutoWarehouse():
                 if 'DATASETID' in line:
                     dataset_id = line.split('=')[-1].strip()
         if dataset_id is None:
-            print("something went wrong")
-            import ipdb
-            ipdb.set_trace()
+            raise ValueError(f"Unable to determine datasets from status file {path}")
 
         dataset = self.datasets[dataset_id]
         dataset.update_from_status_file()
@@ -299,52 +301,52 @@ class AutoWarehouse():
         if datasets is None:
             datasets = self.datasets
         for dataset_id, dataset in datasets.items():
+            # this will hold a list of dataset,status pairs that need to get updated 
+            # after all the datasets find their next state. These datasets will be all the 
+            # ones that dont go to "Engaged" in this round of transitions.
+            datasets_to_update = []
             if 'Engaged' in dataset.status:
                 continue
+        
+            # we keep a reference to the workflow instance, so when
+            # we make a job we can reconstruct the parent workflow name
+            # for the status file
+            params = {}
+            if (parameters := dataset.status.split(':')[-1].strip()):
+                for item in parameters.split(','):
+                    key, value = item.split('=')
+                    params[key] = value.replace('^', ':')
+
+            state = dataset.status
+            workflow = self.workflow
+            engaged_states = []
+
+            if dataset.is_blocked(state):
+                cprint(
+                    f"Dataset {dataset.dataset_id} at state {state} is marked as Blocked", 'yellow')
+                continue
+            elif f"{self.workflow.name.upper()}:Pass:" == state:
+                self.workflow_success(dataset)
+                self.check_done()
+                return
+            elif f"{self.workflow.name.upper()}:Fail:" == state:
+                self.workflow_error(dataset)
+                self.check_done()
+                return
             else:
-                # we keep a reference to the workflow instance, so when
-                # we make a job we can reconstruct the parent workflow name
-                # for the status file
-                params = {}
-                if (parameters := dataset.status.split(':')[-1].strip()):
-                    for item in parameters.split(','):
-                        key, value = item.split('=')
-                        params[key] = value.replace('^', ':')
-
-                state = dataset.status
-                workflow = self.workflow
-                engaged_states = []
-
-                if dataset.is_blocked(state):
-                    cprint(
-                        f"Dataset {dataset.dataset_id} at state {state} is marked as Blocked", 'yellow')
-                    continue
-                elif f"{self.workflow.name.upper()}:Pass:" == state:
-                    self.workflow_success(dataset)
-                    self.check_done()
-                    return
-                elif f"{self.workflow.name.upper()}:Fail:" == state:
-                    self.workflow_error(dataset)
-                    self.check_done()
-                    return
-                else:
-                    state_list = self.workflow.next_state(
-                        dataset, state, params)
-                    for item in state_list:
-                        new_state, workflow, params = item
-                        if 'Engaged' in new_state:
-                            engaged_states.append(
-                                (new_state, workflow, params))
-                        else:
-                            dataset.status = (new_state, params)
-
-                if not engaged_states:
-                    self.check_done()
-                    return
-
+                state_list = self.workflow.next_state(
+                    dataset, state, params)
+                for item in state_list:
+                    new_state, workflow, params = item
+                    self.print_debug(f"Next state found for {dataset.dataset_id} from {state} to {new_state}")
+                    if 'Engaged' in new_state:
+                        engaged_states.append(
+                            (new_state, workflow, params))
+                    else:
+                        datasets_to_update.append((dataset, new_state, params))
+        
+            if engaged_states:
                 for state, workflow, params in engaged_states:
-                    self.print_debug(
-                        f"Creating jobs from {state} for dataset {dataset_id}")
                     newjob = self.workflow.get_job(
                         dataset,
                         state,
@@ -354,16 +356,23 @@ class AutoWarehouse():
                         workflow=workflow,
                         job_workers=self.job_workers,
                         spec_path=self.spec_path,
-                        debug=self.debug)
+                        debug=self.debug,
+                        config=warehouse_conf,
+                        other_datasets=list(self.datasets.values()),
+                        serial=self.serial)
+                    if newjob is None:
+                        continue
 
+                    # check if the new job is a duplicate
                     if (matching_job := self.find_matching_job(newjob)) is None:
+                        self.print_debug(
+                            f"Created jobs from {state} for dataset {dataset_id}")
                         new_jobs.append(newjob)
                     else:
                         matching_job.setup_requisites(newjob.dataset)
 
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
-            cprint(f"{job}", "cyan")
             if job.job_id is None and job.meets_requirements():
                 job_id = job(self.slurm)
                 if job_id is not None:
@@ -371,18 +380,22 @@ class AutoWarehouse():
                     self.job_pool.append(job)
                 else:
                     cprint(f"Error starting up job {job}", 'red')
+        
+        for dataset, new_state, params in datasets_to_update:
+            self.print_debug(f"Updating status for {dataset.dataset_id} to {new_state}:{params}")
+            dataset.status = (new_state, params)
+        
         return
 
     def start_listener(self):
         self.listener = []
-        for dataset_id, dataset in self.datasets.items():
-            print(f"starting listener for {dataset.warehouse_path}")
+        for _, dataset in self.datasets.items():
+            print(f"starting listener for {dataset.status_path}")
             listener = Listener(
                 warehouse=self,
-                root=dataset.warehouse_path)
+                file_path=dataset.status_path)
             listener.start()
             self.listener.append(listener)
-        cprint("Listener setup complete", "green")
 
     def check_done(self):
         all_done = True
@@ -475,6 +488,10 @@ class AutoWarehouse():
             default=DEFAULT_SPEC_PATH,
             help=f'The path to the dataset specification yaml file, default={DEFAULT_SPEC_PATH}')
         p.add_argument(
+            '--status-path',
+            default=DEFAULT_STATUS_PATH,
+            help=f'The path to where to store dataset status files, default={DEFAULT_STATUS_PATH}')
+        p.add_argument(
             '--job-workers',
             type=int,
             default=8,
@@ -483,11 +500,6 @@ class AutoWarehouse():
             '--testing',
             action="store_true",
             help='run the warehouse in testing mode')
-        p.add_argument(
-            '--sproket',
-            required=False,
-            default='sproket',
-            help='path to sproket binary if its not in your $PATH')
         p.add_argument(
             '--slurm-path',
             required=False,
