@@ -1,5 +1,6 @@
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from warehouse.util import log_message
 
 
 class WorkflowJob(object):
@@ -22,12 +23,14 @@ class WorkflowJob(object):
         self._spec_path = kwargs.get('spec_path')
         self.debug = kwargs.get('debug')
 
+        log_message('info',f'initializing job {self.name} for {self.dataset.dataset_id}')
+
     def __str__(self):
         return f"{self.parent}:{self.name}:{self.dataset.dataset_id}"
 
     def print_debug(self, msg):
         if self.debug:
-            print(msg)
+            log_message('debug',msg)
 
     def __call__(self, slurm):
         if not self.meets_requirements():
@@ -36,7 +39,7 @@ class WorkflowJob(object):
 
         working_dir = self.dataset.latest_warehouse_dir
         if self.dataset.is_locked(working_dir):
-            print(f"Cant start job working dir is locked: {working_dir}")
+            log_message('warning',f"Cant start job working dir is locked: {working_dir}")
             return None
         else:
             self.dataset.lock(working_dir)
