@@ -29,7 +29,7 @@ class Validation(Workflow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME.upper()
-        log_message('info',f'initializing job {self.name} for {self.dataset.dataset_id}')
+        log_message('info',f'initializing job {self.name}')
 
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse
@@ -38,8 +38,6 @@ class Validation(Workflow):
         warehouse_path = self.params['warehouse_path']
         publication_path = self.params['publication_path']
         archive_path = self.params['archive_path']
-
-        log_message('info',f'starting job {self.name} for {self.dataset.dataset_id}')
 
         if (data_path := self.params.get('data_path')):
             warehouse = AutoWarehouse(
@@ -74,6 +72,7 @@ class Validation(Workflow):
         warehouse.start_listener()
 
         for dataset_id, dataset in warehouse.datasets.items():
+            log_message('info',f'starting job {self.name} for {dataset_id}')
             warehouse.start_datasets({dataset_id: dataset})
 
         while not warehouse.should_exit:

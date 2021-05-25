@@ -4,7 +4,7 @@ from warehouse.workflows import Workflow
 #     ExtractionValidate,
 #     ZstashExtract
 # )
-from warehouse.util import log_message
+from warehouse.util import setup_logging, log_message
 
 COMMAND = 'extract'
 NAME = 'Extraction'
@@ -14,7 +14,8 @@ class Extraction(Workflow):
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
         self.name = NAME.upper()
-        log_message('info',f'initializing job {self.name} for {self.dataset.dataset_id}'
+        setup_logging('debug', f'{self.slurm_path}/extraction.log')
+        log_message('info',f'initializing job {self.name} for {self.dataset.dataset_id}')
 
     def __call__(self):
         log_message('info',f'starting job {self.name} for {self.dataset.dataset_id}')
