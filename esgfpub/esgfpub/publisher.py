@@ -38,7 +38,7 @@ def get_facet_info(datasetID):
     campaign = casespec.get('campaign')
     if not campaign:
         return None, None, None
-    science_driver = casespec.get('science driver')
+    science_driver = casespec.get('science_driver')
     if not science_driver:
         return None, None, None
     period = f"{casespec['start']}-{casespec['end']}"

@@ -149,6 +149,7 @@ def get_dsid_via_archline(archline):
     if grid == 'nat':
         grid = 'native'
 
+    # note: model-output assumption on archive only
     dsid = '.'.join(['E3SM', \
                     archspec['model'], \
                     archspec['exper'], \
