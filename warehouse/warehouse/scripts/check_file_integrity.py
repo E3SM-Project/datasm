@@ -5,7 +5,7 @@ from tqdm import tqdm
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from subprocess import Popen, PIPE
-from warehouse.util import log_message
+from warehouse.util import setup_logging, log_message
 
 
 def parse_args():

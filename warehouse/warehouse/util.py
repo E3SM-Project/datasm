@@ -124,6 +124,9 @@ def log_message(level, message):
     msg = f"{tstamp}:{level}:{message}"
     cprint(msg, color)
 
+def format_color_log_message(level, message):
+    pass
+
 # -----------------------------------------------
 
 
