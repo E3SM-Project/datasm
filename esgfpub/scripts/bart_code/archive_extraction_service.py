@@ -16,6 +16,7 @@ gv_WH_root = '/p/user_pub/e3sm/warehouse'
 gv_PUB_root = '/p/user_pub/work'
 gv_input_dir = '/p/user_pub/e3sm/archive/.extraction_requests_pending'
 gv_output_dir = '/p/user_pub/e3sm/archive/.extraction_requests_processed'
+gv_stat_root = '/p/user_pub/e3sm/staging/status'
 
 helptext = '''
 
@@ -186,27 +187,25 @@ def setStatus(statfile,parent,statspec):
 # return path to unique status file (warehouse or publication)
 # create in warehouse if not found
 
-def ensureStatusFile(enspath):
-    if not os.path.exists(ens_path):
-        os.makedirs(ens_path,exist_ok=True)
-        os.chmod(ens_path,0o775)
-        newstat = True
-    statfile = os.path.join(ens_path,'.status')
+def ensureStatusFile(dsid):
+    statfile = os.path.join(gv_stat_root,dsid + '.status')
     if not os.path.exists(statfile):
         open(statfile,"w+").close()
-        newstat = True
-
-    if newstat:
         setStatus(statfile,'WAREHOUSE','EXTRACTION:Ready')
         setStatus(statfile,'WAREHOUSE','VALIDATION:Unblocked:')
         setStatus(statfile,'WAREHOUSE','POSTPROCESS:Unblocked:')
         setStatus(statfile,'WAREHOUSE','PUBLICATION:Blocked:')
         setStatus(statfile,'WAREHOUSE','PUBLICATION:Unapproved:')
-                setStatus(statfile,'WAREHOUSE','CLEANUP:Blocked:')
-                logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Created new status file for request:{am_spec_line}')
-                time.sleep(5)
+        setStatus(statfile,'WAREHOUSE','CLEANUP:Blocked:')
+        logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Created new status file for request:{am_spec_line}')
+        time.sleep(5)
 
     return statfile
+
+def ensureDatasetPath(ens_path):
+    if not os.path.exists(ens_path):
+        os.makedirs(ens_path,exist_ok=True)
+        os.chmod(ens_path,0o775)
 
 
 # Must ensure we have a DSID name for the dataset status file, before warehouse facet directory exists.
@@ -259,11 +258,12 @@ def main():
             logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Conducting Setup for extraction request:{am_spec_line}')
             arch_spec = get_archspec(am_spec_line)
             dsid = get_dsid_via_archline(am_spec_line)
+            statfile = ensureStatusFile(dsid)
             ens_path = get_warehouse_path_via_dsid(dsid)        # intended warehouse dataset ensemble path
 
             # logMessage('DEBUG',f'Preparing to create ens_path {ens_path}')
 
-            statfile = ensureStatusFile(enspath)
+            ensureDatasetPath(ens_path)
 
             setStatus(statfile,'WAREHOUSE','EXTRACTION:Engaged')
             setStatus(statfile,'EXTRACTION','SETUP:Engaged')

@@ -33,7 +33,7 @@ cmip_atm_3hr:
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: "12:00:00"
+  timeout: "2:00:00"
   sample_freq: 3hr
   time_steps_per_day: "8"
 
@@ -42,7 +42,7 @@ cmip_lnd_mon:
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: "12:00:00"
+  timeout: "2:00:00"
   lnd_source_grid: /export/zender1/data/grids/ne30np4_pentagons.091226.nc
   lnd_destination_grid: /export/zender1/data/grids/cmip6_180x360_scrip.20181001.nc
 
@@ -52,5 +52,5 @@ cmip_ocn_mon:
   account: e3sm
   partition: debug
   timeout: 1800
-  slurm_timeout: "12:00:00"
+  slurm_timeout: "2:00:00"
   mpas_region_path: /p/user_pub/e3sm/baldwin32/resources/oEC60to30v3_Atlantic_region_and_southern_transect.nc

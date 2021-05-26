@@ -3,15 +3,15 @@ WAREHOUSE:Ready:
         - POSTPROCESS:Ready
     atm-climo-mon:
         - POSTPROCESS:Ready
-    atm-cmor-mon:
+    atm-cmip-mon:
         - POSTPROCESS:Ready
     lnd-ts-mon:
         - POSTPROCESS:Ready
-    lnd-cmor-mon:
+    lnd-cmip-mon:
         - POSTPROCESS:Ready
-    ocn-cmor-mon:
+    ocn-cmip-mon:
         - POSTPROCESS:Ready
-    sea-ice-cmor-mon:
+    sea-ice-cmip-mon:
         - POSTPROCESS:Ready
     default:
         - EXTRACTION:Ready

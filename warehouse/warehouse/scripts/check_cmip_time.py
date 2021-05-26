@@ -76,12 +76,14 @@ def main():
             put_message(msg)
             issue = True
         prev = last
+        
     if not issue:
         put_message("No time index issues found.")
         put_message(f"Result=Pass:dataset={inpath}")
+        return 0
     else:
         put_message(f"Result=Fail:dataset={inpath}")
-    return 0
+        return 1
 
 
 if __name__ == "__main__":
