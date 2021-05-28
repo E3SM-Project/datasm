@@ -6,7 +6,7 @@ from pathlib import Path
 from subprocess import Popen
 from tempfile import TemporaryDirectory
 from warehouse.util import sproket_with_id
-
+from warehouse.util import con_message
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -35,7 +35,7 @@ def validate_args(args):
     """
     src_path = Path(args.src_path)
     if not src_path.exists():
-        print("Source mapfile does not exist")
+        con_message('error',"Source mapfile does not exist")
         return False
 
     return True
@@ -68,7 +68,7 @@ def publish_dataset(args):
     # check that this dataset doesnt already exist
     _, files = sproket_with_id(dataset_id)
     if files is not None and files:
-        print(
+        con_message('warning',
             f"Dataset {dataset_id} has already been published to ESGF and is marked as the latest version")
         return 1
     
@@ -89,9 +89,9 @@ def publish_dataset(args):
                     json.dump(optional_facets, outstream)
                 cmd += f" --json {project_metadata_path}"
 
-        print(f"Running: {cmd}")
+        con_message('info',f"Running: {cmd}")
         log = Path(log_path, f"{dataset_id}.log")
-        print(f"Writing publication log to {log}")
+        con_message('info',f"Writing publication log to {log}")
 
         with open(log, 'w') as logstream:
             # FOR TESTING ONLY

@@ -99,7 +99,23 @@ def setup_logging(loglevel, logpath):
 # -----------------------------------------------
 
 
-def log_message(level, message):
+def con_message(level, message):        # message ONLY to console (in color)
+
+    process_stack = inspect.stack()[1]
+    parent_module = inspect.getmodule(process_stack[0])
+    parent_name = parent_module.__name__.split('.')[1].upper()
+    message = f'{parent_name}:{message}'
+
+    level = level.upper()
+    colors = {"INFO": "white", "WARNING": "yellow", "ERROR": "red", "DEBUG": "cyan"}
+    color = colors[level]
+    tstamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # for console output
+    ts_verbose = datetime.now().strftime("%Y/%m/%d %H:%M:%S")  # for console output
+    # to the console
+    msg = f"{tstamp}:{level}:{message}"
+    cprint(msg, color)
+
+def log_message(level, message):        # message BOTH to log file and to console (in color)
 
     process_stack = inspect.stack()[1]
     parent_module = inspect.getmodule(process_stack[0])
@@ -124,8 +140,6 @@ def log_message(level, message):
     msg = f"{tstamp}:{level}:{message}"
     cprint(msg, color)
 
-def format_color_log_message(level, message):
-    pass
 
 # -----------------------------------------------
 

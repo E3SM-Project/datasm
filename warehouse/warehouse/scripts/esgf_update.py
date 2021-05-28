@@ -7,6 +7,7 @@ import configparser as cfg
 from datetime import datetime
 from pathlib import Path
 from tqdm import tqdm
+from warehouse.util import con_message
 
 
 DEFAULT_INDEX_NODE = "esgf-node.llnl.gov"
@@ -82,29 +83,29 @@ def main():
 
     url = f'https://{index_node}/esg-search/search/?offset=0&limit=10000&type=Dataset&format=application%2Fsolr%2Bjson&latest=true&{search}'
     if verbose:
-        print(url)
+        con_message('info',url)
     res = requests.get(url)
 
     if not res.status_code == 200:
-        print('Error', file=sys.stderr)
+        con_message('error', 'Error')
         return 1
 
     res = json.loads(res.text)
 
     docs = res['response']["docs"]
     if len(docs) == 0:
-        print(f"Unable to find records matching search {search}")
+        con_message('warning',f"Unable to find records matching search {search}")
         return 1
 
-    print("Found the following datasets:")
+    con_message('info',"Found the following datasets:")
     for doc in docs:
-        print(f"\t{doc['id']}")
+        con_message('info',f"\t{doc['id']}")
 
     if not args.yes:
         response = input(
             f"Found {len(docs)} datasets, would you like to update them all? y/[n]")
         if response.lower() != 'y':
-            print("User failed to answer 'y', exiting")
+            con_message('warning',"User failed to answer 'y', exiting")
             return 1
 
     import warnings
@@ -115,11 +116,11 @@ def main():
         dataset_id = doc['id']
         update_record = gen_xml(dataset_id, "datasets", facets)
         if verbose:
-            print(update_record)
+            con_message('info',update_record)
         client.update(update_record)
         update_record = gen_xml(dataset_id, "files", facets)
         if verbose:
-            print(update_record)
+            con_message('info',update_record)
         client.update(update_record)
 
     return 0
