@@ -102,8 +102,13 @@ def setup_logging(loglevel, logpath):
 def con_message(level, message):        # message ONLY to console (in color)
 
     process_stack = inspect.stack()[1]
+    # for item in process_stack:
+    #     print(f'DEBUG UTIL: process_stack item = {item}')
     parent_module = inspect.getmodule(process_stack[0])
-    parent_name = parent_module.__name__.split('.')[1].upper()
+    # print(f'DEBUG UTIL: (from getmodule(process_stack[0]): parent_module.__name__ = {parent_module.__name__}')
+    parent_name = parent_module.__name__.split('.')[-1].upper()
+    if parent_name == '__MAIN__':
+        parent_name = process_stack[1].split('.')[0].upper()
     message = f'{parent_name}:{message}'
 
     level = level.upper()
@@ -118,8 +123,13 @@ def con_message(level, message):        # message ONLY to console (in color)
 def log_message(level, message):        # message BOTH to log file and to console (in color)
 
     process_stack = inspect.stack()[1]
+    # for item in process_stack:
+    #     print(f'DEBUG UTIL: process_stack item = {item}')
     parent_module = inspect.getmodule(process_stack[0])
-    parent_name = parent_module.__name__.split('.')[1].upper()
+    # print(f'DEBUG UTIL: (from getmodule(process_stack[0]): parent_module.__name__ = {parent_module.__name__}')
+    parent_name = parent_module.__name__.split('.')[-1].upper()
+    if parent_name == '__MAIN__':
+        parent_name = process_stack[1].split('.')[0].upper()
     message = f'{parent_name}:{message}'
 
     level = level.upper()

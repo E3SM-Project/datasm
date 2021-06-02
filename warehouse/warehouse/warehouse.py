@@ -89,7 +89,7 @@ class AutoWarehouse():
             self.listener = None
 
         if self.serial:
-            log_message('debug','Running warehouse in serial mode')
+            log_message('info','Running warehouse in serial mode')
         else:
             log_message('info',f'Running warehouse in parallel mode with {self.num_workers} workers')
 
@@ -363,7 +363,7 @@ class AutoWarehouse():
 
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
-            log_message('debug', f'{job}')
+            log_message('info', f'{job}')
             if job.job_id is None and job.meets_requirements():
                 job_id = job(self.slurm)
                 if job_id is not None:
