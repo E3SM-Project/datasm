@@ -223,6 +223,9 @@ def main():
                         help="Collect the time segments, but dont produce the truncated files or move anything")
     parser.add_argument('--no-gaps', action="store_true",
                         help="Exit if a time gap is discovered")
+    parser.add_argument('-q', '--quiet', action="store_true",
+                        help="Suppress progress bars")
+
     args = parser.parse_args()
     inpath = args.input
     outpath = args.output
@@ -385,3 +388,5 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
