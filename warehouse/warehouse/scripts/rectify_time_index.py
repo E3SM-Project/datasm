@@ -141,7 +141,7 @@ def collect_segments(inpath, num_jobs, timename, bndsname):
         con_message('warning',
             f"There were {num_segments} found, this is high. Probably something wrong with the dataset")
 
-    con_message('warning',"Found {num_segments} segments:")
+    con_message('warning',f"Found {num_segments} segments:")
     for seg in segments.keys():
         con_message('warning',f'Segment {seg} has length {len(segments[seg])}')
 
