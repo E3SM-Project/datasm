@@ -10,5 +10,5 @@ class CheckTime(WorkflowJob):
         self._requires = { '*-native-*': None }
         self._cmd = f"""
 cd {self.scripts_path}
-python check_time_values.py -j {self._job_workers} {self.dataset.latest_warehouse_dir}
+python check_time_values.py -q -j {self._job_workers} {self.dataset.latest_warehouse_dir}
 """
