@@ -128,12 +128,10 @@ def collect_segments(inpath, num_jobs, timename, bndsname):
         if not joined:
             if file['start'] == 0.0:
                 con_message('error',f"the file {file['name']} has a start index of 0.0")
-                raise ValueError(
-                    f"the file {file['name']} has a start index of 0.0")
+                sys.exit(1)
             if segments.get((file['start'], file['end'])):
                 con_message('error',f"the file {file['name']} has perfectly matching time indices with the previous segment {segments.get((file['start'], file['end']))}")
-                raise ValueError(
-                    f"the file {file['name']} has perfectly matching time indices with the previous segment {segments.get((file['start'], file['end']))}")
+                sys.exit(1)
             segments[(file['start'], file['end'])] = [file['name']]
 
     num_segments = len(segments)
@@ -285,7 +283,7 @@ def main():
                 if not any(outpath.iterdir()):
                     outpath.rmdir()
                 con_message('error',msg)
-                raise ValueError(msg)
+                sys.exit(1)
             else:
                 con_message('warning',msg)
                 if not args.dryrun:
