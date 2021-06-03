@@ -4,7 +4,7 @@ from time import sleep
 from warehouse.workflows import Workflow
 from warehouse.dataset import Dataset, DatasetStatusMessage
 from termcolor import colored, cprint
-from warehouse.util import log_message
+from warehouse.util import setup_logging, log_message
 
 
 NAME = 'Validation'
@@ -29,6 +29,7 @@ class Validation(Workflow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME.upper()
+        setup_logging('debug', f'{self.slurm_path}/{NAME}.log')
         log_message('info',f'initializing job {self.name}')
 
     def __call__(self, *args, **kwargs):

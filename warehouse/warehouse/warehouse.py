@@ -18,7 +18,7 @@ from warehouse.slurm import Slurm
 from warehouse.listener import Listener
 import warehouse.resources as resources
 import warehouse.util as util
-from warehouse.util import log_message
+from warehouse.util import setup_logging, log_message
 
 
 resource_path, _ = os.path.split(resources.__file__)
@@ -67,7 +67,7 @@ class AutoWarehouse():
             self.__class__)).parent.absolute(), 'scripts').resolve()
 
         # not sure where to put this - Tony
-        util.setup_logging('debug', f'{self.slurm_path}/warehouse.log')
+        setup_logging('debug', f'{self.slurm_path}/warehouse.log')
 
         if not self.report_missing:
             self.workflow = kwargs.get(
