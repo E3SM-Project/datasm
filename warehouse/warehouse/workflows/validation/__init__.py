@@ -29,7 +29,7 @@ class Validation(Workflow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME.upper()
-        setup_logging('debug', f'{self.slurm_path}/{NAME}.log')
+        setup_logging('debug', f'{NAME}.log')
         log_message('info',f'initializing job {self.name}')
 
     def __call__(self, *args, **kwargs):
