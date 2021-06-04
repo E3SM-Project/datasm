@@ -6,13 +6,13 @@ from warehouse.util import setup_logging, log_message
 
 class Listener(object):
 
-    def __init__(self, warehouse, root, **kwargs):
+    def __init__(self, warehouse, file_path, **kwargs):
         super().__init__(**kwargs)
         self.warehouse = warehouse
-        self.root = root
+        self.file_path = file_path
         self.observer = None
 
-        patterns = [r'^.*\/\.status$']
+        patterns = str(self.file_path)
         ignore_patterns = ""
         ignore_directories = True
         case_sensitive = True
@@ -29,7 +29,7 @@ class Listener(object):
         self.observer = Observer()
         self.observer.schedule(
             self.my_event_handler,
-            self.root, 
+            self.file_path, 
             recursive=False)
         self.observer.start()
 
