@@ -53,7 +53,8 @@ class WorkflowJob(object):
         self._slurm_opts.extend(
             [output_option, ('-N', 1), ('-c', self._job_workers)])
 
-        script_name = f'{self._dataset.experiment}-{self.name}-{self._dataset.realm}-{self._dataset.grid}-{self._dataset.freq}.'
+        # script_name = f'{self._dataset.experiment}-{self.name}-{self._dataset.realm}-{self._dataset.grid}-{self._dataset.freq}.'
+        script_name = f'{self._dataset.dataset_id}-{self.name}'
         tmp = NamedTemporaryFile(
             dir=self._slurm_out, delete=False, prefix=script_name)
         message_file = NamedTemporaryFile(dir=self._slurm_out, delete=False)
