@@ -5,6 +5,7 @@ from tqdm import tqdm
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from subprocess import Popen, PIPE
+from warehouse.util import con_message
 
 
 def parse_args():
@@ -27,7 +28,7 @@ def check_file(path):
     err = err.decode('utf-8')
 
     if not out or "NetCDF: HDF error" in err:
-        print(f"Error loading {path}")
+        con_message('error',f'Error loading {path}')
         return 1
     return 0
 
@@ -38,6 +39,7 @@ def main():
     input_path = Path(parsed_args.input)
 
     if not input_path.exists() or not input_path.is_dir():
+        con_message('error',f'Input directory does not exist or is not a directory')
         raise ValueError("Input directory does not exist or is not a directory")
 
     futures = []

@@ -1,6 +1,7 @@
 from time import sleep
 from watchdog.observers import Observer
 from watchdog.events import RegexMatchingEventHandler
+from warehouse.util import setup_logging, log_message
 
 
 class Listener(object):
@@ -20,9 +21,11 @@ class Listener(object):
 
         self.my_event_handler.on_created = self.on_created
         self.my_event_handler.on_modified = self.on_modified
+        setup_logging('debug', f'listener.log')
 
     def start(self):
-        print("Starting up filesystem listener")
+        # print("Starting up filesystem listener")
+        log_message('info',"Starting up filesystem listener")
         self.observer = Observer()
         self.observer.schedule(
             self.my_event_handler,
@@ -35,7 +38,8 @@ class Listener(object):
         self.observer.join()
 
     def on_created(self, event):
-        print(f"{event.src_path} has been created")
+        log_message('info',f"{event.src_path} has been created")
+        # print(f"{event.src_path} has been created")
 
     def on_modified(self, event):
         self.warehouse.status_was_updated(event.src_path)

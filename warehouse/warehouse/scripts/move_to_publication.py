@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 from shutil import rmtree
 from subprocess import Popen, PIPE
+from warehouse.util import con_message
 
 
 def parse_args():
@@ -34,19 +35,19 @@ def validate_args(args):
     src_path = Path(args.src)
     dst_path = Path(args.dst)
     if not src_path.exists() or not src_path.is_dir():
+        con_message('error',"Source directory does not exist or is not a directory")
         # raise ValueError("Source directory does not exist or is not a directory")
-        print("Source directory does not exist or is not a directory")
         return False
     if not any(src_path.iterdir()):
+        con_message('error',"Source directory is empty")
         # raise ValueError("Source directory is empty")
-        print("Source directory is empty")
         return False
 
     if not dst_path.exists() or not dst_path.is_dir():
         dst_path.mkdir(parents=True, exist_ok=True)
     if any(dst_path.iterdir()):
+        con_message('error',"Destination directory is not empty")
         # raise ValueError("Destination directory is not empty")
-        print("Destination directory is not empty")
         return False
 
     return True
@@ -59,6 +60,7 @@ def conduct_move(args):
     for afile in src_path.glob('*.nc'):  # all .nc files
         destination = dst_path / afile.name
         if destination.exists():
+            con_message('error',f"Trying to move file {afile} to {destination}, but the destination already exists")
             raise ValueError(
                 f"Trying to move file {afile} to {destination}, but the destination already exists")
         afile.replace(destination)
@@ -67,7 +69,7 @@ def conduct_move(args):
         with open(mapfile, 'r') as instream:
             dataset_id = instream.readline().split('|')[0].strip().split('#')[0]
         dst = Path(dst_path.parent, f"{dataset_id}.map")
-        print(f"Moving the mapfile to {dst}")
+        con_message('info',f"Moving the mapfile to {dst}")
         mapfile.replace(dst)
     
     message = f"mapfile_path={dst},pub_name={dst_path.name},ware_name={src_path.name}"
@@ -75,7 +77,7 @@ def conduct_move(args):
         with open(messages_path, 'w') as outstream:
             outstream.write(message)
     else:
-        print(message)
+        con_message('info',message)
 
     return 0
 

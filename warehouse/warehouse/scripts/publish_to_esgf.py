@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from subprocess import Popen
 from tempfile import TemporaryDirectory
+from warehouse.util import con_message
 from warehouse.util import search_esgf
 
 
@@ -35,7 +36,7 @@ def validate_args(args):
     """
     src_path = Path(args.src_path)
     if not src_path.exists():
-        print("Source mapfile does not exist")
+        con_message('error',"Source mapfile does not exist")
         return False
 
     return True
@@ -76,8 +77,8 @@ def publish_dataset(args):
     docs = search_esgf(project, facets)
 
     if docs and int(docs[0]['number_of_files']) != 0:
-        print(
-            f"Dataset {dataset_id} has already been published to ESGF and is marked as the latest version")
+        msg = f"Dataset {dataset_id} has already been published to ESGF and is marked as the latest version"
+        con_message("error", msg)
         return 1
     
     with open(src_path, 'r') as instream:
@@ -97,9 +98,9 @@ def publish_dataset(args):
                     json.dump(optional_facets, outstream)
                 cmd += f" --json {project_metadata_path}"
 
-        print(f"Running: {cmd}")
+        con_message('info',f"Running: {cmd}")
         log = Path(log_path, f"{dataset_id}.log")
-        print(f"Writing publication log to {log}")
+        con_message('info',f"Writing publication log to {log}")
 
         with open(log, 'w') as logstream:
             # FOR TESTING ONLY

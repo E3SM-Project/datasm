@@ -12,7 +12,7 @@ from shutil import copyfile
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from itertools import combinations
-
+from warehouse.util import con_message
 
 # def get_indices(path, bndsname):
 #     with xr.open_dataset(path, decode_times=False) as ds:
@@ -22,7 +22,7 @@ def filter_files(file_info):
     to_remove = []
     for combo in combinations(file_info, 2):
         if combo[0]['start'] == combo[1]['start'] and combo[0]['end'] == combo[1]['end']:
-            print(f"{combo[0]['name']} == {combo[1]['name']}")
+            con_message('debug',f"{combo[0]['name']} == {combo[1]['name']}")
             _, n1 = os.path.split(combo[0]['name'])
             _, n2 = os.path.split(combo[1]['name'])
             if int(n1[:8]) < int(n2[:8]):
@@ -39,7 +39,7 @@ def filter_files(file_info):
         for idx, i2 in enumerate(file_info):
             if i1 == i2:
                 f = file_info.pop(idx)
-                print(f"removing {f['name']} from file list")
+                con_message('debug',f"removing {f['name']} from file list")
                 break
 
 
@@ -51,7 +51,7 @@ def monotonic_check(path, idx, bndsname):
             start_bound = ds[bndsname][0].values[0]
             end_bound = ds[bndsname][-1].values[-1]
         except IndexError as e:
-            print(f"{name} doesnt have expect time_bnds variable shape")
+            con_message('error',f"{name} doesnt have expect time_bnds variable shape")
             return None, None, idx
         l1, l2 = -1.0, -1.0
         for bounds in ds[bndsname]:
@@ -63,7 +63,7 @@ def monotonic_check(path, idx, bndsname):
                 l1 = b1
                 l2 = b2
             else:
-                print(
+                con_message('error',
                     f"{name} has failed the monotonically-increaseing time bounds check, {(b1, b2)} isn't greater than {(l1, l2)}")
                 return None, None, idx
 
@@ -72,14 +72,14 @@ def monotonic_check(path, idx, bndsname):
 
 def collect_segments(inpath, num_jobs, timename, bndsname):
 
-    print("starting segment collection")
+    con_message('info',"starting segment collection")
     # collect all the files and sort them by their date stamp
     paths = [os.path.join(inpath, x)
              for x in os.listdir(inpath) if x.endswith('.nc')]
     for idx, path in enumerate(paths):
         if not os.path.getsize(path):
             _, n = os.path.split(path)
-            print(f"File {n} is zero bytes, skipping it")
+            con_message('warning',f"File {n} is zero bytes, skipping it")
             paths.pop(idx)
 
     with ProcessPoolExecutor(max_workers=num_jobs) as pool:
@@ -127,21 +127,21 @@ def collect_segments(inpath, num_jobs, timename, bndsname):
                 break
         if not joined:
             if file['start'] == 0.0:
-                raise ValueError(
-                    f"the file {file['name']} has a start index of 0.0")
+                con_message('error',f"the file {file['name']} has a start index of 0.0")
+                sys.exit(1)
             if segments.get((file['start'], file['end'])):
-                raise ValueError(
-                    f"the file {file['name']} has perfectly matching time indices with the previous segment {segments.get((file['start'], file['end']))}")
+                con_message('error',f"the file {file['name']} has perfectly matching time indices with the previous segment {segments.get((file['start'], file['end']))}")
+                sys.exit(1)
             segments[(file['start'], file['end'])] = [file['name']]
 
     num_segments = len(segments)
     if num_segments > 10:
-        print(
+        con_message('warning',
             f"There were {num_segments} found, this is high. Probably something wrong with the dataset")
 
-    print("Found segments:")
+    con_message('warning',f"Found {num_segments} segments:")
     for seg in segments.keys():
-        print(seg, len(segments[seg]))
+        con_message('warning',f'Segment {seg} has length {len(segments[seg])}')
 
     # filter out segments that are completely contained by others
     combos = list(combinations(segments, 2))
@@ -221,6 +221,9 @@ def main():
                         help="Collect the time segments, but dont produce the truncated files or move anything")
     parser.add_argument('--no-gaps', action="store_true",
                         help="Exit if a time gap is discovered")
+    parser.add_argument('-q', '--quiet', action="store_true",
+                        help="Suppress progress bars")
+
     args = parser.parse_args()
     inpath = args.input
     outpath = args.output
@@ -228,11 +231,11 @@ def main():
     dryrun = args.dryrun
 
     if args.copy and args.move:
-        print("Both copy and move flags are set, please only pick one")
+        con_message('error',"Both copy and move flags are set, please only pick one")
         return 1
 
     if os.path.exists(outpath) and len(os.listdir(outpath)):
-        print(f"Output directory {outpath} already exists and contains files")
+        con_message('error',f"Output directory {outpath} already exists and contains files")
         return 1
     else:
         os.makedirs(outpath, exist_ok=True)
@@ -243,9 +246,9 @@ def main():
     segments = collect_segments(inpath, num_jobs, timename, bndsname)
 
     if len(segments) == 1:
-        print("No overlapping segments found")
+        con_message('info',"No overlapping segments found")
         if dryrun:
-            print("not moving files")
+            con_message('info',"not moving files")
         else:
             desc = "Placing files into output directory"
             index, files = segments.popitem()
@@ -279,11 +282,12 @@ def main():
                 outpath = Path(outpath)
                 if not any(outpath.iterdir()):
                     outpath.rmdir()
-                raise ValueError(msg)
+                con_message('error',msg)
+                sys.exit(1)
             else:
-                print(msg)
+                con_message('warning',msg)
                 if not args.dryrun:
-                    print('Moving files from the last segment')
+                    con_message('info','Moving files from the last segment')
                     desc = "Placing files into output directory"
                     for src in tqdm(s1['files'], desc=desc):
                         _, name = os.path.split(src)
@@ -307,7 +311,7 @@ def main():
                 else:
                     break
 
-        print(
+        con_message('info',
             f"removing {len(s1['files']) - truncate_index} files from ({s1['start']}, {s1['end']})")
 
         new_ds = xr.Dataset()
@@ -320,7 +324,7 @@ def main():
                     break
                 target_index += 1
 
-            print(
+            con_message('info',
                 f"truncating {to_truncate} by removing {len(ds[bndsname]) - target_index} time steps")
 
             new_ds.attrs = ds.attrs
@@ -343,16 +347,16 @@ def main():
             outpath, f"{to_truncate_name[:-3]}.trunc.nc")
 
         if dryrun:
-            print(f"not writing out file {outfile_path}")
+            con_message('info',f"dryrun, not writing out file {outfile_path}")
         else:
-            print(f"writing out {outfile_path}")
+            con_message('info',f"writing out {outfile_path}")
             write_netcdf(new_ds, outfile_path, unlimited=[timename])
 
         if dryrun:
-            print("not moving files")
+            con_message('info',"dryrun, not moving files")
         else:
             desc = "Placing files into output directory"
-            print(f"Moving the first {truncate_index} files")
+            con_message('info',f"Moving the first {truncate_index} files")
             for src in tqdm(s1['files'][:truncate_index], desc=desc):
                 _, name = os.path.split(src)
                 dst = os.path.join(outpath, name)
@@ -363,9 +367,9 @@ def main():
                 else:
                     os.symlink(src, dst)
     if dryrun:
-        print("not moving files")
+        con_message('info',"dryrun, not moving files")
     else:
-        print('Moving files from the last segment')
+        con_message('info','Moving files from the last segment')
         desc = "Placing files into output directory"
         for src in tqdm(ordered_segments[-1]['files'], desc=desc):
             _, name = os.path.split(src)
@@ -382,3 +386,5 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+

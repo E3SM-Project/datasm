@@ -7,6 +7,7 @@ import time
 from pathlib import Path
 from datetime import datetime
 from tqdm import tqdm
+from warehouse.util import con_message
 
 
 '''
@@ -33,13 +34,14 @@ def parse_args():
     parser.add_argument(
         '-q', '--quiet',
         action="store_true",
-        help="Dont print out a progress bar")
+        help="Dont display a progress bar")
     return parser.parse_args()
 
 
 def loadFileLines(filepath: Path):
     retlist = []
     if not filepath.exists():
+        con_message('error',f"Cannot load lines from file {filepath} as it does not exist")
         raise ValueError(
             f"Cannot load lines from file {filepath} as it does not exist")
 
@@ -66,6 +68,7 @@ def validate_mapfile(mapfile: str, srcdir: Path, quiet: bool):
 
     
     if not len(dataset_files) == len(mapfile_lines):
+        con_message('error',"Number of files does not match number of entries in the mapfile")
         raise ValueError(
             "Number of files does not match number of entries in the mapfile")
 
@@ -79,7 +82,7 @@ def validate_mapfile(mapfile: str, srcdir: Path, quiet: bool):
     
     if error:
         for e in error:
-            print(e)
+            con_message('error',e)
         return False
 
     return True
@@ -95,12 +98,12 @@ def main():
         parsed_args.quiet)
     if success:
         if not parsed_args.quiet:
-            print("Mapfile includes all files")
+            con_message('info',"Mapfile includes all files")
 
         return 0
     else:
         if not parsed_args.quiet:
-            print("Mapfile is missing one or more files")
+            con_message('error',"Mapfile is missing one or more files")
         return 1
 
 

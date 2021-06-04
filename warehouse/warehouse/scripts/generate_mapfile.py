@@ -15,6 +15,7 @@ from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from subprocess import Popen, PIPE
 import hashlib
+from warehouse.util import con_message
 
 
 def parse_args():
@@ -63,6 +64,7 @@ def main():
     numberproc = parsed_args.processes
 
     if not input_path.exists() or not input_path.is_dir():
+        con_message('error',"Input directory does not exist or is not a directory")
         raise ValueError("Input directory does not exist or is not a directory")
 
     outpath = parsed_args.outpath
@@ -87,20 +89,20 @@ def main():
                 outstream.write(line)
 
         except KeyboardInterrupt:
-            print("Cause keyboard interrupt, exiting. Mapfile will be incomplete")
+            con_message('warning',"Cause keyboard interrupt, exiting. Mapfile will be incomplete")
             for future in futures:
                 future.cancel()
             return 1
         except Exception as e:
-            print(e)
+            con_message('error',e)
             return 1
     
     message = f"mapfile_path={outpath}"
-    if (messages_path := os.environ.get('message_file')):
+    if (messages_path := os.environ.get('message_file')):       # whence commeth thee?
         with open(messages_path, 'w') as outstream:
             outstream.write(message)
     else:
-        print(message)
+        con_message('info',message)
     return 0
 
 

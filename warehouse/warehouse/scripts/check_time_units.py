@@ -6,6 +6,7 @@ from tqdm import tqdm
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import operator
+from warehouse.util import con_message
 
 from dataclasses import dataclass
 
@@ -90,7 +91,7 @@ def main():
                 with open(messages_path, 'w') as outstream:
                     outstream.write(message.replace(':', '^'))
             else:
-                print(message)
+                con_message(LEVEL,message)
             return 1
     return 0
 

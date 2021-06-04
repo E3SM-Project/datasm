@@ -5,6 +5,7 @@ from tqdm import tqdm
 from pathlib import Path
 from math import isclose
 from numpy import allclose, subtract, not_equal, array_equal, where
+from warehouse.util import con_message
 
 
 def parse_args():
@@ -33,6 +34,7 @@ def main():
     vars_to_check = parsed_args.var_list
 
     if not file_one.exists() or not file_two.exists():
+        con_message("error","One of more input files does not exist")
         raise ValueError("One of more input files does not exist")
 
     data1 = xr.open_dataset(str(file_one.resolve()), decode_times=False)
@@ -57,11 +59,13 @@ def main():
     data2.close()
 
     if all_match:
-        print("All variables match")
+        con_message("info","All variables match")
         return 0
 
+    con_message("warning","Some variables do not match")
+    
     for m in dont_match:
-        print(m)
+        con_message("debug",m)
     return 1
 
 

@@ -8,14 +8,11 @@ import netCDF4
 from tqdm import tqdm
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from warehouse.util import con_message
 
 calendars = {
     'noleap': {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
 }
-
-
-def put_message(message):
-    print(f'{datetime.now().strftime("%Y%m%d_%H%M%S")}:{message}')
 
 
 def get_time_units(path):
@@ -33,7 +30,8 @@ def get_month(path):
     pattern = r'\d{4}-\d{2}'
     s = re.search(pattern, path)
     if not s:
-        raise ValueError(f"Unable to find month string for {path}")
+        con_message('error',f'Unable to find month string for {path}')
+        sys.exit(1)
     return int(path[s.start() + 5: s.start() + 7])
 
 
@@ -58,8 +56,7 @@ def check_file(file, freq, idx, time_name='time'):
                 # monthly data
                 return time, time, idx
             elif delta != freq:
-                put_message(
-                    f"time discontinuity in {file} at {time}, delta was {delta} when it should have been {freq}")
+                con_message("warning", f"time discontinuity in {file} at {time}, delta was {delta} when it should have been {freq}")
             prevtime = time
         last = time
     return first, last, idx
@@ -82,7 +79,7 @@ def main():
     args = parser.parse_args()
     inpath = args.input
 
-    put_message(f'Running timechecker:dataset={inpath}')
+    con_message('info',f'Running timechecker:dataset={inpath}')
 
     # collect all the files and sort them by their date stamp
     names = [os.path.join(os.path.abspath(inpath), x)
@@ -92,8 +89,8 @@ def main():
     for name in names:
         start = re.search(pattern, name).start()
         if not start:
-            raise ValueError(
-                f"The year stamp search pattern {pattern} didn't find what it was expecting")
+            con_message('error',f"The year stamp search pattern {pattern} didn't find what it was expecting")
+            sys.exit(1)
         fileinfo.append({
             'prefix': name[:start],
             'suffix': name[start:],
@@ -113,20 +110,22 @@ def main():
 
         if freq == "month_1":
             monthly = True
-            put_message("Found monthly data")
+            con_message('info',"Found monthly data")
             calendar = ds[time_name].attrs['calendar']
             if calendar not in calendars:
-                raise ValueError(f"Unsupported calendar type {calendar}")
+                con_message('error',f"Unsupported calendar type {calendar}")
+                sys.exit(1)
         elif freq is None:
             if ds.attrs.get('title') == 'CLM History file information':
                 monthly = True
             calendar = ds[time_name].attrs['calendar']
             if calendar not in calendars:
-                raise ValueError(f"Unsupported calendar type {calendar}")
+                con_message('error',f"Unsupported calendar type {calendar}")
+                sys.exit(1)
         else:
-            put_message("Found sub-monthly data")
+            con_message('info',"Found sub-monthly data")
             freq = ds[time_name][1].values.item() - ds[time_name][0].values.item()
-            put_message(f"Detected frequency: {freq}, with units: {time_units}")
+            con_message('info',f"Detected frequency: {freq}, with units: {time_units}")
 
 
     # iterate over each of the files and get the first and last index from each file
@@ -165,11 +164,11 @@ def main():
     if issues:
         issues.append(f'Result=Fail:dataset={inpath}')
         for msg in issues:
-            put_message(msg)
+            con_message('warning',msg)
         return 1
 
-    put_message("No time index issues found.")
-    put_message(f"Result=Pass:dataset={inpath}")
+    con_message('info',"No time index issues found.")
+    con_message('info',f"Result=Pass:dataset={inpath}")
     return 0
 
 

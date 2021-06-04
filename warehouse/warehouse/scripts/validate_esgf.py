@@ -6,6 +6,7 @@ from pathlib import Path
 from subprocess import Popen
 from tempfile import TemporaryDirectory
 from warehouse.util import sproket_with_id
+from warehouse.util import con_message
 
 
 def parse_args():
@@ -29,7 +30,7 @@ def publish_dataset(dataset_id: str):
 
     _, files = sproket_with_id(dataset_id)
     if files is None or not files:
-        print(
+        con_message('warning',
             f"Dataset {dataset_id} has not been published to ESGF")
         return 1
     return 0

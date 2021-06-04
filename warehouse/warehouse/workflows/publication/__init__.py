@@ -5,6 +5,7 @@ from time import sleep
 from termcolor import colored, cprint
 from warehouse.workflows import Workflow
 from warehouse.dataset import Dataset, DatasetStatusMessage
+from warehouse.util import log_message
 
 
 NAME = 'Publication'
@@ -23,12 +24,15 @@ class Publication(Workflow):
         super().__init__(*args, **kwargs)
         self.name = NAME.upper()
         self.pub_path = None
+        log_message('info',f'initializing job {self.name} for {self.dataset.dataset_id}')
 
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse
 
         dataset_id = self.params['dataset_id']
         tmpdir = self.params['tmp']
+
+        log_message('info',f'starting job {self.name} for {self.dataset.dataset_id}')
 
         if (pub_base := self.params.get('publication_path')):
             self.pub_path = Path(pub_base)
@@ -76,9 +80,8 @@ class Publication(Workflow):
             sleep(2)
 
         for dataset_id, dataset in warehouse.datasets.items():
-            color = "green" if "Pass" in dataset.status else "red"
-            cprint(
-                f"Publication complete, dataset {dataset_id} is in state {dataset.status}", color)
+            mtype = "info" if "Pass" in dataset.status else "error"
+            log_message(mtype,f"Publication complete, dataset {dataset_id} is in state {dataset.status}")
 
         sys.exit(0)
 

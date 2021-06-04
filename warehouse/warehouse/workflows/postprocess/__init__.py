@@ -4,7 +4,8 @@ from pathlib import Path
 from time import sleep
 from termcolor import colored, cprint
 from warehouse.workflows import Workflow
-from warehouse.dataset import Dataset, DatasetStatusMessage
+from warehouse.util import log_message
+from warehouse.dataset import DatasetStatusMessage
 
 NAME = 'PostProcess'
 COMMAND = 'postprocess'
@@ -12,6 +13,7 @@ COMMAND = 'postprocess'
 HELP_TEXT = """
 Run post-processing jobs to generate climatologies, regridded time-series, and CMIP6 datasets
 """
+
 
 class PostProcess(Workflow):
 
@@ -21,12 +23,14 @@ class PostProcess(Workflow):
         parallel = self.params.get('parallel')
         self.serial = False if parallel else True
         self.metadata_path = None
+        log_message(
+            'info', f'initializing job {self.name} for {self.dataset.dataset_id}')
 
     def __call__(self):
         from warehouse.warehouse import AutoWarehouse
 
         dataset_id = self.params['dataset_id']
-        cprint(f'Starting with datasets {dataset_id}', color="green")
+        log_message("info", f'Starting with datasets {dataset_id}')
 
         if (metadata_path := self.params.get('metadata_path')):
             self.metadata_path = Path(metadata_path)

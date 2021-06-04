@@ -4,6 +4,7 @@ from time import sleep
 from warehouse.workflows import Workflow
 from warehouse.dataset import Dataset, DatasetStatusMessage
 from termcolor import colored, cprint
+from warehouse.util import setup_logging, log_message
 
 
 NAME = 'Validation'
@@ -28,6 +29,8 @@ class Validation(Workflow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME.upper()
+        setup_logging('debug', f'{NAME}.log')
+        log_message('info',f'initializing job {self.name}')
 
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse
@@ -70,15 +73,15 @@ class Validation(Workflow):
         warehouse.start_listener()
 
         for dataset_id, dataset in warehouse.datasets.items():
+            log_message('info',f'starting job {self.name} for {dataset_id}')
             warehouse.start_datasets({dataset_id: dataset})
 
         while not warehouse.should_exit:
             sleep(2)
 
         for dataset_id, dataset in warehouse.datasets.items():
-            color = "green" if "Pass" in dataset.status else "red"
-            cprint(
-                f"Validation complete, dataset {dataset_id} is in state {dataset.status}", color)
+            mtype = "info" if "Pass" in dataset.status else "error"
+            log_message(mtype,f"Validation complete, dataset {dataset_id} is in state {dataset.status}")
 
         sys.exit(0)
 

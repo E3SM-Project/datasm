@@ -15,6 +15,8 @@ from warehouse.dataset import Dataset, DatasetStatus
 from warehouse.slurm import Slurm
 from warehouse.listener import Listener
 import warehouse.resources as resources
+import warehouse.util as util
+from warehouse.util import setup_logging, log_message
 
 
 resource_path, _ = os.path.split(resources.__file__)
@@ -29,6 +31,7 @@ DEFAULT_ARCHIVE_PATH = warehouse_conf['DEFAULT_ARCHIVE_PATH']
 DEFAULT_STATUS_PATH = warehouse_conf['DEFAULT_STATUS_PATH']
 NAME = 'auto'
 
+# -------------------------------------------------------------
 
 class AutoWarehouse():
 
@@ -64,6 +67,9 @@ class AutoWarehouse():
         self.scripts_path = Path(Path(inspect.getfile(
             self.__class__)).parent.absolute(), 'scripts').resolve()
 
+        # not sure where to put this - Tony
+        setup_logging('debug', f'{self.slurm_path}/warehouse.log')
+
         if not self.report_missing:
             self.workflow = kwargs.get(
                 'workflow',
@@ -84,10 +90,9 @@ class AutoWarehouse():
             self.listener = None
 
         if self.serial:
-            cprint("Running warehouse in serial mode", 'cyan')
+            log_message('info','Running warehouse in serial mode')
         else:
-            cprint(
-                f"Running warehouse in parallel mode with {self.num_workers} workers", 'white')
+            log_message('info',f'Running warehouse in parallel mode with {self.num_workers} workers')
 
         with open(self.spec_path, 'r') as instream:
             self.dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
@@ -126,12 +131,12 @@ class AutoWarehouse():
                 for m in x.missing:
                     print(f"{m}")
             elif x.status == DatasetStatus.UNITITIALIZED.name:
-                cprint(f"No files in dataset {x.dataset_id}", 'red')
+                log_message('error',f'No files in dataset {x.dataset_id}')
         if not found_missing:
-            cprint("No missing files in datasets", 'red')
+            log_message('info','No missing files in datasets')
 
     def setup_datasets(self, check_esgf=True):
-        cprint("Initializing the warehouse", 'green')
+        log_message('info','Initializing the warehouse') # was green
         cmip6_ids = [x for x in self.collect_cmip_datasets()]
         if self.testing:
             cmip6_ids = cmip6_ids[:100]
@@ -174,8 +179,7 @@ class AutoWarehouse():
             dataset_ids = ndataset_ids
         del all_dataset_ids
         if not dataset_ids:
-            cprint(
-                f'No datasets match pattern from --dataset-id {self.dataset_ids} flag', 'red')
+            log_message('error',f'No datasets match pattern from --dataset-id {self.dataset_ids} flag')
             sys.exit(1)
         
         # instantiate the dataset objects with the paths to
@@ -241,16 +245,14 @@ class AutoWarehouse():
 
 
     def workflow_error(self, dataset):
-        cprint(
-            f"Dataset {dataset.dataset_id} FAILED from {dataset.status}", 'red')
+        log_message('error',f'Dataset {dataset.dataset_id} FAILED from {dataset.status}')
 
     def workflow_success(self, dataset):
-        cprint(
-            f"Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}", 'cyan')
+        log_message('info',f'Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}')
 
     def print_debug(self, msg):
         if self.debug:
-            print(msg)
+            log_message('debug', msg)
 
     def status_was_updated(self, path):
         """
@@ -264,7 +266,7 @@ class AutoWarehouse():
                 if 'DATASETID' in line:
                     dataset_id = line.split('=')[-1].strip()
         if dataset_id is None:
-            raise ValueError(f"Unable to determine datasets from status file {path}")
+            log_message('error', "Unable to find dataset ID in status file")
 
         dataset = self.datasets[dataset_id]
         dataset.update_from_status_file()
@@ -333,18 +335,45 @@ class AutoWarehouse():
                 self.check_done()
                 return
             else:
-                state_list = self.workflow.next_state(
-                    dataset, state, params)
-                for item in state_list:
-                    new_state, workflow, params = item
-                    self.print_debug(f"Next state found for {dataset.dataset_id} from {state} to {new_state}")
-                    if 'Engaged' in new_state:
-                        engaged_states.append(
-                            (new_state, workflow, params))
-                    else:
-                        datasets_to_update.append((dataset, new_state, params))
-        
-            if engaged_states:
+                # we keep a reference to the workflow instance, so when
+                # we make a job we can reconstruct the parent workflow name
+                # for the status file
+                params = {}
+                if (parameters := dataset.status.split(':')[-1].strip()):
+                    for item in parameters.split(','):
+                        key, value = item.split('=')
+                        params[key] = value.replace('^', ':')
+
+                state = dataset.status
+                workflow = self.workflow
+                engaged_states = []
+
+                if dataset.is_blocked(state):
+                    log_message('warning', f'Dataset {dataset.dataset_id} at state {state} is marked as Blocked')
+                    continue
+                elif f"{self.workflow.name.upper()}:Pass:" == state:
+                    self.workflow_success(dataset)
+                    self.check_done()
+                    return
+                elif f"{self.workflow.name.upper()}:Fail:" == state:
+                    self.workflow_error(dataset)
+                    self.check_done()
+                    return
+                else:
+                    state_list = self.workflow.next_state(
+                        dataset, state, params)
+                    for item in state_list:
+                        new_state, workflow, params = item
+                        if 'Engaged' in new_state:
+                            engaged_states.append(
+                                (new_state, workflow, params))
+                        else:
+                            dataset.status = (new_state, params)
+
+                if not engaged_states:
+                    self.check_done()
+                    return
+
                 for state, workflow, params in engaged_states:
                     newjob = self.workflow.get_job(
                         dataset,
@@ -373,29 +402,26 @@ class AutoWarehouse():
 
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
+            log_message('info', f'{job}')
             if job.job_id is None and job.meets_requirements():
                 job_id = job(self.slurm)
                 if job_id is not None:
                     job.job_id = job_id
                     self.job_pool.append(job)
                 else:
-                    cprint(f"Error starting up job {job}", 'red')
-        
-        for dataset, new_state, params in datasets_to_update:
-            self.print_debug(f"Updating status for {dataset.dataset_id} to {new_state}:{params}")
-            dataset.status = (new_state, params)
-        
+                    log_message('error', f'Error starting up job {job}')
         return
 
     def start_listener(self):
         self.listener = []
         for _, dataset in self.datasets.items():
-            print(f"starting listener for {dataset.status_path}")
+            log_message('info', f'starting listener for {dataset.warehouse_path}')
             listener = Listener(
                 warehouse=self,
                 file_path=dataset.status_path)
             listener.start()
             self.listener.append(listener)
+        log_message('info', 'Listener setup complete') # was green
 
     def check_done(self):
         all_done = True
