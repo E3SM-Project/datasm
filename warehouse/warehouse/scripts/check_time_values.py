@@ -31,7 +31,7 @@ def get_month(path):
     s = re.search(pattern, path)
     if not s:
         con_message('error',f'Unable to find month string for {path}')
-        raise ValueError(f"Unable to find month string for {path}")
+        sys.exit(1)
     return int(path[s.start() + 5: s.start() + 7])
 
 
@@ -56,8 +56,7 @@ def check_file(file, freq, idx, time_name='time'):
                 # monthly data
                 return time, time, idx
             elif delta != freq:
-                con_message("warning",
-                    f"time discontinuity in {file} at {time}, delta was {delta} when it should have been {freq}")
+                con_message("warning", f"time discontinuity in {file} at {time}, delta was {delta} when it should have been {freq}")
             prevtime = time
         last = time
     return first, last, idx
@@ -91,8 +90,7 @@ def main():
         start = re.search(pattern, name).start()
         if not start:
             con_message('error',f"The year stamp search pattern {pattern} didn't find what it was expecting")
-            raise ValueError(
-                f"The year stamp search pattern {pattern} didn't find what it was expecting")
+            sys.exit(1)
         fileinfo.append({
             'prefix': name[:start],
             'suffix': name[start:],
@@ -116,14 +114,14 @@ def main():
             calendar = ds[time_name].attrs['calendar']
             if calendar not in calendars:
                 con_message('error',f"Unsupported calendar type {calendar}")
-                raise ValueError(f"Unsupported calendar type {calendar}")
+                sys.exit(1)
         elif freq is None:
             if ds.attrs.get('title') == 'CLM History file information':
                 monthly = True
             calendar = ds[time_name].attrs['calendar']
             if calendar not in calendars:
                 con_message('error',f"Unsupported calendar type {calendar}")
-                raise ValueError(f"Unsupported calendar type {calendar}")
+                sys.exit(1)
         else:
             con_message('info',"Found sub-monthly data")
             freq = ds[time_name][1].values.item() - ds[time_name][0].values.item()
