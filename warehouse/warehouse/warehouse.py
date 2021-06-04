@@ -1,8 +1,6 @@
 import os
 import sys
 import yaml
-import json
-import importlib
 import inspect
 
 from pathlib import Path
@@ -61,6 +59,7 @@ class AutoWarehouse():
         os.makedirs(self.slurm_path, exist_ok=True)
         self.should_exit = False
         self.debug = kwargs.get('debug')
+        self.tmpdir = kwargs.get('tmp', os.environ['TMPDIR'])
 
         self.scripts_path = Path(Path(inspect.getfile(
             self.__class__)).parent.absolute(), 'scripts').resolve()
@@ -359,7 +358,8 @@ class AutoWarehouse():
                         debug=self.debug,
                         config=warehouse_conf,
                         other_datasets=list(self.datasets.values()),
-                        serial=self.serial)
+                        serial=self.serial,
+                        tmpdir=self.tmpdir)
                     if newjob is None:
                         continue
 
@@ -505,6 +505,11 @@ class AutoWarehouse():
             required=False,
             default='slurm_scripts',
             help=f'The directory to hold slurm batch scripts as well as console output from batch jobs, default={os.environ["PWD"]}/slurm_scripts')
+        p.add_argument(
+            '--tmp',
+            required=False,
+            default=f"{os.environ['TMPDIR']}",
+            help=f"the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: {os.environ['TMPDIR']}")
         p.add_argument(
             '--report-missing',
             required=False,

@@ -28,6 +28,7 @@ class Publication(Workflow):
         from warehouse.warehouse import AutoWarehouse
 
         dataset_id = self.params['dataset_id']
+        tmpdir = self.params['tmp']
 
         if (pub_base := self.params.get('publication_path')):
             self.pub_path = Path(pub_base)
@@ -43,7 +44,8 @@ class Publication(Workflow):
                 publication_path=self.pub_path,
                 serial=True,
                 job_worker=self.job_workers,
-                debug=self.debug)
+                debug=self.debug,
+                tmpdir=tmpdir)
         else:
             warehouse = AutoWarehouse(
                 workflow=self,
@@ -52,7 +54,8 @@ class Publication(Workflow):
                 publication_path=self.pub_path,
                 serial=True,
                 job_worker=self.job_workers,
-                debug=self.debug)
+                debug=self.debug,
+                tmpdir=tmpdir)
 
         warehouse.setup_datasets(check_esgf=False)
 
@@ -85,6 +88,11 @@ class Publication(Workflow):
             name=COMMAND,
             description=HELP_TEXT)
         parser = Workflow.add_args(parser)
+        parser.add_argument(
+            '--tmp',
+            required=False,
+            default=f"{os.environ['TMPDIR']}",
+            help=f"the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: {os.environ['TMPDIR']}")
         return COMMAND, parser
 
     @staticmethod

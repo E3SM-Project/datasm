@@ -1,3 +1,4 @@
+from warehouse.util import print_debug
 import yaml
 import importlib
 import os
@@ -117,7 +118,7 @@ class Workflow(object):
         else:
             parent = f"{state_attrs[0]}:{state_attrs[1]}"
 
-        # print(f"initializing job {job_name} for {dataset.dataset_id} from state {state}:{params}")
+        self.print_debug(f"initializing job {job_name} for {dataset.dataset_id} from state {state}:{params}")
 
         job = self.jobs[job_name]
         job_instance = job(
@@ -132,7 +133,8 @@ class Workflow(object):
             spec_path=kwargs.get('spec_path'),
             config=kwargs.get('config'),
             debug=kwargs.get('debug'),
-            serial=kwargs.get('serial', True))
+            serial=kwargs.get('serial', True),
+            tmpdir=kwargs.get('tmpdir', os.environ['TMPDIR']))
 
         other_datasets = kwargs.get('other_datasets')
         job_instance.setup_requisites(other_datasets)

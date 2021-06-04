@@ -31,6 +31,7 @@ class PostProcess(Workflow):
         if (metadata_path := self.params.get('metadata_path')):
             self.metadata_path = Path(metadata_path)
         data_path = self.params.get('data_path')
+        tmpdir = self.params.get('tmp')
 
         if data_path is not None:
             warehouse = AutoWarehouse(
@@ -39,7 +40,8 @@ class PostProcess(Workflow):
                 warehouse_path=data_path,
                 serial=self.serial,
                 job_worker=self.job_workers,
-                debug=self.debug)
+                debug=self.debug,
+                tmpdir=tmpdir)
         else:
             warehouse = AutoWarehouse(
                 workflow=self,
@@ -47,7 +49,8 @@ class PostProcess(Workflow):
                 warehouse_path=self.params['warehouse_path'],
                 serial=self.serial,
                 job_worker=self.job_workers,
-                debug=self.debug)
+                debug=self.debug,
+                tmpdir=tmpdir)
 
         warehouse.setup_datasets(check_esgf=False)
 
@@ -82,6 +85,11 @@ class PostProcess(Workflow):
             '--parallel',
             action="store_true",
             help="Submit CWL workflows with the --parallel flag, to run all their steps in parallel (where possible)")
+        parser.add_argument(
+            '--tmp',
+            required=False,
+            default=f"{os.environ['TMPDIR']}",
+            help=f"the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: {os.environ['TMPDIR']}")
         parser = Workflow.add_args(parser)
         return COMMAND, parser
 
