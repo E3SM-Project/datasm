@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from termcolor import cprint
@@ -24,6 +25,7 @@ class WorkflowJob(object):
         self._config = kwargs.get('config') 
         self.debug = kwargs.get('debug')
         self.serial = kwargs.get('serial', True)
+        self.tmpdir = kwargs.get('tmpdir', os.environ['TMPDIR'])
     
     def resolve_cmd(self):
         return
@@ -37,9 +39,9 @@ class WorkflowJob(object):
 
     def __call__(self, slurm):
         if not self.meets_requirements():
-            print(f"Job does not meet requirements! {self.requires}")
+            cprint(f"Job does not meet requirements! {self.requires}", "red")
             return None
-        # self.print_debug(f"Starting job: {str(self)} with reqs {[x.dataset_id for x in self.requires.values()]}")
+        self.print_debug(f"Starting job: {str(self)} with reqs {[x.dataset_id for x in self.requires.values()]}")
 
         self.resolve_cmd()
 
@@ -50,29 +52,35 @@ class WorkflowJob(object):
         else:
             self.dataset.lock(working_dir)
 
-        self._outname = f'{self._dataset.experiment}-{self.name}-{self._dataset.realm}-{self._dataset.grid}-{self._dataset.freq}-{self._dataset.ensemble}.out'
+        self._outname = self.get_slurm_output_script_name()
         output_option = (
             '-o', f'{Path(self._slurm_out, self._outname).resolve()}')
 
         self._slurm_opts.extend(
             [output_option, ('-N', 1), ('-c', self._job_workers)])
 
-        script_name = f'{self._dataset.experiment}-{self.name}-{self._dataset.realm}-{self._dataset.grid}-{self._dataset.freq}-{self._dataset.ensemble}.sh'
+        script_name = self.get_slurm_run_script_name()
         script_path = Path(self._slurm_out, script_name)
         script_path.touch()
 
-        message_file = NamedTemporaryFile(dir=self._slurm_out, delete=False)
+        message_file = NamedTemporaryFile(dir=self.tmpdir, delete=False)
         Path(message_file.name).touch()
         self._cmd = f"export message_file={message_file.name}\n" + self._cmd
 
-        self.add_cmd_suffix(working_dir)
+        self.add_cmd_suffix()
         slurm.render_script(self.cmd, str(script_path), self._slurm_opts)
         self._job_id = slurm.sbatch(str(script_path))
         self.dataset.status = (f"{self._parent}:{self.name}:Engaged:", 
                                {"slurm_id": self.job_id})
         return self._job_id
+    
+    def get_slurm_output_script_name(self):
+        return f'{self.dataset.dataset_id}-{self.name}.out'
 
-    def add_cmd_suffix(self, working_dir):
+    def get_slurm_run_script_name(self):
+        return f'{self.dataset.dataset_id}-{self.name}.sh'
+
+    def add_cmd_suffix(self):
         suffix = f"""
 if [ $? -ne 0 ]
 then 

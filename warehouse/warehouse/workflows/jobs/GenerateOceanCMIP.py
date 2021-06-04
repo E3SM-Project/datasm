@@ -47,22 +47,6 @@ class GenerateOceanCMIP(WorkflowJob):
             is_all = False
             cmip_var = [cmip_var]
 
-        # info_file = NamedTemporaryFile(delete=False)
-        # cmd = f"e3sm_to_cmip --info -i {parameters['mpas_data_path']} --mode mpaso -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
-        # proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-        # _, err = proc.communicate()
-        # if err:
-        #     print(err)
-        #     return None
-        # with open(info_file.name, 'r') as instream:
-        #     variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
-
-        # for item in variable_info:
-        #     if ',' in item['E3SM Variables']:
-        #         e3sm_var = [v.strip() for v in item['E3SM Variables'].split(',')]
-        #     else:
-        #         e3sm_var = [item['E3SM Variables']]
-
         parameters['std_var_list'] = ['PSL']
         parameters['mpas_var_list'] = cmip_var
         cwl_workflow = "mpaso-atm/mpaso-atm.cwl"
@@ -90,13 +74,9 @@ class GenerateOceanCMIP(WorkflowJob):
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 
-        tmp_path = Path(self._slurm_out, 'tmp')
-        if not tmp_path.exists():
-            tmp_path.mkdir()
-
         # step three, render out the CWL run command
         if not self.serial:
             parallel = "--parallel"
         else:
             parallel = ''
-        self._cmd = f"cwltool --tmpdir-prefix={tmp_path} {parallel} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+        self._cmd = f"cwltool --outdir {self.dataset.warehouse_base} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"

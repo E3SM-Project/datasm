@@ -86,9 +86,5 @@ class GenerateLndMonCMIP(WorkflowJob):
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 
-        tmp_path = Path(self._slurm_out, 'tmp')
-        if not tmp_path.exists():
-            tmp_path.mkdir()
-
         # step three, render out the CWL run command
-        self._cmd = f"cwltool --tmpdir-prefix={tmp_path} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+        self._cmd = f"cwltool --outdir {self.dataset.warehouse_base} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"

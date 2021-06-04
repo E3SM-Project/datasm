@@ -16,6 +16,7 @@ class GenerateAtmDayCMIP(WorkflowJob):
         self.name = NAME
         self._requires = {'atmos-native-day': None}
         self._cmd = ''
+        self._cmip_var = ''
 
     def resolve_cmd(self):
 
@@ -67,19 +68,15 @@ class GenerateAtmDayCMIP(WorkflowJob):
         parameters['hrz_atm_map_path'] = self.config['grids']['ne30_to_180x360']
 
         # step two, write out the parameter file and setup the temp directory
-        var_id = 'all' if is_all else cmip_var[0]
+        self._cmip_var = 'all' if is_all else cmip_var[0]
         parameter_path = os.path.join(
-            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-day-{var_id}.yaml")
+            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-day-{self._cmip_var}.yaml")
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
-
-        tmp_path = Path(self._slurm_out, 'tmp')
-        if not tmp_path.exists():
-            tmp_path.mkdir()
 
         # step three, render out the CWL run command
         if not self.serial:
             parallel = "--parallel"
         else:
             parallel = ''
-        self._cmd = f"cwltool --tmpdir-prefix={tmp_path} {parallel} --outdir {self.dataset.warehouse_base} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+        self._cmd = f"cwltool --outdir {self.dataset.warehouse_base} --tmpdir-prefix={self.tmpdir} {parallel} --outdir {self.dataset.warehouse_base} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
