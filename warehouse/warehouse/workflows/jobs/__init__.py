@@ -44,7 +44,8 @@ class WorkflowJob(object):
         else:
             self.dataset.lock(working_dir)
 
-        self._outname = f'{self._dataset.experiment}-{self.name}-{self._dataset.realm}-{self._dataset.grid}-{self._dataset.freq}.out'
+        # self._outname = f'{self._dataset.experiment}-{self.name}-{self._dataset.realm}-{self._dataset.grid}-{self._dataset.freq}.out'
+        self._outname = f'{self._dataset.dataset_id}-{self.name}.out'
         output_option = (
             '-o', f'{Path(self._slurm_out, self._outname).resolve()}')
 
