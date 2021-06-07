@@ -25,7 +25,7 @@ class WorkflowJob(object):
         self._config = kwargs.get('config') 
         self.debug = kwargs.get('debug')
         self.serial = kwargs.get('serial', True)
-        self.tmpdir = kwargs.get('tmpdir', os.environ['TMPDIR'])
+        self.tmpdir = kwargs.get('tmpdir', os.environ.get('TMPDIR'))
     
     def resolve_cmd(self):
         return
