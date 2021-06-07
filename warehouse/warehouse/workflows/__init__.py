@@ -9,6 +9,7 @@ from termcolor import colored, cprint
 
 import warehouse.workflows.jobs
 import warehouse.resources as resources
+from warehouse.util import setup_logging, log_message
 
 
 resource_path, _ = os.path.split(resources.__file__)
@@ -134,7 +135,7 @@ class Workflow(object):
             config=kwargs.get('config'),
             debug=kwargs.get('debug'),
             serial=kwargs.get('serial', True),
-            tmpdir=kwargs.get('tmpdir', os.environ['TMPDIR']))
+            tmpdir=kwargs.get('tmpdir', os.environ.get('TMPDIR')))
 
         other_datasets = kwargs.get('other_datasets')
         job_instance.setup_requisites(other_datasets)
