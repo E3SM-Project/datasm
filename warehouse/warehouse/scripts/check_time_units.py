@@ -91,7 +91,7 @@ def main():
                 with open(messages_path, 'w') as outstream:
                     outstream.write(message.replace(':', '^'))
             else:
-                con_message(LEVEL,message)
+                con_message('error',message)  # no idea if this should be info, warning or error
             return 1
     return 0
 

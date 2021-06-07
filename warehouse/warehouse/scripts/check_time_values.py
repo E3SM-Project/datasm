@@ -152,7 +152,7 @@ def main():
             target = prev + freq
         if not first or not last:
             # this file had an empty index, move on and start checking the next one as though this one was there
-            msg = f"Empty time index found in {files[idx]}"
+            msg = f"Empty time index found in {os.path.basename(files[idx])}"
             issues.append(msg)
             prev = target
             continue

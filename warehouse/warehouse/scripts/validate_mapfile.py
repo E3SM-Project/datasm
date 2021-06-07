@@ -42,8 +42,8 @@ def loadFileLines(filepath: Path):
     retlist = []
     if not filepath.exists():
         con_message('error',f"Cannot load lines from file {filepath} as it does not exist")
-        raise ValueError(
-            f"Cannot load lines from file {filepath} as it does not exist")
+        sys.exit(1)
+        # raise ValueError(f"Cannot load lines from file {filepath} as it does not exist")
 
     with open(filepath.resolve(), "r") as instream:
         retlist = [Path(x.split('|')[1]).name for x in instream.readlines()]

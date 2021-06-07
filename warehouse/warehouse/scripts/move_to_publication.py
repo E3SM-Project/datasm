@@ -61,8 +61,8 @@ def conduct_move(args):
         destination = dst_path / afile.name
         if destination.exists():
             con_message('error',f"Trying to move file {afile} to {destination}, but the destination already exists")
-            raise ValueError(
-                f"Trying to move file {afile} to {destination}, but the destination already exists")
+            sys.exit(1)
+            # raise ValueError(f"Trying to move file {afile} to {destination}, but the destination already exists")
         afile.replace(destination)
     
     for mapfile in src_path.parent.glob(".mapfile"):
@@ -77,7 +77,7 @@ def conduct_move(args):
         with open(messages_path, 'w') as outstream:
             outstream.write(message)
     else:
-        con_message('info',message)
+        con_message('error',message)
 
     return 0
 
