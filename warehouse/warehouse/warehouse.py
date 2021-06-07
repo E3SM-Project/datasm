@@ -62,7 +62,7 @@ class AutoWarehouse():
         os.makedirs(self.slurm_path, exist_ok=True)
         self.should_exit = False
         self.debug = kwargs.get('debug')
-        self.tmpdir = kwargs.get('tmp', os.environ['TMPDIR'])
+        self.tmpdir = kwargs.get('tmp', os.environ.get('TMPDIR'))
 
         self.scripts_path = Path(Path(inspect.getfile(
             self.__class__)).parent.absolute(), 'scripts').resolve()
