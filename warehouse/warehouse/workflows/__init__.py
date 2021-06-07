@@ -1,3 +1,4 @@
+from warehouse.util import print_debug
 import yaml
 import importlib
 import os
@@ -19,6 +20,7 @@ with open(DEFAULT_CONF_PATH, 'r') as instream:
 DEFAULT_WAREHOUSE_PATH = warehouse_conf['DEFAULT_WAREHOUSE_PATH']
 DEFAULT_PUBLICATION_PATH = warehouse_conf['DEFAULT_PUBLICATION_PATH']
 DEFAULT_ARCHIVE_PATH = warehouse_conf['DEFAULT_ARCHIVE_PATH']
+DEFAULT_STATUS_PATH = warehouse_conf['DEFAULT_STATUS_PATH']
 
 NAME = 'Warehouse'
 
@@ -72,7 +74,7 @@ class Workflow(object):
             idx (int) : The recursive depth index
         Returns the name of the next state to transition to given the current state of the dataset
         """
-        # self.print_debug(f"next_state: *{state}*")
+        self.print_debug(f"next_state: *{state}*")
         state_attrs = state.split(':')
         if len(state_attrs) < 3:
             target_state = state
@@ -80,7 +82,12 @@ class Workflow(object):
             target_state = f"{state_attrs[-3]}:{state_attrs[-2]}"
         prefix = self.get_status_prefix()
         if target_state in self.transitions.keys():
-            target_data_type = f'{dataset.realm}-{dataset.grid}-{dataset.freq}'
+            if dataset.grid == "native":
+                target_data_type = f'{dataset.realm}-native-{dataset.freq}'
+            else:
+                target_data_type = f'{dataset.realm}-{dataset.data_type.replace("-", "")}-{dataset.freq}'
+
+            self.print_debug(f"target_data_type: {target_data_type}")
             transitions = self.transitions[target_state].get(target_data_type)
             if transitions is None:
                 try:
@@ -111,6 +118,8 @@ class Workflow(object):
         else:
             parent = f"{state_attrs[0]}:{state_attrs[1]}"
 
+        self.print_debug(f"initializing job {job_name} for {dataset.dataset_id} from state {state}:{params}")
+
         job = self.jobs[job_name]
         job_instance = job(
             dataset,
@@ -122,9 +131,22 @@ class Workflow(object):
             parent=parent,
             job_workers=self.job_workers,
             spec_path=kwargs.get('spec_path'),
-            debug=kwargs.get('debug'))
+            config=kwargs.get('config'),
+            debug=kwargs.get('debug'),
+            serial=kwargs.get('serial', True),
+            tmpdir=kwargs.get('tmpdir', os.environ['TMPDIR']))
 
-        job_instance.setup_requisites()
+        other_datasets = kwargs.get('other_datasets')
+        job_instance.setup_requisites(other_datasets)
+        try:
+            job_reqs = {k:v.dataset_id for k,v in job_instance.requires.items()}
+        except AttributeError as error:
+            cprint(f"Job instance {job_instance} unable to find its requirements {job_instance.requires.items()}, is there a missing dataset?", "red")
+            return None
+        if not job_instance.meets_requirements():
+            cprint(f"Job {job_instance} has unsatisfiable requirements {job_reqs}", "red")
+        else:
+            cprint(f"Job {job_instance} found requirements {job_reqs}", "green")
         return job_instance
 
     def load_transitions(self):
@@ -217,6 +239,10 @@ class Workflow(object):
             '-a', '--archive-path',
             default=DEFAULT_ARCHIVE_PATH,
             help=f"The root path for the data archive, default={DEFAULT_ARCHIVE_PATH}")
+        parser.add_argument(
+            '--status-path',
+            default=DEFAULT_STATUS_PATH,
+            help=f'The path to where to store dataset status files, default={DEFAULT_STATUS_PATH}')
         parser.add_argument(
             '--debug',
             action='store_true',

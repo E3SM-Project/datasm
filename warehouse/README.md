@@ -13,8 +13,6 @@ The warehouse utility allows for the automation of complex nested workflows with
 
 ### installation
 
-First, install the sproket utility for communication with the ESGF API: https://github.com/ESGF/sproket
-
 ```
 git clone https://github.com/E3SM-Project/esgfpub.git
 cd esgfpub/warehouse
@@ -24,7 +22,7 @@ python setup.py install
 python setup.py clean
 ```
 
-You'll also need the custom E3SM branch of the esgf publisher
+You'll also need the custom E3SM branch of the esgf publisher utility
 ```
 git clone https://github.com/sashakames/esg-publisher -b e3sm-custom
 cd esg-publisher/pkg

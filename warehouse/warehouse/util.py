@@ -3,13 +3,14 @@ import json
 import traceback
 import inspect
 import logging
-
+import requests
 
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
 from pathlib import Path
 from datetime import datetime
 from termcolor import colored, cprint
+
 
 
 def load_file_lines(file_path):
@@ -185,4 +186,26 @@ def sproket_with_id(dataset_id, sproket_path="sproket", **kwargs):
     return dataset_id, files
 
 
+def search_esgf(project, facets, node="esgf-node.llnl.gov", filter_values=['cf_standard_name', 'variable', 'variable_long_name', 'variable_units'], latest='true'):
+    """
+    Make a search request to an ESGF node and return information about the datasets that match the search parameters
+
+    Parameters:
+        project (str): The ESGF project to search inside
+        facets (dict): A dict with keys of facets, and values of facet values to search
+        node (str): The esgf index node to querry
+        filter_values (list): A list of string values to be filtered out of the return document
+        latest (str): boolean (true/false not True/False) to search for only the latest version of a dataset
+    """
+
+    url = f"https://{node}/esg-search/search/?project={project}&format=application%2Fsolr%2Bjson&latest={latest}&{'&'.join([f'{k}={v}' for k,v in facets.items()])}"
+    req = requests.get(url)
+    if req.status_code != 200:
+        raise ValueError(f"ESGF search request failed: {url}")
+
+    docs = [{
+            k: v for k, v in doc.items()
+            if k not in filter_values
+            } for doc in req.json()['response']['docs']]
+    return docs
 # -----------------------------------------------
