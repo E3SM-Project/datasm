@@ -157,7 +157,7 @@ def main():
             prev = target
             continue
         if first != target:
-            msg = f"index issue file: {files[idx]} has index {(first, last)} should be ({target, last}), the start index is off by ({first - target}) {time_units.split(' ')[0]}. "
+            msg = f"index issue file: {os.path.basename(files[idx])} has index {(first, last)} should be ({target, last}), the start index is off by ({first - target}) {time_units.split(' ')[0]}. "
             issues.append(msg)
         prev = last
 
