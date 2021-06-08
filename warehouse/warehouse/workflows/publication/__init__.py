@@ -32,8 +32,6 @@ class Publication(Workflow):
         dataset_id = self.params['dataset_id']
         tmpdir = self.params['tmp']
 
-        log_message('info',f'starting job {self.name} for {self.dataset.dataset_id}')
-
         if (pub_base := self.params.get('publication_path')):
             self.pub_path = Path(pub_base)
             if not self.pub_path.exists():
@@ -74,6 +72,7 @@ class Publication(Workflow):
         warehouse.start_listener()
 
         for dataset_id, dataset in warehouse.datasets.items():
+            log_message('info',f'starting job {self.name} for {dataset_id}')
             warehouse.start_datasets({dataset_id: dataset})
 
         while not warehouse.should_exit:
