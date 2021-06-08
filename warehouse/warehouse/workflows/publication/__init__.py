@@ -24,7 +24,7 @@ class Publication(Workflow):
         super().__init__(*args, **kwargs)
         self.name = NAME.upper()
         self.pub_path = None
-        log_message('info',f'initializing job {self.name} for {self.dataset.dataset_id}')
+        log_message('info',f'initializing job {self.name} for someone')
 
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse
