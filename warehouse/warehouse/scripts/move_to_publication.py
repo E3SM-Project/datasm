@@ -57,13 +57,16 @@ def conduct_move(args):
     src_path = Path(args.src)
     dst_path = Path(args.dst)
 
+    fc = 0
     for afile in src_path.glob('*.nc'):  # all .nc files
         destination = dst_path / afile.name
         if destination.exists():
             con_message('error',f"Trying to move file {afile} to {destination}, but the destination already exists")
             sys.exit(1)
-            # raise ValueError(f"Trying to move file {afile} to {destination}, but the destination already exists")
         afile.replace(destination)
+        fc += 1
+
+    con_message('info',f'moved {fc} files from {src_path} to {dst_path}')
     
     for mapfile in src_path.parent.glob(".mapfile"):
         with open(mapfile, 'r') as instream:

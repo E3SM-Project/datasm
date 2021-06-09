@@ -91,6 +91,7 @@ def main():
                 with open(messages_path, 'w') as outstream:
                     outstream.write(message.replace(':', '^'))
             else:
+                con_message('error',"could not obtain message_path from environment")
                 con_message('error',message)  # no idea if this should be info, warning or error
             return 1
     return 0

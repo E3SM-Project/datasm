@@ -20,12 +20,11 @@ def parse_args():
     return parser.parse_args()
 
 
-def publish_dataset(dataset_id: str):
+def publish_dataset(dataset_id: str):   # should be renamed
     """
-    Checks that a dataset isn't already available on ESGF, and if its not
-    users the esgpublish utility to publish it
+    Tests whether a dataset is already available on ESGF.
 
-    Returns 0 if successful, 1 otherwise
+    Returns 0 if already published, 1 if not.
     """
 
     _, files = sproket_with_id(dataset_id)

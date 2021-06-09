@@ -3,6 +3,7 @@ import argparse
 from shutil import move
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from warehouse.util import con_message
 
 
 def parse_args():
@@ -34,6 +35,7 @@ def parse_args():
 def main():
     parsed_args = parse_args()
 
+    con_message('info': 'Begin fix_mapfile_paths')
     mapfile_path = Path(parsed_args.mapfile_path)
     ware_base = parsed_args.warehouse_base
     pub_base = parsed_args.pub_base
@@ -52,6 +54,7 @@ def main():
     mapfile_temp = str(mapfile_path.resolve())
     mapfile_path.unlink()
     move(tempfile.name, mapfile_temp)
+    con_message('info': f'Completed fix_mapfile_paths, mapfile={mapfile_temp}')
 
     return 0
 

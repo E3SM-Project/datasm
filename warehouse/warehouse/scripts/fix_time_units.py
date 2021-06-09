@@ -13,7 +13,6 @@ def fix_units(inpath, outpath, time_units, offset):
         if ds.get('time') is None:
             con_message('error',f"{os.path.basename(inpath)} has no 'time' axis")
             exit(1)
-            # raise ValueError(f"{inpath} has no 'time' axis")
         bnds_name = 'time_bnds' if ds.get(
             'time_bnds') is not None else 'time_bounds'
         if ds['time'].attrs.get('units') != time_units:

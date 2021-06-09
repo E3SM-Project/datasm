@@ -66,7 +66,6 @@ def main():
     if not input_path.exists() or not input_path.is_dir():
         con_message('error',"Input directory does not exist or is not a directory")
         sys.exit(1)
-        # raise ValueError("Input directory does not exist or is not a directory")
 
     outpath = parsed_args.outpath
     if outpath:
