@@ -73,7 +73,7 @@ class Publication(Workflow):
         warehouse.start_listener()
 
         for dataset_id, dataset in warehouse.datasets.items():
-            log_message('info',f'starting job {self.name} for {dataset_id}')
+            log_message('info',f'starting workflow {self.name} for {dataset_id}')
             warehouse.start_datasets({dataset_id: dataset})
 
         while not warehouse.should_exit:
