@@ -23,8 +23,6 @@ class PostProcess(Workflow):
         parallel = self.params.get('parallel')
         self.serial = False if parallel else True
         self.metadata_path = None
-        log_message(
-            'info', f'initializing job {self.name} for {self.dataset.dataset_id}')
 
     def __call__(self):
         from warehouse.warehouse import AutoWarehouse
@@ -73,6 +71,7 @@ class PostProcess(Workflow):
 
         while not warehouse.should_exit:
             sleep(2)
+            warehouse.check_done()
 
         for dataset_id, dataset in warehouse.datasets.items():
             color = "green" if "Pass" in dataset.status else "red"

@@ -24,7 +24,6 @@ class Publication(Workflow):
         super().__init__(*args, **kwargs)
         self.name = NAME.upper()
         self.pub_path = None
-        log_message('info',f'initializing job {self.name} for {self.dataset.dataset_id}')
 
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse
@@ -32,7 +31,7 @@ class Publication(Workflow):
         dataset_id = self.params['dataset_id']
         tmpdir = self.params['tmp']
 
-        log_message('info',f'starting job {self.name} for {self.dataset.dataset_id}')
+        log_message('info',f'starting workflow {self.name} for datasets {dataset_id}')
 
         if (pub_base := self.params.get('publication_path')):
             self.pub_path = Path(pub_base)

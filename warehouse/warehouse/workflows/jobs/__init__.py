@@ -116,8 +116,8 @@ rm $message_file
         Checks that the self.dataset matches the jobs requirements, as well
         as an optional list of additional datasets
         """
-        if self.dataset.dataset_id == dataset.dataset_id:
-            return None
+        # if self.dataset.dataset_id == dataset.dataset_id:
+        #     return None
 
         if dataset.experiment != self.dataset.experiment:
             return None
