@@ -62,7 +62,7 @@ class AutoWarehouse():
         os.makedirs(self.slurm_path, exist_ok=True)
         self.should_exit = False
         self.debug = kwargs.get('debug')
-        self.tmpdir = kwargs.get('tmp', os.environ['TMPDIR'])
+        self.tmpdir = kwargs.get('tmp', os.environ.get('TMPDIR'))
 
         self.scripts_path = Path(Path(inspect.getfile(
             self.__class__)).parent.absolute(), 'scripts').resolve()
@@ -511,8 +511,8 @@ class AutoWarehouse():
         p.add_argument(
             '--tmp',
             required=False,
-            default=f"{os.environ['TMPDIR']}",
-            help=f"the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: {os.environ['TMPDIR']}")
+            default=f"{os.environ.get('TMPDIR')}",
+            help=f"the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: {os.environ.get('TMPDIR')}")
         p.add_argument(
             '--report-missing',
             required=False,

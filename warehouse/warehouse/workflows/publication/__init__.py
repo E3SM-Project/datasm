@@ -93,8 +93,8 @@ class Publication(Workflow):
         parser.add_argument(
             '--tmp',
             required=False,
-            default=f"{os.environ['TMPDIR']}",
-            help=f"the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: {os.environ['TMPDIR']}")
+            default=f"{os.environ.get('TMPDIR')}",
+            help=f"the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: {os.environ.get('TMPDIR')}")
         return COMMAND, parser
 
     @staticmethod
