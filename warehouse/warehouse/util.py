@@ -69,11 +69,7 @@ def print_debug(e):
     print("4", sys.exc_info()[1])
     _, _, tb = sys.exc_info()
     print("5", traceback.print_tb(tb))
-
-
 # -----------------------------------------------
-
-""" Log Unification """
 
 
 def setup_logging(loglevel, logpath):
@@ -95,8 +91,6 @@ def setup_logging(loglevel, logpath):
     )
     # should be a separate message call
     # logging.info(f"Starting up the warehouse with parameters: \n{pformat(self.__dict__)}")
-
-
 # -----------------------------------------------
 
 
@@ -120,6 +114,7 @@ def con_message(level, message):        # message ONLY to console (in color)
     # to the console
     msg = f"{tstamp}:{level}:{message}"
     cprint(msg, color)
+# -----------------------------------------------
 
 def log_message(level, message):        # message BOTH to log file and to console (in color)
 
@@ -150,8 +145,6 @@ def log_message(level, message):        # message BOTH to log file and to consol
     # now to the console
     msg = f"{tstamp}:{level}:{message}"
     cprint(msg, color)
-
-
 # -----------------------------------------------
 
 
@@ -184,6 +177,7 @@ def sproket_with_id(dataset_id, sproket_path="sproket", **kwargs):
 
     files = sorted([i.decode("utf-8") for i in out.split()])
     return dataset_id, files
+# -----------------------------------------------
 
 
 def search_esgf(project, facets, node="esgf-node.llnl.gov", filter_values=['cf_standard_name', 'variable', 'variable_long_name', 'variable_units'], latest='true'):
