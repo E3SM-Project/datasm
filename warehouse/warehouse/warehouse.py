@@ -335,40 +335,16 @@ class AutoWarehouse():
                 self.check_done()
                 return
             else:
-                # we keep a reference to the workflow instance, so when
-                # we make a job we can reconstruct the parent workflow name
-                # for the status file
-                params = {}
-                if (parameters := dataset.status.split(':')[-1].strip()):
-                    for item in parameters.split(','):
-                        key, value = item.split('=')
-                        params[key] = value.replace('^', ':')
-
-                state = dataset.status
-                workflow = self.workflow
-                engaged_states = []
-
-                if dataset.is_blocked(state):
-                    log_message('warning', f'Dataset {dataset.dataset_id} at state {state} is marked as Blocked')
-                    continue
-                elif f"{self.workflow.name.upper()}:Pass:" == state:
-                    self.workflow_success(dataset)
-                    self.check_done()
-                    return
-                elif f"{self.workflow.name.upper()}:Fail:" == state:
-                    self.workflow_error(dataset)
-                    self.check_done()
-                    return
-                else:
-                    state_list = self.workflow.next_state(
-                        dataset, state, params)
-                    for item in state_list:
-                        new_state, workflow, params = item
-                        if 'Engaged' in new_state:
-                            engaged_states.append(
-                                (new_state, workflow, params))
-                        else:
-                            dataset.status = (new_state, params)
+            
+                state_list = self.workflow.next_state(
+                    dataset, state, params)
+                for item in state_list:
+                    new_state, workflow, params = item
+                    if 'Engaged' in new_state:
+                        engaged_states.append(
+                            (new_state, workflow, params))
+                    else:
+                        dataset.status = (new_state, params)
 
                 if not engaged_states:
                     self.check_done()
@@ -415,7 +391,7 @@ class AutoWarehouse():
     def start_listener(self):
         self.listener = []
         for _, dataset in self.datasets.items():
-            log_message('info', f'starting listener for {dataset.warehouse_path}')
+            log_message('info', f'starting listener for {dataset.status_path}')
             listener = Listener(
                 warehouse=self,
                 file_path=dataset.status_path)
@@ -426,7 +402,8 @@ class AutoWarehouse():
     def check_done(self):
         all_done = True
         for dataset in self.datasets.values():
-            if dataset.status not in [f"{self.workflow.name.upper()}:Pass:", f"{self.workflow.name.upper()}:Fail:"]:
+            if f"{self.workflow.name.upper()}:Pass:" not in dataset.status and \
+               f"{self.workflow.name.upper()}:Fail:" not in dataset.status:
                 all_done = False
         if all_done:
             for listener in self.listener:
