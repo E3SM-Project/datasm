@@ -10,17 +10,17 @@ from warehouse.util import con_message
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Publish a dataset to ESGF")
+    parser = argparse.ArgumentParser(description="Publish a dataset to ESGF")
     parser.add_argument(
-        '--dataset-id',
+        "--dataset-id",
         type=str,
         required=True,
-        help="The dataset ID to use for the publication check")
+        help="The dataset ID to use for the publication check",
+    )
     return parser.parse_args()
 
 
-def publish_dataset(dataset_id: str):   # should be renamed
+def check_dataset_published(dataset_id: str):
     """
     Tests whether a dataset is already available on ESGF.
 
@@ -29,15 +29,14 @@ def publish_dataset(dataset_id: str):   # should be renamed
 
     _, files = sproket_with_id(dataset_id)
     if files is None or not files:
-        con_message('warning',
-            f"Dataset {dataset_id} has not been published to ESGF")
+        con_message("warning", f"Dataset {dataset_id} has not been published to ESGF")
         return 1
     return 0
 
 
 def main():
     parsed_args = parse_args()
-    return publish_dataset(parsed_args)
+    return check_dataset_published(parsed_args)
 
 
 if __name__ == "__main__":

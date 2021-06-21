@@ -38,7 +38,7 @@ class Workflow(object):
         self.params = kwargs
         self.job_workers = kwargs.get('job_workers')
         self.debug = kwargs.get('debug')
-        setup_logging('info','Warehouse.log')
+        setup_logging('info', 'Warehouse.log')
 
     def load_jobs(self):
         """
@@ -95,10 +95,8 @@ class Workflow(object):
                 try:
                     return [(f'{prefix}{x}:', self, params) for x in self.transitions[target_state]['default']]
                 except KeyError as e:
-                    log_message('error',f"Dataset {dataset.dataset_id} tried to go to the 'default' transition from the {target_state}, but no default was found")
+                    log_message('error', f"Dataset {dataset.dataset_id} tried to go to the 'default' transition from the {target_state}, but no default was found")
                     sys.exit(1)
-                    # cprint(f"Dataset {dataset.dataset_id} tried to go to the 'default' transition from the {target_state}, but no default was found", "red")
-                    # raise e
             else:
                 return [(f'{prefix}{x}:', self, params) for x in transitions]
 
@@ -109,9 +107,8 @@ class Workflow(object):
             return self.children[state_attrs[idx]].next_state(dataset, state, params, idx + 1)
 
         else:
-            log_message('error',f"{target_state} is not present in the transition graph for {self.name}")
+            log_message('error', f"{target_state} is not present in the transition graph for {self.name}")
             sys.exit(1)
-            # raise ValueError(f"{target_state} is not present in the transition graph for {self.name}")
 
     def get_job(self, dataset, state, params, scripts_path, slurm_out_path, workflow, job_workers=8, **kwargs):
         state_attrs = state.split(':')
@@ -145,12 +142,12 @@ class Workflow(object):
         try:
             job_reqs = {k:v.dataset_id for k,v in job_instance.requires.items()}
         except AttributeError as error:
-            log_message('error',f"Job instance {job_instance} unable to find its requirements {job_instance.requires.items()}, is there a missing dataset?")
+            log_message('error', f"Job instance {job_instance} unable to find its requirements {job_instance.requires.items()}, is there a missing dataset?")
             return None
         if not job_instance.meets_requirements():
-            log_message('error',f"Job {job_instance} has unsatisfiable requirements {job_reqs}")
+            log_message('error', f"Job {job_instance} has unsatisfiable requirements {job_reqs}")
         else:
-            log_message('info',f"Job {job_instance} found and met requirements {job_reqs}")
+            log_message('info', f"Job {job_instance} found and met requirements {job_reqs}")
         return job_instance
 
     def load_transitions(self):
@@ -169,9 +166,8 @@ class Workflow(object):
 
             module_path = Path(my_path, d.name, '__init__.py')
             if not module_path.exists():
-                log_message('error',f"{module_path} doesnt exist, doesnt look like this is a well formatted workflow")
+                log_message('error', f"{module_path} doesnt exist, doesnt look like this is a well formatted workflow")
                 sys.exit(1)
-                # raise ValueError( f"{module_path} doesnt exist, doesnt look like this is a well formatted workflow")
 
             workflows_string = f"warehouse{os.sep}workflows"
             idx = str(my_path.resolve()).find(workflows_string)
@@ -209,7 +205,7 @@ class Workflow(object):
 
     def print_debug(self, msg):
         if self.debug:
-            log_message('debug',msg)
+            log_message('debug', msg)
 
     @staticmethod
     def add_args(parser):
@@ -257,13 +253,12 @@ class Workflow(object):
     @staticmethod
     def arg_checker(args, command=NAME):
         if args.data_path and not args.dataset_id:
-            log_message('error',"\nIf the data_path is given, please also give a dataset ID for the data at the path\n")
+            log_message('error', "\nIf the data_path is given, please also give a dataset ID for the data at the path\n")
             return False, command
         if not args.dataset_id and not args.data_path:
-            log_message('error',"\nError: please specify either the dataset-ids to process, or the data-path to find datasets\n")
+            log_message('error', "\nError: please specify either the dataset-ids to process, or the data-path to find datasets\n")
             return False, command
         if isinstance(args.dataset_id, list) and len(args.dataset_id) > 1 and args.data_path:
-            log_message('error',"\nMultiple datasets were given along with the --data-path, for multiple datasets you must use the --warehouse-path"
-                                " and the E3SM publication directory structure")
+            log_message('error', "\nMultiple datasets were given along with the --data-path. For multiple datasets you must use the --warehouse-path and the E3SM publication directory structure")
             return False, command
         return True, command

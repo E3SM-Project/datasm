@@ -31,6 +31,7 @@ class Publication(Workflow):
 
         dataset_id = self.params['dataset_id']
         tmpdir = self.params['tmp']
+        log_message('info',f'starting workflow {self.name} for datasets {dataset_id}')
 
         log_message('info', f'starting workflow {self.name} for datasets {dataset_id}')
 
