@@ -24,14 +24,16 @@ class Publication(Workflow):
         super().__init__(*args, **kwargs)
         self.name = NAME.upper()
         self.pub_path = None
+        log_message('info', f'initializing workflow {self.name}')
 
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse
 
         dataset_id = self.params['dataset_id']
         tmpdir = self.params['tmp']
-
         log_message('info',f'starting workflow {self.name} for datasets {dataset_id}')
+
+        log_message('info', f'starting workflow {self.name} for datasets {dataset_id}')
 
         if (pub_base := self.params.get('publication_path')):
             self.pub_path = Path(pub_base)
@@ -73,6 +75,7 @@ class Publication(Workflow):
         warehouse.start_listener()
 
         for dataset_id, dataset in warehouse.datasets.items():
+            log_message('info', f'starting job {self.name} for {dataset_id}')
             warehouse.start_datasets({dataset_id: dataset})
 
         while not warehouse.should_exit:
@@ -80,7 +83,7 @@ class Publication(Workflow):
 
         for dataset_id, dataset in warehouse.datasets.items():
             mtype = "info" if "Pass" in dataset.status else "error"
-            log_message(mtype,f"Publication complete, dataset {dataset_id} is in state {dataset.status}")
+            log_message(mtype, f"Publication complete, dataset {dataset_id} is in state {dataset.status}")
 
         sys.exit(0)
 

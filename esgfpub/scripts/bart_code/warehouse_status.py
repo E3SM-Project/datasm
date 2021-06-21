@@ -276,9 +276,12 @@ DS_Status: dictionary
 # into dictionary, key = STAT, rows are tuples (ts,'PROCESS:status1:status2:...')
 # and for comments, key = COMM, rows are comment lines
 
+gv_status_root = "/p/user_pub/e3sm/staging/status"
+
 def load_DatasetStatusFile(edir):
     statdict = {}
-    statfile = os.path.join(edir,'.status')
+    dsid = get_dsid(edir)
+    statfile = os.path.join(gv_status_root,dsid + '.status')
     if not os.path.exists(statfile):
         return statdict
     statdict['STAT'] = []

@@ -11,8 +11,8 @@ def fix_units(inpath, outpath, time_units, offset):
     import xarray as xr
     with xr.open_dataset(inpath, decode_times=False) as ds:
         if ds.get('time') is None:
-            con_message('error',f"{inpath} has no 'time' axis")
-            raise ValueError(f"{inpath} has no 'time' axis")
+            con_message('error',f"{os.path.basename(inpath)} has no 'time' axis")
+            exit(1)
         bnds_name = 'time_bnds' if ds.get(
             'time_bnds') is not None else 'time_bounds'
         if ds['time'].attrs.get('units') != time_units:

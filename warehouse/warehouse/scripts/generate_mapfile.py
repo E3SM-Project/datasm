@@ -65,7 +65,7 @@ def main():
 
     if not input_path.exists() or not input_path.is_dir():
         con_message('error',"Input directory does not exist or is not a directory")
-        raise ValueError("Input directory does not exist or is not a directory")
+        sys.exit(1)
 
     outpath = parsed_args.outpath
     if outpath:
@@ -102,7 +102,7 @@ def main():
         with open(messages_path, 'w') as outstream:
             outstream.write(message)
     else:
-        con_message('info',message)
+        con_message('error',message)
     return 0
 
 

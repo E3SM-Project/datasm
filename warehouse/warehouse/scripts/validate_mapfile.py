@@ -42,8 +42,7 @@ def loadFileLines(filepath: Path):
     retlist = []
     if not filepath.exists():
         con_message('error',f"Cannot load lines from file {filepath} as it does not exist")
-        raise ValueError(
-            f"Cannot load lines from file {filepath} as it does not exist")
+        sys.exit(1)
 
     with open(filepath.resolve(), "r") as instream:
         retlist = [Path(x.split('|')[1]).name for x in instream.readlines()]
@@ -69,8 +68,7 @@ def validate_mapfile(mapfile: str, srcdir: Path, quiet: bool):
     
     if not len(dataset_files) == len(mapfile_lines):
         con_message('error',"Number of files does not match number of entries in the mapfile")
-        raise ValueError(
-            "Number of files does not match number of entries in the mapfile")
+        sys.exit(1)
 
     # MUST assume both lists sort identically - O(n) > O(n^2)
     pairlist = list(zip(dataset_files, mapfile_lines))

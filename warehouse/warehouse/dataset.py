@@ -6,7 +6,7 @@ from enum import Enum
 from pathlib import Path
 from pprint import pprint
 from datetime import datetime
-from warehouse.util import load_file_lines, search_esgf, get_last_status_line
+from warehouse.util import load_file_lines, search_esgf, get_last_status_line, log_message
 
 
 class DatasetStatus(Enum):
@@ -59,27 +59,6 @@ SEASONS = [{
 class Dataset(object):
     def get_status_from_archive(self):
         ...
-
-    def initialize_status_file(self):
-
-        if not self.status_path.exists():
-            self.status_path.touch(mode=0o755, exist_ok=True)
-
-        found_id = False
-        with open(self.status_path, 'r') as instream:
-            for line in instream.readlines():
-                if 'DATASETID' in line:
-                    found_id = True
-                    break
-        if not found_id:
-            with open(self.status_path, 'a') as outstream:
-                outstream.write(f'DATASETID={self.dataset_id}\n')
-
-        if (status := get_last_status_line(self.status_path)):
-            status_attrs = status.split(':')
-            self._status = f"{status_attrs[-3]}:{status_attrs[-2]}:"
-        else:
-            self._status = DatasetStatus.UNITITIALIZED.name
 
     def __init__(self, dataset_id, status_path, pub_base=None, warehouse_base=None, archive_base=None, start_year=None, end_year=None, datavars=None, path='', versions={}, stat=None, comm=None, *args, **kwargs):
         super().__init__()
@@ -175,11 +154,36 @@ class Dataset(object):
                 self.ensemble)
 
         self.initialize_status_file()
+    
+    def initialize_status_file(self):
+        log_message('info', 'initializing status file for {self.dataset_id}')
+
+        if not self.status_path.exists():
+            log_message('info', 'creating new status file {self.status_path}')
+            self.status_path.touch(mode=0o755, exist_ok=True)
+
+        found_id = False
+        with open(self.status_path, 'r') as instream:
+            for line in instream.readlines():
+                if 'DATASETID' in line:
+                    found_id = True
+                    break
+        if not found_id:
+            log_message('info', 'status file {self.status_path} doesnt list its dataset id, adding it')
+            with open(self.status_path, 'a') as outstream:
+                outstream.write(f'DATASETID={self.dataset_id}\n')
+
+        if (status := get_last_status_line(self.status_path)):
+            status_attrs = status.split(':')
+            self._status = f"{status_attrs[-3]}:{status_attrs[-2]}:"
+            log_message('info', 'status found as: {self._status}')
+        else:
+            self._status = DatasetStatus.UNITITIALIZED.name
+            log_message('info', 'no status found, setting to {self._status}')
 
     def update_from_status_file(self):
         self.load_dataset_status_file()
         latest = get_last_status_line(self.status_path).split(':')
-
         new_status = ":".join(latest[3:]).strip()
         self._status = new_status
 
@@ -329,6 +333,7 @@ class Dataset(object):
         return latest_val, second_latest
 
     def check_dataset_is_complete(self, files):
+        # TODO: full pass on this to make sure its working for all data types
 
         # filter out files from old versions
         nfiles = []

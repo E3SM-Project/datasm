@@ -111,6 +111,9 @@ def publish_dataset(args):
                 stderr=logstream,
                 universal_newlines=True)
             proc.wait()
+
+        con_message('info',f'Return code {str(proc.returncode)} on cmd: {cmd}')
+
         return proc.returncode
 
 

@@ -90,9 +90,9 @@ class AutoWarehouse():
             self.listener = None
 
         if self.serial:
-            log_message('info','Running warehouse in serial mode')
+            log_message('info', 'Running warehouse in serial mode')
         else:
-            log_message('info',f'Running warehouse in parallel mode with {self.num_workers} workers')
+            log_message('info', f'Running warehouse in parallel mode with {self.num_workers} workers')
 
         with open(self.spec_path, 'r') as instream:
             self.dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
@@ -131,12 +131,12 @@ class AutoWarehouse():
                 for m in x.missing:
                     print(f"{m}")
             elif x.status == DatasetStatus.UNITITIALIZED.name:
-                log_message('error',f'No files in dataset {x.dataset_id}')
+                log_message('error', f'No files in dataset {x.dataset_id}')
         if not found_missing:
-            log_message('info','No missing files in datasets')
+            log_message('info', 'No missing files in datasets')
 
     def setup_datasets(self, check_esgf=True):
-        log_message('info','Initializing the warehouse') # was green
+        log_message('info', 'Initializing the warehouse')
         cmip6_ids = [x for x in self.collect_cmip_datasets()]
         if self.testing:
             cmip6_ids = cmip6_ids[:100]
@@ -165,21 +165,10 @@ class AutoWarehouse():
                 if not found:
                     cprint(f"Unable to find {i} in the dataset spec", "red")
 
-
-            # for i in dataset_ids:
-            #     found = False
-            #     for ii in self.dataset_ids:
-            #         if ii == i or ii in i:
-            #             found = True
-            #             break
-            #     if found:
-            #         ndataset_ids.append(i)
-            # if not found:
-            #     cprint(f"Unable to find {ii} in the dataset spec", 'red')
             dataset_ids = ndataset_ids
         del all_dataset_ids
         if not dataset_ids:
-            log_message('error',f'No datasets match pattern from --dataset-id {self.dataset_ids} flag')
+            log_message('error', f'No datasets match pattern from command line parameter --dataset-id {self.dataset_ids}')
             sys.exit(1)
         
         # instantiate the dataset objects with the paths to
@@ -245,10 +234,10 @@ class AutoWarehouse():
 
 
     def workflow_error(self, dataset):
-        log_message('error',f'Dataset {dataset.dataset_id} FAILED from {dataset.status}')
+        log_message('error', f'Dataset {dataset.dataset_id} FAILED from {dataset.status}')
 
     def workflow_success(self, dataset):
-        log_message('info',f'Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}')
+        log_message('info', f'Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}')
 
     def print_debug(self, msg):
         if self.debug:
@@ -266,7 +255,7 @@ class AutoWarehouse():
                 if 'DATASETID' in line:
                     dataset_id = line.split('=')[-1].strip()
         if dataset_id is None:
-            log_message('error', "Unable to find dataset ID in status file")
+            log_message('error', 'Unable to find dataset ID in status file')
 
         dataset = self.datasets[dataset_id]
         dataset.update_from_status_file()
@@ -288,6 +277,7 @@ class AutoWarehouse():
                             if job.job_id == job_id:
                                 self.job_pool.remove(job)
                                 break
+                            
         self.start_datasets({dataset_id: dataset})
 
     def start_datasets(self, datasets=None):
@@ -301,11 +291,8 @@ class AutoWarehouse():
 
         if datasets is None:
             datasets = self.datasets
+        
         for dataset_id, dataset in datasets.items():
-            # this will hold a list of dataset,status pairs that need to get updated 
-            # after all the datasets find their next state. These datasets will be all the 
-            # ones that dont go to "Engaged" in this round of transitions.
-            datasets_to_update = []
             if 'Engaged' in dataset.status:
                 continue
         
@@ -320,11 +307,13 @@ class AutoWarehouse():
 
             state = dataset.status
             workflow = self.workflow
-            engaged_states = []
+            
 
+            # check that the dataset isnt blocked by some other process thats acting on it
+            # and that the workflow hasnt either failed or succeeded
             if dataset.is_blocked(state):
-                cprint(
-                    f"Dataset {dataset.dataset_id} at state {state} is marked as Blocked", 'yellow')
+                msg = f"Dataset {dataset.dataset_id} at state {state} is marked as Blocked"
+                log_message("error", msg)
                 continue
             elif f"{self.workflow.name.upper()}:Pass:" == state:
                 self.workflow_success(dataset)
@@ -334,47 +323,51 @@ class AutoWarehouse():
                 self.workflow_error(dataset)
                 self.check_done()
                 return
-            else:
-            
-                state_list = self.workflow.next_state(
-                    dataset, state, params)
-                for item in state_list:
-                    new_state, workflow, params = item
-                    if 'Engaged' in new_state:
-                        engaged_states.append(
-                            (new_state, workflow, params))
-                    else:
-                        dataset.status = (new_state, params)
+        
+            # there may be several transitions out of this state and
+            # we need to collect them all 
+            engaged_states = []
+            for item in self.workflow.next_state(dataset, state, params):
+                new_state, workflow, params = item
+                # if we have a new state with the "Engaged" keyword
+                # we know its a leaf node that needs to be executed
+                if 'Engaged' in new_state:
+                    engaged_states.append(
+                        (new_state, workflow, params))
+                # otherwise the new state and its parameters need to be 
+                # written to the dataset status file
+                else:
+                    dataset.status = (new_state, params)
 
-                if not engaged_states:
-                    self.check_done()
-                    return
+            if not engaged_states:
+                self.check_done()
+                return
 
-                for state, workflow, params in engaged_states:
-                    newjob = self.workflow.get_job(
-                        dataset,
-                        state,
-                        params,
-                        self.scripts_path,
-                        self.slurm_path,
-                        workflow=workflow,
-                        job_workers=self.job_workers,
-                        spec_path=self.spec_path,
-                        debug=self.debug,
-                        config=warehouse_conf,
-                        other_datasets=list(self.datasets.values()),
-                        serial=self.serial,
-                        tmpdir=self.tmpdir)
-                    if newjob is None:
-                        continue
+            for state, workflow, params in engaged_states:
+                newjob = self.workflow.get_job(
+                    dataset,
+                    state,
+                    params,
+                    self.scripts_path,
+                    self.slurm_path,
+                    workflow=workflow,
+                    job_workers=self.job_workers,
+                    spec_path=self.spec_path,
+                    debug=self.debug,
+                    config=warehouse_conf,
+                    other_datasets=list(self.datasets.values()),
+                    serial=self.serial,
+                    tmpdir=self.tmpdir)
+                if newjob is None:
+                    continue
 
-                    # check if the new job is a duplicate
-                    if (matching_job := self.find_matching_job(newjob)) is None:
-                        self.print_debug(
-                            f"Created jobs from {state} for dataset {dataset_id}")
-                        new_jobs.append(newjob)
-                    else:
-                        matching_job.setup_requisites(newjob.dataset)
+                # check if the new job is a duplicate
+                if (matching_job := self.find_matching_job(newjob)) is None:
+                    self.print_debug(
+                        f"Created jobs from {state} for dataset {dataset_id}")
+                    new_jobs.append(newjob)
+                else:
+                    matching_job.setup_requisites(newjob.dataset)
 
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
@@ -389,6 +382,10 @@ class AutoWarehouse():
         return
 
     def start_listener(self):
+        """
+        States a file change listener for the status file 
+        for each of the datasets.
+        """
         self.listener = []
         for _, dataset in self.datasets.items():
             log_message('info', f'starting listener for {dataset.status_path}')
@@ -397,9 +394,14 @@ class AutoWarehouse():
                 file_path=dataset.status_path)
             listener.start()
             self.listener.append(listener)
-        log_message('info', 'Listener setup complete') # was green
+        log_message('info', 'Listener setup complete')
 
     def check_done(self):
+        """
+        Checks all the datasets to see if they're in the Pass or Fail state,
+        if ALL datasets are in either Pass or Fail, then sys.exit(0) is called
+        the filesystem listeners are shut down, and the 'should_exit' variable
+        is set. """
         all_done = True
         for dataset in self.datasets.values():
             if f"{self.workflow.name.upper()}:Pass:" not in dataset.status and \
@@ -413,6 +415,17 @@ class AutoWarehouse():
         return
 
     def find_matching_job(self, searchjob):
+        """
+        Given a job object to searh for, looks at all jobs
+        in the job_pool to find a job with the matching characteristics. 
+        Additionally checks if the job, and the searching job, meet their 
+        dataset input requirements.
+        
+        Parameters: 
+            searchjob (WorkflowJob): a job to search the job_pool for
+        Returns:
+            WorkflowJob: the matching job
+        """
         for job in self.job_pool:
             if job.name == searchjob.name \
                     and job.dataset.experiment == searchjob.dataset.experiment \
