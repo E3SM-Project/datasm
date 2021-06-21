@@ -55,7 +55,9 @@ def monotonic_check(path, idx, bndsname):
             start_bound = ds[bndsname][0].values[0]
             end_bound = ds[bndsname][-1].values[-1]
         except IndexError as e:
-            con_message("info","printing index error") # only to escape progress-bar prepend
+            con_message(
+                "info", "printing index error"
+            )  # only to escape progress-bar prepend
             con_message("error", f"{name} doesnt have expect time_bnds variable shape")
             return None, None, idx
         l1, l2 = -1.0, -1.0
