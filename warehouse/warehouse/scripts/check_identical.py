@@ -10,18 +10,32 @@ from warehouse.util import con_message
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Check that the contents of two files are identical")
-    parser.add_argument('file_one', type=str,
-                        help="Path a netCDF files")
-    parser.add_argument('file_two', type=str,
-                        help="Path a netCDF files")
-    parser.add_argument('--var-list', nargs="*",
-                        default=["all"],
-                        help="Variables to check, default is all")
-    parser.add_argument('--exclude', nargs="*",
-                        default=["lat", "lon", "area", "hyam", "hybm",
-                                 "hyai", "hybi", "date_written", "time_written"],
-                        help="Variables to check, default is all")
+        description="Check that the contents of two files are identical"
+    )
+    parser.add_argument("file_one", type=str, help="Path a netCDF files")
+    parser.add_argument("file_two", type=str, help="Path a netCDF files")
+    parser.add_argument(
+        "--var-list",
+        nargs="*",
+        default=["all"],
+        help="Variables to check, default is all",
+    )
+    parser.add_argument(
+        "--exclude",
+        nargs="*",
+        default=[
+            "lat",
+            "lon",
+            "area",
+            "hyam",
+            "hybm",
+            "hyai",
+            "hybi",
+            "date_written",
+            "time_written",
+        ],
+        help="Variables to check, default is all",
+    )
     return parser.parse_args()
 
 
@@ -34,7 +48,7 @@ def main():
     vars_to_check = parsed_args.var_list
 
     if not file_one.exists() or not file_two.exists():
-        con_message("error","One of more input files does not exist")
+        con_message("error", "One of more input files does not exist")
         return 1
 
     data1 = xr.open_dataset(str(file_one.resolve()), decode_times=False)
@@ -44,9 +58,11 @@ def main():
     dont_match = []
     for variable in tqdm(data1.data_vars):
 
-        if ("all" not in vars_to_check and variable not in vars_to_check) \
-        or "bnds" in variable \
-        or variable in parsed_args.exclude:
+        if (
+            ("all" not in vars_to_check and variable not in vars_to_check)
+            or "bnds" in variable
+            or variable in parsed_args.exclude
+        ):
             continue
 
         a = data1[variable].load().values
@@ -59,13 +75,13 @@ def main():
     data2.close()
 
     if all_match:
-        con_message("info","All variables match")
+        con_message("info", "All variables match")
         return 0
 
-    con_message("warning","Some variables do not match")
-    
+    con_message("warning", "Some variables do not match")
+
     for m in dont_match:
-        con_message("debug",m)
+        con_message("debug", m)
     return 1
 
 

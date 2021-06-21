@@ -20,26 +20,27 @@ from warehouse.util import con_message
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Generate an ESGF mapfile from a given directory, with the given dataset_id")
+        description="Generate an ESGF mapfile from a given directory, with the given dataset_id"
+    )
+    parser.add_argument("input", type=str, help="Path a directory full of netCDF files")
+    parser.add_argument("dataset_id", type=str, help="The ESGF dataset id")
     parser.add_argument(
-        'input', type=str,
-        help="Path a directory full of netCDF files")
+        "version_number", type=int, help="The version number of the dataset"
+    )
     parser.add_argument(
-        'dataset_id', type=str,
-        help="The ESGF dataset id")
-    parser.add_argument(
-        'version_number', type=int,
-        help="The version number of the dataset")
-    parser.add_argument(
-        '--outpath',
+        "--outpath",
         type=str,
-        help="Output path for the mapfile including the file name, " 
-             "by default it will be named <dataset_id>.map and be placed "
-             "in the current working directory.")
+        help="Output path for the mapfile including the file name, "
+        "by default it will be named <dataset_id>.map and be placed "
+        "in the current working directory.",
+    )
     parser.add_argument(
-        '-p', '--processes',
-        type=int, default=8,
-        help="Number of parallel jobs, default is 8")
+        "-p",
+        "--processes",
+        type=int,
+        default=8,
+        help="Number of parallel jobs, default is 8",
+    )
     return parser.parse_args()
 
 
@@ -64,7 +65,7 @@ def main():
     numberproc = parsed_args.processes
 
     if not input_path.exists() or not input_path.is_dir():
-        con_message('error',"Input directory does not exist or is not a directory")
+        con_message("error", "Input directory does not exist or is not a directory")
         sys.exit(1)
 
     outpath = parsed_args.outpath
@@ -75,12 +76,10 @@ def main():
 
     futures = []
     pool = ProcessPoolExecutor(max_workers=numberproc)
-    for path in input_path.glob('*.nc'):
-        futures.append(
-            pool.submit(
-                hash_file, path))
+    for path in input_path.glob("*.nc"):
+        futures.append(pool.submit(hash_file, path))
 
-    with open(outpath, 'w') as outstream:
+    with open(outpath, "w") as outstream:
         try:
             for future in tqdm(as_completed(futures), total=len(futures)):
                 filehash, pathstr = future.result()
@@ -89,20 +88,23 @@ def main():
                 outstream.write(line)
 
         except KeyboardInterrupt:
-            con_message('warning',"Cause keyboard interrupt, exiting. Mapfile will be incomplete")
+            con_message(
+                "warning",
+                "Cause keyboard interrupt, exiting. Mapfile will be incomplete",
+            )
             for future in futures:
                 future.cancel()
             return 1
         except Exception as e:
-            con_message('error',e)
+            con_message("error", e)
             return 1
-    
+
     message = f"mapfile_path={outpath}"
-    if (messages_path := os.environ.get('message_file')):       # whence commeth thee?
-        with open(messages_path, 'w') as outstream:
+    if messages_path := os.environ.get("message_file"):  # whence commeth thee?
+        with open(messages_path, "w") as outstream:
             outstream.write(message)
     else:
-        con_message('error',message)
+        con_message("error", message)
     return 0
 
 

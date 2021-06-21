@@ -10,13 +10,13 @@ from warehouse.workflows.publication import Publication
 from warehouse.workflows.validation import Validation
 
 subcommands = {
-    'auto': AutoWarehouse,
-    'report': Report,
-    'extract': Extraction,
-    'cleanup': CleanUp,
-    'postprocess': PostProcess,
-    'publish': Publication,
-    'validate': Validation
+    "auto": AutoWarehouse,
+    "report": Report,
+    "extract": Extraction,
+    "cleanup": CleanUp,
+    "postprocess": PostProcess,
+    "publish": Publication,
+    "validate": Validation,
 }
 arg_sources = [
     Publication.add_args,
@@ -25,16 +25,16 @@ arg_sources = [
     add_report_args,
     Extraction.add_args,
     CleanUp.add_args,
-    PostProcess.add_args
+    PostProcess.add_args,
 ]
 arg_checkers = {
-    'auto': AutoWarehouse.arg_checker,
-    'report': check_report_args,
-    'extract': Extraction.arg_checker,
-    'cleanup': CleanUp.arg_checker,
-    'postprocess': PostProcess.arg_checker,
-    'publish': Publication.arg_checker,
-    'validate': Validation.arg_checker
+    "auto": AutoWarehouse.arg_checker,
+    "report": check_report_args,
+    "extract": Extraction.arg_checker,
+    "cleanup": CleanUp.arg_checker,
+    "postprocess": PostProcess.arg_checker,
+    "publish": Publication.arg_checker,
+    "validate": Validation.arg_checker,
 }
 
 
