@@ -1,0 +1,46 @@
+ATMVALIDATION:Ready:
+  default:
+    - CheckTimeUnit:Ready
+
+CheckTimeUnit:Ready:
+  default:
+    - CheckTimeUnit:Engaged
+CheckTimeUnit:Pass:
+  default:
+    - CheckTime:Ready
+CheckTimeUnit:Fail:
+  default:
+    - FixTimeUnits:Ready
+
+FixTimeUnits:Ready:
+  default:
+    - FixTimeUnits:Engaged
+FixTimeUnits:Pass:
+  default:
+    - CheckTime:Ready
+FixTimeUnits:Fail:
+  default:
+    - Fail
+
+CheckTime:Ready:
+    default:
+      - CheckTime:Engaged
+CheckTime:Pass:
+    default:
+      - Pass
+CheckTime:Fail:
+    default:
+      - RectifyTimeIndex:Ready
+
+RectifyTimeIndex:Ready:
+    default:
+      - RectifyTimeIndex:Engaged
+RectifyTimeIndex:Pass:
+    default:
+      - Pass
+RectifyTimeIndex:Fail:
+    default:
+      - Fail
+
+
+

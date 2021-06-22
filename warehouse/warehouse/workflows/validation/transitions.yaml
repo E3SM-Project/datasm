@@ -1,0 +1,67 @@
+VALIDATION:Ready:
+    default:
+        - CheckFileIntegrity:Ready
+
+CheckFileIntegrity:Ready:
+    default:
+        - CheckFileIntegrity:Engaged
+
+CheckFileIntegrity:Pass:
+    default:
+        - VALIDATION:Fail
+    atmos-native-3hr:
+        - ATMVALIDATION:Ready
+    atmos-native-3hr_snap:
+        - ATMVALIDATION:Ready
+    atmos-native-6hr:
+        - ATMVALIDATION:Ready
+    atmos-native-6hr_snap:
+        - ATMVALIDATION:Ready
+    atmos-native-day:
+        - ATMVALIDATION:Ready
+    atmos-native-mon:
+        - ATMVALIDATION:Ready
+    atmos-native-day_cosp:
+        - ATMVALIDATION:Ready
+    land-native-mon:
+        - LNDVALIDATION:Ready
+    river-native-mon:
+        - VALIDATION:Pass
+    ocean-native-mon:
+        - VALIDATION:Pass
+    ocean-native-5day_snap:
+        - VALIDATION:Pass
+    sea-ice-native-mon:
+        - VALIDATION:Pass
+
+CheckFileIntegrity:Fail:
+    default:
+        - VALIDATION:Fail
+
+ATMVALIDATION:Pass:
+    default:
+        - VALIDATION:Pass
+ATMVALIDATION:Fail:
+    default:
+        - VALIDATION:Fail
+
+LNDVALIDATION:Pass:
+    default:
+        - VALIDATION:Pass
+LNDVALIDATION:Fail:
+    default:
+        - VALIDATION:Fail
+
+# MPASVALIDATION:Pass:
+#     default:
+#         - VALIDATION:Pass
+# MPASVALIDATION:Fail:
+#     default:
+#         - VALIDATION:Fail
+
+VALIDATION:Pass:
+    default:
+        - Pass
+VALIDATION:Fail:
+    default:
+        - Fail

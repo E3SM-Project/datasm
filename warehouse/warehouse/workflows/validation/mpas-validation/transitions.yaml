@@ -1,0 +1,5 @@
+MPASVALIDATION:Ready:
+    ocean-native-mon:
+        - Pass
+    sea-ice-native-mon:
+        - Pass

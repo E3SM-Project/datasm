@@ -72,10 +72,11 @@ def get_archspec(archline):
     archspec['campa'] = archvals[0]
     archspec['model'] = archvals[1]
     archspec['exper'] = archvals[2]
-    archspec['ensem'] = archvals[3]
-    archspec['dstyp'] = archvals[4]
-    archspec['apath'] = archvals[5]
-    archspec['apatt'] = archvals[6]
+    archspec['resol'] = archvals[3]
+    archspec['ensem'] = archvals[4]
+    archspec['dstyp'] = archvals[5]
+    archspec['apath'] = archvals[6]
+    archspec['apatt'] = archvals[7]
     return archspec
 
 def main():
@@ -85,7 +86,7 @@ def main():
     zstashversion = check_output(['zstash', 'version']).decode('utf-8').strip()
     # print(f'zstash version: {zstashversion}')
 
-    if not (zstashversion == 'v0.4.1' or zstashversion == 'v0.4.2'):
+    if not (zstashversion == 'v0.4.1' or zstashversion == 'v0.4.2' or zstashversion == 'v1.0.0'):
         print(f'{ts()}: ERROR: ABORTING:  zstash version [{zstashversion}] is not 0.4.1 or greater, or is unavailable', flush=True)
         sys.exit(1)
 

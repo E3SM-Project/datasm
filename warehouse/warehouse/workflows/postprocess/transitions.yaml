@@ -1,0 +1,125 @@
+POSTPROCESS:Ready:
+  atmos-climo-mon:
+    - GenerateAtmClimo:Ready
+  atmos-timeseries-mon:
+    - GenerateAtmMonTimeseries:Ready
+  atmos-cmip-mon:
+    - GenerateAtmMonCMIP:Ready
+  atmos-cmip-day:
+    - GenerateAtmDayCMIP:Ready
+  atmos-cmip-3hr:
+    - GenerateAtm3hrCMIP:Ready
+  atmos-cmip-fixed:
+    - GenerateAtmFixedCMIP:Ready
+
+  land-timeseries-mon:
+    - GenerateLndTimeseries:Ready
+  land-cmip-mon:
+    - GenerateLndMonCMIP:Ready
+  
+  ocean-cmip-mon:
+    - GenerateOceanCMIP:Ready
+  ocean-cmip-fixed:
+    - GenerateOceanFixedCMIP:Ready
+
+  ice-cmip-mon:
+    - GenerateIceCMIP:Ready
+  default:
+    - POSTPROCESS:Pass
+
+GenerateAtmMonClimo:Ready:
+  default:
+    - GenerateAtmMonClimo:Engaged
+GenerateAtmMonClimo:Pass:
+  default:
+    - POSTPROCESS:Pass
+GenerateAtmMonClimo:Fail:
+  default:
+    - POSTPROCESS:Fail
+
+GenerateAtmMonTimeseries:Ready:
+  default:
+    - GenerateAtmMonTimeseries:Engaged
+GenerateAtmMonTimeseries:Pass:
+  default:
+    - POSTPROCESS:Pass
+GenerateAtmMonTimeseries:Fail:
+  default:
+    - POSTPROCESS:Fail
+
+GenerateAtmMonCMIP:Ready:
+  default:
+    - GenerateAtmMonCMIP:Engaged
+GenerateAtmMonCMIP:Pass:
+  default:
+    - CMIPValidate:Ready
+GenerateAtmMonCMIP:Fail:
+  default:
+    - POSTPROCESS:Fail
+
+GenerateAtmDayCMIP:Ready:
+  default:
+    - GenerateAtmDayCMIP:Engaged
+GenerateAtmDayCMIP:Pass:
+  default:
+    - POSTPROCESS:Pass
+GenerateAtmDayCMIP:Fail:
+  default:
+    - POSTPROCESS:Fail
+
+GenerateAtm3hrCMIP:Ready:
+  default:
+    - GenerateAtm3hrCMIP:Engaged
+GenerateAtm3hrCMIP:Pass:
+  default:
+    - POSTPROCESS:Pass
+GenerateAtm3hrCMIP:Fail:
+  default:
+    - POSTPROCESS:Fail
+
+GenerateLndTimeseries:Ready:
+  default:
+    - GenerateLndTimeseries:Engaged
+GenerateLndTimeseries:Pass:
+  default:
+    - POSTPROCESS:Pass
+GenerateLndTimeseries:Fail:
+  default:
+    - POSTPROCESS:Fail
+
+GenerateLndMonCMIP:Ready:
+  default:
+    - GenerateLndMonCMIP:Engaged
+GenerateLndMonCMIP:Pass:
+  default:
+    - POSTPROCESS:Pass
+GenerateLndMonCMIP:Fail:
+  default:
+    - POSTPROCESS:Fail
+
+GenerateOceanCMIP:Ready:
+  default:
+    - GenerateOceanCMIP:Engaged
+GenerateOceanCMIP:Pass:
+  default:
+    - POSTPROCESS:Pass
+GenerateOceanCMIP:Fail:
+  default:
+    - POSTPROCESS:Fail
+
+GenerateIceCMIP:Ready:
+  default:
+    - GenerateIceCMIP:Engaged
+GenerateIceCMIP:Pass:
+  default:
+    - POSTPROCESS:Pass
+GenerateIceCMIP:Fail:
+  default:
+    - POSTPROCESS:Fail
+
+POSTPROCESS:Pass:
+  default:
+    - Pass
+POSTPROCESS:Fail:
+  default:
+    - Fail

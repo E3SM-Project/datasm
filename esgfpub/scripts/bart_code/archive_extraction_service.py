@@ -16,6 +16,7 @@ gv_WH_root = '/p/user_pub/e3sm/warehouse'
 gv_PUB_root = '/p/user_pub/work'
 gv_input_dir = '/p/user_pub/e3sm/archive/.extraction_requests_pending'
 gv_output_dir = '/p/user_pub/e3sm/archive/.extraction_requests_processed'
+gv_stat_root = '/p/user_pub/e3sm/staging/status'
 
 helptext = '''
 
@@ -69,16 +70,6 @@ def assess_args():
     return True
 
 
-def load_file_lines(file_path):
-    if not file_path:
-        return list()
-    file_path = Path(file_path)
-    if not file_path.exists() or not file_path.is_file():
-        raise ValueError(f"file at path {file_path.resolve()} either doesnt exist or is not a regular file")
-    with open(file_path, "r") as instream:
-        retlist = [[i for i in x.split('\n') if i].pop() for x in instream.readlines() if x[:-1]]
-    return retlist
-
 def print_list(prefix, items):
     for x in items:
         print(f'{prefix}{x}')
@@ -108,6 +99,16 @@ def logMessage(mtype,message):
     with open(gv_logname, 'a') as f:
         f.write(outmessage)
 
+def load_file_lines(file_path):
+    if not file_path:
+        return list()
+    # file_path = Path(file_path)
+    if not os.path.exists(file_path):
+        logMessage('ERROR',f'File {file_path} either does not exist or is not a regular file')
+    with open(file_path, "r") as instream:
+        retlist = [[i for i in x.split('\n') if i].pop() for x in instream.readlines() if x[:-1]]
+    return retlist
+
 # ======== warehouse ========================
 
 def parse_jobset_config(configfile):
@@ -126,17 +127,11 @@ def get_archspec(archline):
     archspec['campa'] = archvals[0]
     archspec['model'] = archvals[1]
     archspec['exper'] = archvals[2]
-    archspec['ensem'] = archvals[3]
-    archspec['dstyp'] = archvals[4]
-    archspec['apath'] = archvals[5]
-    archspec['apatt'] = archvals[6]
-
-    if 'ne30' in archspec['apath']:
-        archspec['resol'] = '1deg_atm_60-30km_ocean'
-    elif 'ne120' in archspec['apath']:
-        archspec['resol'] = '0_25deg_atm_18-6km_ocean'
-    else:
-        archspec['resol'] = gv_jobset_config['resolution']
+    archspec['resol'] = archvals[3]
+    archspec['ensem'] = archvals[4]
+    archspec['dstyp'] = archvals[5]
+    archspec['apath'] = archvals[6]
+    archspec['apatt'] = archvals[7]
 
     return archspec
 
@@ -154,6 +149,7 @@ def get_dsid_via_archline(archline):
     if grid == 'nat':
         grid = 'native'
 
+    # note: model-output assumption on archive only
     dsid = '.'.join(['E3SM', \
                     archspec['model'], \
                     archspec['exper'], \
@@ -189,6 +185,29 @@ def setStatus(statfile,parent,statspec):
     with open(statfile, 'a') as statf:
         statf.write(statline)
 
+# return path to unique status file (warehouse or publication)
+# create in warehouse if not found
+
+def ensureStatusFile(dsid):
+    statfile = os.path.join(gv_stat_root,dsid + '.status')
+    if not os.path.exists(statfile):
+        open(statfile,"w+").close()
+        setStatus(statfile,'WAREHOUSE','EXTRACTION:Ready')
+        setStatus(statfile,'WAREHOUSE','VALIDATION:Unblocked:')
+        setStatus(statfile,'WAREHOUSE','POSTPROCESS:Unblocked:')
+        setStatus(statfile,'WAREHOUSE','PUBLICATION:Blocked:')
+        setStatus(statfile,'WAREHOUSE','PUBLICATION:Unapproved:')
+        setStatus(statfile,'WAREHOUSE','CLEANUP:Blocked:')
+        logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Created new status file for request:{am_spec_line}')
+        time.sleep(5)
+
+    return statfile
+
+def ensureDatasetPath(ens_path):
+    if not os.path.exists(ens_path):
+        os.makedirs(ens_path,exist_ok=True)
+        os.chmod(ens_path,0o775)
+
 
 # Must ensure we have a DSID name for the dataset status file, before warehouse facet directory exists.
 # Must test for existence of facet dest, if augmenting.  May create to 0_extraction/init_status_files/, move later
@@ -206,9 +225,9 @@ def main():
         logMessage('ERROR',f'ARCHIVE_EXTRACTION_SERVICE: zstash version ({zstashversion})is not 0.4.1 or greater, or is unavailable')
         sys.exit(1)
 
-    gv_jobset_config = parse_jobset_config(gv_jobset_configfile)
-
     logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Startup:zstash version = {zstashversion}')
+
+    gv_jobset_config = parse_jobset_config(gv_jobset_configfile)
 
     # The outer request loop:
     while True:
@@ -240,28 +259,12 @@ def main():
             logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Conducting Setup for extraction request:{am_spec_line}')
             arch_spec = get_archspec(am_spec_line)
             dsid = get_dsid_via_archline(am_spec_line)
+            statfile = ensureStatusFile(dsid)
             ens_path = get_warehouse_path_via_dsid(dsid)        # intended warehouse dataset ensemble path
 
             # logMessage('DEBUG',f'Preparing to create ens_path {ens_path}')
 
-            if not os.path.exists(ens_path):
-                os.makedirs(ens_path,exist_ok=True)
-                os.chmod(ens_path,0o775)
-                newstat = True
-            statfile = os.path.join(ens_path,'.status')
-            if not os.path.exists(statfile):
-                open(statfile,"w+").close()
-                newstat = True
-
-            if newstat:
-                setStatus(statfile,'WAREHOUSE','EXTRACTION:Ready')
-                setStatus(statfile,'WAREHOUSE','VALIDATION:Unblocked:')
-                setStatus(statfile,'WAREHOUSE','POSTPROCESS:Unblocked:')
-                setStatus(statfile,'WAREHOUSE','PUBLICATION:Blocked:')
-                setStatus(statfile,'WAREHOUSE','PUBLICATION:Unapproved:')
-                setStatus(statfile,'WAREHOUSE','CLEANUP:Blocked:')
-                logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Created new status file for request:{am_spec_line}')
-                time.sleep(5)
+            ensureDatasetPath(ens_path)
 
             setStatus(statfile,'WAREHOUSE','EXTRACTION:Engaged')
             setStatus(statfile,'EXTRACTION','SETUP:Engaged')

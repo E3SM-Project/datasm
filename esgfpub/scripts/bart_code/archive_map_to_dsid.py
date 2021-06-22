@@ -107,15 +107,11 @@ def get_archspec(archline):
     archspec['campa'] = archvals[0]
     archspec['model'] = archvals[1]
     archspec['exper'] = archvals[2]
-    archspec['ensem'] = archvals[3]
-    archspec['dstyp'] = archvals[4]
-    archspec['apath'] = archvals[5]
-    archspec['apatt'] = archvals[6]
-
-    if 'ne120' in archspec['apath']:
-        archspec['resol'] = '0_25deg_atm_18-6km_ocean'
-    else:
-        archspec['resol'] = '1deg_atm_60-30km_ocean'
+    archspec['resol'] = archvals[3]
+    archspec['ensem'] = archvals[4]
+    archspec['dstyp'] = archvals[5]
+    archspec['apath'] = archvals[6]
+    archspec['apatt'] = archvals[7]
 
     return archspec
 
@@ -132,6 +128,7 @@ def get_dsid_via_archline(archline):
     if grid == 'nat':
         grid = 'native'
 
+    # note: model-output assumption on archive only
     dsid = '.'.join(['E3SM', \
                     archspec['model'], \
                     archspec['exper'], \
@@ -165,14 +162,16 @@ def main():
     am_lines = load_file_lines(gv_input)
 
     for aline in am_lines:
-
+        # print(f'DEBUG: processing line: {aline}')
         dsid = get_dsid_via_archline(aline)
+        # print(f'DEBUG: got dsid = {dsid}')
     
         if gv_names:
             print(f'{gv_prefx}{dsid}')
             continue
 
         fname = f'{gv_prefx}{dsid}'
+        # print(f'DEBUG: filename = {fname}')
         file_append_line(fname,aline)
 
     sys.exit(0)
