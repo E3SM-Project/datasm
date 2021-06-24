@@ -318,7 +318,7 @@ def main():
     for s1, s2 in zip(ordered_segments[:-1], ordered_segments[1:]):
         if s2["start"] > s1["end"]:
             msg = f"There's a time gap between the end of {os.path.basename(s1['files'][-1])} and the start of {os.path.basename(s2['files'][0])} of {s2['start'] - s1['end']} "
-            if args.no_gaps:
+            if args.no_gaps == True:
                 outpath = Path(outpath)
                 if not any(outpath.iterdir()):
                     outpath.rmdir()
