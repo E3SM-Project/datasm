@@ -99,7 +99,7 @@ def collect_segments(inpath, num_jobs, timename, bndsname):
         for future in tqdm(
             as_completed(futures),
             desc="Checking files for monotonically increasing time indices",
-            total=len(futures),
+            total=len(futures)
         ):
             b1, b2, idx = future.result()
             # if the first value is None, then the file failed its check
@@ -228,37 +228,37 @@ def main():
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument(
         "input",
-        help="The directory to check for time index issues, should only contain a single time-frequency from a single case",
+        help="The directory to check for time index issues, should only contain a single time-frequency from a single case"
     )
     parser.add_argument(
         "--output",
         default="output",
         required=False,
-        help=f"output directory for rectified dataset, default is {os.environ['PWD']}/output",
+        help=f"output directory for rectified dataset, default is {os.environ['PWD']}/output"
     )
     parser.add_argument(
         "--move",
         action="store_true",
         required=False,
-        help="move the files from the input directory into the output directory instead of symlinks",
+        help="move the files from the input directory into the output directory instead of symlinks"
     )
     parser.add_argument(
         "--copy",
         action="store_true",
         required=False,
-        help="copy the files from the input directory into the output directory instead of symlinks",
+        help="copy the files from the input directory into the output directory instead of symlinks"
     )
     parser.add_argument(
         "-j",
         "--jobs",
         default=8,
         type=int,
-        help="the number of processes, default is 8",
+        help="the number of processes, default is 8"
     )
     parser.add_argument(
         "--dryrun",
         action="store_true",
-        help="Collect the time segments, but dont produce the truncated files or move anything",
+        help="Collect the time segments, but dont produce the truncated files or move anything"
     )
     parser.add_argument(
         "--no-gaps", action="store_true", help="Exit if a time gap is discovered"
@@ -272,6 +272,7 @@ def main():
     outpath = args.output
     num_jobs = args.jobs
     dryrun = args.dryrun
+    quiet = args.quiet
 
     if args.copy and args.move:
         con_message("error", "Both copy and move flags are set, please only pick one")
@@ -279,8 +280,7 @@ def main():
 
     if os.path.exists(outpath) and len(os.listdir(outpath)):
         con_message(
-            "error", f"Output directory {outpath} already exists and contains files"
-        )
+            "error", f"Output directory {outpath} already exists and contains files")
         return 1
     else:
         os.makedirs(outpath, exist_ok=True)
@@ -295,8 +295,8 @@ def main():
             con_message("info", "not moving files")
         else:
             desc = "Placing files into output directory"
-            index, files = segments.popitem()
-            for src in tqdm(files, desc=desc):
+            _, files = segments.popitem()
+            for src in tqdm(files, desc=desc, disable=quiet):
                 _, name = os.path.split(src)
                 dst = os.path.join(outpath, name)
                 if args.move:
@@ -317,8 +317,6 @@ def main():
 
     for s1, s2 in zip(ordered_segments[:-1], ordered_segments[1:]):
         if s2["start"] > s1["end"]:
-            # units = get_time_units(s1['files'][0])
-            # {units.split(' ')[0]}
             msg = f"There's a time gap between the end of {os.path.basename(s1['files'][-1])} and the start of {os.path.basename(s2['files'][0])} of {s2['start'] - s1['end']} "
             if args.no_gaps:
                 outpath = Path(outpath)
@@ -329,9 +327,9 @@ def main():
             else:
                 con_message("warning", msg)
                 if not args.dryrun:
-                    con_message("info", "Moving files from the last segment")
+                    con_message("info", "Moving files from the previous segment")
                     desc = "Placing files into output directory"
-                    for src in tqdm(s1["files"], desc=desc):
+                    for src in tqdm(s1["files"], desc=desc, disable=quiet):
                         _, name = os.path.split(src)
                         dst = os.path.join(outpath, name)
                         if args.move:
@@ -340,6 +338,18 @@ def main():
                             copyfile(src, dst)
                         else:
                             os.symlink(src, dst)
+                    if ordered_segments.index(s2) == len(ordered_segments) - 1:
+                        con_message("info", "Moving files from the last segment")
+                        desc = "Placing files into output directory"
+                        for src in tqdm(s2["files"], desc=desc, disable=quiet):
+                            _, name = os.path.split(src)
+                            dst = os.path.join(outpath, name)
+                            if args.move:
+                                move_file(src, dst)
+                            elif args.copy:
+                                copyfile(src, dst)
+                            else:
+                                os.symlink(src, dst)
                 continue
 
         to_truncate = None  # the file that needs to be truncated
@@ -400,7 +410,7 @@ def main():
         else:
             desc = "Placing files into output directory"
             con_message("info", f"Moving the first {truncate_index} files")
-            for src in tqdm(s1["files"][:truncate_index], desc=desc):
+            for src in tqdm(s1["files"][:truncate_index], desc=desc, disable=quiet):
                 _, name = os.path.split(src)
                 dst = os.path.join(outpath, name)
                 if args.move:
@@ -414,7 +424,7 @@ def main():
     else:
         con_message("info", "Moving files from the last segment")
         desc = "Placing files into output directory"
-        for src in tqdm(ordered_segments[-1]["files"], desc=desc):
+        for src in tqdm(ordered_segments[-1]["files"], desc=desc, disable=quiet):
             _, name = os.path.split(src)
             dst = os.path.join(outpath, name)
             if args.move:
