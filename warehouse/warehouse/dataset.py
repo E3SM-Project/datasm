@@ -205,7 +205,9 @@ class Dataset(object):
         if self.warehouse_path is None or (
             not self.warehouse_path and not self.warehouse_path.exists()
         ):
-            log_message("error", f"The dataset {self.dataset_id} does not have a warehouse path")
+            log_message(
+                "error", f"The dataset {self.dataset_id} does not have a warehouse path"
+            )
             sys.exit(1)
         if "CMIP6" not in self.dataset_id and not self.warehouse_path.exists():
             self.warehouse_path.mkdir(parents=True, exist_ok=True)
@@ -606,7 +608,10 @@ class Dataset(object):
         files_found = []
 
         if not self.datavars:
-            log_message("error", f"dataset {self.dataset_id} is trying to validate time-series files, but has no datavars")
+            log_message(
+                "error",
+                f"dataset {self.dataset_id} is trying to validate time-series files, but has no datavars",
+            )
             sys.exit(1)
 
         for var in self.datavars:
@@ -665,7 +670,10 @@ class Dataset(object):
         try:
             idx = re.search(pattern=pattern, string=files[0])
         except Exception as e:
-            log_message("error", f"file {files[0]} does not match expected pattern for monthly files")
+            log_message(
+                "error",
+                f"file {files[0]} does not match expected pattern for monthly files",
+            )
             sys.exit(1)
 
         if not idx:
