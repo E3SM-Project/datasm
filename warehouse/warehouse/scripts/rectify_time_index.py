@@ -158,9 +158,9 @@ def collect_segments(inpath, num_jobs, timename, bndsname):
             f"There were {num_segments} found, this is high. Probably something wrong with the dataset",
         )
 
-    con_message("warning", f"Found {num_segments} segments:")
+    con_message("info", f"Found {num_segments} segments:")
     for seg in segments.keys():
-        con_message("warning", f"Segment {seg} has length {len(segments[seg])}")
+        con_message("info", f"Segment {seg} has length {len(segments[seg])}")
 
     # filter out segments that are completely contained by others
     combos = list(combinations(segments, 2))
@@ -299,6 +299,8 @@ def main():
             for src in tqdm(files, desc=desc, disable=quiet):
                 _, name = os.path.split(src)
                 dst = os.path.join(outpath, name)
+                if os.path.exists(dst):
+                    continue
                 if args.move:
                     move_file(src, dst)
                 elif args.copy:
@@ -324,38 +326,41 @@ def main():
                     outpath.rmdir()
                 con_message("error", msg)
                 sys.exit(1)
-            else:
-                con_message("warning", msg)
-                if not args.dryrun:
-                    con_message("info", "Moving files from the previous segment")
+            con_message("warning", msg)
+            if not args.dryrun:
+                con_message("info", "Moving files from the previous segment")
+                desc = "Placing files into output directory"
+                for src in tqdm(s1["files"], desc=desc, disable=quiet):
+                    _, name = os.path.split(src)
+                    dst = os.path.join(outpath, name)
+                    if os.path.exists(dst):
+                        continue
+                    if args.move:
+                        move_file(src, dst)
+                    elif args.copy:
+                        copyfile(src, dst)
+                    else:
+                        os.symlink(src, dst)
+                if ordered_segments.index(s2) == len(ordered_segments) - 1:
+                    con_message("info", "Moving files from the last segment")
                     desc = "Placing files into output directory"
-                    for src in tqdm(s1["files"], desc=desc, disable=quiet):
+                    for src in tqdm(s2["files"], desc=desc, disable=quiet):
                         _, name = os.path.split(src)
                         dst = os.path.join(outpath, name)
+                        if os.path.exists(dst):
+                            continue
                         if args.move:
                             move_file(src, dst)
                         elif args.copy:
                             copyfile(src, dst)
                         else:
                             os.symlink(src, dst)
-                    if ordered_segments.index(s2) == len(ordered_segments) - 1:
-                        con_message("info", "Moving files from the last segment")
-                        desc = "Placing files into output directory"
-                        for src in tqdm(s2["files"], desc=desc, disable=quiet):
-                            _, name = os.path.split(src)
-                            dst = os.path.join(outpath, name)
-                            if args.move:
-                                move_file(src, dst)
-                            elif args.copy:
-                                copyfile(src, dst)
-                            else:
-                                os.symlink(src, dst)
-                continue
+            continue
 
         to_truncate = None  # the file that needs to be truncated
         # the index in the file list of segment 1
         truncate_index = len(s1["files"])
-        for file in s1["files"][::-1]:
+        for file in tqdm(s1["files"][::-1], disable=quiet, desc="Stepping backwards to find truncation point"):
             with xr.open_dataset(file, decode_times=False) as ds:
                 if ds[bndsname][-1].values[1] > s2["start"]:
                     truncate_index -= 1
@@ -413,6 +418,8 @@ def main():
             for src in tqdm(s1["files"][:truncate_index], desc=desc, disable=quiet):
                 _, name = os.path.split(src)
                 dst = os.path.join(outpath, name)
+                if os.path.exists(dst):
+                    continue
                 if args.move:
                     move_file(src, dst)
                 elif args.copy:
@@ -427,6 +434,8 @@ def main():
         for src in tqdm(ordered_segments[-1]["files"], desc=desc, disable=quiet):
             _, name = os.path.split(src)
             dst = os.path.join(outpath, name)
+            if os.path.exists(dst):
+                continue
             if args.move:
                 move_file(src, dst)
             elif args.copy:
