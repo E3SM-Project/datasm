@@ -10,5 +10,7 @@ class RectifyTimeIndex(WorkflowJob):
         self._requires = { '*-native-*': None }
         self._cmd = f"""
 cd {self.scripts_path}
-python rectify_time_index.py -j {self._job_workers} {self.dataset.latest_warehouse_dir} --output {self.find_outpath()} --no-gaps
+python rectify_time_index.py -j {self._job_workers} {self.dataset.latest_warehouse_dir} --output {self.find_outpath()}
 """
+
+# trimmed "--no-gaps" from the command line
