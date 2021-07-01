@@ -1,10 +1,7 @@
 import os
 import sys
-import re
 import argparse
 import xarray as xr
-import numpy as np
-import netCDF4
 from pathlib import Path
 from tqdm import tqdm
 from shutil import move as move_file
@@ -13,10 +10,6 @@ from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from itertools import combinations
 from warehouse.util import con_message
-
-# def get_indices(path, bndsname):
-#     with xr.open_dataset(path, decode_times=False) as ds:
-#         return path, ds[bndsname][0].values[0], ds[bndsname][-1].values[-1]
 
 
 def filter_files(file_info):
@@ -183,29 +176,6 @@ def update_history(ds):
     else:
         newhist = thiscommand
     ds.attrs["history"] = newhist
-
-
-def write_netcdf(ds, fileName, fillValues=netCDF4.default_fillvals, unlimited=None):
-    """Write an xarray Dataset with NetCDF4 fill values where needed"""
-    encodingDict = {}
-    variableNames = list(ds.data_vars.keys()) + list(ds.coords.keys())
-    for variableName in variableNames:
-        isNumeric = np.issubdtype(ds[variableName].dtype, np.number)
-        if isNumeric:
-            dtype = ds[variableName].dtype
-            for fillType in fillValues:
-                if dtype == np.dtype(fillType):
-                    encodingDict[variableName] = {"_FillValue": fillValues[fillType]}
-                    break
-        else:
-            encodingDict[variableName] = {"_FillValue": None}
-
-    update_history(ds)
-
-    if unlimited:
-        ds.to_netcdf(fileName, encoding=encodingDict, unlimited_dims=unlimited)
-    else:
-        ds.to_netcdf(fileName, encoding=encodingDict)
 
 
 def get_time_units(path):
@@ -385,6 +355,7 @@ def main():
                 else:
                     new_ds[variable] = ds[variable].isel(Time=slice(0, target_index))
                     new_ds[variable].attrs = ds[variable].attrs
+                ds[variable].encoding['_FillValue'] = False
 
         _, to_truncate_name = os.path.split(to_truncate)
         outfile_path = os.path.join(outpath, f"{to_truncate_name[:-3]}.trunc.nc")
@@ -393,7 +364,7 @@ def main():
             con_message("info", f"dryrun, not writing out file {outfile_path}")
         else:
             con_message("info", f"writing out {outfile_path}")
-            write_netcdf(new_ds, outfile_path, unlimited=[timename])
+            new_ds.to_netcdf(outfile_path, unlimited_dims=[timename])
 
         if dryrun:
             con_message("info", "dryrun, not moving files")
