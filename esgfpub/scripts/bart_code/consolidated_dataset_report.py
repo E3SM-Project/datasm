@@ -161,7 +161,7 @@ def paginate_query(
 
     while True:
         docs = safe_search_esgf(project, facets, offset=curr_offset, limit=10000, qtype=f"{qtype}", fields=f"{fields}", latest=f"{latest}")
-        print(f"DEBUG: safe_search returned {len(docs)} records")
+        # print(f"DEBUG: safe_search returned {len(docs)} records")
         full_docs = full_docs + docs
         if len(docs) < 10000:
             return full_docs
