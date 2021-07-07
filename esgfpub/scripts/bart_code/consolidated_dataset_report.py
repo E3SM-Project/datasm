@@ -339,8 +339,8 @@ def collect_esgf_search_datasets():
     for item in docs:
         ident = item["id"]
         esgf_collected[ident] = dict()
-        esgf_collected[ident]["title"] = item["title"]
-        esgf_collected[ident]["inst_id"] = item["instance_id"]  # check if datanode is the criteria
+        esgf_collected[ident]["title"] = item["title"]                  # dsid, master_id
+        esgf_collected[ident]["inst_id"] = item["instance_id"]          # dsid.vers
         esgf_collected[ident]["version"] = "v" + item["version"]
         esgf_collected[ident]["data_node"] = item["data_node"]
         esgf_collected[ident]["file_count"] = item["number_of_files"]
@@ -349,12 +349,12 @@ def collect_esgf_search_datasets():
 
     for ident in esgf_collected:
 
-        dataset_id = ident
+        dataset_id_key = ident
         title = esgf_collected[ident]["title"]
         f_count = esgf_collected[ident]["file_count"]
         total_file_count += f_count
 
-        facets = {"dataset_id": f"{dataset_id}"}
+        facets = {"dataset_id": f"{dataset_id_key}"}
 
         docs = paginate_query("e3sm", facets, qtype="File", fields="title")     # title is filename here
 
@@ -599,13 +599,27 @@ def main():
         ds['P_Version'] = maxv
         ds['P_Count'] = maxc
 
+    ''' DEBUG '''
+    for dsid in ds_struct:
+        print(f"IN_HOUSE:{dsid}")
+
     ''' STAGE 4: Process the supplied (latest) sproket-generated ESGF_publication_report.  Collect max version, and filecount of max version. '''
 
     esgf_report = collect_esgf_search_datasets()
 
-    for dsid in esgf_report:
-        vers = esgf_report[dsid]["version"]
-        filecount = esgf_report[dsid]["file_count"]
+    ''' DEBUG
+    for dsid_key in esgf_report:
+        print(f"ESGF_SEE:{esgf_report[dsid_key]['title']}")
+
+    sys.exit(0)
+    '''
+
+
+
+    for dsid_key in esgf_report:
+        dsid = esgf_report[dsid_key]["title"]
+        vers = esgf_report[dsid_key]["version"]
+        filecount = esgf_report[dsid_key]["file_count"]
         if not dsid in ds_struct:
             ds_struct[dsid] = new_ds_record()
             init_ds_record_from_dsid(ds_struct[dsid],dsid)
@@ -630,10 +644,11 @@ def main():
 
     dsids_covered = list()
 
-    for dsid in esgf_report:
+    for dsid_key in esgf_report:
+        dsid = esgf_report[dsid_key]["title"]
         ds = ds_struct[dsid]
-        ds['FirstFile'] = esgf_report[dsid]["first_file"]
-        ds['LastFile']  = esgf_report[dsid]["final_file"]
+        ds['FirstFile'] = esgf_report[dsid_key]["first_file"]
+        ds['LastFile']  = esgf_report[dsid_key]["final_file"]
         dsids_covered.append(dsid)
 
     for pb_tup in pb_path_tuples:
