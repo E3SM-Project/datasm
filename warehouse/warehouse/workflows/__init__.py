@@ -135,7 +135,7 @@ class Workflow(object):
             config=kwargs.get('config'),
             debug=kwargs.get('debug'),
             serial=kwargs.get('serial', True),
-            tmpdir=kwargs.get('tmpdir', os.environ.get('TMPDIR')))
+            tmpdir=kwargs.get('tmpdir', os.environ.get('TMPDIR', '/tmp')))
 
         other_datasets = [x for x in kwargs.get('other_datasets') if x.dataset_id != dataset.dataset_id]
         job_instance.setup_requisites(other_datasets)

@@ -25,12 +25,10 @@ class WorkflowJob(object):
         self._config = kwargs.get('config') 
         self.debug = kwargs.get('debug')
         self.serial = kwargs.get('serial', True)
-        self.tmpdir = kwargs.get('tmpdir', os.environ.get('TMPDIR'))
+        self.tmpdir = kwargs.get('tmpdir', os.environ.get('TMPDIR', '/tmp'))
     
     def resolve_cmd(self):
         return
-
-        log_message('info',f'initializing job {self.name} for {self.dataset.dataset_id}')
 
     def __str__(self):
         return f"{self.parent}:{self.name}:{self.dataset.dataset_id}"
@@ -81,8 +79,9 @@ class WorkflowJob(object):
 
     def add_cmd_suffix(self):
         suffix = f"""
+touch $message_file
 if [ $? -ne 0 ]
-then 
+then
     echo STAT:`date +%Y%m%d_%H%M%S`:WAREHOUSE:{self.parent}:{self.name}:Fail:`cat $message_file` >> {self.dataset.status_path}
 else
     echo STAT:`date +%Y%m%d_%H%M%S`:WAREHOUSE:{self.parent}:{self.name}:Pass:`cat $message_file` >> {self.dataset.status_path}

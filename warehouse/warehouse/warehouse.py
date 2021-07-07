@@ -59,7 +59,7 @@ class AutoWarehouse:
         os.makedirs(self.slurm_path, exist_ok=True)
         self.should_exit = False
         self.debug = kwargs.get("debug")
-        self.tmpdir = kwargs.get("tmp", os.environ.get("TMPDIR"))
+        self.tmpdir = kwargs.get("tmp", os.environ.get("TMPDIR", '/tmp'))
 
         self.scripts_path = Path(
             Path(inspect.getfile(self.__class__)).parent.absolute(), "scripts"
@@ -85,7 +85,7 @@ class AutoWarehouse:
             # dont setup the listener until after we've gathered the datasets
             self.listener = None
 
-        if self.serial:
+        if self.serial is True:
             log_message("info", "Running warehouse in serial mode")
         else:
             log_message(
@@ -113,7 +113,7 @@ class AutoWarehouse:
             # wait around while jobs run
             while True:
                 if self.should_exit:
-                    sys.exit(0)
+                    exit(0)
                 sleep(10)
 
         except KeyboardInterrupt:
@@ -280,6 +280,8 @@ class AutoWarehouse:
         # and if there is, and the latest is either Pass or Fail, then
         # remove the job from the job_pool
         latest, second_latest = dataset.get_latest_status()
+        log_message("info", f"dataset: {dataset_id} updated to state {latest}")
+        
         if second_latest is not None:
             latest_attrs = latest.split(":")
             second_latest_attrs = second_latest.split(":")
@@ -294,6 +296,7 @@ class AutoWarehouse:
                                 self.job_pool.remove(job)
                                 break
 
+        # start the transition change for the dataset
         self.start_datasets({dataset_id: dataset})
 
     def start_datasets(self, datasets=None):
@@ -351,9 +354,11 @@ class AutoWarehouse:
                 # otherwise the new state and its parameters need to be
                 # written to the dataset status file
                 else:
+                    log_message("debug", f"Dataset {dataset.dataset_id} transitioning to state {new_state} with params {params}")
                     dataset.status = (new_state, params)
 
             if not engaged_states:
+                log_message("debug", "No jobs found to start, checking to see if all datasets are done")
                 self.check_done()
                 return
 
@@ -387,8 +392,9 @@ class AutoWarehouse:
 
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
-            log_message("info", f"{job}")
+            log_message("info", f"starting job: {job}")
             if job.job_id is None and job.meets_requirements():
+                log_message("info", f"Job {job} meets its input dataset requirements")
                 job_id = job(self.slurm)
                 if job_id is not None:
                     job.job_id = job_id
@@ -427,6 +433,7 @@ class AutoWarehouse:
             for listener in self.listener:
                 listener.observer.stop()
             self.should_exit = True
+            log_message("info", "All datasets complete, exiting")
             sys.exit(0)
         return
 
@@ -563,8 +570,8 @@ class AutoWarehouse:
         p.add_argument(
             "--tmp",
             required=False,
-            default=f"{os.environ.get('TMPDIR')}",
-            help=f"the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: {os.environ.get('TMPDIR')}",
+            default=f"{os.environ.get('TMPDIR', '/tmp')}",
+            help=f"the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: {os.environ.get('TMPDIR', '/tmp')}",
         )
         p.add_argument(
             "--report-missing",

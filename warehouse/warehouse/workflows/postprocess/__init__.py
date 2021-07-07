@@ -91,8 +91,8 @@ class PostProcess(Workflow):
         parser.add_argument(
             '--tmp',
             required=False,
-            default=f"{os.environ.get('TMPDIR')}",
-            help=f"the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: {os.environ.get('TMPDIR')}")
+            default=f"{os.environ.get('TMPDIR', '/tmp')}",
+            help=f"the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: {os.environ.get('TMPDIR', '/tmp')}")
         parser = Workflow.add_args(parser)
         return COMMAND, parser
 
