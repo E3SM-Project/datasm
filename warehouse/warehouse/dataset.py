@@ -114,7 +114,8 @@ class Dataset(object):
             elif facets[6] == "fx":
                 self.realm = "fixed"
             else:
-                raise ValueError(f"{facets[6]} is not an expected CMIP6 table")
+                log_message("error", f"{facets[6]} is not an expected CMIP6 table")
+                sys.exit(1)
 
             self.freq = None
             for i in ["mon", "day", "3hr", "6hr"]:
@@ -165,10 +166,10 @@ class Dataset(object):
         self.initialize_status_file()
 
     def initialize_status_file(self):
-        log_message("info", "initializing status file for {self.dataset_id}")
+        log_message("info", f"initializing status file for {self.dataset_id}")
 
         if not self.status_path.exists():
-            log_message("info", "creating new status file {self.status_path}")
+            log_message("info", f"creating new status file {self.status_path}")
             self.status_path.touch(mode=0o755, exist_ok=True)
 
         found_id = False
@@ -180,7 +181,7 @@ class Dataset(object):
         if not found_id:
             log_message(
                 "info",
-                "status file {self.status_path} doesnt list its dataset id, adding it",
+                f"status file {self.status_path} doesnt list its dataset id, adding it",
             )
             with open(self.status_path, "a") as outstream:
                 outstream.write(f"DATASETID={self.dataset_id}\n")
@@ -188,10 +189,10 @@ class Dataset(object):
         if status := get_last_status_line(self.status_path):
             status_attrs = status.split(":")
             self._status = f"{status_attrs[-3]}:{status_attrs[-2]}:"
-            log_message("info", "status found as: {self._status}")
+            log_message("info", f"status found as: {self._status}")
         else:
             self._status = DatasetStatus.UNITITIALIZED.name
-            log_message("info", "no status found, setting to {self._status}")
+            log_message("info", f"no status found, setting to {self._status}")
 
     def update_from_status_file(self):
         self.load_dataset_status_file()
@@ -204,9 +205,10 @@ class Dataset(object):
         if self.warehouse_path is None or (
             not self.warehouse_path and not self.warehouse_path.exists()
         ):
-            raise ValueError(
-                f"The dataset {self.dataset_id} does not have a warehouse path"
+            log_message(
+                "error", f"The dataset {self.dataset_id} does not have a warehouse path"
             )
+            sys.exit(1)
         if "CMIP6" not in self.dataset_id and not self.warehouse_path.exists():
             self.warehouse_path.mkdir(parents=True, exist_ok=True)
         if "CMIP6" in self.dataset_id and not self.warehouse_path.exists():
@@ -576,7 +578,8 @@ class Dataset(object):
         first = files[0]
         pattern = re.compile(r"\d{4}-\d{2}.*nc")
         if not (idx := pattern.search(first)):
-            raise ValueError(f"Unexpected file format: {first}")
+            log_message("error", f"Unexpected file format: {first}")
+            sys.exit(1)
 
         prefix = first[: idx.start()]
         # TODO: Come up with a way of doing this check more
@@ -605,9 +608,11 @@ class Dataset(object):
         files_found = []
 
         if not self.datavars:
-            raise ValueError(
-                f"dataset {self.dataset_id} is trying to validate time-series files, but has no datavars"
+            log_message(
+                "error",
+                f"dataset {self.dataset_id} is trying to validate time-series files, but has no datavars",
             )
+            sys.exit(1)
 
         for var in self.datavars:
 
@@ -665,12 +670,15 @@ class Dataset(object):
         try:
             idx = re.search(pattern=pattern, string=files[0])
         except Exception as e:
-            raise ValueError(
-                f"file {files[0]} does not match expected pattern for monthly files"
+            log_message(
+                "error",
+                f"file {files[0]} does not match expected pattern for monthly files",
             )
+            sys.exit(1)
 
         if not idx:
-            raise ValueError(f"Unexpected file format: {files[0]}")
+            log_message("error", f"Unexpected file format: {files[0]}")
+            sys.exit(1)
 
         prefix = files[0][: idx.start()]
         suffix = files[0][idx.start() + 7 :]
@@ -693,7 +701,8 @@ class Dataset(object):
         files = sorted(files)
         idx = re.search(pattern=pattern, string=files[0])
         if not idx:
-            raise ValueError(f"Unexpected file format: {files[0]}")
+            log_message("error", f"Unexpected file format: {files[0]}")
+            sys.exit(1)
         prefix = files[0][: idx.start() - 2]
 
         for month in range(1, 13):
@@ -720,7 +729,8 @@ class Dataset(object):
         p = re.compile(r"_\d{6}_\d{6}.*nc")
         idx = p.search(filename)
         if not idx:
-            raise ValueError(f"Unexpected file format: {filename}")
+            log_message("error", f"Unexpected file format: {filename}")
+            sys.exit(1)
         start = int(filename[idx.start() + 1 : idx.start() + 5])
         end = int(filename[idx.start() + 8 : idx.start() + 12])
         return start, end
@@ -806,7 +816,8 @@ class Dataset(object):
 
     def is_blocked(self, state):
         if not self.status_path or not self.status_path.exists():
-            raise ValueError(f"Status file for {self.dataset_id} cannot be found")
+            log_message("error", f"Status file for {self.dataset_id} cannot be found")
+            sys.exit(1)
 
         # reload the status file in case somethings changed
         self.load_dataset_status_file(self.status_path)
