@@ -8,6 +8,7 @@ from pprint import pformat
 from pathlib import Path
 
 import warehouse.resources as resources
+from warehouse.workflows import jobs
 from warehouse.util import setup_logging, log_message
 
 
@@ -156,7 +157,6 @@ class Workflow(object):
             self.transitions = yaml.load(instream, Loader=yaml.SafeLoader)
 
     def load_children(self):
-
         my_path = Path(inspect.getfile(self.__class__)).parent.absolute()
         workflows = {}
         for d in os.scandir(my_path):
@@ -171,10 +171,9 @@ class Workflow(object):
             workflows_string = f"warehouse{os.sep}workflows"
             idx = str(my_path.resolve()).find(workflows_string)
             if self.name == NAME:
-
                 module_name = f'warehouse.workflows.{d.name}'
             else:
-                module_name = f'warehouse.workflows.{str(my_path)[idx+len(workflows_string) + 1:].replace(os.sep, ".")}.{d.name}'
+                module_name = f'warehouse.workflows{str(my_path)[idx+len(workflows_string):].replace(os.sep, ".")}.{d.name}'
 
             self.print_debug(f"loading workflow module {module_name}")
 

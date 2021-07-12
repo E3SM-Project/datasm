@@ -1,10 +1,9 @@
 import os
 import re
-import json
+import sys
 from enum import Enum
 
 from pathlib import Path
-from pprint import pprint
 from datetime import datetime
 from warehouse.util import (
     load_file_lines,
@@ -166,10 +165,10 @@ class Dataset(object):
         self.initialize_status_file()
 
     def initialize_status_file(self):
-        log_message("info", f"initializing status file for {self.dataset_id}")
 
         if not self.status_path.exists():
-            log_message("info", f"creating new status file {self.status_path}")
+            msg = f"creating new status file {self.status_path}"
+            log_message("info", msg)
             self.status_path.touch(mode=0o755, exist_ok=True)
 
         found_id = False
@@ -189,7 +188,7 @@ class Dataset(object):
         if status := get_last_status_line(self.status_path):
             status_attrs = status.split(":")
             self._status = f"{status_attrs[-3]}:{status_attrs[-2]}:"
-            log_message("info", f"status found as: {self._status}")
+            # log_message("info", f"status found as: {':'.join(status_attrs[3:]).rstrip()}")
         else:
             self._status = DatasetStatus.UNITITIALIZED.name
             log_message("info", f"no status found, setting to {self._status}")
@@ -279,8 +278,7 @@ class Dataset(object):
     @property
     def publication_path(self):
         if (
-            "CMIP6" not in self.dataset_id
-            and not self._publication_path
+            not self._publication_path
             or not self._publication_path.exists()
         ):
             if self.project == "CMIP6":
@@ -308,7 +306,7 @@ class Dataset(object):
                     self.ensemble,
                 )
             self._publication_path = pubpath
-            self._publication_path.mkdir(parents=True, exist_ok=True)
+
         return self._publication_path
 
     @property
@@ -384,23 +382,23 @@ class Dataset(object):
 
     def check_dataset_is_complete(self, files):
         # TODO: full pass on this to make sure its working for all data types
-
+        # import ipdb; ipdb.set_trace()
         # filter out files from old versions
-        nfiles = []
-        for file in files:
-            file_path, name = os.path.split(file)
-            file_attrs = file_path.split("/")
-            version = file_attrs[-1]
-            nfiles.append((version, file))
+        # nfiles = []
+        # for file in files:
+        #     file_path, _ = os.path.split(file)
+        #     file_attrs = file_path.split("/")
+        #     version = file_attrs[-1]
+        #     nfiles.append((version, file))
 
-        latest_version = sorted(nfiles)[-1][0]
-        files = [
-            x
-            for version, x in nfiles
-            if version == latest_version and x != ".lock" and x != ".mapfile"
-        ]
+        # latest_version = sorted(nfiles)[-1][0]
+        # files = [
+        #     x
+        #     for version, x in nfiles
+        #     if version == latest_version and x != ".lock" and x != ".mapfile"
+        # ]
 
-        self.versions[latest_version] = len(files)
+        # self.versions[latest_version] = len(files)
 
         if not self.start_year or not self.end_year:
             if "CMIP" in self.dataset_id:
@@ -413,13 +411,15 @@ class Dataset(object):
                 else:
                     self.start_year, self.end_year = self.infer_start_end_e3sm(files)
 
-        if self.data_type == "CMIP":
+        if self.data_type == "cmip":
+            # import ipdb; ipdb.set_trace()
             if "fx" in self.dataset_id:
                 if files:
                     return True
                 else:
                     self.missing = [self.dataset_id]
                     return False
+            
             self.missing = self.check_spans(files)
         else:
             if "model-output.mon" in self.dataset_id:
@@ -444,46 +444,47 @@ class Dataset(object):
         """
         Check ESGF to see of the dataset has already been published,
         if it exists check that the dataset is complete"""
-
+        # import ipdb; ipdb.set_trace()
         # TODO: fix this at some point
         if self.table == "fx":
-            return DatasetStatus.SUCCESS
+            return DatasetStatus.SUCCESS.name
 
         facets = {"master_id": self.dataset_id, "type": "Dataset"}
         if "CMIP6" in self.dataset_id:
-            project = "cmip6"
+            project = "CMIP6"
         else:
-            project = "e3sm"
+            project = "E3SM"
         docs = search_esgf(project, facets)
 
         if not docs or int(docs[0]["number_of_files"]) == 0:
-            return DatasetStatus.UNITITIALIZED
+            return DatasetStatus.UNITITIALIZED.name
 
         facets = {"dataset_id": docs[0]["id"], "type": "File"}
 
         docs = search_esgf(project, facets)
         if not docs or len(docs) == 0:
-            return DatasetStatus.UNITITIALIZED
+            return DatasetStatus.UNITITIALIZED.name
+
 
         files = [x["title"] for x in docs]
+        if 'CMIP6' not in docs[0]['id']:
+            latest_version = 0
+            for f in files:
+                version_dir = int(f.split(os.sep)[-2][1:])
+                if version_dir > latest_version:
+                    latest_version = version_dir
 
-        latest_version = 0
-        for f in files:
-            version_dir = int(f.split(os.sep)[-2][1:])
-            if version_dir > latest_version:
-                latest_version = version_dir
-
-        files = [x for x in files if x.split(os.sep)[-2] == f"v{latest_version}"]
+            files = [x for x in files if x.split(os.sep)[-2] == f"v{latest_version}"]
 
         if self.check_dataset_is_complete(files):
-            return DatasetStatus.SUCCESS
+            return DatasetStatus.SUCCESS.name
         else:
-            return DatasetStatus.PARTIAL_PUBLISHED
+            return DatasetStatus.PARTIAL_PUBLISHED.name
 
     def get_status_from_pub_dir(self):
 
-        if not self.publication_path.exists():
-            return DatasetStatus.NOT_IN_PUBLICATION
+        if not self.publication_path or not self.publication_path.exists():
+            return DatasetStatus.NOT_IN_PUBLICATION.name
 
         self.update_versions(self.publication_path)
 
@@ -491,7 +492,7 @@ class Dataset(object):
         version_dir = Path(self.publication_path, version_names[-1])
         files = [str(x.resolve()) for x in version_dir.glob("*")]
         if not files:
-            return DatasetStatus.NOT_IN_PUBLICATION
+            return DatasetStatus.NOT_IN_PUBLICATION.name
 
         is_complete = self.check_dataset_is_complete(files)
         if is_complete:
@@ -499,9 +500,9 @@ class Dataset(object):
             # otherwise the "official" location should be the warehouse
             self.status = DatasetStatusMessage.PUBLICATION_READY.value
 
-            return DatasetStatus.IN_PUBLICATION
+            return DatasetStatus.IN_PUBLICATION.name
         else:
-            return DatasetStatus.NOT_IN_PUBLICATION
+            return DatasetStatus.NOT_IN_PUBLICATION.name
 
     def update_versions(self, path):
         self.versions = {
@@ -513,7 +514,7 @@ class Dataset(object):
     def get_status_from_warehouse(self):
 
         if not self.warehouse_path.exists():
-            return DatasetStatus.NOT_IN_WAREHOUSE
+            return DatasetStatus.NOT_IN_WAREHOUSE.name
 
         self.update_versions(self.warehouse_path)
 
@@ -521,12 +522,12 @@ class Dataset(object):
         version_dir = Path(self.publication_path, version_names[-1])
         files = [x.resolve() for x in version_dir.glob("*")]
         if not files:
-            return DatasetStatus.NOT_IN_WAREHOUSE
+            return DatasetStatus.NOT_IN_WAREHOUSE.name
         else:
             if self.check_dataset_is_complete(files):
-                return DatasetStatus.IN_WAREHOUSE
+                return DatasetStatus.IN_WAREHOUSE.name
             else:
-                return DatasetStatus.NOT_IN_WAREHOUSE
+                return DatasetStatus.NOT_IN_WAREHOUSE.name
 
     def find_status(self):
         """
@@ -534,35 +535,40 @@ class Dataset(object):
         """
 
         # if the dataset is UNITITIALIZED, then we need to build up the status from scratch
-        if self.status == DatasetStatus.UNITITIALIZED:
+        # if self.status == DatasetStatus.UNITITIALIZED.name:
             # returns either NOT_PUBLISHED or SUCCESS or PARTIAL_PUBLISHED or UNITITIALIZED
-            self.status = self.get_esgf_status()
+        self.status = self.get_esgf_status()
+        # import ipdb; ipdb.set_trace()
 
         # TODO: figure out how to update and finish a dataset thats been published
         # but is missing some of its files
         # if self.status == DatasetStatus.PARTIAL_PUBLISHED:
         #    ...
 
-        if self.status in [DatasetStatus.NOT_PUBLISHED, DatasetStatus.UNITITIALIZED]:
+        if self.status in [
+            DatasetStatus.NOT_PUBLISHED.name,
+            DatasetStatus.UNITITIALIZED.name
+        ]:
             # returns IN_PUBLICATION or NOT_IN_PUBLICATION
             self.status = self.get_status_from_pub_dir()
-            ...
-
-        if self.status in [
-            DatasetStatus.NOT_IN_PUBLICATION,
-            DatasetStatus.UNITITIALIZED,
-        ]:
-            # returns IN_WAREHOUSE or NOT_IN_WAREHOUSE
-            self.status = self.get_status_from_warehouse()
-            ...
 
         if (
-            self.status
-            in [
-                DatasetStatus.NOT_IN_WAREHOUSE,
-                DatasetStatus.UNITITIALIZED,
+            self.status in [
+                DatasetStatus.NOT_IN_PUBLICATION.name,
+                DatasetStatus.UNITITIALIZED.name
+            ]
+            and self.project != 'cmip'
+        ):
+            # returns IN_WAREHOUSE or NOT_IN_WAREHOUSE
+            self.status = self.get_status_from_warehouse()
+
+        if (
+            self.status in [
+                DatasetStatus.NOT_IN_WAREHOUSE.name,
+                DatasetStatus.UNITITIALIZED.name,
             ]
             and self.data_type not in ["time-series", "climo"]
+            and self.project != 'cmip'
         ):
             # returns IN_ARCHIVE OR NOT_IN_ARCHIVE
             # self.status = self.get_status_from_archive()
@@ -721,6 +727,8 @@ class Dataset(object):
     def get_file_start_end(filename):
         if "clim" in filename:
             return int(filename[-21:-17]), int(filename[-14:-10])
+        elif '_day_' in filename:
+            return int(filename[-20:-16]), int(filename[-11:-7])
         else:
             return int(filename[-16:-12]), int(filename[-9:-5])
 
@@ -739,6 +747,7 @@ class Dataset(object):
         """
         Given a list of CMIP files, find of all the files that should be there are
         """
+        # import ipdb; ipdb.set_trace()
         missing = []
         files = sorted(files)
         file_start, file_end = self.get_file_start_end(files[0])

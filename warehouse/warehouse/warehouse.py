@@ -49,7 +49,7 @@ class AutoWarehouse:
         self.serial = kwargs.get("serial", False)
         self.testing = kwargs.get("testing", False)
         self.dataset_ids = kwargs.get("dataset_id")
-        if not isinstance(self.dataset_ids, list):
+        if self.dataset_ids is not None and not isinstance(self.dataset_ids, list):
             self.dataset_ids = [self.dataset_ids]
         self.slurm_path = kwargs.get("slurm", "slurm_scripts")
         self.report_missing = kwargs.get("report_missing")
@@ -124,13 +124,20 @@ class AutoWarehouse:
 
     def print_missing(self):
         found_missing = False
+        # import ipdb; ipdb.set_trace()
         for x in self.datasets.values():
             if x.missing:
                 found_missing = True
                 for m in x.missing:
                     print(f"{m}")
             elif x.status == DatasetStatus.UNITITIALIZED.name:
-                log_message("error", f"No files in dataset {x.dataset_id}")
+                found_missing = True
+                msg = f"No files in dataset {x.dataset_id}"
+                log_message("error", msg)
+            elif x.status != DatasetStatus.SUCCESS.name:
+                found_missing = True
+                msg = f"Dataset {x.dataset_id} status is {x.status}"
+                log_message("error", msg)
         if not found_missing:
             log_message("info", "No missing files in datasets")
 
@@ -144,10 +151,10 @@ class AutoWarehouse:
             e3sm_ids = e3sm_ids[:100]
         all_dataset_ids = cmip6_ids + e3sm_ids
 
+        
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
-
-        if self.dataset_ids is not None:
+        if self.dataset_ids and self.dataset_ids is not None:
             ndataset_ids = []
 
             for i in self.dataset_ids:
@@ -158,20 +165,23 @@ class AutoWarehouse:
                 for j in all_dataset_ids:
                     if i in j:
                         found = True
-                        break
-                if found:
-                    ndataset_ids.append(j)
+                        ndataset_ids.append(j)
+                    
                 if not found:
                     cprint(f"Unable to find {i} in the dataset spec", "red")
 
-            dataset_ids = ndataset_ids
-        del all_dataset_ids
-        if not dataset_ids:
+            self.dataset_ids = ndataset_ids
+            del all_dataset_ids
+        else:
+            self.dataset_ids = all_dataset_ids
+
+        if not self.dataset_ids:
             log_message(
                 "error",
                 f"No datasets match pattern from command line parameter --dataset-id {self.dataset_ids}",
             )
             sys.exit(1)
+
 
         # instantiate the dataset objects with the paths to
         # where they should look for their data files
@@ -183,7 +193,7 @@ class AutoWarehouse:
                 warehouse_base=self.warehouse_path,
                 archive_base=self.archive_path,
             )
-            for dataset_id in dataset_ids
+            for dataset_id in self.dataset_ids
         }
 
         # fill in the start and end year for each dataset
@@ -222,6 +232,7 @@ class AutoWarehouse:
 
         # find the state of each dataset
         if check_esgf:
+            # import ipdb; ipdb.set_trace()
             if not self.serial:
                 pool = ProcessPoolExecutor(max_workers=self.num_workers)
                 futures = [pool.submit(x.find_status) for x in self.datasets.values()]
@@ -464,26 +475,30 @@ class AutoWarehouse:
         return
 
     def collect_cmip_datasets(self, **kwargs):
-        for activity_name, activity_val in self.dataset_spec["project"][
-            "CMIP6"
-        ].items():
+        for activity_name, activity_val in self.dataset_spec["project"]["CMIP6"].items():
+            if activity_name == "test":
+                continue
             for version_name, version_value in activity_val.items():
                 for experimentname, experimentvalue in version_value.items():
                     for ensemble in experimentvalue["ens"]:
-                        for table_name, table_value in self.dataset_spec[
-                            "tables"
-                        ].items():
+                        for table_name, table_value in self.dataset_spec["tables"].items():
                             for variable in table_value:
                                 if (
                                     variable in experimentvalue["except"]
                                     or table_name in experimentvalue["except"]
+                                    or variable == "all"
                                 ):
                                     continue
+                                if "_highfreq" in variable:
+                                    idx = variable.find('_')
+                                    variable = variable[:idx]
                                 dataset_id = f"CMIP6.{activity_name}.E3SM-Project.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr"
                                 yield dataset_id
 
     def collect_e3sm_datasets(self, **kwargs):
         for version in self.dataset_spec["project"]["E3SM"]:
+            if version == "test":
+                continue
             for experiment, experimentinfo in self.dataset_spec["project"]["E3SM"][
                 version
             ].items():

@@ -10,10 +10,10 @@ class CleanUp(Workflow):
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
         self.name = NAME.upper()
-        log_message('info',f'initializing job {self.name} for {self.dataset.dataset_id}')
+        log_message('info', f'initializing workflow {self.name}')
 
     def __call__(self):
-        log_message('info',f'starting job {self.name} for {self.dataset.dataset_id}')
+        log_message('info', f'starting workflow {self.name}')
 
     @staticmethod
     def add_args(parser):
