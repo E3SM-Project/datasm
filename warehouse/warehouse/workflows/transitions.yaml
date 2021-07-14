@@ -5,6 +5,10 @@ WAREHOUSE:Ready:
         - POSTPROCESS:Ready
     atm-cmip-mon:
         - POSTPROCESS:Ready
+    atm-cmip-day:
+        - POSTPROCESS:Ready
+    atm-cmip-3hr:
+        - POSTPROCESS:Ready
     lnd-ts-mon:
         - POSTPROCESS:Ready
     lnd-cmip-mon:

@@ -14,7 +14,7 @@ from warehouse.util import (
 
 
 class DatasetStatus(Enum):
-    UNITITIALIZED = 1
+    UNITITIALIZED = "WAREHOUSE:UNINITIALIZED:"
     INITIALIZED = 2
     RUNNING = 4
     FAILED = 5
@@ -69,7 +69,7 @@ class Dataset(object):
     ):
         super().__init__()
         self.dataset_id = dataset_id
-        self._status = DatasetStatus.UNITITIALIZED.name
+        self._status = DatasetStatus.UNITITIALIZED.value
 
         self.data_path = None
         self.cmip_var = None
@@ -190,7 +190,7 @@ class Dataset(object):
             self._status = f"{status_attrs[-3]}:{status_attrs[-2]}:"
             # log_message("info", f"status found as: {':'.join(status_attrs[3:]).rstrip()}")
         else:
-            self._status = DatasetStatus.UNITITIALIZED.name
+            self._status = DatasetStatus.UNITITIALIZED.value
             log_message("info", f"no status found, setting to {self._status}")
 
     def update_from_status_file(self):
@@ -311,6 +311,8 @@ class Dataset(object):
 
     @property
     def status(self):
+        if len(self._status.split(':')) == 1:
+            return self._status + ':'
         return self._status
 
     @status.setter
@@ -320,15 +322,19 @@ class Dataset(object):
         Because this is a @property you have to pass in the parameters along with the
         status as a tuple. Would love to have a solution for that uglyness
         """
-        if status is None or status == self._status:
+        self.load_dataset_status_file()
+        latest, _ = self.get_latest_status()
+        if status is None or status == self._status or latest == status:
             return
         params = None
         if isinstance(status, tuple):
             status, params = status
+        
 
         self._status = status
         with open(self.status_path, "a") as outstream:
-            msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:WAREHOUSE:{status}'
+            # msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:WAREHOUSE:{status}'
+            msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:{status}'
             if params is not None:
                 items = [f"{k}={v}".replace(":", "^") for k, v in params.items()]
                 msg += ",".join(items)
@@ -457,13 +463,13 @@ class Dataset(object):
         docs = search_esgf(project, facets)
 
         if not docs or int(docs[0]["number_of_files"]) == 0:
-            return DatasetStatus.UNITITIALIZED.name
+            return DatasetStatus.UNITITIALIZED.value
 
         facets = {"dataset_id": docs[0]["id"], "type": "File"}
 
         docs = search_esgf(project, facets)
         if not docs or len(docs) == 0:
-            return DatasetStatus.UNITITIALIZED.name
+            return DatasetStatus.UNITITIALIZED.value
 
 
         files = [x["title"] for x in docs]
@@ -535,7 +541,7 @@ class Dataset(object):
         """
 
         # if the dataset is UNITITIALIZED, then we need to build up the status from scratch
-        # if self.status == DatasetStatus.UNITITIALIZED.name:
+        # if self.status == DatasetStatus.UNITITIALIZED.value:
             # returns either NOT_PUBLISHED or SUCCESS or PARTIAL_PUBLISHED or UNITITIALIZED
         self.status = self.get_esgf_status()
         # import ipdb; ipdb.set_trace()
@@ -547,7 +553,7 @@ class Dataset(object):
 
         if self.status in [
             DatasetStatus.NOT_PUBLISHED.name,
-            DatasetStatus.UNITITIALIZED.name
+            DatasetStatus.UNITITIALIZED.value
         ]:
             # returns IN_PUBLICATION or NOT_IN_PUBLICATION
             self.status = self.get_status_from_pub_dir()
@@ -555,7 +561,7 @@ class Dataset(object):
         if (
             self.status in [
                 DatasetStatus.NOT_IN_PUBLICATION.name,
-                DatasetStatus.UNITITIALIZED.name
+                DatasetStatus.UNITITIALIZED.value
             ]
             and self.project != 'cmip'
         ):
@@ -565,7 +571,7 @@ class Dataset(object):
         if (
             self.status in [
                 DatasetStatus.NOT_IN_WAREHOUSE.name,
-                DatasetStatus.UNITITIALIZED.name,
+                DatasetStatus.UNITITIALIZED.value,
             ]
             and self.data_type not in ["time-series", "climo"]
             and self.project != 'cmip'
@@ -829,7 +835,7 @@ class Dataset(object):
             sys.exit(1)
 
         # reload the status file in case somethings changed
-        self.load_dataset_status_file(self.status_path)
+        self.load_dataset_status_file()
 
         status_attrs = state.split(":")
         blocked = False
@@ -877,9 +883,9 @@ comm: {self.comm}"""
                 timestamp = line_info[1]
                 major = line_info[2]
                 minor = line_info[3]
-                status = line_info[4]
-                if len(line_info) > 5:
-                    args = line_info[5:]
+                # status = line_info[4]
+                # if len(line_info) > 5:
+                #     args = line_info[5:]
 
                 if major not in self.stat:
                     self.stat[major] = {}

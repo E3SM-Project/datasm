@@ -1,5 +1,6 @@
 import os
 import sys
+from warehouse.dataset import DatasetStatusMessage
 import yaml
 import inspect
 
@@ -140,6 +141,32 @@ class AutoWarehouse:
                 log_message("error", msg)
         if not found_missing:
             log_message("info", "No missing files in datasets")
+        
+    def find_e3sm_source_dataset(self, job):
+        """
+        Given a job with a CMIP6 dataset that needs to be run, 
+        find the matching raw E3SM dataset it needs as input
+
+        Parameters:
+            job (WorkflowJob): the CMIP6 job that needs to have its requirements met
+        
+        Returns:
+            Dataset, the E3SM dataset that matches the input requirements for the job if found, else None
+        """
+        msg = f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}"
+        log_message("debug", msg)
+        for x in self.collect_e3sm_datasets():
+            dataset = Dataset(
+                dataset_id=x,
+                status_path=os.path.join(self.status_path, f"{x}.status"),
+                pub_base=self.publication_path,
+                warehouse_base=self.warehouse_path,
+                archive_base=self.archive_path)
+            if job.matches_requirement(dataset, self.dataset_spec):
+                msg = f"matching dataset found: {dataset.dataset_id}"
+                log_message("debug", msg)
+                return dataset
+        return None
 
     def setup_datasets(self, check_esgf=True):
         log_message("info", "Initializing the warehouse")
@@ -181,7 +208,6 @@ class AutoWarehouse:
                 f"No datasets match pattern from command line parameter --dataset-id {self.dataset_ids}",
             )
             sys.exit(1)
-
 
         # instantiate the dataset objects with the paths to
         # where they should look for their data files
@@ -338,6 +364,10 @@ class AutoWarehouse:
             state = dataset.status
             workflow = self.workflow
 
+            if state == DatasetStatus.UNITITIALIZED.name + ':':
+                import ipdb; ipdb.set_trace()
+                state = DatasetStatusMessage.WAREHOUSE_READY.value
+
             # check that the dataset isnt blocked by some other process thats acting on it
             # and that the workflow hasnt either failed or succeeded
             if dataset.is_blocked(state):
@@ -401,9 +431,17 @@ class AutoWarehouse:
                 else:
                     matching_job.setup_requisites(newjob.dataset)
 
+        import ipdb; ipdb.set_trace()
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
             log_message("info", f"starting job: {job}")
+            if not job.meets_requirements() and "CMIP6" in job.dataset.dataset_id:
+                source_dataset = self.find_e3sm_source_dataset(job)
+                if source_dataset is None:
+                    msg = f"Cannot find raw input requirement for {job}"
+                    log_message("error", msg)
+                    continue
+                job.setup_requisites(source_dataset)
             if job.job_id is None and job.meets_requirements():
                 log_message("info", f"Job {job} meets its input dataset requirements")
                 job_id = job(self.slurm)
