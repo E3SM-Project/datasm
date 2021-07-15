@@ -61,12 +61,12 @@ tables:
     - clhcalipso
     - all
   day:
-    - pr_highfreq
+    - pr
     - tas
     - huss
     - tasmin
     - tasmax
-    - rlut_highfreq
+    - rlut
     - all
   3hr:
     - pr_highfreq

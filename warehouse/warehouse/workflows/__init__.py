@@ -7,6 +7,7 @@ import inspect
 from pprint import pformat
 from pathlib import Path
 
+from warehouse.workflows import jobs
 import warehouse.resources as resources
 from warehouse.util import setup_logging, log_message
 
