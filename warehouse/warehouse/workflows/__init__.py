@@ -68,7 +68,7 @@ class Workflow(object):
             # return prefix
             return self.name + ':' + prefix
 
-    def next_state(self, dataset, state, params, idx=1):
+    def next_state(self, dataset, state, params, idx=0):
         """
         Parameters: 
             dataset (Dataset) : The dataset which is changing state
@@ -108,6 +108,7 @@ class Workflow(object):
 
         else:
             log_message('error', f"{target_state} is not present in the transition graph for {self.name}")
+            import ipdb; ipdb.set_trace()
             sys.exit(1)
 
     def get_job(self, dataset, state, params, scripts_path, slurm_out_path, workflow, job_workers=8, **kwargs):

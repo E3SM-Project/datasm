@@ -1,9 +1,12 @@
 import os
+from re import I
 import sys
 from warehouse.dataset import DatasetStatusMessage
 import yaml
 import inspect
+import fnmatch
 
+from pprint import pformat
 from pathlib import Path
 from time import sleep
 from tqdm import tqdm
@@ -39,11 +42,13 @@ class AutoWarehouse:
     def __init__(self, *args, **kwargs):
         super().__init__()
 
-        self.warehouse_path = Path(kwargs.get("warehouse_path", DEFAULT_WAREHOUSE_PATH))
+        self.warehouse_path = Path(kwargs.get(
+            "warehouse_path", DEFAULT_WAREHOUSE_PATH))
         self.publication_path = Path(
             kwargs.get("publication_path", DEFAULT_PUBLICATION_PATH)
         )
-        self.archive_path = Path(kwargs.get("archive_path", DEFAULT_ARCHIVE_PATH))
+        self.archive_path = Path(kwargs.get(
+            "archive_path", DEFAULT_ARCHIVE_PATH))
         self.status_path = Path(kwargs.get("status_path", DEFAULT_STATUS_PATH))
         self.spec_path = Path(kwargs.get("spec_path", DEFAULT_SPEC_PATH))
         self.num_workers = kwargs.get("num", 8)
@@ -71,7 +76,8 @@ class AutoWarehouse:
 
         if not self.report_missing:
             self.workflow = kwargs.get(
-                "workflow", Workflow(slurm_scripts=self.slurm_path, debug=self.debug)
+                "workflow", Workflow(
+                    slurm_scripts=self.slurm_path, debug=self.debug)
             )
 
             self.workflow.load_children()
@@ -131,17 +137,17 @@ class AutoWarehouse:
                 found_missing = True
                 for m in x.missing:
                     print(f"{m}")
-            elif x.status == DatasetStatus.UNITITIALIZED.name:
+            elif x.status == DatasetStatus.UNITITIALIZED.value:
                 found_missing = True
                 msg = f"No files in dataset {x.dataset_id}"
                 log_message("error", msg)
-            elif x.status != DatasetStatus.SUCCESS.name:
+            elif x.status != DatasetStatus.SUCCESS.value:
                 found_missing = True
                 msg = f"Dataset {x.dataset_id} status is {x.status}"
                 log_message("error", msg)
         if not found_missing:
             log_message("info", "No missing files in datasets")
-        
+
     def find_e3sm_source_dataset(self, job):
         """
         Given a job with a CMIP6 dataset that needs to be run, 
@@ -149,7 +155,7 @@ class AutoWarehouse:
 
         Parameters:
             job (WorkflowJob): the CMIP6 job that needs to have its requirements met
-        
+
         Returns:
             Dataset, the E3SM dataset that matches the input requirements for the job if found, else None
         """
@@ -171,34 +177,18 @@ class AutoWarehouse:
     def setup_datasets(self, check_esgf=True):
         log_message("info", "Initializing the warehouse")
         cmip6_ids = [x for x in self.collect_cmip_datasets()]
-        if self.testing:
-            cmip6_ids = cmip6_ids[:100]
         e3sm_ids = [x for x in self.collect_e3sm_datasets()]
-        if self.testing:
-            e3sm_ids = e3sm_ids[:100]
         all_dataset_ids = cmip6_ids + e3sm_ids
 
-        
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
+
         if self.dataset_ids and self.dataset_ids is not None:
-            ndataset_ids = []
-
-            for i in self.dataset_ids:
-                if i in all_dataset_ids:
-                    ndataset_ids.append(i)
-                    continue
-                found = False
-                for j in all_dataset_ids:
-                    if i in j:
-                        found = True
-                        ndataset_ids.append(j)
-                    
-                if not found:
-                    cprint(f"Unable to find {i} in the dataset spec", "red")
-
-            self.dataset_ids = ndataset_ids
-            del all_dataset_ids
+            dataset_ids = []
+            for dataset_pattern in self.dataset_ids:
+                if new_ids := fnmatch.filter(all_dataset_ids, dataset_pattern):
+                    dataset_ids.extend(new_ids)
+            self.dataset_ids = dataset_ids
         else:
             self.dataset_ids = all_dataset_ids
 
@@ -208,13 +198,17 @@ class AutoWarehouse:
                 f"No datasets match pattern from command line parameter --dataset-id {self.dataset_ids}",
             )
             sys.exit(1)
+        else:
+            msg = f"Running with datasets {pformat(self.dataset_ids)}"
+            log_message('debug', msg)
 
         # instantiate the dataset objects with the paths to
         # where they should look for their data files
         self.datasets = {
             dataset_id: Dataset(
                 dataset_id,
-                status_path=os.path.join(self.status_path, f"{dataset_id}.status"),
+                status_path=os.path.join(
+                    self.status_path, f"{dataset_id}.status"),
                 pub_base=self.publication_path,
                 warehouse_base=self.warehouse_path,
                 archive_base=self.archive_path,
@@ -252,7 +246,8 @@ class AutoWarehouse:
                     facets[2]
                 ].get("except")
                 if exclude:
-                    dataset.datavars = [x for x in realm_vars if x not in exclude]
+                    dataset.datavars = [
+                        x for x in realm_vars if x not in exclude]
                 else:
                     dataset.datavars = realm_vars
 
@@ -261,7 +256,8 @@ class AutoWarehouse:
             # import ipdb; ipdb.set_trace()
             if not self.serial:
                 pool = ProcessPoolExecutor(max_workers=self.num_workers)
-                futures = [pool.submit(x.find_status) for x in self.datasets.values()]
+                futures = [pool.submit(x.find_status)
+                           for x in self.datasets.values()]
                 for future in tqdm(
                     as_completed(futures),
                     total=len(futures),
@@ -269,14 +265,14 @@ class AutoWarehouse:
                 ):
                     dataset_id, status, missing = future.result()
                     if isinstance(status, DatasetStatus):
-                        status = status.name
+                        status = status.value
                     self.datasets[dataset_id].status = status
                     self.datasets[dataset_id].missing = missing
             else:
                 for dataset in tqdm(self.datasets.values()):
                     dataset_id, status, _ = dataset.find_status()
                     if isinstance(status, DatasetStatus):
-                        status = status.name
+                        status = status.value
                     self.datasets[dataset_id].status = status
 
         return
@@ -318,13 +314,14 @@ class AutoWarehouse:
         # remove the job from the job_pool
         latest, second_latest = dataset.get_latest_status()
         log_message("info", f"dataset: {dataset_id} updated to state {latest}")
-        
+
         if second_latest is not None:
             latest_attrs = latest.split(":")
             second_latest_attrs = second_latest.split(":")
             if "slurm_id" in second_latest_attrs[-1]:
                 job_id = int(
-                    second_latest_attrs[-1][second_latest_attrs[-1].index("=") + 1 :]
+                    second_latest_attrs[-1][second_latest_attrs[-1].index(
+                        "=") + 1:]
                 )
                 if second_latest_attrs[-3] == latest_attrs[-3]:
                     if "Pass" in latest_attrs[-2] or "Fail" in latest_attrs[-2]:
@@ -344,12 +341,23 @@ class AutoWarehouse:
         """
 
         new_jobs = []
+        ready_states = [DatasetStatus.NOT_IN_PUBLICATION.value, DatasetStatus.NOT_IN_WAREHOUSE.value,
+                        DatasetStatus.PARTIAL_PUBLISHED.value, DatasetStatus.UNITITIALIZED.value]
 
         if datasets is None:
             datasets = self.datasets
 
         for dataset_id, dataset in datasets.items():
+            
             if "Engaged" in dataset.status:
+                continue
+
+            # for all the datasets, if they're not yet published or in the warehouse
+            # then mark them as ready to start
+            if dataset.status in ready_states:
+                msg = f"Dataset {dataset.dataset_id} is transitioning from {dataset.status} to {DatasetStatus.READY.value}"
+                log_message('debug', msg)
+                dataset.status = DatasetStatus.READY.value
                 continue
 
             # we keep a reference to the workflow instance, so when
@@ -364,8 +372,7 @@ class AutoWarehouse:
             state = dataset.status
             workflow = self.workflow
 
-            if state == DatasetStatus.UNITITIALIZED.name + ':':
-                import ipdb; ipdb.set_trace()
+            if state == DatasetStatus.UNITITIALIZED.value:
                 state = DatasetStatusMessage.WAREHOUSE_READY.value
 
             # check that the dataset isnt blocked by some other process thats acting on it
@@ -377,15 +384,16 @@ class AutoWarehouse:
             elif f"{self.workflow.name.upper()}:Pass:" == state:
                 self.workflow_success(dataset)
                 self.check_done()
-                return
+                continue
             elif f"{self.workflow.name.upper()}:Fail:" == state:
                 self.workflow_error(dataset)
                 self.check_done()
-                return
+                continue
 
             # there may be several transitions out of this state and
             # we need to collect them all
             engaged_states = []
+            import ipdb; ipdb.set_trace()
             for item in self.workflow.next_state(dataset, state, params):
                 new_state, workflow, params = item
                 # if we have a new state with the "Engaged" keyword
@@ -395,13 +403,15 @@ class AutoWarehouse:
                 # otherwise the new state and its parameters need to be
                 # written to the dataset status file
                 else:
-                    log_message("debug", f"Dataset {dataset.dataset_id} transitioning to state {new_state} with params {params}")
+                    log_message(
+                        "debug", f"Dataset {dataset.dataset_id} transitioning to state {new_state} with params {params}")
                     dataset.status = (new_state, params)
 
             if not engaged_states:
-                log_message("debug", "No jobs found to start, checking to see if all datasets are done")
+                log_message(
+                    "debug", "No jobs found to start, checking to see if all datasets are done")
                 self.check_done()
-                return
+                continue
 
             for state, workflow, params in engaged_states:
                 newjob = self.workflow.get_job(
@@ -431,7 +441,6 @@ class AutoWarehouse:
                 else:
                     matching_job.setup_requisites(newjob.dataset)
 
-        import ipdb; ipdb.set_trace()
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
             log_message("info", f"starting job: {job}")
@@ -443,7 +452,8 @@ class AutoWarehouse:
                     continue
                 job.setup_requisites(source_dataset)
             if job.job_id is None and job.meets_requirements():
-                log_message("info", f"Job {job} meets its input dataset requirements")
+                log_message(
+                    "info", f"Job {job} meets its input dataset requirements")
                 job_id = job(self.slurm)
                 if job_id is not None:
                     job.job_id = job_id
@@ -585,8 +595,9 @@ class AutoWarehouse:
         p.add_argument(
             "--dataset-id",
             nargs="*",
-            help="Only run the automated processing for the given datasets, this can the the complete dataset_id, "
-            "or a wildcard such as E3SM.1_0.",
+            help="Run the automated processing for the given datasets, this can the the complete dataset_id, "
+            "or a glob such as E3SM.1_0.*.time-series. or CMIP6.*.Amon. the default is to run on all CMIP6 "
+            "and  E3SM project datasets",
         )
         p.add_argument(
             "--warehouse-config",

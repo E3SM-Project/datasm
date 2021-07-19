@@ -15,16 +15,17 @@ from warehouse.util import (
 
 class DatasetStatus(Enum):
     UNITITIALIZED = "WAREHOUSE:UNINITIALIZED:"
-    INITIALIZED = 2
-    RUNNING = 4
-    FAILED = 5
-    SUCCESS = 6
-    IN_WAREHOUSE = 8
-    IN_PUBLICATION = 9
-    NOT_PUBLISHED = 10
-    NOT_IN_PUBLICATION = 11
-    NOT_IN_WAREHOUSE = 12
-    PARTIAL_PUBLISHED = 13
+    INITIALIZED = "WAREHOUSE:INITIALIZED:"
+    RUNNING = "WAREHOUSE:RUNNING:"
+    READY = "WAREHOUSE:Ready:"
+    FAILED = "WAREHOUSE:Fail:"
+    SUCCESS = "WAREHOUSE:Pass:"
+    IN_WAREHOUSE = "WAREHOUSE:IN_WAREHOUSE:"
+    IN_PUBLICATION = "WAREHOUSE:IN_PUBLICATION:"
+    NOT_PUBLISHED = "WAREHOUSE:NOT_PUBLISHED:"
+    NOT_IN_PUBLICATION = "WAREHOUSE:NOT_IN_PUBLICATION:"
+    NOT_IN_WAREHOUSE = "WAREHOUSE:NOT_IN_WAREHOUSE:"
+    PARTIAL_PUBLISHED = "WAREHOUSE:PARTIAL_PUBLISHED:"
 
 
 class DatasetStatusMessage(Enum):
@@ -103,7 +104,7 @@ class Dataset(object):
             self.cmip_var = facets[7]
             self.resolution = None
             if facets[6] in ["Amon", "3hr", "day", "6hr", "CFmon", "AERmon"]:
-                self.realm = "atmos"
+                self.realm = "atm"
             elif facets[6] == "Lmon":
                 self.realm = "land"
             elif facets[6] in ["Omon", "Ofx"]:
@@ -169,7 +170,7 @@ class Dataset(object):
         if not self.status_path.exists():
             msg = f"creating new status file {self.status_path}"
             log_message("info", msg)
-            self.status_path.touch(mode=0o755, exist_ok=True)
+            self.status_path.touch(mode=0o660, exist_ok=True)
 
         found_id = False
         with open(self.status_path, "r") as instream:
@@ -311,8 +312,6 @@ class Dataset(object):
 
     @property
     def status(self):
-        if len(self._status.split(':')) == 1:
-            return self._status + ':'
         return self._status
 
     @status.setter
@@ -329,12 +328,14 @@ class Dataset(object):
         params = None
         if isinstance(status, tuple):
             status, params = status
-        
 
+        msg = f"setting {self.dataset_id} to {status}"
+        log_message("debug", msg)
         self._status = status
+        
         with open(self.status_path, "a") as outstream:
             # msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:WAREHOUSE:{status}'
-            msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:{status}'
+            msg = f'STAT:{datetime.now().strftime("%Y/%m/%d %H.%M.%S.%f")}:{status}'
             if params is not None:
                 items = [f"{k}={v}".replace(":", "^") for k, v in params.items()]
                 msg += ",".join(items)
@@ -453,13 +454,13 @@ class Dataset(object):
         # import ipdb; ipdb.set_trace()
         # TODO: fix this at some point
         if self.table == "fx":
-            return DatasetStatus.SUCCESS.name
+            return DatasetStatus.SUCCESS.value
 
         facets = {"master_id": self.dataset_id, "type": "Dataset"}
         if "CMIP6" in self.dataset_id:
             project = "CMIP6"
         else:
-            project = "E3SM"
+            project = "e3sm"
         docs = search_esgf(project, facets)
 
         if not docs or int(docs[0]["number_of_files"]) == 0:
@@ -473,24 +474,15 @@ class Dataset(object):
 
 
         files = [x["title"] for x in docs]
-        if 'CMIP6' not in docs[0]['id']:
-            latest_version = 0
-            for f in files:
-                version_dir = int(f.split(os.sep)[-2][1:])
-                if version_dir > latest_version:
-                    latest_version = version_dir
-
-            files = [x for x in files if x.split(os.sep)[-2] == f"v{latest_version}"]
-
         if self.check_dataset_is_complete(files):
-            return DatasetStatus.SUCCESS.name
+            return DatasetStatus.SUCCESS.value
         else:
-            return DatasetStatus.PARTIAL_PUBLISHED.name
+            return DatasetStatus.PARTIAL_PUBLISHED.value
 
     def get_status_from_pub_dir(self):
 
         if not self.publication_path or not self.publication_path.exists():
-            return DatasetStatus.NOT_IN_PUBLICATION.name
+            return DatasetStatus.NOT_IN_PUBLICATION.value
 
         self.update_versions(self.publication_path)
 
@@ -498,7 +490,7 @@ class Dataset(object):
         version_dir = Path(self.publication_path, version_names[-1])
         files = [str(x.resolve()) for x in version_dir.glob("*")]
         if not files:
-            return DatasetStatus.NOT_IN_PUBLICATION.name
+            return DatasetStatus.NOT_IN_PUBLICATION.value
 
         is_complete = self.check_dataset_is_complete(files)
         if is_complete:
@@ -506,9 +498,9 @@ class Dataset(object):
             # otherwise the "official" location should be the warehouse
             self.status = DatasetStatusMessage.PUBLICATION_READY.value
 
-            return DatasetStatus.IN_PUBLICATION.name
+            return DatasetStatus.IN_PUBLICATION.value
         else:
-            return DatasetStatus.NOT_IN_PUBLICATION.name
+            return DatasetStatus.NOT_IN_PUBLICATION.value
 
     def update_versions(self, path):
         self.versions = {
@@ -520,7 +512,7 @@ class Dataset(object):
     def get_status_from_warehouse(self):
 
         if not self.warehouse_path.exists():
-            return DatasetStatus.NOT_IN_WAREHOUSE.name
+            return DatasetStatus.NOT_IN_WAREHOUSE.value
 
         self.update_versions(self.warehouse_path)
 
@@ -528,12 +520,12 @@ class Dataset(object):
         version_dir = Path(self.publication_path, version_names[-1])
         files = [x.resolve() for x in version_dir.glob("*")]
         if not files:
-            return DatasetStatus.NOT_IN_WAREHOUSE.name
+            return DatasetStatus.NOT_IN_WAREHOUSE.value
         else:
             if self.check_dataset_is_complete(files):
-                return DatasetStatus.IN_WAREHOUSE.name
+                return DatasetStatus.IN_WAREHOUSE.value
             else:
-                return DatasetStatus.NOT_IN_WAREHOUSE.name
+                return DatasetStatus.NOT_IN_WAREHOUSE.value
 
     def find_status(self):
         """
@@ -552,7 +544,7 @@ class Dataset(object):
         #    ...
 
         if self.status in [
-            DatasetStatus.NOT_PUBLISHED.name,
+            DatasetStatus.NOT_PUBLISHED.value,
             DatasetStatus.UNITITIALIZED.value
         ]:
             # returns IN_PUBLICATION or NOT_IN_PUBLICATION
@@ -560,17 +552,17 @@ class Dataset(object):
 
         if (
             self.status in [
-                DatasetStatus.NOT_IN_PUBLICATION.name,
+                DatasetStatus.NOT_IN_PUBLICATION.value,
                 DatasetStatus.UNITITIALIZED.value
             ]
-            and self.project != 'cmip'
+            and self.project != 'CMIP6'
         ):
             # returns IN_WAREHOUSE or NOT_IN_WAREHOUSE
             self.status = self.get_status_from_warehouse()
 
         if (
             self.status in [
-                DatasetStatus.NOT_IN_WAREHOUSE.name,
+                DatasetStatus.NOT_IN_WAREHOUSE.value,
                 DatasetStatus.UNITITIALIZED.value,
             ]
             and self.data_type not in ["time-series", "climo"]
