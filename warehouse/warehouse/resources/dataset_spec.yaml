@@ -600,7 +600,6 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-                  - model-output.day
             misc:
               -
                 grid: native
