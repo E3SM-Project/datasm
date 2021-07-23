@@ -187,3 +187,122 @@ python check_file_integrity.py -p {self._job_workers}  {self.dataset.latest_ware
 * The class `name` field should match the NAME constant and the name of the class itself. 
 * The `_requires` field should be in the form of `realm-grid-freq` for example, `atmos-native-mon`, with `*` wildcards to denote "any." This sets up the required datasets needed for the job to execute, multiple entries are allowed.
 * The `_cmd` field is where most of the work takes place, this is the string that will be placed in the slurm batch script, and the exit code of this string when executed will determine if the job goes to the Pass or Fail path in the parent workflow.
+
+
+### Adding a new simulation
+
+When a new simulation is slated for publication, the first thing that needs to happen is for it to be added to the dataset_spec.yaml under the warehouse/resources directory.
+
+The dataset spec has two top level items, the Tables dictionary, which lists all the CMIP6 tables and the variables that are slated for publication in them, and the Projects dictionary, which contains all the information about the simulations we have published to the CMIP6 and E3SM project.
+
+Dataset Spec structure:
+
+```yaml
+Project:
+  CMIP6:
+    Activity:
+        model-version:          
+          experiment-name:
+            start: first year of data
+            end: last year of data
+            ens: a list of variant labels
+            except: a list of variables that arent included, all variables are assumed to be included unless they're in this list
+  E3SM:
+    model-version:
+      experiment-name:
+        start: first year of data
+        end: last year of data
+        ens: list of ensemble names
+        except: list of variables not included
+        campaign: campaign this exp is a member of
+        science_driver: this exp science driver
+        cmip_case: the CMIP name that this exp is published under, if applicable
+        resolution:
+          res-name:
+            component:
+              -
+                grid: grid name
+                data_types: list of  data-types with time freq
+```
+
+Here's an example of what that looks like in practice
+
+```yaml
+project:
+  CMIP6:
+    C4MIP:
+      E3SM-1-1:
+        hist-bgc:
+          start: 1850
+          end: 2014
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+  E3SM:
+    '1_0':
+      piControl:
+        start: 1
+        end: 500
+        ens:
+          - ens1
+        except:
+        - PRECSCS
+        - PRECSCL
+        campaign: DECK-v1
+        science_driver: Water Cycle
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.piControl
+        resolution:
+          1deg_atm_60-30km_ocean:
+            land:
+              - 
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            river:
+              - 
+                grid: native
+                data_types:
+                  - model-output.mon
+            atmos:
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+              - 
+                grid: native
+                data_types:
+                  - model-output.day
+                  - model-output.mon
+                  - model-output.day_cosp
+                  - model-output.6hr_snap
+                  - model-output.3hr
+                  - model-output.6hr
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+            misc:
+              -
+                grid: native
+                data_types:
+                  - mapping.fixed
+```
+
+Once the new simulation has been added to the spec, the raw data needs to be staged before the datasets can be generated. Once the data is staged in the warehouse (or archive, once the extraction workflow has been implemented), you can run the `warehouse auto` to have the automation manage the processing and publication, or use the workflows directly to handle specific steps.
+
+For example, if the above piControl experiment had just been added to the spec and included in the warehouse directory, you could run `warehouse auto --dataset-id E3SM.1_0.piControl*` to have it manage the workflows for all the datasets. 
