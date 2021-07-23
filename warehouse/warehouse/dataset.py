@@ -5,6 +5,7 @@ from enum import Enum
 
 from pathlib import Path
 from datetime import datetime
+import ipdb
 from warehouse.util import (
     load_file_lines,
     search_esgf,
@@ -29,10 +30,10 @@ class DatasetStatus(Enum):
 
 
 class DatasetStatusMessage(Enum):
-    PUBLICATION_READY = "PUBLICATION:Ready:"
+    PUBLICATION_READY = "WAREHOUSE:PUBLICATION:Ready:"
     WAREHOUSE_READY = "WAREHOUSE:Ready:"
-    VALIDATION_READY = "VALIDATION:Ready:"
-    POSTPROCESS_READY = "POSTPROCESS:Ready:"
+    VALIDATION_READY = "WAREHOUSE:VALIDATION:Ready:"
+    POSTPROCESS_READY = "WAREHOUSE:POSTPROCESS:Ready:"
 
 
 non_binding_status = ["Blocked:", "Unblocked:", "Approved:", "Unapproved:"]
@@ -54,7 +55,7 @@ class Dataset(object):
     def __init__(
         self,
         dataset_id,
-        status_path,
+        status_path='',
         pub_base=None,
         warehouse_base=None,
         archive_base=None,
@@ -93,6 +94,7 @@ class Dataset(object):
         self.versions = versions
 
         facets = self.dataset_id.split(".")
+        
         if facets[0] == "CMIP6":
             self.project = "CMIP6"
             self.data_type = "cmip"
@@ -104,7 +106,7 @@ class Dataset(object):
             self.cmip_var = facets[7]
             self.resolution = None
             if facets[6] in ["Amon", "3hr", "day", "6hr", "CFmon", "AERmon"]:
-                self.realm = "atm"
+                self.realm = "atmos"
             elif facets[6] == "Lmon":
                 self.realm = "land"
             elif facets[6] in ["Omon", "Ofx"]:
@@ -126,6 +128,54 @@ class Dataset(object):
                 self.freq = "fixed"
 
             self.grid = "gr"
+            if not kwargs.get('no_status_file'):
+                self.warehouse_path = Path(
+                    self.warehouse_base,
+                    self.project,
+                    self.activity,
+                    "E3SM-Project",
+                    self.model_version,
+                    self.experiment,
+                    self.ensemble,
+                    self.table,
+                    self.cmip_var,
+                    self.grid,
+                )
+        else:
+            self.project = "E3SM"
+            self.model_version = facets[1]
+            self.experiment = facets[2]
+            self.resolution = facets[3]
+            self.realm = facets[4]
+            self.grid = facets[5]
+            self.data_type = facets[6]
+            self.freq = facets[7]
+            self.ensemble = facets[8]
+            self.activity = None
+            self.table = None
+            if not kwargs.get('no_status_file'):
+                self.warehouse_path = Path(
+                    self.warehouse_base,
+                    self.project,
+                    self.model_version,
+                    self.experiment,
+                    self.resolution,
+                    self.realm,
+                    self.grid,
+                    self.data_type,
+                    self.freq,
+                    self.ensemble,
+                )
+        if not kwargs.get('no_status_file'):
+            self.initialize_status_file()
+
+    def initialize_status_file(self):
+        if not self.status_path.exists():
+            msg = f"creating new status file {self.status_path}"
+            log_message("info", msg)
+            self.status_path.touch(mode=0o660, exist_ok=True)
+        
+        if self.project == 'CMIP6':
             self.warehouse_path = Path(
                 self.warehouse_base,
                 self.project,
@@ -139,17 +189,6 @@ class Dataset(object):
                 self.grid,
             )
         else:
-            self.project = "E3SM"
-            self.model_version = facets[1]
-            self.experiment = facets[2]
-            self.resolution = facets[3]
-            self.realm = facets[4]
-            self.grid = facets[5]
-            self.data_type = facets[6]
-            self.freq = facets[7]
-            self.ensemble = facets[8]
-            self.activity = None
-            self.table = None
             self.warehouse_path = Path(
                 self.warehouse_base,
                 self.project,
@@ -162,15 +201,6 @@ class Dataset(object):
                 self.freq,
                 self.ensemble,
             )
-
-        self.initialize_status_file()
-
-    def initialize_status_file(self):
-
-        if not self.status_path.exists():
-            msg = f"creating new status file {self.status_path}"
-            log_message("info", msg)
-            self.status_path.touch(mode=0o660, exist_ok=True)
 
         found_id = False
         with open(self.status_path, "r") as instream:
@@ -186,19 +216,32 @@ class Dataset(object):
             with open(self.status_path, "a") as outstream:
                 outstream.write(f"DATASETID={self.dataset_id}\n")
 
-        if status := get_last_status_line(self.status_path):
-            status_attrs = status.split(":")
-            self._status = f"{status_attrs[-3]}:{status_attrs[-2]}:"
-            # log_message("info", f"status found as: {':'.join(status_attrs[3:]).rstrip()}")
-        else:
+        if not self.update_from_status_file(update=False):
             self._status = DatasetStatus.UNITITIALIZED.value
             log_message("info", f"no status found, setting to {self._status}")
+        else:
+            # if we're initializing a dataset and the last update
+            # what that it had failed, or was Engaged
+            # roll the status back to just before
+            latest, second = self.get_latest_status()
+            if "Engaged" in latest or "Failed" in latest:
+                self._status = second
+            else:
+                self._status = latest
 
-    def update_from_status_file(self):
+    def update_from_status_file(self, update=True):
         self.load_dataset_status_file()
-        latest = get_last_status_line(self.status_path).split(":")
-        new_status = ":".join(latest[3:]).strip()
-        self._status = new_status
+        if latest := get_last_status_line(self.status_path):
+            latest = latest.split(":")
+            if len(latest) == 5:
+                new_status = ":".join(latest[2:]).strip()
+            elif len(latest) > 5:
+                new_status = ":".join(latest[3:]).strip()
+            if update:
+                self._status = new_status
+            return new_status
+        else:
+            return False
 
     @property
     def latest_warehouse_dir(self):
@@ -209,10 +252,12 @@ class Dataset(object):
                 "error", f"The dataset {self.dataset_id} does not have a warehouse path"
             )
             sys.exit(1)
-        if "CMIP6" not in self.dataset_id and not self.warehouse_path.exists():
+        if self.project != "CMIP6" and not self.warehouse_path.exists():
             self.warehouse_path.mkdir(parents=True, exist_ok=True)
-        if "CMIP6" in self.dataset_id and not self.warehouse_path.exists():
+        if self.project == "CMIP6" and not self.warehouse_path.exists():
             return None
+
+        # import ipdb; ipdb.set_trace()
 
         # we assume that the warehouse directory contains only directories named "v0.#" or "v#"
         try:
@@ -275,6 +320,28 @@ class Dataset(object):
         except IndexError:
             return 0
         return int(latest_version)
+    
+    @property
+    def warehouse_version(self):
+        """
+        Returns the latest version number in the warehouse directory. If not version exists
+        then it returns 0
+        """
+        if not self.warehouse_path or not self.warehouse_path.exists():
+            return 0
+
+        # we assume that the warehouse directory contains only directories named "v0.#" or "v#"
+        try:
+            latest_version = sorted(
+                [
+                    float(str(x.name)[1:])
+                    for x in self.warehouse_path.iterdir()
+                    if x.is_dir()
+                ]
+            ).pop()
+        except IndexError:
+            return 0
+        return int(latest_version)
 
     @property
     def publication_path(self):
@@ -287,10 +354,12 @@ class Dataset(object):
                     self.pub_base,
                     self.project,
                     self.activity,
+                    'E3SM-Project',
                     self.model_version,
                     self.experiment,
                     self.ensemble,
                     self.table,
+                    self.cmip_var,
                     self.grid,
                 )
             else:
@@ -408,7 +477,7 @@ class Dataset(object):
         # self.versions[latest_version] = len(files)
 
         if not self.start_year or not self.end_year:
-            if "CMIP" in self.dataset_id:
+            if self.project == "CMIP6":
                 self.start_year, self.end_year = self.infer_start_end_cmip(files)
             else:
                 if self.data_type == "time-series":
@@ -419,7 +488,6 @@ class Dataset(object):
                     self.start_year, self.end_year = self.infer_start_end_e3sm(files)
 
         if self.data_type == "cmip":
-            # import ipdb; ipdb.set_trace()
             if "fx" in self.dataset_id:
                 if files:
                     return True
@@ -453,8 +521,6 @@ class Dataset(object):
         if it exists check that the dataset is complete"""
         # import ipdb; ipdb.set_trace()
         # TODO: fix this at some point
-        if self.table == "fx":
-            return DatasetStatus.SUCCESS.value
 
         facets = {"master_id": self.dataset_id, "type": "Dataset"}
         if "CMIP6" in self.dataset_id:
@@ -474,13 +540,13 @@ class Dataset(object):
 
 
         files = [x["title"] for x in docs]
+        # ipdb.set_trace()
         if self.check_dataset_is_complete(files):
             return DatasetStatus.SUCCESS.value
         else:
             return DatasetStatus.PARTIAL_PUBLISHED.value
 
     def get_status_from_pub_dir(self):
-
         if not self.publication_path or not self.publication_path.exists():
             return DatasetStatus.NOT_IN_PUBLICATION.value
 
@@ -488,7 +554,7 @@ class Dataset(object):
 
         version_names = list(self.versions.keys())
         version_dir = Path(self.publication_path, version_names[-1])
-        files = [str(x.resolve()) for x in version_dir.glob("*")]
+        files = [str(x.resolve()) for x in version_dir.glob("*.nc")]
         if not files:
             return DatasetStatus.NOT_IN_PUBLICATION.value
 
@@ -496,9 +562,7 @@ class Dataset(object):
         if is_complete:
             # we only set the status file if the publication is complete
             # otherwise the "official" location should be the warehouse
-            self.status = DatasetStatusMessage.PUBLICATION_READY.value
-
-            return DatasetStatus.IN_PUBLICATION.value
+            return DatasetStatusMessage.PUBLICATION_READY.value
         else:
             return DatasetStatus.NOT_IN_PUBLICATION.value
 
@@ -533,9 +597,10 @@ class Dataset(object):
         """
 
         # if the dataset is UNITITIALIZED, then we need to build up the status from scratch
-        # if self.status == DatasetStatus.UNITITIALIZED.value:
+        if self.status == DatasetStatus.UNITITIALIZED.value:
             # returns either NOT_PUBLISHED or SUCCESS or PARTIAL_PUBLISHED or UNITITIALIZED
-        self.status = self.get_esgf_status()
+            self.status = self.get_esgf_status()
+
         # import ipdb; ipdb.set_trace()
 
         # TODO: figure out how to update and finish a dataset thats been published
@@ -727,6 +792,8 @@ class Dataset(object):
             return int(filename[-21:-17]), int(filename[-14:-10])
         elif '_day_' in filename:
             return int(filename[-20:-16]), int(filename[-11:-7])
+        elif '_3hr_' in filename:
+            return int(filename[-28:-24]), int(filename[-15:-11])
         else:
             return int(filename[-16:-12]), int(filename[-9:-5])
 
@@ -784,13 +851,21 @@ class Dataset(object):
         """
         files = sorted(files)
         first, last = files[0], files[-1]
-        p = r"\d{6}-\d{6}"
+        if self.table == '3hr':
+            p = r"\d{12}-\d{12}"
+            end_offset = (13, 17)
+        elif self.table  == 'day':
+            p = r"\d{8}-\d{8}"
+            end_offset = (9, 13)
+        else:
+            p = r"\d{6}-\d{6}"
+            end_offset = (7, 11)
         idx = re.search(pattern=p, string=first)
         if not idx:
             return None, None
         start = int(first[idx.start() : idx.start() + 4])
         idx = re.search(pattern=p, string=last)
-        end = int(last[idx.start() + 7 : idx.start() + 11])
+        end = int(last[idx.start() + end_offset[0] : idx.start() + end_offset[1]])
         return start, end
 
     def infer_start_end_e3sm(self, files):
@@ -875,15 +950,14 @@ comm: {self.comm}"""
                 timestamp = line_info[1]
                 major = line_info[2]
                 minor = line_info[3]
-                # status = line_info[4]
-                # if len(line_info) > 5:
-                #     args = line_info[5:]
 
                 if major not in self.stat:
                     self.stat[major] = {}
                 if minor not in self.stat[major]:
                     self.stat[major][minor] = []
-
+                # if len(line_info) == 5:
+                #     message = (timestamp, ":".join(line_info[3:]))
+                # elif len(line_info) > 5:
                 message = (timestamp, ":".join(line_info[4:]))
                 # make sure not to load duplicate messages
                 if message not in self.stat[major][minor]:
