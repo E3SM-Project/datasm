@@ -1,13 +1,13 @@
 WAREHOUSE:Ready:
-    atm-ts-mon:
+    atmos-ts-mon:
         - POSTPROCESS:Ready
-    atm-climo-mon:
+    atmos-climo-mon:
         - POSTPROCESS:Ready
-    atm-cmip-mon:
+    atmos-cmip-mon:
         - POSTPROCESS:Ready
-    atm-cmip-day:
+    atmos-cmip-day:
         - POSTPROCESS:Ready
-    atm-cmip-3hr:
+    atmos-cmip-3hr:
         - POSTPROCESS:Ready
     lnd-ts-mon:
         - POSTPROCESS:Ready
@@ -25,32 +25,34 @@ EXTRACTION:Pass:
         - Validation:Ready
 EXTRACTION:Fail:
     default:
-        - Exit:Fail
+        - Fail
 
 VALIDATION:Pass:
     default:
         - PUBLICATION:Ready
 VALIDATION:Fail:
     default:
-        - Exit:Fail
+        - Fail
 
 POSTPROCESS:Pass:
     default:
         - PUBLICATION:Ready
 POSTPROCESS:Fail:
     default:
-        - Exit:Fail
+        - Fail
 
 PUBLICATION:Pass:
     default:
-        - CLEANUP:Ready
+        # - CLEANUP:Ready
+        # temporary until CLEANUP is implemented
+        - Pass
 PUBLICATION:Fail:
     default:
-        - Exit:Fail
+        - Fail
 
 CLEANUP:Pass:
     default:
         - WAREHOUSE:Pass
 CLEANUP:Fail:
     default:
-        - Exit:Fail
+        - Fail

@@ -10,17 +10,19 @@ GenerateMapfile:Pass:
     - ValidateMapfile:Ready
 GenerateMapfile:Fail:
   default:
-    - PUBLICATION:Fail
+    - Fail
 
 ValidateMapfile:Ready:
   default:
     - ValidateMapfile:Engaged
 ValidateMapfile:Pass:
+  atmos-cmip-3hr:
+    - PublishEsgf:Ready
   default:
     - MoveToPublication:Ready
 ValidateMapfile:Fail:
   default:
-    - PUBLICATION:Fail
+    - Fail
 
 MoveToPublication:Ready:
   default:
@@ -30,7 +32,7 @@ MoveToPublication:Pass:
     - FixMapfilePaths:Ready
 MoveToPublication:Fail:
   default:
-    - PUBLICATION:Fail
+    - Fail
 
 FixMapfilePaths:Ready:
   default:
@@ -40,7 +42,7 @@ FixMapfilePaths:Pass:
     - PublishEsgf:Ready
 FixMapfilePaths:Fail:
   default:
-    - PUBLICATION:Fail
+    - Fail
 
 PublishEsgf:Ready:
   default:
@@ -50,21 +52,21 @@ PublishEsgf:Pass:
     - ValidateEsgf:Ready
 PublishEsgf:Fail:
   default:
-    - PUBLICATION:Fail
+    - Fail
 
 ValidateEsgf:Ready:
   default:
     - ValidateEsgf:Engaged
 ValidateEsgf:Pass:
   default:
-    - PUBLICATION:Pass
+    - Pass
 ValidateEsgf:Fail:
   default:
-    - PUBLICATION:Fail
+    - Fail
 
-PUBLICATION:Pass:
+Pass:
   default:
     - Pass
-PUBLICATION:Fail:
+Fail:
   default:
     - Fail

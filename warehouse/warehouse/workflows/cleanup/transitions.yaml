@@ -7,7 +7,7 @@ EvictDataSet:Ready:
     - EvictDataSet:Engaged
 EvictDataSet:Pass:
   default:
-    - Exit:Success
+    - Pass
 EvictDataSet:Fail:
   default:
-    - Exit:exit_code
+    - Fail
