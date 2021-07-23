@@ -39,18 +39,15 @@ def validate_args(args):
     dst_path = Path(args.dst)
     if not src_path.exists() or not src_path.is_dir():
         con_message("error", "Source directory does not exist or is not a directory")
-        # raise ValueError("Source directory does not exist or is not a directory")
         return False
     if not any(src_path.iterdir()):
         con_message("error", "Source directory is empty")
-        # raise ValueError("Source directory is empty")
         return False
 
     if not dst_path.exists() or not dst_path.is_dir():
         dst_path.mkdir(parents=True, exist_ok=True)
     if any(dst_path.iterdir()):
         con_message("error", "Destination directory is not empty")
-        # raise ValueError("Destination directory is not empty")
         return False
 
     return True
@@ -80,6 +77,7 @@ def conduct_move(args):
         dst = Path(dst_path.parent, f"{dataset_id}.map")
         con_message("info", f"Moving the mapfile to {dst}")
         mapfile.replace(dst)
+        break
 
     message = f"mapfile_path={dst},pub_name={dst_path.name},ware_name={src_path.name}"
     if messages_path := os.environ.get("message_file"):
@@ -93,6 +91,16 @@ def conduct_move(args):
 
 def main():
     parsed_args = parse_args()
+    src_path = Path(parsed_args.src)
+    dst_path = Path(parsed_args.dst)
+    if src_path == dst_path:
+        message = f"mapfile_path={src_path.parent.glob('.mapfile').pop()},pub_name={dst_path.name},ware_name={src_path.name}"
+        if messages_path := os.environ.get("message_file"):
+            with open(messages_path, "w") as outstream:
+                outstream.write(message)
+        else:
+            con_message("error", message)
+        sys.exit(0)
 
     if not validate_args(parsed_args):
         sys.exit(1)
