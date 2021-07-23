@@ -77,7 +77,9 @@ class AutoWarehouse:
         if not self.report_missing:
             self.workflow = kwargs.get(
                 "workflow", Workflow(
-                    slurm_scripts=self.slurm_path, debug=self.debug)
+                    slurm_scripts=self.slurm_path, 
+                    debug=self.debug,
+                    job_workers=self.job_workers)
             )
 
             self.workflow.load_children()
@@ -124,7 +126,8 @@ class AutoWarehouse:
                 sleep(10)
 
         except KeyboardInterrupt:
-            self.listener.stop()
+            for l in self.listener:
+                l.stop()
             exit(1)
 
         return 0
@@ -161,14 +164,17 @@ class AutoWarehouse:
         """
         msg = f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}"
         log_message("debug", msg)
+        
         for x in self.collect_e3sm_datasets():
             dataset = Dataset(
                 dataset_id=x,
                 status_path=os.path.join(self.status_path, f"{x}.status"),
                 pub_base=self.publication_path,
                 warehouse_base=self.warehouse_path,
-                archive_base=self.archive_path)
+                archive_base=self.archive_path,
+                no_status_file=True)
             if job.matches_requirement(dataset, self.dataset_spec):
+                dataset.initialize_status_file()
                 msg = f"matching dataset found: {dataset.dataset_id}"
                 log_message("debug", msg)
                 return dataset
@@ -323,6 +329,7 @@ class AutoWarehouse:
                     second_latest_attrs[-1][second_latest_attrs[-1].index(
                         "=") + 1:]
                 )
+                # if the job names  are the same 
                 if second_latest_attrs[-3] == latest_attrs[-3]:
                     if "Pass" in latest_attrs[-2] or "Fail" in latest_attrs[-2]:
                         for job in self.job_pool:
@@ -360,6 +367,7 @@ class AutoWarehouse:
                 dataset.status = DatasetStatus.READY.value
                 continue
 
+            # import ipdb; ipdb.set_trace()
             # we keep a reference to the workflow instance, so when
             # we make a job we can reconstruct the parent workflow name
             # for the status file
@@ -377,6 +385,8 @@ class AutoWarehouse:
 
             # check that the dataset isnt blocked by some other process thats acting on it
             # and that the workflow hasnt either failed or succeeded
+
+            # import ipdb; ipdb.set_trace()
             if dataset.is_blocked(state):
                 msg = f"Dataset {dataset.dataset_id} at state {state} is marked as Blocked"
                 log_message("error", msg)
@@ -393,9 +403,9 @@ class AutoWarehouse:
             # there may be several transitions out of this state and
             # we need to collect them all
             engaged_states = []
-            import ipdb; ipdb.set_trace()
             for item in self.workflow.next_state(dataset, state, params):
                 new_state, workflow, params = item
+                
                 # if we have a new state with the "Engaged" keyword
                 # we know its a leaf node that needs to be executed
                 if "Engaged" in new_state:
@@ -408,12 +418,10 @@ class AutoWarehouse:
                     dataset.status = (new_state, params)
 
             if not engaged_states:
-                log_message(
-                    "debug", "No jobs found to start, checking to see if all datasets are done")
-                self.check_done()
                 continue
 
             for state, workflow, params in engaged_states:
+                # import ipdb; ipdb.set_trace()
                 newjob = self.workflow.get_job(
                     dataset,
                     state,
@@ -434,7 +442,8 @@ class AutoWarehouse:
 
                 # check if the new job is a duplicate
                 if (matching_job := self.find_matching_job(newjob)) is None:
-                    self.print_debug(
+                    log_message(
+                        "debug",
                         f"Created jobs from {state} for dataset {dataset_id}"
                     )
                     new_jobs.append(newjob)
