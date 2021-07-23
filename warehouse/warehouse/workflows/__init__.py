@@ -76,6 +76,7 @@ class Workflow(object):
             idx (int) : The recursive depth index
         Returns the name of the next state to transition to given the current state of the dataset
         """
+        # import ipdb; ipdb.set_trace()
         self.print_debug(f"next_state: *{state}*")
         state_attrs = state.split(':')
         if len(state_attrs) < 3:
@@ -108,7 +109,7 @@ class Workflow(object):
 
         else:
             log_message('error', f"{target_state} is not present in the transition graph for {self.name}")
-            import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
             sys.exit(1)
 
     def get_job(self, dataset, state, params, scripts_path, slurm_out_path, workflow, job_workers=8, **kwargs):
@@ -144,11 +145,13 @@ class Workflow(object):
             job_reqs = {k:v.dataset_id for k,v in job_instance.requires.items()}
         except AttributeError as error:
             log_message('error', f"Job instance {job_instance} unable to find its requirements {job_instance.requires.items()}, is there a missing dataset?")
-            return None
+            return job_instance
+
         if not job_instance.meets_requirements():
             log_message('error', f"Job {job_instance} has unsatisfiable requirements {job_reqs}")
         else:
             log_message('info', f"Job {job_instance} found and met requirements {job_reqs}")
+            
         return job_instance
 
     def load_transitions(self):
