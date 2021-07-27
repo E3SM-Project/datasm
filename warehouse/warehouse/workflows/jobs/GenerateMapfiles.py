@@ -14,5 +14,5 @@ class GenerateMapfile(WorkflowJob):
             pub_version = int(self.dataset.pub_version) + 1
         self._cmd = f'''
 cd {self.scripts_path}
-python generate_mapfile.py -p {self._job_workers} --outpath {self.dataset.warehouse_path}{os.sep}{self.dataset.dataset_id}.map {self.dataset.latest_warehouse_dir} {self.dataset.dataset_id} {pub_version}
+python generate_mapfile.py -p {self._job_workers} --outpath {self.dataset.warehouse_path}{os.sep}{self.dataset.dataset_id}.map {self.dataset.latest_warehouse_dir} {self.dataset.dataset_id} {pub_version} --quiet
 '''
