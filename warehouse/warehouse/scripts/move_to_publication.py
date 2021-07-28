@@ -71,7 +71,7 @@ def conduct_move(args):
 
     con_message("info", f"moved {file_count} files from {src_path} to {dst_path}")
 
-    mapfile = src_path.parent.glob("*.map").pop()
+    mapfile = next(src_path.parent.glob("*.map"))
     with open(mapfile, "r") as instream:
         dataset_id = instream.readline().split("|")[0].strip().split("#")[0]
     dst = Path(dst_path.parent, f"{dataset_id}.map")
@@ -93,7 +93,7 @@ def main():
     src_path = Path(parsed_args.src)
     dst_path = Path(parsed_args.dst)
     if src_path == dst_path:
-        message = f"mapfile_path={src_path.parent.glob('*.map').pop()},pub_name={dst_path.name},ware_name={src_path.name}"
+        message = f"mapfile_path={next(src_path.parent.glob('*.map'))},pub_name={dst_path.name},ware_name={src_path.name}"
         if messages_path := os.environ.get("message_file"):
             with open(messages_path, "w") as outstream:
                 outstream.write(message)
