@@ -30,10 +30,11 @@ class Validation(Workflow):
         super().__init__(*args, **kwargs)
         self.name = NAME.upper()
         setup_logging('debug', f'{NAME}.log')
-        log_message('info',f'initializing job {self.name}')
+        log_message('info', f'initializing workflow {self.name}')
 
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse
+        log_message('info', f'starting workflow {self.name}')
 
         dataset_ids = self.params['dataset_id']
         warehouse_path = self.params['warehouse_path']

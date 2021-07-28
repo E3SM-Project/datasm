@@ -19,7 +19,12 @@ class WorkflowJob(object):
         self._outname = None
         self._parent = kwargs.get('parent')
         self._parameters = params
-        self._job_workers = kwargs.get('job_workers', 8)
+        
+        workers = kwargs.get('job_workers')
+        if workers is None:
+            workers = 8
+        self._job_workers = workers
+
         self._job_id = None
         self._spec_path = kwargs.get('spec_path')
         self._config = kwargs.get('config') 
@@ -79,12 +84,13 @@ class WorkflowJob(object):
 
     def add_cmd_suffix(self):
         suffix = f"""
-touch $message_file
 if [ $? -ne 0 ]
 then
-    echo STAT:`date +%Y%m%d_%H%M%S`:WAREHOUSE:{self.parent}:{self.name}:Fail:`cat $message_file` >> {self.dataset.status_path}
+    touch $message_file
+    echo STAT:`date "+%Y/%m/%d %H.%M.%S.%6N"`:{self.parent}:{self.name}:Fail:`cat $message_file` >> {self.dataset.status_path}
 else
-    echo STAT:`date +%Y%m%d_%H%M%S`:WAREHOUSE:{self.parent}:{self.name}:Pass:`cat $message_file` >> {self.dataset.status_path}
+    touch $message_file
+    echo STAT:`date "+%Y/%m/%d %H.%M.%S.%6N"`:{self.parent}:{self.name}:Pass:`cat $message_file` >> {self.dataset.status_path}
 fi
 rm $message_file
 """
@@ -141,12 +147,12 @@ rm $message_file
 
         dataset_facets = dataset.dataset_id.split('.')
         if spec is not None and 'CMIP' in self.dataset.dataset_id and dataset_facets[0] == 'E3SM':
-            e3sm_cmip_case = spec['projects']['E3SM'][dataset_facets[1]][dataset_facets[2]].get('cmip_case')
+            e3sm_cmip_case = spec['project']['E3SM'][dataset_facets[1]][dataset_facets[2]].get('cmip_case')
             if not e3sm_cmip_case:
                 return None
             
             my_dataset_facets = self.dataset.dataset_id.split('.')
-            my_case_attrs = '.'.join(my_dataset_facets[:4])
+            my_case_attrs = '.'.join(my_dataset_facets[:5])
             if not my_case_attrs == e3sm_cmip_case:
                 return None
         

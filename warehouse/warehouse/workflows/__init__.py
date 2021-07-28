@@ -9,6 +9,7 @@ from pathlib import Path
 
 from warehouse.workflows import jobs
 import warehouse.resources as resources
+from warehouse.workflows import jobs
 from warehouse.util import setup_logging, log_message
 
 
@@ -68,7 +69,7 @@ class Workflow(object):
             # return prefix
             return self.name + ':' + prefix
 
-    def next_state(self, dataset, state, params, idx=1):
+    def next_state(self, dataset, state, params, idx=0):
         """
         Parameters: 
             dataset (Dataset) : The dataset which is changing state
@@ -76,6 +77,7 @@ class Workflow(object):
             idx (int) : The recursive depth index
         Returns the name of the next state to transition to given the current state of the dataset
         """
+        # import ipdb; ipdb.set_trace()
         self.print_debug(f"next_state: *{state}*")
         state_attrs = state.split(':')
         if len(state_attrs) < 3:
@@ -108,6 +110,7 @@ class Workflow(object):
 
         else:
             log_message('error', f"{target_state} is not present in the transition graph for {self.name}")
+            # import ipdb; ipdb.set_trace()
             sys.exit(1)
 
     def get_job(self, dataset, state, params, scripts_path, slurm_out_path, workflow, job_workers=8, **kwargs):
@@ -143,11 +146,13 @@ class Workflow(object):
             job_reqs = {k:v.dataset_id for k,v in job_instance.requires.items()}
         except AttributeError as error:
             log_message('error', f"Job instance {job_instance} unable to find its requirements {job_instance.requires.items()}, is there a missing dataset?")
-            return None
+            return job_instance
+
         if not job_instance.meets_requirements():
             log_message('error', f"Job {job_instance} has unsatisfiable requirements {job_reqs}")
         else:
             log_message('info', f"Job {job_instance} found and met requirements {job_reqs}")
+            
         return job_instance
 
     def load_transitions(self):
@@ -157,7 +162,6 @@ class Workflow(object):
             self.transitions = yaml.load(instream, Loader=yaml.SafeLoader)
 
     def load_children(self):
-
         my_path = Path(inspect.getfile(self.__class__)).parent.absolute()
         workflows = {}
         for d in os.scandir(my_path):
@@ -172,10 +176,9 @@ class Workflow(object):
             workflows_string = f"warehouse{os.sep}workflows"
             idx = str(my_path.resolve()).find(workflows_string)
             if self.name == NAME:
-
                 module_name = f'warehouse.workflows.{d.name}'
             else:
-                module_name = f'warehouse.workflows.{str(my_path)[idx+len(workflows_string) + 1:].replace(os.sep, ".")}.{d.name}'
+                module_name = f'warehouse.workflows{str(my_path)[idx+len(workflows_string):].replace(os.sep, ".")}.{d.name}'
 
             self.print_debug(f"loading workflow module {module_name}")
 

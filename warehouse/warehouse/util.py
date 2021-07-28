@@ -125,10 +125,8 @@ def con_message(level, message):  # message ONLY to console (in color)
 def log_message(level, message):  # message BOTH to log file and to console (in color)
 
     process_stack = inspect.stack()[1]
-    # for item in process_stack:
-    #     print(f'DEBUG UTIL: process_stack item = {item}')
     parent_module = inspect.getmodule(process_stack[0])
-    # print(f'DEBUG UTIL: (from getmodule(process_stack[0]): parent_module.__name__ = {parent_module.__name__}')
+    
     parent_name = parent_module.__name__.split(".")[-1].upper()
     if parent_name == "__MAIN__":
         parent_name = process_stack[1].split(".")[0].upper()
@@ -136,7 +134,7 @@ def log_message(level, message):  # message BOTH to log file and to console (in 
 
     level = level.upper()
     colors = {"INFO": "white", "WARNING": "yellow", "ERROR": "red", "DEBUG": "cyan"}
-    color = colors[level]
+    color = colors.get(level, 'red')
     tstamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # for console output
     ts_verbose = datetime.now().strftime("%Y/%m/%d %H:%M:%S")  # for console output
     # first, print to logfile
@@ -148,8 +146,11 @@ def log_message(level, message):  # message BOTH to log file and to console (in 
         logging.warning(message)
     elif level == "INFO":
         logging.info(message)
+    else:
+        print(f"ERROR: {level} is not a valid log level")
+
     # now to the console
-    msg = f"{tstamp}:{level}:{message}"
+    msg = f"{ts_verbose}:{level}:{message}"
     cprint(msg, color)
 
 
@@ -212,8 +213,7 @@ def search_esgf(
         filter_values (list): A list of string values to be filtered out of the return document
         latest (str): boolean (true/false not True/False) to search for only the latest version of a dataset
     """
-
-    url = f"https://{node}/esg-search/search/?project={project}&format=application%2Fsolr%2Bjson&latest={latest}&{'&'.join([f'{k}={v}' for k,v in facets.items()])}"
+    url = f"https://{node}/esg-search/search/?offset=0&limit=10000&project={project}&format=application%2Fsolr%2Bjson&latest={latest}&{'&'.join([f'{k}={v}' for k,v in facets.items()])}"
     req = requests.get(url)
     if req.status_code != 200:
         raise ValueError(f"ESGF search request failed: {url}")

@@ -25,27 +25,27 @@ POSTPROCESS:Ready:
   ice-cmip-mon:
     - GenerateIceCMIP:Ready
   default:
-    - POSTPROCESS:Pass
+    - Pass
 
 GenerateAtmMonClimo:Ready:
   default:
     - GenerateAtmMonClimo:Engaged
 GenerateAtmMonClimo:Pass:
   default:
-    - POSTPROCESS:Pass
+    - Pass
 GenerateAtmMonClimo:Fail:
   default:
-    - POSTPROCESS:Fail
+    - Fail
 
 GenerateAtmMonTimeseries:Ready:
   default:
     - GenerateAtmMonTimeseries:Engaged
 GenerateAtmMonTimeseries:Pass:
   default:
-    - POSTPROCESS:Pass
+    - Pass
 GenerateAtmMonTimeseries:Fail:
   default:
-    - POSTPROCESS:Fail
+    - Fail
 
 GenerateAtmMonCMIP:Ready:
   default:
@@ -53,74 +53,74 @@ GenerateAtmMonCMIP:Ready:
 GenerateAtmMonCMIP:Pass:
   default:
     # - CMIPValidate:Ready
-    - POSTPROCESS:Pass
+    - Pass
 GenerateAtmMonCMIP:Fail:
   default:
-    - POSTPROCESS:Fail
+    - Fail
 
 GenerateAtmDayCMIP:Ready:
   default:
     - GenerateAtmDayCMIP:Engaged
 GenerateAtmDayCMIP:Pass:
   default:
-    - POSTPROCESS:Pass
+    - Pass
 GenerateAtmDayCMIP:Fail:
   default:
-    - POSTPROCESS:Fail
+    - Fail
 
 GenerateAtm3hrCMIP:Ready:
   default:
     - GenerateAtm3hrCMIP:Engaged
 GenerateAtm3hrCMIP:Pass:
   default:
-    - POSTPROCESS:Pass
+    - Pass
 GenerateAtm3hrCMIP:Fail:
   default:
-    - POSTPROCESS:Fail
+    - Fail
 
 GenerateLndTimeseries:Ready:
   default:
     - GenerateLndTimeseries:Engaged
 GenerateLndTimeseries:Pass:
   default:
-    - POSTPROCESS:Pass
+    - Pass
 GenerateLndTimeseries:Fail:
   default:
-    - POSTPROCESS:Fail
+    - Fail
 
 GenerateLndMonCMIP:Ready:
   default:
     - GenerateLndMonCMIP:Engaged
 GenerateLndMonCMIP:Pass:
   default:
-    - POSTPROCESS:Pass
+    - Pass
 GenerateLndMonCMIP:Fail:
   default:
-    - POSTPROCESS:Fail
+    - Fail
 
 GenerateOceanCMIP:Ready:
   default:
     - GenerateOceanCMIP:Engaged
 GenerateOceanCMIP:Pass:
   default:
-    - POSTPROCESS:Pass
+    - Pass
 GenerateOceanCMIP:Fail:
   default:
-    - POSTPROCESS:Fail
+    - Fail
 
 GenerateIceCMIP:Ready:
   default:
     - GenerateIceCMIP:Engaged
 GenerateIceCMIP:Pass:
   default:
-    - POSTPROCESS:Pass
+    - Pass
 GenerateIceCMIP:Fail:
   default:
-    - POSTPROCESS:Fail
+    - Fail
 
-POSTPROCESS:Pass:
+Pass:
   default:
     - Pass
-POSTPROCESS:Fail:
+Fail:
   default:
     - Fail

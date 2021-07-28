@@ -23,6 +23,7 @@ class PostProcess(Workflow):
         parallel = self.params.get('parallel')
         self.serial = False if parallel else True
         self.metadata_path = None
+        log_message('info', f'initializing workflow {self.name}')
 
     def __call__(self):
         from warehouse.warehouse import AutoWarehouse

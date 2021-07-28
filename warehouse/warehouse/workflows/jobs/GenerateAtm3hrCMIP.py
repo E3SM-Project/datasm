@@ -5,6 +5,7 @@ from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 from termcolor import cprint
 from warehouse.workflows.jobs import WorkflowJob
+from warehouse.util import log_message
 
 NAME = 'GenerateAtm3hrCMIP'
 
@@ -18,17 +19,15 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         self._cmd = ''
 
     def resolve_cmd(self):
-        self.print_debug("Starting command resolution")
 
         # step one, collect the information we're going to need for the CWL parameter file
-        self.print_debug(f"Loading spec from {self._spec_path}")
         with open(self._spec_path, 'r') as i:
             spec = yaml.load(i, Loader=yaml.SafeLoader)
 
         raw_dataset = self.requires['atmos-native-3hr']
         cwl_config = self.config['cmip_atm_3hr']
 
-        self.print_debug(f"Using raw input from {raw_dataset.latest_warehouse_dir}")
+        log_message("debug", f"Using raw input from {raw_dataset.latest_warehouse_dir}")
         parameters = {'data_path': raw_dataset.latest_warehouse_dir}
         parameters.update(cwl_config)
 
@@ -46,28 +45,36 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         e3sm_vars = []
         info_file = NamedTemporaryFile(delete=False)
         cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq 3hr -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
-        self.print_debug(f"Using e3sm_to_cmip to check for available variables: {cmd}")
+        log_message("debug", f"Using e3sm_to_cmip to check for available variables: {cmd}")
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
-            self.print_debug(f"Error checking variables")
+            log_message("debug", f"Error checking variables")
             cprint(err.decode('utf-8'), 'red')
             return None
         else:
-            self.print_debug("e3sm_to_cmip returned variable info")
+            log_message("debug", "e3sm_to_cmip returned variable info")
     
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
+
+        # the high freq variable handler may have a different
+        # name then the actual CMIP6 variable, for example
+        # the daily pr handler is named pr_highfreq
+        real_cmip_vars = []
         for item in variable_info:
-            if ',' in item['E3SM Variables']:
-                e3sm_vars.extend([v for v in item['E3SM Variables'].split(',')])
+            if isinstance(item['E3SM Variables'], list):
+                e3sm_vars.extend([v for v in item['E3SM Variables']])
             else:
                 e3sm_vars.append(item['E3SM Variables'])
+            
+            real_cmip_vars.append(item['CMIP6 Name'])
         
-        self.print_debug(f"Found the following E3SM variable to use as input {', '.join(e3sm_vars)}")
+        # import ipdb; ipdb.set_trace()
+        log_message("debug", f"Found the following E3SM variable to use as input {', '.join(e3sm_vars)}")
 
         parameters['std_var_list'] = e3sm_vars
-        parameters['std_cmor_list'] = cmip_var
+        parameters['std_cmor_list'] = real_cmip_vars
         
         cwl_workflow = "atm-highfreq/atm-highfreq.cwl"
         parameters['tables_path'] = self.config['cmip_tables_path']

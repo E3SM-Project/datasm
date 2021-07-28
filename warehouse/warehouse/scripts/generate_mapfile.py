@@ -22,10 +22,19 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Generate an ESGF mapfile from a given directory, with the given dataset_id"
     )
-    parser.add_argument("input", type=str, help="Path a directory full of netCDF files")
-    parser.add_argument("dataset_id", type=str, help="The ESGF dataset id")
     parser.add_argument(
-        "version_number", type=int, help="The version number of the dataset"
+        "input", type=str,
+        help="Path to a directory full of netCDF files"
+    )
+    parser.add_argument(
+        "dataset_id", 
+        type=str, 
+        help="The ESGF dataset id"
+    )
+    parser.add_argument(
+        "version_number", 
+        type=int, 
+        help="The version number of the dataset, should be and int and not include the 'v' prefix"
     )
     parser.add_argument(
         "--outpath",
@@ -40,6 +49,11 @@ def parse_args():
         type=int,
         default=8,
         help="Number of parallel jobs, default is 8",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Supress progress bar output",
     )
     return parser.parse_args()
 
@@ -63,9 +77,11 @@ def main():
     dataset_id = parsed_args.dataset_id
     version_nm = parsed_args.version_number
     numberproc = parsed_args.processes
+    quiet = parsed_args.quiet
 
     if not input_path.exists() or not input_path.is_dir():
-        con_message("error", "Input directory does not exist or is not a directory")
+        con_message(
+            "error", "Input directory does not exist or is not a directory")
         sys.exit(1)
 
     outpath = parsed_args.outpath
@@ -81,7 +97,7 @@ def main():
 
     with open(outpath, "w") as outstream:
         try:
-            for future in tqdm(as_completed(futures), total=len(futures)):
+            for future in tqdm(as_completed(futures), total=len(futures), disable=quiet):
                 filehash, pathstr = future.result()
                 filestat = Path(pathstr).stat()
                 line = f"{dataset_id}#{version_nm} | {pathstr} | {filestat.st_size} | mod_time={filestat.st_mtime} | checksum={filehash} | checksum_type=SHA256\n"
@@ -100,7 +116,7 @@ def main():
             return 1
 
     message = f"mapfile_path={outpath}"
-    if messages_path := os.environ.get("message_file"):  # whence commeth thee?
+    if messages_path := os.environ.get("message_file"):
         with open(messages_path, "w") as outstream:
             outstream.write(message)
     else:
