@@ -5,7 +5,7 @@ from enum import Enum
 
 from pathlib import Path
 from datetime import datetime
-import ipdb
+
 from warehouse.util import (
     load_file_lines,
     search_esgf,
@@ -27,6 +27,7 @@ class DatasetStatus(Enum):
     NOT_IN_PUBLICATION = "WAREHOUSE:NOT_IN_PUBLICATION:"
     NOT_IN_WAREHOUSE = "WAREHOUSE:NOT_IN_WAREHOUSE:"
     PARTIAL_PUBLISHED = "WAREHOUSE:PARTIAL_PUBLISHED:"
+    PUBLISHED = "WAREHOUSE:PUBLICATION:Pass:"
 
 
 class DatasetStatusMessage(Enum):
@@ -542,7 +543,7 @@ class Dataset(object):
         files = [x["title"] for x in docs]
         # ipdb.set_trace()
         if self.check_dataset_is_complete(files):
-            return DatasetStatus.SUCCESS.value
+            return DatasetStatus.PUBLISHED.value
         else:
             return DatasetStatus.PARTIAL_PUBLISHED.value
 
@@ -601,7 +602,7 @@ class Dataset(object):
             # returns either NOT_PUBLISHED or SUCCESS or PARTIAL_PUBLISHED or UNITITIALIZED
             self.status = self.get_esgf_status()
 
-        # import ipdb; ipdb.set_trace()
+            print(f"ESGF said {self.dataset_id} was in status {self.status}")
 
         # TODO: figure out how to update and finish a dataset thats been published
         # but is missing some of its files

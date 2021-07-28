@@ -65,6 +65,7 @@ class AutoWarehouse:
         os.makedirs(self.slurm_path, exist_ok=True)
         self.should_exit = False
         self.debug = kwargs.get("debug")
+        self.ask = kwargs.get("ask")
         self.tmpdir = kwargs.get("tmp", os.environ.get("TMPDIR", '/tmp'))
 
         self.scripts_path = Path(
@@ -74,7 +75,9 @@ class AutoWarehouse:
         # not sure where to put this - Tony
         setup_logging("debug", f"{self.slurm_path}/warehouse.log")
 
-        if not self.report_missing:
+        if self.report_missing:
+            pass
+        else:
             self.workflow = kwargs.get(
                 "workflow", Workflow(
                     slurm_scripts=self.slurm_path, 
@@ -91,8 +94,8 @@ class AutoWarehouse:
             # create the local Slurm object
             self.slurm = Slurm()
 
-            # dont setup the listener until after we've gathered the datasets
-            self.listener = None
+        # dont setup the listener until after we've gathered the datasets
+        self.listener = None
 
         if self.serial is True:
             log_message("info", "Running warehouse in serial mode")
@@ -126,8 +129,9 @@ class AutoWarehouse:
                 sleep(10)
 
         except KeyboardInterrupt:
-            for l in self.listener:
-                l.stop()
+            if listeners := self.listener:
+                for l in listeners:
+                    l.stop()
             exit(1)
 
         return 0
@@ -280,7 +284,13 @@ class AutoWarehouse:
                     if isinstance(status, DatasetStatus):
                         status = status.value
                     self.datasets[dataset_id].status = status
-
+        
+        if self.ask:
+            for name, dataset in self.datasets.items():
+                print(f"{name} is in state {dataset.status}")
+            if input("Proceed? y/[n]\n") != 'y':
+                self.should_exit = True
+                sys.exit(0)
         return
 
     def workflow_error(self, dataset):
@@ -602,7 +612,7 @@ class AutoWarehouse:
             help=f"The root path for the data archive, default={DEFAULT_ARCHIVE_PATH}",
         )
         p.add_argument(
-            "--dataset-id",
+            "-d", "--dataset-id",
             nargs="*",
             help="Run the automated processing for the given datasets, this can the the complete dataset_id, "
             "or a glob such as E3SM.1_0.*.time-series. or CMIP6.*.Amon. the default is to run on all CMIP6 "
@@ -645,6 +655,12 @@ class AutoWarehouse:
             required=False,
             default=f"{os.environ.get('TMPDIR', '/tmp')}",
             help=f"the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: {os.environ.get('TMPDIR', '/tmp')}",
+        )
+        p.add_argument(
+            "--ask",
+            required=False,
+            action="store_true",
+            help=f"When starting up, print out the datasets that will be affected (and their initial status), and ask the user if they would like to proceed.",
         )
         p.add_argument(
             "--report-missing",
