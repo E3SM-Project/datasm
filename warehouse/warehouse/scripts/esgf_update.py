@@ -55,12 +55,12 @@ def main():
     parser.add_argument(
         "--index-node",
         default=DEFAULT_INDEX_NODE,
-        help=f"Path to ESGF cert, default={DEFAULT_INDEX_NODE}",
+        help=f"default={DEFAULT_INDEX_NODE}",
     )
     parser.add_argument(
         "--data-node",
         default=DEFAULT_DATA__NODE,
-        help=f"Path to ESGF cert, default={DEFAULT_DATA__NODE}",
+        help=f"default={DEFAULT_DATA__NODE}",
     )
     parser.add_argument(
         "-y", "--yes", action="store_true", help="skip the manual verification"
