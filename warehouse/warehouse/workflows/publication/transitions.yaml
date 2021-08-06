@@ -16,7 +16,17 @@ ValidateMapfile:Ready:
   default:
     - ValidateMapfile:Engaged
 ValidateMapfile:Pass:
+  atmos-cmip-mon:
+    - PublishEsgf:Ready
+  atmos-cmip-day:
+    - PublishEsgf:Ready
   atmos-cmip-3hr:
+    - PublishEsgf:Ready
+  land-cmip-mon:
+    - PublishEsgf:Ready
+  ocn-cmip-mon:
+    - PublishEsgf:Ready
+  ice-cmip-mon:
     - PublishEsgf:Ready
   default:
     - MoveToPublication:Ready
