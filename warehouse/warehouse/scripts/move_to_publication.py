@@ -90,6 +90,30 @@ def conduct_move(args, move_method="none"):
     src_path = Path(args.src)
     dst_path = Path(args.dst)
 
+    # move mapfile first. If fails, don't bother moving the files.
+
+    mapfile = next(src_path.parent.glob("*.map"))
+    with open(mapfile, "r") as instream:
+        dataset_id = instream.readline().split("|")[0].strip().split("#")[0]
+    dst = Path(dst_path.parent, f"{dataset_id}.map")
+    con_message("info", f"Moving the mapfile to {dst}")
+    mapfile.replace(dst)
+
+    message = f"mapfile_path={dst},pub_name={dst_path.name},ware_name={src_path.name}"
+    if messages_path := os.environ.get("message_file"):
+        with open(messages_path, "w") as outstream:
+            outstream.write(message)
+            con_message("info", f"{message}")
+    else:
+        con_message("error", f"No message_file {message_file} in environment")
+        con_message("info", f"Message is: {message}")
+
+    # DEBUG:  return 1 so that files are NOT moved
+
+    return 1
+
+    # NOW move the files
+
     file_count = 0
     for sfile in src_path.glob("*.nc"):  # all .nc files
         destination = dst_path / sfile.name
@@ -111,20 +135,6 @@ def conduct_move(args, move_method="none"):
 
     con_message("info", f"moved {file_count} files from {src_path} to {dst_path}")
 
-    mapfile = next(src_path.parent.glob("*.map"))
-    with open(mapfile, "r") as instream:
-        dataset_id = instream.readline().split("|")[0].strip().split("#")[0]
-    dst = Path(dst_path.parent, f"{dataset_id}.map")
-    con_message("info", f"Moving the mapfile to {dst}")
-    mapfile.replace(dst)
-
-    message = f"mapfile_path={dst},pub_name={dst_path.name},ware_name={src_path.name}"
-    if messages_path := os.environ.get("message_file"):
-        with open(messages_path, "w") as outstream:
-            outstream.write(message)
-    else:
-        con_message("error", message)
-
     return 0
 
 
@@ -132,8 +142,11 @@ def main():
     parsed_args = parse_args()
     src_path = Path(parsed_args.src)
     dst_path = Path(parsed_args.dst)
+    src_parent, _ = os.path.split(src_path)
+    dst_parent, _ = os.path.split(dst_path)
+
     move_method = "move"
-    if src_path == dst_path:
+    if src_parent == dst_parent:
         move_method = "link"
         message = f"mapfile_path={next(src_path.parent.glob('*.map'))},pub_name={dst_path.name},ware_name={src_path.name}"
         if messages_path := os.environ.get("message_file"):
@@ -141,7 +154,7 @@ def main():
                 outstream.write(message)
                 con_message("info", message)
         else:
-            con_message("error", message)
+            con_message("error", "cannot obtain message_file {message_file} from environment for message {message}")
         sys.exit(0)
 
     if not validate_args(parsed_args):
