@@ -61,12 +61,12 @@ tables:
     - clhcalipso
     - all
   day:
-    - pr_highfreq
+    - pr
     - tas
     - huss
     - tasmin
     - tasmax
-    - rlut_highfreq
+    - rlut
     - all
   3hr:
     - pr_highfreq
@@ -600,7 +600,6 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
-                  - model-output.day
             misc:
               -
                 grid: native
@@ -1740,6 +1739,56 @@ project:
     '1_1_ECA':
       piControl:
         start: 1850
+        end: 2014
+        ens:
+          - ens1
+        campaign: BGC-v1
+        science_driver: Biogeochemical Cycle
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1-ECA.piControl
+        resolution:
+          1deg_atm_60-30km_ocean:
+            atmos:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.day
+                  - model-output.3hr_snap
+                  - model-output.3hr
+              - 
+                grid: 180x360
+                data_types:
+                  - climo.mon
+                  - time-series.mon
+            land:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
+            ocean:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.5day_snap
+                  - model-output.fixed
+            sea-ice:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+                  - model-output.fixed
+            river:
+              -
+                grid: native
+                data_types:
+                  - model-output.mon
+      piControl-ext85yr:
+        start: 2015
         end: 2100
         ens:
           - ens1

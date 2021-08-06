@@ -207,6 +207,42 @@ def get_dsid_dstype( dsid ):  # only works because "tuning" comes before realm, 
 
 #### COMPLETED rationalizing archive and publication experiment-case names, and dataset-type names ####
 
+def clean_timestamp(ts):
+    parts = len(ts.split(' '))
+    if parts == 1:
+        return ts
+    if parts > 2:
+        print(f"UNKNOWN FORMAT: {ts}")
+        return ts
+
+    dtpart, tmpart = ts.split(' ')
+    dparts = len(dtpart.split('/'))
+    if dparts != 3:
+        print(f"UNKNOWN FORMAT: {ts}")
+        return ts
+    tparts1 = len(tmpart.split(':'))
+    tparts2 = len(tmpart.split('.'))
+    if not tparts1 == 3 and not (tparts2 == 3 or tparts2 == 4):
+        print(f"UNKNOWN FORMAT: {ts}")
+        return ts
+
+    d_out = ''.join(dtpart.split('/'))
+
+    if tparts1 == 3:
+        t_out = ''.join(tmpart.split(':'))
+    else:
+        if tparts2 == 3:
+            t_out = ''.join(tmpart.split('.'))
+        else:
+            t_out1 = ''.join(tmpart.split('.')[:3])
+            t_out = '_'.join([t_out1, tmpart.split('.')[3]])
+
+    new_ts = '_'.join([d_out, t_out])
+
+    # print(f"{new_ts}")
+    return new_ts
+
+
 def isVLeaf(_):
     if len(_) > 1 and _[0] == 'v' and _[1] in '0123456789':
         return True
@@ -599,9 +635,10 @@ def main():
         ds['P_Version'] = maxv
         ds['P_Count'] = maxc
 
-    ''' DEBUG '''
+    ''' DEBUG
     for dsid in ds_struct:
         print(f"IN_HOUSE:{dsid}")
+    '''
 
     ''' STAGE 4: Process the supplied (latest) sproket-generated ESGF_publication_report.  Collect max version, and filecount of max version. '''
 
@@ -636,8 +673,9 @@ def main():
         
         ds['campaign'] = campaign_via_model_experiment(ds['model'],ds['experiment'])
         sf_data = get_sf_laststat(dsid)
-        ds['StatDate'] = sf_data.split(':')[0]                # date from last status value
-        ds['Status']  = ':'.join(sf_data.split(':')[1:])      # stat from last status value
+        sf_ts = sf_data.split(':')[0] 
+        ds['StatDate'] = clean_timestamp(sf_ts)             # date from last status value
+        ds['Status']  = ':'.join(sf_data.split(':')[1:])    # stat from last status value
         ds['DAWPS'] = ds['D']+ds['A']+ds['W']+ds['P']+ds['S']
 
     # first file and last file of highest version in esgf_search, else in pub, else in warehouse

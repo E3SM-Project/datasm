@@ -53,7 +53,11 @@ def validate_args(args):
     return True
 
 
-def conduct_move(args):
+def conduct_move(args, move_method="none"):
+    if move_method == "none":
+        con_message("error","Move_to_Publication: Must set move_method to 'move' or to 'link'")
+        return 1
+
     src_path = Path(args.src)
     dst_path = Path(args.dst)
 
@@ -66,7 +70,12 @@ def conduct_move(args):
                 f"Trying to move file {afile} to {destination}, but the destination already exists",
             )
             sys.exit(1)
-        afile.replace(destination)
+        if move_method == "move":
+            afile.replace(destination)
+        else:
+            src_target = src_path / afile.name
+            # make symlink like ln -s src_target destination, but with Path('the-link-you-want-to-create').symlink_to('the-original-file')
+            Path(destination).symlink_to(src_target)
         file_count += 1
 
     con_message("info", f"moved {file_count} files from {src_path} to {dst_path}")
@@ -92,7 +101,9 @@ def main():
     parsed_args = parse_args()
     src_path = Path(parsed_args.src)
     dst_path = Path(parsed_args.dst)
+    move_method = "move"
     if src_path == dst_path:
+        move_method = "link"
         message = f"mapfile_path={next(src_path.parent.glob('*.map'))},pub_name={dst_path.name},ware_name={src_path.name}"
         if messages_path := os.environ.get("message_file"):
             with open(messages_path, "w") as outstream:
@@ -104,7 +115,7 @@ def main():
     if not validate_args(parsed_args):
         sys.exit(1)
 
-    return conduct_move(parsed_args)
+    return conduct_move(parsed_args,move_method)
 
 
 if __name__ == "__main__":
