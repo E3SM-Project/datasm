@@ -177,7 +177,7 @@ class AutoWarehouse:
                 warehouse_base=self.warehouse_path,
                 archive_base=self.archive_path,
                 no_status_file=True)
-            if job.matches_requirement(dataset, self.dataset_spec):
+            if job.matches_requirement(dataset):
                 dataset.initialize_status_file()
                 msg = f"matching dataset found: {dataset.dataset_id}"
                 log_message("debug", msg)
@@ -440,7 +440,7 @@ class AutoWarehouse:
                     self.slurm_path,
                     workflow=workflow,
                     job_workers=self.job_workers,
-                    spec_path=self.spec_path,
+                    spec=self.dataset_spec,
                     debug=self.debug,
                     config=warehouse_conf,
                     other_datasets=list(self.datasets.values()),

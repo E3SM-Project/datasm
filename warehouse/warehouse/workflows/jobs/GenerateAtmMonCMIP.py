@@ -20,10 +20,6 @@ class GenerateAtmMonCMIP(WorkflowJob):
 
     def resolve_cmd(self):
 
-        # step one, collect the information we're going to need for the CWL parameter file
-        with open(self._spec_path, 'r') as i:
-            spec = yaml.load(i, Loader=yaml.SafeLoader)
-
         raw_dataset = self.requires['atmos-native-mon']
         cwl_config = self.config['cmip_atm_mon']
 
@@ -36,7 +32,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
         # we can pull them from the dataset spec
         if cmip_var == 'all':
             is_all = True
-            cmip_var = [x for x in spec['tables'][table] if x != 'all']
+            cmip_var = [x for x in self._spec['tables'][table] if x != 'all']
         else:
             is_all = False
             cmip_var = [cmip_var]
@@ -52,6 +48,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
+            print(cmd)
             print(err)
             return None
     
@@ -72,7 +69,6 @@ class GenerateAtmMonCMIP(WorkflowJob):
                 std_var_list.extend(e3sm_var)
                 std_cmor_list.append(item['CMIP6 Name'])
 
-
         if plev and not mlev:
             parameters['plev_var_list'] = plev_var_list
             parameters['plev_cmor_list'] = plev_cmor_list
@@ -91,6 +87,11 @@ class GenerateAtmMonCMIP(WorkflowJob):
             
             parameters['vrt_map_path'] = self.config['vrt_map_path']
             cwl_workflow = "atm-unified/atm-unified.cwl"
+        try:
+            a = cwl_workflow
+        except:
+            print(self.dataset.dataset_id)
+            import ipdb; ipdb.set_trace()
 
         parameters['tables_path'] = self.config['cmip_tables_path']
         parameters['metadata_path'] = os.path.join(

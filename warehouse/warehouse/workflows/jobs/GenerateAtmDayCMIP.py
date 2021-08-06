@@ -20,10 +20,6 @@ class GenerateAtmDayCMIP(WorkflowJob):
 
     def resolve_cmd(self):
 
-        # step one, collect the information we're going to need for the CWL parameter file
-        with open(self._spec_path, 'r') as i:
-            spec = yaml.load(i, Loader=yaml.SafeLoader)
-
         raw_dataset = self.requires['atmos-native-day']
         cwl_config = self.config['cmip_atm_day']
 
@@ -36,7 +32,7 @@ class GenerateAtmDayCMIP(WorkflowJob):
         # we can pull them from the dataset spec
         if cmip_var == 'all':
             is_all = True
-            cmip_var = [x for x in spec['tables'][table] if x != 'all']
+            cmip_var = [x for x in self._spec['tables'][table] if x != 'all']
         else:
             is_all = True
             cmip_var = [cmip_var]
