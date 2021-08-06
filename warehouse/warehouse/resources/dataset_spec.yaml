@@ -1293,7 +1293,7 @@ project:
     '1_1':
       piControl:
         start: 1850
-        end: 2100
+        end: 2014
         ens:
           - ens1
         campaign: BGC-v1
@@ -1398,7 +1398,7 @@ project:
           - ens1
         campaign: BGC-v1
         science_driver: Biogeochemical Cycle
-        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1.hist-bgc
+        cmip_case: CMIP6.C4MIP.E3SM-Project.E3SM-1-1.hist-bgc
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
