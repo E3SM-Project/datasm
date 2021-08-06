@@ -40,6 +40,7 @@ class Validation(Workflow):
         warehouse_path = self.params['warehouse_path']
         publication_path = self.params['publication_path']
         archive_path = self.params['archive_path']
+        status_path = self.params.get('status_path')
 
         if (data_path := self.params.get('data_path')):
             warehouse = AutoWarehouse(
@@ -48,6 +49,7 @@ class Validation(Workflow):
                 warehouse_path=data_path,
                 publication_path=publication_path,
                 archive_path=archive_path,
+                status_path=status_path,
                 serial=True,
                 job_worker=self.job_workers,
                 debug=self.debug)
@@ -57,6 +59,7 @@ class Validation(Workflow):
                 dataset_id=dataset_ids,
                 warehouse_path=warehouse_path,
                 publication_path=publication_path,
+                status_path=status_path,
                 archive_path=archive_path,
                 serial=True,
                 job_worker=self.job_workers,

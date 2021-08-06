@@ -35,6 +35,7 @@ class PostProcess(Workflow):
             self.metadata_path = Path(metadata_path)
         data_path = self.params.get('data_path')
         tmpdir = self.params.get('tmp')
+        status_path = self.params.get('status_path')
 
         if data_path is not None:
             warehouse = AutoWarehouse(
@@ -44,6 +45,7 @@ class PostProcess(Workflow):
                 serial=self.serial,
                 job_worker=self.job_workers,
                 debug=self.debug,
+                status_path=status_path,
                 tmpdir=tmpdir)
         else:
             warehouse = AutoWarehouse(
@@ -53,6 +55,7 @@ class PostProcess(Workflow):
                 serial=self.serial,
                 job_worker=self.job_workers,
                 debug=self.debug,
+                status_path=status_path,
                 tmpdir=tmpdir)
 
         warehouse.setup_datasets(check_esgf=False)
