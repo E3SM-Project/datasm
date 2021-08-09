@@ -9,5 +9,6 @@ class ValidateEsgf(WorkflowJob):
         self.name = NAME
         self._cmd = f"""
             cd {self.scripts_path}
+            sleep 15
             python validate_esgf.py --dataset-id {self.dataset.dataset_id}
         """
