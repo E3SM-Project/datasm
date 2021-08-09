@@ -109,8 +109,7 @@ def conduct_move(args, move_method="none"):
         con_message("info", f"Message is: {message}")
 
     # DEBUG:  return 1 so that files are NOT moved
-
-    return 1
+    # return 1
 
     # NOW move the files
 
