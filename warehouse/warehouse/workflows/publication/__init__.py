@@ -2,7 +2,6 @@ import os
 import sys
 from pathlib import Path
 from time import sleep
-from termcolor import colored, cprint
 from warehouse.workflows import Workflow
 from warehouse.dataset import Dataset, DatasetStatusMessage
 from warehouse.util import log_message
@@ -40,6 +39,7 @@ class Publication(Workflow):
             if not self.pub_path.exists():
                 os.makedirs(self.pub_path.resolve())
         data_path = self.params.get('data_path')
+        status_path = self.params.get('status_path')
 
         if data_path is not None:
             warehouse = AutoWarehouse(
@@ -49,6 +49,7 @@ class Publication(Workflow):
                 publication_path=self.pub_path,
                 serial=True,
                 job_worker=self.job_workers,
+                status_path=status_path,
                 debug=self.debug,
                 tmpdir=tmpdir)
         else:
@@ -59,6 +60,7 @@ class Publication(Workflow):
                 publication_path=self.pub_path,
                 serial=True,
                 job_worker=self.job_workers,
+                status_path=status_path,
                 debug=self.debug,
                 tmpdir=tmpdir)
 

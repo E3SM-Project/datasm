@@ -134,7 +134,7 @@ class Workflow(object):
             slurm_opts=kwargs.get('slurm_opts', []),
             parent=parent,
             job_workers=self.job_workers,
-            spec_path=kwargs.get('spec_path'),
+            spec=kwargs.get('spec'),
             config=kwargs.get('config'),
             debug=kwargs.get('debug'),
             serial=kwargs.get('serial', True),
@@ -143,7 +143,7 @@ class Workflow(object):
         other_datasets = [x for x in kwargs.get('other_datasets') if x.dataset_id != dataset.dataset_id]
         job_instance.setup_requisites(other_datasets)
         try:
-            job_reqs = {k:v.dataset_id for k,v in job_instance.requires.items()}
+            job_reqs = {k:v.dataset_id for k,v in job_instance.requires.items() if v is not None}
         except AttributeError as error:
             log_message('error', f"Job instance {job_instance} unable to find its requirements {job_instance.requires.items()}, is there a missing dataset?")
             return job_instance

@@ -6,6 +6,8 @@ from enum import Enum
 from pathlib import Path
 from datetime import datetime
 
+import ipdb
+
 from warehouse.util import (
     load_file_lines,
     search_esgf,
@@ -238,6 +240,8 @@ class Dataset(object):
                 new_status = ":".join(latest[2:]).strip()
             elif len(latest) > 5:
                 new_status = ":".join(latest[3:]).strip()
+            elif len(latest) < 5:
+                new_status = ":".join(latest[-2:-1]).strip()
             if update:
                 self._status = new_status
             return new_status
@@ -541,7 +545,7 @@ class Dataset(object):
 
 
         files = [x["title"] for x in docs]
-        # ipdb.set_trace()
+        
         if self.check_dataset_is_complete(files):
             return DatasetStatus.PUBLISHED.value
         else:
@@ -596,9 +600,10 @@ class Dataset(object):
         """
         Lookup the datasets status in ESGF, or on the filesystem
         """
+        # import ipdb; ipdb.set_trace()
 
         # if the dataset is UNITITIALIZED, then we need to build up the status from scratch
-        if self.status == DatasetStatus.UNITITIALIZED.value:
+        if self.status not in [DatasetStatus.SUCCESS.value, DatasetStatus.IN_PUBLICATION.value]:
             # returns either NOT_PUBLISHED or SUCCESS or PARTIAL_PUBLISHED or UNITITIALIZED
             self.status = self.get_esgf_status()
 

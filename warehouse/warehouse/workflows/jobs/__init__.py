@@ -27,6 +27,7 @@ class WorkflowJob(object):
 
         self._job_id = None
         self._spec_path = kwargs.get('spec_path')
+        self._spec = kwargs.get('spec')
         self._config = kwargs.get('config') 
         self.debug = kwargs.get('debug')
         self.serial = kwargs.get('serial', True)
@@ -96,7 +97,7 @@ rm $message_file
 """
         self._cmd = self._cmd + suffix
 
-    def setup_requisites(self, input_datasets=None, spec=None):
+    def setup_requisites(self, input_datasets=None):
         """
         Checks that the self.dataset matches the jobs requirements, as well
         as an optional list of additional datasets
@@ -110,22 +111,35 @@ rm $message_file
 
         for dataset in datasets:
             # cprint(f"checking if {dataset.dataset_id} is a good match for {self.name}", "yellow")
-            if (req := self.matches_requirement(dataset, spec)) is not None:
+            if (req := self.matches_requirement(dataset)) is not None:
                 # cprint(f'Found matching input requirements for {dataset.dataset_id}: {[x.dataset_id for x in self.requires.values()]}', 'green')
                 self._requires[req] = dataset
             # else:
             #     cprint(f'{dataset.dataset_id} does not match for {self.requires}', 'red')
 
-    def matches_requirement(self, dataset, spec=None):
+    def matches_requirement(self, dataset):
         """
         Checks that the self.dataset matches the jobs requirements, as well
         as an optional list of additional datasets
         """
-        # if self.dataset.dataset_id == dataset.dataset_id:
-        #     return None
-
-        if dataset.experiment != self.dataset.experiment:
+        # import ipdb; ipdb.set_trace()
+        if self.dataset.dataset_id == dataset.dataset_id:
             return None
+
+        if self.dataset.project == 'E3SM':
+            if dataset.experiment != self.dataset.experiment:
+                return None
+        else:
+            dataset_facets = dataset.dataset_id.split('.')
+            if self.dataset.project == 'CMIP6' and dataset.project == 'E3SM':
+                e3sm_cmip_case = self._spec['project']['E3SM'][dataset_facets[1]][dataset_facets[2]].get('cmip_case')
+                if not e3sm_cmip_case:
+                    return None
+                
+                my_dataset_facets = self.dataset.dataset_id.split('.')
+                my_case_attrs = '.'.join(my_dataset_facets[:5])
+                if not my_case_attrs == e3sm_cmip_case:
+                    return None
         
         dataset_model = dataset.model_version
         my_dataset_model = self.dataset.model_version
@@ -144,17 +158,6 @@ rm $message_file
             my_dataset_ensemble = f"r{self.dataset.ensemble[3:]}i1p1f1"
         if dataset_ensemble != my_dataset_ensemble:
             return None
-
-        dataset_facets = dataset.dataset_id.split('.')
-        if spec is not None and 'CMIP' in self.dataset.dataset_id and dataset_facets[0] == 'E3SM':
-            e3sm_cmip_case = spec['project']['E3SM'][dataset_facets[1]][dataset_facets[2]].get('cmip_case')
-            if not e3sm_cmip_case:
-                return None
-            
-            my_dataset_facets = self.dataset.dataset_id.split('.')
-            my_case_attrs = '.'.join(my_dataset_facets[:5])
-            if not my_case_attrs == e3sm_cmip_case:
-                return None
         
         for req, ds in self._requires.items():
             if ds:

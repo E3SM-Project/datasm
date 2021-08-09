@@ -53,7 +53,7 @@ def loadFileLines(filepath: Path):
 def validate_mapfile(mapfile: str, srcdir: Path, quiet: bool):
     """
     at this point, the srcdir should contain the datafiles (*.nc)
-    and the parent dir/.mapfile, so we can do a name-by-name comparison.
+    and the parent dir/dsid.map, so we can do a name-by-name comparison.
     MUST test for each srcdir datafile in mapfile listing.
 
     Params:
