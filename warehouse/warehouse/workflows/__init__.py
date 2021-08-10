@@ -251,6 +251,10 @@ class Workflow(object):
             '--debug',
             action='store_true',
             help='Print additional debug information to the console')
+        parser.add_argument(
+            '--testing',
+            action='store_true',
+            help='run in testing mode')
         return parser
 
     @staticmethod

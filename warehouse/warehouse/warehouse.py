@@ -193,6 +193,9 @@ class AutoWarehouse:
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
 
+        import ipdb
+        ipdb.set_trace()
+        
         if self.dataset_ids and self.dataset_ids is not None:
             dataset_ids = []
             for dataset_pattern in self.dataset_ids:
@@ -543,7 +546,7 @@ class AutoWarehouse:
 
     def collect_cmip_datasets(self, **kwargs):
         for activity_name, activity_val in self.dataset_spec["project"]["CMIP6"].items():
-            if activity_name == "test":
+            if activity_name == "test" and not self.testing:
                 continue
             for version_name, version_value in activity_val.items():
                 for experimentname, experimentvalue in version_value.items():
@@ -564,7 +567,7 @@ class AutoWarehouse:
 
     def collect_e3sm_datasets(self, **kwargs):
         for version in self.dataset_spec["project"]["E3SM"]:
-            if version == "test":
+            if version == "test" and not self.testing:
                 continue
             for experiment, experimentinfo in self.dataset_spec["project"]["E3SM"][
                 version

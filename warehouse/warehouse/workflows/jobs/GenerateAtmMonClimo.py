@@ -23,5 +23,9 @@ class GenerateAtmMonClimo(WorkflowJob):
         map_path = self.config['grids']['ne30_to_180x360']
         self._cmd = f"""
             cd {self.scripts_path}
-            ncclimo -c {case} -a sdd -s {start} -e {end} -i {inpath} -r {map_path} -o {os.environ['TMPDIR']}{self.dataset.dataset_id}/climo/ -O {outpath} --no_amwg_links
+            native_out={os.environ['TMPDIR']}{self.dataset.dataset_id}/climo/
+            ncclimo -c {case} -a sdd -s {start} -e {end} -i {inpath} -r {map_path} -o $native_out -O {outpath} --no_amwg_links
+            if [ $? -eq 0 ]; then
+                rm -rf $native_out
+            fi
         """
