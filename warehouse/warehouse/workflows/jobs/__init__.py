@@ -92,6 +92,7 @@ then
 else
     touch $message_file
     echo STAT:`date "+%Y/%m/%d %H.%M.%S.%6N"`:{self.parent}:{self.name}:Pass:`cat $message_file` >> {self.dataset.status_path}
+    {self.render_cleanup()}
 fi
 rm $message_file
 """
@@ -194,6 +195,9 @@ rm $message_file
             version_number = int(version)
         new_version = version_number + 1
         return Path(Path(self._dataset.latest_warehouse_dir).parents[0], f"v0.{new_version}")
+    
+    def render_cleanup(self):
+        return ""
 
     @property
     def cmd(self):
