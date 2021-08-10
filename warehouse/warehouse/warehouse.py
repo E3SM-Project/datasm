@@ -192,9 +192,6 @@ class AutoWarehouse:
 
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
-
-        import ipdb
-        ipdb.set_trace()
         
         if self.dataset_ids and self.dataset_ids is not None:
             dataset_ids = []
