@@ -403,8 +403,8 @@ class Dataset(object):
         if isinstance(status, tuple):
             status, params = status
 
-        msg = f"setting {self.dataset_id} to {status}"
-        log_message("debug", msg)
+        # msg = f"setting {self.dataset_id} to {status}"
+        # log_message("debug", msg, )
         self._status = status
         
         with open(self.status_path, "a") as outstream:

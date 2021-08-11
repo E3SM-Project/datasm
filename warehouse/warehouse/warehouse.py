@@ -1,6 +1,8 @@
 import os
 from re import I
 import sys
+
+import ipdb
 from warehouse.dataset import DatasetStatusMessage
 import yaml
 import inspect
@@ -64,7 +66,12 @@ class AutoWarehouse:
         self.datasets_from_path = kwargs.get("datasets_from_path", False)
         os.makedirs(self.slurm_path, exist_ok=True)
         self.should_exit = False
-        self.debug = kwargs.get("debug")
+
+        if kwargs.get("debug"):
+            self.debug = "DEBUG"
+        else:
+            self.debug = "INFO"
+
         self.ask = kwargs.get("ask")
         self.tmpdir = kwargs.get("tmp", os.environ.get("TMPDIR", '/tmp'))
 
@@ -166,8 +173,8 @@ class AutoWarehouse:
         Returns:
             Dataset, the E3SM dataset that matches the input requirements for the job if found, else None
         """
-        msg = f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}"
-        log_message("debug", msg)
+        # msg = f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}"
+        # log_message("debug", msg)
         
         for x in self.collect_e3sm_datasets():
             dataset = Dataset(
@@ -180,7 +187,7 @@ class AutoWarehouse:
             if job.matches_requirement(dataset):
                 dataset.initialize_status_file()
                 msg = f"matching dataset found: {dataset.dataset_id}"
-                log_message("debug", msg)
+                log_message("debug", msg, self.debug)
                 return dataset
         return None
 
@@ -303,10 +310,6 @@ class AutoWarehouse:
             "info", f"Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}"
         )
 
-    def print_debug(self, msg):
-        if self.debug:
-            log_message("debug", msg)
-
     def status_was_updated(self, path):
         """
         This should be called whenever a datasets status file is updated
@@ -423,8 +426,10 @@ class AutoWarehouse:
                 # otherwise the new state and its parameters need to be
                 # written to the dataset status file
                 else:
-                    log_message(
-                        "debug", f"Dataset {dataset.dataset_id} transitioning to state {new_state} with params {params}")
+                    msg = f"Dataset {dataset.dataset_id} transitioning to state {new_state}"
+                    if params is not None:
+                        msg += f" with params {params}"
+                    log_message("debug", msg, self.debug)
                     dataset.status = (new_state, params)
 
             if not engaged_states:
@@ -463,6 +468,7 @@ class AutoWarehouse:
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
             log_message("info", f"starting job: {job}")
+            # import ipdb; ipdb.set_trace()
             if not job.meets_requirements() and job.dataset.project == "CMIP6" or 'time-series' in job.dataset.dataset_id or 'climo' in job.dataset.dataset_id:
                 source_dataset = self.find_e3sm_source_dataset(job)
                 if source_dataset is None:
@@ -591,7 +597,7 @@ class AutoWarehouse:
             "-n", "--num", default=8, type=int, help="Number of parallel workers"
         )
         p.add_argument(
-            "-s", "--serial", action="store_true", help="Run everything in serial"
+            "-s", "--serial", action="store_true", help="Run esgf checks in serial"
         )
         p.add_argument(
             "-w",

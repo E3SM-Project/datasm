@@ -79,7 +79,6 @@ class PostProcess(Workflow):
 
         while not warehouse.should_exit:
             sleep(2)
-            warehouse.check_done()
 
         for dataset_id, dataset in warehouse.datasets.items():
             color = "green" if "Pass" in dataset.status else "red"

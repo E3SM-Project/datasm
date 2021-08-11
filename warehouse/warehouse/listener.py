@@ -24,7 +24,7 @@ class Listener(object):
         setup_logging("debug", f"listener.log")
 
     def start(self):
-        log_message("info", "Starting up filesystem listener")
+        # log_message("info", "Starting up filesystem listener")
         self.observer = Observer()
         self.observer.schedule(self.my_event_handler, self.file_path, recursive=False)
         self.observer.start()
@@ -38,7 +38,7 @@ class Listener(object):
         log_message("info", f"{event.src_path} has been created")
 
     def on_modified(self, event):
-        log_message("info", f"{event.src_path} has been changed")
+        # log_message("info", f"{event.src_path} has been changed")
         self.warehouse.status_was_updated(event.src_path)
 
 
