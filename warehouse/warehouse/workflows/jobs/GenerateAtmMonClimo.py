@@ -25,7 +25,7 @@ class GenerateAtmMonClimo(WorkflowJob):
 
         filename = Path(inpath).glob('*.nc').__next__()
         idx = re.search('\.cam\.h\d\.', filename.name)
-        casename = filename[:idx.start()]
+        casename = filename.name[:idx.start()]
 
         native_out = f"{os.environ.get('TMPDIR', '/tmp')}{os.sep}{self.dataset.dataset_id}/climo/"
         self._cmd = f"""
