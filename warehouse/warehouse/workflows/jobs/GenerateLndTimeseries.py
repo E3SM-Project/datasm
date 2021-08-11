@@ -1,3 +1,4 @@
+from pathlib import Path
 from warehouse.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateLndTimeseries'
@@ -7,7 +8,7 @@ class GenerateLndTimeseries(WorkflowJob):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        self._requires = { 'lnd-native-mon': None }
+        self._requires = { 'land-native-mon': None }
         self._cmd = ''
     
     def resolve_cmd(self):
@@ -15,7 +16,8 @@ class GenerateLndTimeseries(WorkflowJob):
         exclude = self._spec['project']['E3SM'][self.dataset.model_version][self.dataset.experiment].get('except', [])
         variables = [x for x in self._spec['time-series']['land'] if x not in exclude]
 
-        raw_dataset = self.requires['lnd-native-mon']
+        raw_dataset = self.requires['land-native-mon']
+        map_path = self.config['grids']['ne30_to_180x360']
         native_out = f"{self.dataset.latest_warehouse_dir}-tmp/"
 
         start = self.dataset.start_year
@@ -23,7 +25,7 @@ class GenerateLndTimeseries(WorkflowJob):
 
         flags = "-7 --dfl_lvl=1 --no_cll_msr "
         self._cmd = f"""
-            ncclimo {flags} -v {','.join(variables)} -s {start} -e {end} -o {native_out} -O {self.dataset.latest_warehouse_dir} --ypf=10 -i {raw_dataset.latest_warehouse_dir} --sgs_frac=landfrac
+            ncclimo {flags} -v {','.join(variables)} -s {start} -e {end} -o {native_out} --map={map_path}  -O {self.dataset.latest_warehouse_dir} --ypf=10 -i {raw_dataset.latest_warehouse_dir} --sgs_frc={Path(raw_dataset.latest_warehouse_dir).glob('*.nc').__next__()}/landfrac
         """
     
     def render_cleanup(self):
