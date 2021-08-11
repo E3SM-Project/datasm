@@ -36,6 +36,8 @@ class PostProcess(Workflow):
         data_path = self.params.get('data_path')
         tmpdir = self.params.get('tmp')
         status_path = self.params.get('status_path')
+        testing = self.params.get('testing')
+
 
         if data_path is not None:
             warehouse = AutoWarehouse(
@@ -46,6 +48,7 @@ class PostProcess(Workflow):
                 job_worker=self.job_workers,
                 debug=self.debug,
                 status_path=status_path,
+                testing=testing,
                 tmpdir=tmpdir)
         else:
             warehouse = AutoWarehouse(
@@ -56,6 +59,7 @@ class PostProcess(Workflow):
                 job_worker=self.job_workers,
                 debug=self.debug,
                 status_path=status_path,
+                testing=testing,
                 tmpdir=tmpdir)
 
         warehouse.setup_datasets(check_esgf=False)
@@ -75,7 +79,6 @@ class PostProcess(Workflow):
 
         while not warehouse.should_exit:
             sleep(2)
-            warehouse.check_done()
 
         for dataset_id, dataset in warehouse.datasets.items():
             color = "green" if "Pass" in dataset.status else "red"

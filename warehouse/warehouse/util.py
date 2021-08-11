@@ -122,7 +122,7 @@ def con_message(level, message):  # message ONLY to console (in color)
 # -----------------------------------------------
 
 
-def log_message(level, message):  # message BOTH to log file and to console (in color)
+def log_message(level, message, user_level='INFO'):  # message BOTH to log file and to console (in color)
 
     process_stack = inspect.stack()[1]
     parent_module = inspect.getmodule(process_stack[0])
@@ -135,7 +135,6 @@ def log_message(level, message):  # message BOTH to log file and to console (in 
     level = level.upper()
     colors = {"INFO": "white", "WARNING": "yellow", "ERROR": "red", "DEBUG": "cyan"}
     color = colors.get(level, 'red')
-    tstamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # for console output
     ts_verbose = datetime.now().strftime("%Y/%m/%d %H:%M:%S")  # for console output
     # first, print to logfile
     if level == "DEBUG":
@@ -149,9 +148,12 @@ def log_message(level, message):  # message BOTH to log file and to console (in 
     else:
         print(f"ERROR: {level} is not a valid log level")
 
-    # now to the console
-    msg = f"{ts_verbose}:{level}:{message}"
-    cprint(msg, color)
+    if level == 'DEBUG' and user_level != level:
+        pass
+    else:
+        # now to the console
+        msg = f"{ts_verbose}:{level}:{message}"
+        cprint(msg, color)
 
 
 # -----------------------------------------------

@@ -40,7 +40,7 @@ def get_dsid_type_key(dsid):
     if realm == "atmos":
         realm = "atm"
     elif realm == "land":
-        realm = "lnd"
+        realm = "land"
     elif realm == "ocean":
         realm = "ocn"
 

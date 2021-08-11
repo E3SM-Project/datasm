@@ -148,10 +148,8 @@ class Workflow(object):
             log_message('error', f"Job instance {job_instance} unable to find its requirements {job_instance.requires.items()}, is there a missing dataset?")
             return job_instance
 
-        if not job_instance.meets_requirements():
+        if not job_instance.meets_requirements() and job_instance.dataset.project != 'CMIP6' and 'time-series' not in job_instance.dataset.dataset_id and 'climo' not in job_instance.dataset.dataset_id:
             log_message('error', f"Job {job_instance} has unsatisfiable requirements {job_reqs}")
-        else:
-            log_message('info', f"Job {job_instance} found and met requirements {job_reqs}")
             
         return job_instance
 
@@ -251,6 +249,10 @@ class Workflow(object):
             '--debug',
             action='store_true',
             help='Print additional debug information to the console')
+        parser.add_argument(
+            '--testing',
+            action='store_true',
+            help='run in testing mode')
         return parser
 
     @staticmethod

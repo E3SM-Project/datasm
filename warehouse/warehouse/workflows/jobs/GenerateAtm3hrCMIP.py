@@ -23,7 +23,7 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         raw_dataset = self.requires['atmos-native-3hr']
         cwl_config = self.config['cmip_atm_3hr']
 
-        log_message("debug", f"Using raw input from {raw_dataset.latest_warehouse_dir}")
+        # log_message("debug", f"Using raw input from {raw_dataset.latest_warehouse_dir}")
         parameters = {'data_path': raw_dataset.latest_warehouse_dir}
         parameters.update(cwl_config)
 
@@ -41,15 +41,15 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         e3sm_vars = []
         info_file = NamedTemporaryFile(delete=False)
         cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq 3hr -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
-        log_message("debug", f"Using e3sm_to_cmip to check for available variables: {cmd}")
+        # log_message("debug", f"Using e3sm_to_cmip to check for available variables: {cmd}")
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
             log_message("debug", f"Error checking variables")
             cprint(err.decode('utf-8'), 'red')
             return None
-        else:
-            log_message("debug", "e3sm_to_cmip returned variable info")
+        # else:
+        #     log_message("debug", "e3sm_to_cmip returned variable info")
     
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
@@ -67,7 +67,7 @@ class GenerateAtm3hrCMIP(WorkflowJob):
             real_cmip_vars.append(item['CMIP6 Name'])
         
         # import ipdb; ipdb.set_trace()
-        log_message("debug", f"Found the following E3SM variable to use as input {', '.join(e3sm_vars)}")
+        # log_message("debug", f"Found the following E3SM variable to use as input {', '.join(e3sm_vars)}")
 
         parameters['std_var_list'] = e3sm_vars
         parameters['std_cmor_list'] = real_cmip_vars
