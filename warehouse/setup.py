@@ -1,7 +1,8 @@
 """
 Setup for the E3SM warehouse
 """
-from setuptools import find_packages, setup
+from setuptools import find_packages
+from distutils.core import setup
 from warehouse.version import __version__
 
 import distutils.cmd
