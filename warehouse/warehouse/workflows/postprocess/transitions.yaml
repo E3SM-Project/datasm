@@ -1,6 +1,6 @@
 POSTPROCESS:Ready:
   atmos-climo-mon:
-    - GenerateAtmClimo:Ready
+    - GenerateAtmMonClimo:Ready
   atmos-timeseries-mon:
     - GenerateAtmMonTimeseries:Ready
   atmos-cmip-mon:

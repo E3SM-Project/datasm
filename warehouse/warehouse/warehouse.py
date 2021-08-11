@@ -1,6 +1,8 @@
 import os
 from re import I
 import sys
+
+import ipdb
 from warehouse.dataset import DatasetStatusMessage
 import yaml
 import inspect
@@ -64,7 +66,12 @@ class AutoWarehouse:
         self.datasets_from_path = kwargs.get("datasets_from_path", False)
         os.makedirs(self.slurm_path, exist_ok=True)
         self.should_exit = False
-        self.debug = kwargs.get("debug")
+
+        if kwargs.get("debug"):
+            self.debug = "DEBUG"
+        else:
+            self.debug = "INFO"
+
         self.ask = kwargs.get("ask")
         self.tmpdir = kwargs.get("tmp", os.environ.get("TMPDIR", '/tmp'))
 
@@ -166,8 +173,8 @@ class AutoWarehouse:
         Returns:
             Dataset, the E3SM dataset that matches the input requirements for the job if found, else None
         """
-        msg = f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}"
-        log_message("debug", msg)
+        # msg = f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}"
+        # log_message("debug", msg)
         
         for x in self.collect_e3sm_datasets():
             dataset = Dataset(
@@ -180,7 +187,7 @@ class AutoWarehouse:
             if job.matches_requirement(dataset):
                 dataset.initialize_status_file()
                 msg = f"matching dataset found: {dataset.dataset_id}"
-                log_message("debug", msg)
+                log_message("debug", msg, self.debug)
                 return dataset
         return None
 
@@ -192,7 +199,7 @@ class AutoWarehouse:
 
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
-
+        
         if self.dataset_ids and self.dataset_ids is not None:
             dataset_ids = []
             for dataset_pattern in self.dataset_ids:
@@ -302,10 +309,6 @@ class AutoWarehouse:
         log_message(
             "info", f"Dataset {dataset.dataset_id} SUCCEEDED from {dataset.status}"
         )
-
-    def print_debug(self, msg):
-        if self.debug:
-            log_message("debug", msg)
 
     def status_was_updated(self, path):
         """
@@ -423,8 +426,10 @@ class AutoWarehouse:
                 # otherwise the new state and its parameters need to be
                 # written to the dataset status file
                 else:
-                    log_message(
-                        "debug", f"Dataset {dataset.dataset_id} transitioning to state {new_state} with params {params}")
+                    msg = f"Dataset {dataset.dataset_id} transitioning to state {new_state}"
+                    if params:
+                        msg += f" with params {params}"
+                    log_message("debug", msg, self.debug)
                     dataset.status = (new_state, params)
 
             if not engaged_states:
@@ -463,7 +468,8 @@ class AutoWarehouse:
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
             log_message("info", f"starting job: {job}")
-            if not job.meets_requirements() and "CMIP6" in job.dataset.dataset_id:
+            # import ipdb; ipdb.set_trace()
+            if not job.meets_requirements() and job.dataset.project == "CMIP6" or 'time-series' in job.dataset.dataset_id or 'climo' in job.dataset.dataset_id:
                 source_dataset = self.find_e3sm_source_dataset(job)
                 if source_dataset is None:
                     msg = f"Cannot find raw input requirement for {job}"
@@ -543,7 +549,7 @@ class AutoWarehouse:
 
     def collect_cmip_datasets(self, **kwargs):
         for activity_name, activity_val in self.dataset_spec["project"]["CMIP6"].items():
-            if activity_name == "test":
+            if activity_name == "test" and not self.testing:
                 continue
             for version_name, version_value in activity_val.items():
                 for experimentname, experimentvalue in version_value.items():
@@ -564,7 +570,7 @@ class AutoWarehouse:
 
     def collect_e3sm_datasets(self, **kwargs):
         for version in self.dataset_spec["project"]["E3SM"]:
-            if version == "test":
+            if version == "test" and not self.testing:
                 continue
             for experiment, experimentinfo in self.dataset_spec["project"]["E3SM"][
                 version
@@ -591,7 +597,7 @@ class AutoWarehouse:
             "-n", "--num", default=8, type=int, help="Number of parallel workers"
         )
         p.add_argument(
-            "-s", "--serial", action="store_true", help="Run everything in serial"
+            "-s", "--serial", action="store_true", help="Run esgf checks in serial"
         )
         p.add_argument(
             "-w",

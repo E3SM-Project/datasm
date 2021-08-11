@@ -477,6 +477,10 @@ project:
                 grid: native
                 data_types:
                   - model-output.mon
+              - 
+                grid: 180x360
+                data_types:
+                  - time-series.mon
             ocean:
               - 
                 grid: native

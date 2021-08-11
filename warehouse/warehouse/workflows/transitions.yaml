@@ -9,9 +9,9 @@ WAREHOUSE:Ready:
         - POSTPROCESS:Ready
     atmos-cmip-3hr:
         - POSTPROCESS:Ready
-    lnd-ts-mon:
+    land-ts-mon:
         - POSTPROCESS:Ready
-    lnd-cmip-mon:
+    land-cmip-mon:
         - POSTPROCESS:Ready
     ocn-cmip-mon:
         - POSTPROCESS:Ready
