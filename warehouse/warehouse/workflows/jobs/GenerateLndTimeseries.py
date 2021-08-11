@@ -13,13 +13,14 @@ class GenerateLndTimeseries(WorkflowJob):
     def resolve_cmd(self):
 
         exclude = self._spec['project']['E3SM'][self.dataset.model_version][self.dataset.experiment].get('except', [])
-        variables = [x for x in self._spec['time-series']['atmos'] if x not in exclude]
+        variables = [x for x in self._spec['time-series']['land'] if x not in exclude]
 
         raw_dataset = self.requires['lnd-native-mon']
+        native_out = f"{self.dataset.latest_warehouse_dir}-tmp/"
 
         flags = "-7 --dfl_lvl=1 --no_cll_msr "
         self._cmd = f"""
-            ncclimo {flags} -v {','.join(variables)} -s {raw_dataset.start_year} -e {raw_dataset.end_year} --ypf=10 -i {raw_dataset.latest_warehouse_dir} --sgs_frac=landfrac
+            ncclimo {flags} -v {','.join(variables)} -s {raw_dataset.start_year} -o {native_out} -O {self.dataset.latest_warehouse_dir} -e {raw_dataset.end_year} --ypf=10 -i {raw_dataset.latest_warehouse_dir} --sgs_frac=landfrac
         """
     
     def render_cleanup(self):
