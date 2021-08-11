@@ -463,7 +463,7 @@ class AutoWarehouse:
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
             log_message("info", f"starting job: {job}")
-            if not job.meets_requirements() and "CMIP6" in job.dataset.dataset_id:
+            if not job.meets_requirements() and job.dataset.project == "CMIP6" or 'time-series' in job.dataset.dataset_id or 'climo' in job.dataset.dataset_id:
                 source_dataset = self.find_e3sm_source_dataset(job)
                 if source_dataset is None:
                     msg = f"Cannot find raw input requirement for {job}"
