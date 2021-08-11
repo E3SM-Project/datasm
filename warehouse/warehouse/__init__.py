@@ -1,9 +1,5 @@
-import os
 import argparse
 from argparse import RawTextHelpFormatter
-
-from warehouse.dataset import Dataset
-from warehouse.util import print_file_list
 
 
 def parse_args(arg_sources, checkers):
