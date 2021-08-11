@@ -18,9 +18,12 @@ class GenerateLndTimeseries(WorkflowJob):
         raw_dataset = self.requires['lnd-native-mon']
         native_out = f"{self.dataset.latest_warehouse_dir}-tmp/"
 
+        start = self.dataset.start_year
+        end = self.dataset.end_year
+
         flags = "-7 --dfl_lvl=1 --no_cll_msr "
         self._cmd = f"""
-            ncclimo {flags} -v {','.join(variables)} -s {raw_dataset.start_year} -o {native_out} -O {self.dataset.latest_warehouse_dir} -e {raw_dataset.end_year} --ypf=10 -i {raw_dataset.latest_warehouse_dir} --sgs_frac=landfrac
+            ncclimo {flags} -v {','.join(variables)} -s {start} -e {end} -o {native_out} -O {self.dataset.latest_warehouse_dir} --ypf=10 -i {raw_dataset.latest_warehouse_dir} --sgs_frac=landfrac
         """
     
     def render_cleanup(self):

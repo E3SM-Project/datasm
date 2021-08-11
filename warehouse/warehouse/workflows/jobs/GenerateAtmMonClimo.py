@@ -16,9 +16,9 @@ class GenerateAtmMonClimo(WorkflowJob):
     def resolve_cmd(self):
 
         raw_dataset = self.requires['atmos-native-mon']
-
-        start = raw_dataset.start_year
-        end = raw_dataset.end_year
+        
+        start = self.dataset.start_year
+        end = self.dataset.end_year
         inpath = raw_dataset.latest_warehouse_dir
         outpath =  self.dataset.latest_warehouse_dir
         map_path = self.config['grids']['ne30_to_180x360']

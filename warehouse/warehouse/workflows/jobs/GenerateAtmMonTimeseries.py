@@ -19,8 +19,12 @@ class GenerateAtmMonTimeseries(WorkflowJob):
 
         raw_dataset = self.requires['atmos-native-mon']
         native_out = f"{self.dataset.latest_warehouse_dir}-tmp/"
+
+        start = self.dataset.start_year
+        end = self.dataset.end_year
+        
         self._cmd = f"""
-            ncclimo --ypf=10 -v {','.join(variables)} -j {self._job_workers} -s {raw_dataset.start_year} -e {raw_dataset.end_year} -i {raw_dataset.latest_warehouse_dir} -o {native_out}  -O {self.find_outpath()} --map={self.config['grids']['ne30_to_180x360']}
+            ncclimo --ypf=10 -v {','.join(variables)} -j {self._job_workers} -s {start} -e {end} -i {raw_dataset.latest_warehouse_dir} -o {native_out}  -O {self.find_outpath()} --map={self.config['grids']['ne30_to_180x360']}
         """
     
     def render_cleanup(self):
