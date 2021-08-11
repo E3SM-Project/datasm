@@ -1,5 +1,6 @@
 import re
 import os
+from pathlib import Path
 from warehouse.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateAtmMonClimo'
@@ -22,7 +23,7 @@ class GenerateAtmMonClimo(WorkflowJob):
         outpath =  self.dataset.latest_warehouse_dir
         map_path = self.config['grids']['ne30_to_180x360']
 
-        filename = inpath.glob('*.nc').__next__()
+        filename = Path(inpath).glob('*.nc').__next__()
         idx = re.search('\.cam\.h\d\.', filename)
         casename = filename[:idx.start()]
 
