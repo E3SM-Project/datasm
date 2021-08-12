@@ -61,9 +61,7 @@ In this case the E3SM units are `H2OSNO:units = "kg/m2" ;`, and the CMIP6 units 
 Now lets go to the internal confluence table and make a new entry with the info we've discovered. Document the new formula and notify the people of interest.
 
 
-
 ## Step, The Second
-
 Create a new branch of the [e3sm_to_cmip](https://github.com/E3SM-Project/e3sm_to_cmip/) repository to hold the new converter. If its a "simple" converter, i.e. is a 1-to-1 conversion from an E3SM variable to a CMIP6 variable (with perhaps a unit conversion) then this step is easy, simply add an entry in the [default handler specification](https://github.com/E3SM-Project/e3sm_to_cmip/blob/master/e3sm_to_cmip/resources/default_handler_info.yaml). Supported unit conversions are: 
 
     'g-to-kg' -> data / 1000
@@ -126,15 +124,12 @@ With this new regridded timeseries we can take the converter for a run and see h
 
 
 ## Step, The Third
-
 Once you're able to produce the variable manually using the e3sm_to_cmip package, supply a sample of the variable output to the responsible scientist for quality assurance. Its best to supply them with a 5 year file so there's enough data to do a thurough check. If they give you the green light then merge your changes into the e3sm_to_cmip package and create a new version tag. 
 
-## Step The Fourth
-
+## Step, The Fourth
 Now that the convertsion handler is working and merged, you can update the warehouse dataset specification to include the new variable. Under esgfpub/warehouse/warehouse/resources/ open the dataset_spec.yaml file. There are two top level objects in the file, "tables" and "project," the first thing that needs to change is for the new variable to be added to the appropriate place under "tables." If its an Amon variable, add it to the variable list under Amon, etc. By default, anything that shows up in those tables will now be included in the CMIP6 datasets for ALL CASES. If the raw E3SM input variable isnt included in any of the cases, then this new variabler should NOT be included for the case. You will need to add the variable to all the case sections under the "except" section, you can see an example [here](https://github.com/E3SM-Project/esgfpub/blob/master/warehouse/warehouse/resources/dataset_spec.yaml#L262)
 
 Merge this new change into the 'master' branch and install the new change locally.
 
-## Step The Fifth
-
+## Step, The Fifth
 You can now envoke the warehouse to create your new CMIP6 datasets! This should be as simple as running `warehouse postprocess -d CMIP6.*.<YOUR_NEW_VARIABLE>.*` and then after the datasets are produced run `warehouse auto -d CMIP6.*.<YOUR_NEW_VARIABLE>.*` which should publish them. Its advised that you run a single case first before envoking the run-everything command, as any problems will be easier to solve with a single case then when working with all the cases at once.

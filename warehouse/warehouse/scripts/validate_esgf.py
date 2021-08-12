@@ -22,7 +22,7 @@ def main():
         dataset_id=parsed_args.dataset_id,
         no_status_file=True)
     status = dataset.get_esgf_status()
-    if status != DatasetStatus.SUCCESS.value:
+    if status not in [DatasetStatus.SUCCESS.value, DatasetStatus.PUBLISHED.value]:
         print(f"ESGF validation failed, dataset in state {status}")
         if missing := dataset.missing:
             pprint(missing)
