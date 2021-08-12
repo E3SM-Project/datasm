@@ -9,7 +9,11 @@ You've probably recieved an email from a friendly scientist saying something alo
 
     New CMIP variable request:
 
-    SNOWICE variable.  For comparison I’d like to have corresponding output from the coupled (historical) and AMIP simulations if that’s available (monthly frequency is fine). …the official CMIP6 name for this variable is ‘snw’ and it’s part of the ‘landice’ realm, but there are no landice realm variables listed for any of the E3SM models.  I think this corresponds to the variable ’SNOWICE’ in your model, but it would be great to confirm that as well. 
+    SNOWICE variable.  For comparison I’d like to have corresponding output from the coupled (historical) 
+    and AMIP simulations if that’s available (monthly frequency is fine). …the official CMIP6 name for this 
+    variable is ‘snw’ and it’s part of the ‘landice’ realm, but there are no landice realm variables listed 
+    for any of the E3SM models.  I think this corresponds to the variable ’SNOWICE’ in your model, but it 
+    would be great to confirm that as well. 
 
 ### part 1: 
 check the cmip6 metadata tables for the snw variable, keeping in mind the email said "it’s part of the ‘landice’ realm" so its probablt the LImon table instead of the Lmon table like the rest of the land data. Search the repo for your variable until you find  the [matching CMIP6 table enty](https://github.com/PCMDI/cmip6-cmor-tables/blob/master/Tables/CMIP6_LImon.json#L539).  You're going to have to track down the variable, so I suggest keeping a copy of the [cmip6 tables repository](https://github.com/PCMDI/cmip6-cmor-tables) on hand. Looking at the CMIP6_LImon.json we see the entry for our variable:
@@ -95,17 +99,17 @@ looking pretty good, lets create some sample data so we can run it.
     Parallelism mode = background
     Timeseries will be created for only one variable
     Will split data for each variable into one timeseries of length 1 years
-    Splitting climatology from 12 raw input files in directory /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/native/model-output/mon/ens1/v0
+    Splitting climatology from 12 raw input files in directory /land/native/model-output/mon/ens1/v0
     Each input file assumed to contain mean of one month
-    Native-grid split files to directory /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0-tmp
-    Regridded split files to directory /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0
-    Wed Aug 11 16:43:26 PDT 2021: Generated /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0-tmp/SNOWICE_000101_000112.nc
-    Input #00: /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0-tmp/SNOWICE_000101_000112.nc
-    Map/Wgt  : /export/zender1/data/maps/map_ne30np4_to_cmip6_180x360_aave.20181001.nc
-    Wed Aug 11 16:43:27 PDT 2021: Regridded /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0/SNOWICE_000101_000112.nc
+    Native-grid split files to directory /land/180x360/time-series/mon/ens1/v0-tmp
+    Regridded split files to directory /land/180x360/time-series/mon/ens1/v0
+    Wed Aug 11 16:43:26 PDT 2021: Generated /land/180x360/time-series/mon/ens1/v0-tmp/SNOWICE_000101_000112.nc
+    Input #00: /land/180x360/time-series/mon/ens1/v0-tmp/SNOWICE_000101_000112.nc
+    Map/Wgt  : /maps/map_ne30np4_to_cmip6_180x360_aave.20181001.nc
+    Wed Aug 11 16:43:27 PDT 2021: Regridded /land/180x360/time-series/mon/ens1/v0/SNOWICE_000101_000112.nc
     Quick plots of last timeseries segment of last variable split:
-    ncview /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0/SNOWICE_000101_000112.nc &
-    panoply /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0/SNOWICE_000101_000112.nc &
+    ncview /land/180x360/time-series/mon/ens1/v0/SNOWICE_000101_000112.nc &
+    panoply /land/180x360/time-series/mon/ens1/v0/SNOWICE_000101_000112.nc &
     Completed 1-year climatology operations for input data at Wed Aug 11 16:43:27 PDT 2021
     Elapsed time 0m2s
 
