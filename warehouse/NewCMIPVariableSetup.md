@@ -1,11 +1,63 @@
 # So you've got a new CMIP6 variable
 
 
-## Step The First
+# Step, The First
 
 You've probably recieved an email from a friendly scientist saying something along the lines of, "Hey, there's this handy CMIP6 variable that I need for my analysis, could you publish it?" The first thing to do is create a new entry in the E3SM variable conversion confluence page [here](https://acme-climate.atlassian.net/wiki/spaces/ED/pages/858882132/CMIP6+data+conversion+tables). Identify the CMIP6 table that the variable belongs to, and add an entry in the appropriate table. If the scientist helpfully included a conversion formula, include that as well, otherwise reach out to the appropriate science group leader (land, atmos, ocean) and ask them if they can supply the conversion formula as well as a scientist to perform a quality control check on the data.
 
-## Step The Second
+**case study: snw**
+
+    New CMIP variable request:
+
+    SNOWICE variable.  For comparison I’d like to have corresponding output from the coupled (historical) and AMIP simulations if that’s available (monthly frequency is fine). …the official CMIP6 name for this variable is ‘snw’ and it’s part of the ‘landice’ realm, but there are no landice realm variables listed for any of the E3SM models.  I think this corresponds to the variable ’SNOWICE’ in your model, but it would be great to confirm that as well. 
+
+### part 1: 
+check the cmip6 metadata tables for the snw variable, keeping in mind the email said "it’s part of the ‘landice’ realm" so its probablt the LImon table instead of the Lmon table like the rest of the land data. Search the repo for your variable until you find  the [matching CMIP6 table enty](https://github.com/PCMDI/cmip6-cmor-tables/blob/master/Tables/CMIP6_LImon.json#L539).  You're going to have to track down the variable, so I suggest keeping a copy of the [cmip6 tables repository](https://github.com/PCMDI/cmip6-cmor-tables) on hand. Looking at the CMIP6_LImon.json we see the entry for our variable:
+
+    "snw": 
+        {
+            "frequency": "mon", 
+            "modeling_realm": "landIce land", 
+            "standard_name": "surface_snow_amount", 
+            "units": "kg m-2",
+            "cell_methods": "area: mean where land time: mean", 
+            "cell_measures": "area: areacella", 
+            "long_name": "Surface Snow Amount", 
+            "comment": "The mass of surface snow on the land portion of the grid cell divided by the land area in the grid cell; reported as missing where the land fraction is 0; excludes snow on vegetation canopy or on sea ice.", 
+            "dimensions": "longitude latitude time", 
+            "out_name": "snw", 
+            "type": "real", 
+            "positive": "", 
+            "valid_min": "", 
+            "valid_max": "", 
+            "ok_min_mean_abs": "", 
+            "ok_max_mean_abs": ""
+        },
+
+of particular interest here are the **comment** and **dimensions**, the first because it tells us about the meaning of the thing, and the second because it tells us we're dealing with a fairly simple 2d monthly land variable and this should be easy. 
+
+### part 2:
+Now lets check the E3SM variable and see what its attributes are. Use the handy ESGF [metagrid search](https://esgf-dev1.llnl.gov/metagrid/search) or the old CoG seach (or look on your filesystem) to find the raw input data of interest, in this case the historical and amip ensembles from the E3SM-1-0 model version. 
+
+
+    ~~> ncdump -h ~/Data/20181217.CNTL_CNPCTC1850_OIBGC.ne30_oECv3.edison.clm2.h0.1850-01.nc |  grep SNOWICE
+            float SNOWICE(time, lat, lon) ;
+                SNOWICE:long_name = "snow ice" ;
+                SNOWICE:units = "kg/m2" ;
+                SNOWICE:cell_methods = "time: mean" ;
+                SNOWICE:_FillValue = 1.e+36f ;
+                SNOWICE:missing_value = 1.e+36f ;
+                SNOWICE:cell_measures = "area: area" ;
+
+Thankfully in this case `SNOWICE:units = "kg/m2" ;` matches up with `"units": "kg m-2",` from the cmip6 table.
+
+
+### part 3:
+Now lets go to the internal confluence table and make a new entry with the info we've discovered. Document the new formula and notify the people of interest.
+
+
+
+## Step, The Second
 
 Create a new branch of the [e3sm_to_cmip](https://github.com/E3SM-Project/e3sm_to_cmip/) repository to hold the new converter. If its a "simple" converter, i.e. is a 1-to-1 conversion from an E3SM variable to a CMIP6 variable (with perhaps a unit conversion) then this step is easy, simply add an entry in the [default handler specification](https://github.com/E3SM-Project/e3sm_to_cmip/blob/master/e3sm_to_cmip/resources/default_handler_info.yaml). Supported unit conversions are: 
 
@@ -16,9 +68,53 @@ Create a new branch of the [e3sm_to_cmip](https://github.com/E3SM-Project/e3sm_t
 
 You can add additional unit conversions [here](https://github.com/E3SM-Project/e3sm_to_cmip/blob/b69189eb25d0a533345aee322194d11e978b0f2a/e3sm_to_cmip/default.py#L12)
 
-If the new variable does not have a simple one to one formula, you're going to have to create a new conversion handler. Follow one of the many examples [here](https://github.com/E3SM-Project/e3sm_to_cmip/tree/master/e3sm_to_cmip/cmor_handlers).
+If the new variable does not have a simple one to one formula, you're going to have to create a new conversion handler. Follow one of the many examples [here](https://github.com/E3SM-Project/e3sm_to_cmip/tree/master/e3sm_to_cmip/cmor_handlers). 
 
-## Step The Third
+**case study: snw**
+
+### part 1:
+In part 1 we identified that this was a simple handler, so this should be fairly easy. First lets make a new branch
+
+    >> git checkout -b new-handler-snw
+    Switched to a new branch 'new-handler-snw'
+
+now all we need to do is add an entry in the [default handlers file](https://github.com/E3SM-Project/e3sm_to_cmip/blob/master/e3sm_to_cmip/resources/default_handler_info.yaml) 
+
+    - cmip_name: snw
+      e3sm_name: SNOWICE
+      units: 'kg m-2'
+      table: CMIP6_LImon.json
+
+looking pretty good, lets create some sample data so we can run it. 
+
+    >> ncclimo -7 --dfl_lvl=1 --no_cll_msr  -v SNOWICE  -s 1 -e 1 -o $Data/tmp/ --map=$Data/map_ne30np4_to_cmip6_180x360_aave.20181001.nc  -O $Data/timeseries --ypf=10 -i $Data/land/native/model-output/mon/ens1/v0 --sgs_frc=$Data/land/native/model-output/mon/ens1/v0/20180129.DECKv1b_piControl.ne30_oEC.edison.clm2.h0.0001-01.nc/landfrac
+
+    Started climatology splitting at Wed Aug 11 16:43:25 PDT 2021
+    Running climatology script ncclimo from directory /home/baldwin32/anaconda3/envs/warehouse/bin
+    NCO binaries version 4.9.9 from directory /home/baldwin32/anaconda3/envs/warehouse/bin
+    Parallelism mode = background
+    Timeseries will be created for only one variable
+    Will split data for each variable into one timeseries of length 1 years
+    Splitting climatology from 12 raw input files in directory /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/native/model-output/mon/ens1/v0
+    Each input file assumed to contain mean of one month
+    Native-grid split files to directory /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0-tmp
+    Regridded split files to directory /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0
+    Wed Aug 11 16:43:26 PDT 2021: Generated /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0-tmp/SNOWICE_000101_000112.nc
+    Input #00: /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0-tmp/SNOWICE_000101_000112.nc
+    Map/Wgt  : /export/zender1/data/maps/map_ne30np4_to_cmip6_180x360_aave.20181001.nc
+    Wed Aug 11 16:43:27 PDT 2021: Regridded /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0/SNOWICE_000101_000112.nc
+    Quick plots of last timeseries segment of last variable split:
+    ncview /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0/SNOWICE_000101_000112.nc &
+    panoply /p/user_pub/e3sm/baldwin32/warehouse_testing/E3SM/test/test/test/land/180x360/time-series/mon/ens1/v0/SNOWICE_000101_000112.nc &
+    Completed 1-year climatology operations for input data at Wed Aug 11 16:43:27 PDT 2021
+    Elapsed time 0m2s
+
+### part 2:
+With this new regridded timeseries we can take the converter for a run and see how it goes.
+
+    
+
+## Step, The Third
 
 Once you're able to produce the variable manually using the e3sm_to_cmip package, supply a sample of the variable output to the responsible scientist for quality assurance. Its best to supply them with a 5 year file so there's enough data to do a thurough check. If they give you the green light then merge your changes into the e3sm_to_cmip package and create a new version tag. 
 
