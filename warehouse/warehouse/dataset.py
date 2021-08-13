@@ -110,7 +110,7 @@ class Dataset(object):
             self.resolution = None
             if facets[6] in ["Amon", "3hr", "day", "6hr", "CFmon", "AERmon"]:
                 self.realm = "atmos"
-            elif facets[6] == "Lmon":
+            elif facets[6] in ["Lmon", "LImon"]:
                 self.realm = "land"
             elif facets[6] in ["Omon", "Ofx"]:
                 self.realm = "ocean"

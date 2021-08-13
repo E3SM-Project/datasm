@@ -64,7 +64,7 @@ class WorkflowJob(object):
 
         script_name = self.get_slurm_run_script_name()
         script_path = Path(self._slurm_out, script_name)
-        script_path.touch()
+        script_path.touch(mode=0o664)
 
         message_file = NamedTemporaryFile(dir=self.tmpdir, delete=False)
         Path(message_file.name).touch()

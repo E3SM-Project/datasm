@@ -96,6 +96,8 @@ tables:
     - rh
     - ra
     - all
+  LImon:
+    - snw
   Omon:
     - masso
     - pbo
