@@ -1,13 +1,11 @@
 
 # The E3SM Automated Warehouse
 
-  
 
 The warehouse utility allows for the automation of complex nested workflows with conditional branching based on the success or failure of the jobs.
 
   
-  
-  # User Guide
+# User Guide
 
 *Note: The warehouse is currently in active development, so many planned features may be missing or broken.*
 
@@ -16,7 +14,7 @@ The warehouse utility allows for the automation of complex nested workflows with
 ```
 git clone https://github.com/E3SM-Project/esgfpub.git
 cd esgfpub/warehouse
-conda create -n warehouse -c conda-forge -c esgf-forge nco e3sm_to_cmip autocurator cmor pip esgconfigparser xarray netCDF4 tqdm termcolor numpy yaml watchdog -y
+conda create -n warehouse -c conda-forge -c esgf-forge nco e3sm_to_cmip autocurator cmor pip esgconfigparser xarray netCDF4 tqdm termcolor numpy yaml watchdog ipdb -y
 conda activate warehouse
 python setup.py install
 python setup.py clean
