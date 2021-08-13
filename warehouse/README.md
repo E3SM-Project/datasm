@@ -1,8 +1,7 @@
 
 # The E3SM Automated Warehouse
 
-
-The warehouse utility allows for the automation of complex nested workflows with conditional branching based on the success or failure of the jobs.
+The E3SM Automated Data Warehouse is a utility for extracting, processing, and publishing E3SM model data with minimal human intervention. The package is built around nested workflows, which conditionally branch based on the type of data being processed, and the success or failure of the processing steps.
 
   
 # User Guide
@@ -13,9 +12,9 @@ The warehouse utility allows for the automation of complex nested workflows with
 
 ```
 git clone https://github.com/E3SM-Project/esgfpub.git
-cd esgfpub/warehouse
 conda create -n warehouse -c conda-forge -c esgf-forge nco e3sm_to_cmip autocurator cmor pip esgconfigparser xarray netCDF4 tqdm termcolor numpy yaml watchdog ipdb -y
 conda activate warehouse
+cd esgfpub/warehouse
 python setup.py install
 python setup.py clean
 ```
@@ -29,47 +28,55 @@ python setup.py install
 
 ### usage
 
-There are two main modes of operation, either the full automated warehouse, or running any of the subordinate workflows individually. The automated warehouse can be run by itself with:
+There are two main modes of operation, either allow the automated warehouse to figure out the state of the datasets and start running wherever it thinks it should, or starting any of the subordinate workflows individually. 
+
+The automated warehouse has the following command line options:
 ```
 warehouse auto
 ```
 
 The default behavior tries to make guesses for the correct mode of operation, but options can be changed manually as well
 ```
-usage: warehouse auto [-h] [-n NUM] [-s] [-w WAREHOUSE_PATH] [-p PUBLICATION_PATH] [-a ARCHIVE_PATH] [-d DATASET_SPEC]
-                      [--dataset-id [DATASET_ID ...]] [--job-workers JOB_WORKERS] [--testing] [--sproket SPROKET]
-                      [--slurm-path SLURM_PATH] [--report-missing]
+usage: warehouse auto [-h] [-n NUM] [-s] [-w WAREHOUSE_PATH] [-p PUBLICATION_PATH] [-a ARCHIVE_PATH] [-d [DATASET_ID [DATASET_ID ...]]]
+                      [--warehouse-config WAREHOUSE_CONFIG] [--dataset-spec DATASET_SPEC] [--status-path STATUS_PATH] [--job-workers JOB_WORKERS] [--testing]
+                      [--slurm-path SLURM_PATH] [--tmp TMP] [--ask] [--report-missing] [--debug]
 
 optional arguments:
   -h, --help            show this help message and exit
   -n NUM, --num NUM     Number of parallel workers
-  -s, --serial          Run everything in serial
+  -s, --serial          Run esgf checks in serial
   -w WAREHOUSE_PATH, --warehouse-path WAREHOUSE_PATH
                         The root path for pre-publication dataset staging, default=/p/user_pub/e3sm/warehouse/
   -p PUBLICATION_PATH, --publication-path PUBLICATION_PATH
                         The root path for data publication, default=/p/user_pub/work/
   -a ARCHIVE_PATH, --archive-path ARCHIVE_PATH
-                        The root path for the data archive, default=/p/user_pub/e3sm/archive
-  -d DATASET_SPEC, --dataset-spec DATASET_SPEC
-                        The path to the dataset specification yaml file,
-                        default=/warehouse/resources/dataset_spec.yaml
-  --dataset-id [DATASET_ID ...]
-                        Only run the automated processing for the given datasets, this can the the complete dataset_id, or a
-                        wildcard such as E3SM.1_0.
+                        The root path for the data archive, default=/p/user_pub/e3sm/archive/
+  -d [DATASET_ID [DATASET_ID ...]], --dataset-id [DATASET_ID [DATASET_ID ...]]
+                        Run the automated processing for the given datasets, this can the the complete dataset_id, or a glob such as E3SM.1_0.*.time-series. or
+                        CMIP6.*.Amon. the default is to run on all CMIP6 and E3SM project datasets
+  --warehouse-config WAREHOUSE_CONFIG
+                        The default warehouse/publication/archives paths are drawn from a config yaml file you can change the values via the command line or change
+                        the contents of the file here /home/baldwin32/projects/esgfpub/warehouse/warehouse/resources/warehouse_config.yaml
+  --dataset-spec DATASET_SPEC
+                        The path to the dataset specification yaml file, default=/home/baldwin32/projects/esgfpub/warehouse/warehouse/resources/dataset_spec.yaml
+  --status-path STATUS_PATH
+                        The path to where to store dataset status files, default=/p/user_pub/e3sm/staging/status/
   --job-workers JOB_WORKERS
                         number of parallel workers each job should create when running, default=8
   --testing             run the warehouse in testing mode
-  --sproket SPROKET     path to sproket binary if its not in your $PATH
   --slurm-path SLURM_PATH
                         The directory to hold slurm batch scripts as well as console output from batch jobs,
-                        default=$PWD/slurm_scripts
+                        default=/home/baldwin32/projects/esgfpub/warehouse/slurm_scripts
+  --tmp TMP             the directory to use for temp output, default is the $TMPDIR environment variable which you have set to: /tmp
+  --ask                 When starting up, print out the datasets that will be affected (and their initial status), and ask the user if they would like to proceed.
   --report-missing      After collecting the datasets, print out any that have missing files and exit
+  --debug               Print additional debug information to the console
 ```
 
-By default, the warehouse will collect ALL datasets from both the CMIP6 and E3SM project, and shepherd them towards publication, however the `--dataset-id` flag can be used to narrow the focus down to a specific dataset (by supplying the complete dataset_id), or to a subset of datasets (by supplying a substring of the dataset_id). 
+By default, the warehouse will collect ALL datasets from both the CMIP6 and E3SM project, and shepherd them towards publication, however the `--dataset-id` flag can be used to narrow the focus down to a specific dataset (by supplying the complete dataset_id), or to a subset of datasets (by supplying a glob of the dataset_id). 
 
 Example full dataset_id: `CMIP6.CMIP.E3SM-Project.E3SM-1-1.piControl.r1i1p1f1.Amon.cl.gr`
-Example substring: `CMIP6.CMIP.E3SM-Project.E3SM-1-0.piControl` this will target all datasets from CMIP6 for the 1.0 version of the model, and the piControl experiment.
+Example glob: `CMIP6.*.E3SM-1-0.piControl.*` this will target all datasets from CMIP6 for the 1.0 version of the model, and the piControl experiment.
 
 #### Standalone workflow execution
 Each of the subordinate workflows can be executed on a single dataset by themselves by using the following command (the example is Validation, but the same command will work for all the workflows):
