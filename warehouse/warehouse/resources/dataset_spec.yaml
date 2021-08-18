@@ -408,6 +408,15 @@ project:
       E3SM-1-1:
         piControl:
           start: 1850
+          end: 2014
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+        piControl-ext85yr:
+          start: 2015
           end: 2100
           ens:
             - r1i1p1f1
