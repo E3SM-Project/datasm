@@ -427,6 +427,15 @@ project:
       E3SM-1-1-ECA:
         piControl:
           start: 1850
+          end: 2014
+          ens:
+            - r1i1p1f1
+          except:
+            - siu
+            - siv
+            - clcalipso
+        piControl-ext85yr:
+          start: 2015
           end: 2100
           ens:
             - r1i1p1f1
@@ -1848,7 +1857,7 @@ project:
           - ens1
         campaign: BGC-v1
         science_driver: Biogeochemical Cycle
-        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1-ECA.piControl
+        cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1-ECA.piControl-ext85yr
         resolution:
           1deg_atm_60-30km_ocean:
             atmos:
