@@ -16,7 +16,7 @@ The warehouse utility allows for the automation of complex nested workflows with
 ```
 git clone https://github.com/E3SM-Project/esgfpub.git
 cd esgfpub/warehouse
-conda create -n warehouse -c conda-forge -c esgf-forge nco e3sm_to_cmip autocurator cmor pip esgconfigparser xarray netCDF4 tqdm termcolor numpy yaml watchdog ipdb -y
+conda create -n warehouse -c conda-forge -c esgf-forge nco e3sm_to_cmip autocurator cmor pip esgconfigparser xarray netCDF4 tqdm termcolor numpy yaml watchdog ipdb cwltool nodejs -y
 conda activate warehouse
 python setup.py install
 python setup.py clean
