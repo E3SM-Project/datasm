@@ -131,6 +131,46 @@ Now that the convertsion handler is working and merged, you can update the wareh
 
 Merge this new change into the 'master' branch and install the new change locally.
 
+**case study: snw**
+When we open up the dataset_spec.yaml file, we can see that the table that "snw" belongs to doesnt exist yet, so we have to add the new "LImon" table to the list
 
+    tables:
+        Amon:
+            ...
+        AERmon:
+            ...
+        CFmon:
+            ...
+        Lmon:
+            ...
+        LImon:       <-  our new table
+            - snw    <-  our new variable
+
+We dont know yet if there are any cases that dont include the H2OSNO variable, but I believe it to be a standard variable included in all the cases, so we dont need to add `snw` to and of the cases exception list.
+
+    
 ## Step, The Fifth
 You can now envoke the warehouse to create your new CMIP6 datasets! This should be as simple as running `warehouse postprocess -d CMIP6.*.<YOUR_NEW_VARIABLE>.*` and then after the datasets are produced run `warehouse auto -d CMIP6.*.<YOUR_NEW_VARIABLE>.*` which should publish them. Its advised that you run a single case first before envoking the run-everything command, as any problems will be easier to solve with a single case then when working with all the cases at once.
+
+**case study: snw**
+
+Its always better to take things one at a time when doing something new, so lets try the new `snw` variable on one case first before doing everything at once. Since we dont want to run on a whole case while debugging, we can use the `--testing` option and `-d CMIP6.test.*.snw.*` to run on a small test case. We want to use the `postprocess` workflow instead of `auto`, because we dont want to publish the testing output.
+
+    >> python -m warehouse postprocess -w $Data --status-path $status -d CMIP6.test.*.snw.*  --testing
+    2021/08/13 16:11:01:INFO:POSTPROCESS:initializing workflow POSTPROCESS
+    2021/08/13 16:11:01:INFO:POSTPROCESS:Starting with datasets ['CMIP6.test.*.snw.*']
+    2021/08/13 16:11:01:INFO:WAREHOUSE:Running warehouse in serial mode
+    2021/08/13 16:11:01:INFO:WAREHOUSE:Initializing the warehouse
+    2021/08/13 16:11:01:INFO:WAREHOUSE:starting listener for $status/CMIP6.test.E3SM-Project.test.test.r1i1p1f1.LImon.snw.gr.status
+    2021/08/13 16:11:01:INFO:WAREHOUSE:Listener setup complete
+    2021/08/13 16:11:01:INFO:WAREHOUSE:dataset: CMIP6.test.E3SM-Project.test.test.r1i1p1f1.LImon.snw.gr updated to state POSTPROCESS:GenerateLndMonCMIP:Ready:
+    2021/08/13 16:11:01:INFO:WAREHOUSE:starting job: POSTPROCESS:GenerateLndMonCMIP:CMIP6.test.E3SM-Project.test.test.r1i1p1f1.LImon.snw.gr
+    2021/08/13 16:11:01:INFO:DATASET:E3SM.test.test.test.land.native.model-output.mon.ens1 initialized and set to WAREHOUSE:UNINITIALIZED:
+    2021/08/13 16:11:01:INFO:WAREHOUSE:Job POSTPROCESS:GenerateLndMonCMIP:CMIP6.test.E3SM-Project.test.test.r1i1p1f1.LImon.snw.gr meets its input dataset requirements
+    2021/08/13 16:11:04:INFO:WAREHOUSE:dataset: CMIP6.test.E3SM-Project.test.test.r1i1p1f1.LImon.snw.gr updated to state POSTPROCESS:GenerateLndMonCMIP:Engaged:slurm_id=11693
+    2021/08/13 16:11:42:INFO:WAREHOUSE:dataset: CMIP6.test.E3SM-Project.test.test.r1i1p1f1.LImon.snw.gr updated to state POSTPROCESS:GenerateLndMonCMIP:Pass:
+    2021/08/13 16:11:42:INFO:WAREHOUSE:dataset: CMIP6.test.E3SM-Project.test.test.r1i1p1f1.LImon.snw.gr updated to state POSTPROCESS:Pass:
+    2021/08/13 16:11:42:INFO:WAREHOUSE:Dataset CMIP6.test.E3SM-Project.test.test.r1i1p1f1.LImon.snw.gr SUCCEEDED from POSTPROCESS:Pass:
+    2021/08/13 16:11:42:INFO:WAREHOUSE:All datasets complete, exiting
+    Postprocessing complete, dataset CMIP6.test.E3SM-Project.test.test.r1i1p1f1.LImon.snw.gr is in state POSTPROCESS:Pass:
+
