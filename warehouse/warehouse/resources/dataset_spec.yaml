@@ -61,7 +61,7 @@ tables:
     - clhcalipso
     - all
   day:
-    - pr
+    - pr_highfreq
     - tas
     - huss
     - tasmin
