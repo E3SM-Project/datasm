@@ -87,11 +87,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
             
             parameters['vrt_map_path'] = self.config['vrt_map_path']
             cwl_workflow = "atm-unified/atm-unified.cwl"
-        try:
-            a = cwl_workflow
-        except:
-            print(self.dataset.dataset_id)
-            import ipdb; ipdb.set_trace()
+        
 
         parameters['tables_path'] = self.config['cmip_tables_path']
         parameters['metadata_path'] = os.path.join(

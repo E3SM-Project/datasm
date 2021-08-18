@@ -110,7 +110,7 @@ class Dataset(object):
             self.resolution = None
             if facets[6] in ["Amon", "3hr", "day", "6hr", "CFmon", "AERmon"]:
                 self.realm = "atmos"
-            elif facets[6] == "Lmon":
+            elif facets[6] in ["Lmon", "LImon"]:
                 self.realm = "land"
             elif facets[6] in ["Omon", "Ofx"]:
                 self.realm = "ocean"
@@ -221,7 +221,7 @@ class Dataset(object):
 
         if not self.update_from_status_file(update=False):
             self._status = DatasetStatus.UNITITIALIZED.value
-            log_message("info", f"no status found, setting to {self._status}")
+            log_message("info", f"{self.dataset_id} initialized and set to {self._status}")
         else:
             # if we're initializing a dataset and the last update
             # what that it had failed, or was Engaged

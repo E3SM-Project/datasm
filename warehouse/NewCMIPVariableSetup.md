@@ -54,7 +54,7 @@ Now lets check the E3SM variable and see what its attributes are. Use the handy 
                 H2OSNO:_FillValue = 1.e+36f ;
                 H2OSNO:missing_value = 1.e+36f ;
 
-In this case the E3SM units are `H2OSNO:units = "kg/m2" ;`, and the CMIP6 units are `"units": "kg m-2",`, which although they look like they dont match, due to the wonders of the SI unit system "mm" == "kg m-2" when working with water variables and so no unit conversion is required.
+In this case the E3SM units are `H2OSNO:units = "mm" ;`, and the CMIP6 units are `"units": "kg m-2",`, which although they look like they dont match, due to the wonders of the SI unit system "mm" == "kg m-2" when working with water variables and so no unit conversion is required.
 
 
 ### part 3:
@@ -113,10 +113,10 @@ looking pretty good, lets create some sample data so we can run it.
     Elapsed time 0m2s
 
 ### part 2:
-With this new regridded timeseries we can take the converter for a run and see how it goes. For this you will need a working installation of the [e3sm_to_cmip](https://github.com/E3SM-Project/e3sm_to_cmip/) package, as well as the [cmip6 metadata tables](https://github.com/PCMDI/cmip6-cmor-tables)
+With this new regridded timeseries we can take the converter for a run and see how it goes. For this you will need a working installation of the [e3sm_to_cmip](https://github.com/E3SM-Project/e3sm_to_cmip/) package, as well as the [cmip6 metadata tables](https://github.com/PCMDI/cmip6-cmor-tables). <NOTE: Explain the -u option>
 
-    >> python -m e3sm_to_cmip -i $Data/land/180x360/time-series/mon/ens1/v0 -o $Data -t ~/projects/cmip6-cmor-tables/Tables/ -u piControl_r1i1p1f1.json -v snw --mode lnd
-
+    >> python -m e3sm_to_cmip -i $Data/land/180x360/time-series/mon/ens1/v0 -o $Data -t ~/projects/cmip6-cmor-tables/Tables/ -u piControl_r1i1p1f1.json -v snw --realm lnd
+realm
     [*] Writing log output to: /p/user_pub/e3sm/baldwin32/warehouse_testing/converter.log
     [+] Running CMOR handlers in parallel
     100%|█████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  1.08it/s]
@@ -149,7 +149,6 @@ When we open up the dataset_spec.yaml file, we can see that the table that "snw"
 We dont know yet if there are any cases that dont include the H2OSNO variable, but I believe it to be a standard variable included in all the cases, so we dont need to add `snw` to and of the cases exception list.
 
     
-
 ## Step, The Fifth
 You can now envoke the warehouse to create your new CMIP6 datasets! This should be as simple as running `warehouse postprocess -d CMIP6.*.<YOUR_NEW_VARIABLE>.*` and then after the datasets are produced run `warehouse auto -d CMIP6.*.<YOUR_NEW_VARIABLE>.*` which should publish them. Its advised that you run a single case first before envoking the run-everything command, as any problems will be easier to solve with a single case then when working with all the cases at once.
 
@@ -174,3 +173,4 @@ Its always better to take things one at a time when doing something new, so lets
     2021/08/13 16:11:42:INFO:WAREHOUSE:Dataset CMIP6.test.E3SM-Project.test.test.r1i1p1f1.LImon.snw.gr SUCCEEDED from POSTPROCESS:Pass:
     2021/08/13 16:11:42:INFO:WAREHOUSE:All datasets complete, exiting
     Postprocessing complete, dataset CMIP6.test.E3SM-Project.test.test.r1i1p1f1.LImon.snw.gr is in state POSTPROCESS:Pass:
+
