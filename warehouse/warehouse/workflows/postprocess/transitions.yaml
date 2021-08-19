@@ -52,8 +52,8 @@ GenerateAtmMonCMIP:Ready:
     - GenerateAtmMonCMIP:Engaged
 GenerateAtmMonCMIP:Pass:
   default:
-    # - CMIPValidate:Ready
-    - Pass
+    - ValidateCMIP:Ready
+    # - Pass
 GenerateAtmMonCMIP:Fail:
   default:
     - Fail
@@ -115,6 +115,16 @@ GenerateIceCMIP:Pass:
   default:
     - Pass
 GenerateIceCMIP:Fail:
+  default:
+    - Fail
+  
+ValidateCMIP:Ready:
+  default:
+    - ValidateCMIP:Engaged
+ValidateCMIP:Pass:
+  default:
+    - Pass
+ValidateCMIP:Fail:
   default:
     - Fail
 

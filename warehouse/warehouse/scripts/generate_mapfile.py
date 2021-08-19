@@ -114,6 +114,7 @@ def main():
         except Exception as e:
             con_message("error", e)
             return 1
+    os.chmod(outpath, 0o664)
 
     message = f"mapfile_path={outpath}"
     if messages_path := os.environ.get("message_file"):

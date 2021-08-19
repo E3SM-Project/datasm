@@ -104,6 +104,7 @@ rm $message_file
         as an optional list of additional datasets
         """
         # cprint(f"incomming datasets {[x.dataset_id for x in input_datasets]}", "yellow")
+        # ipdb.set_trace()
         datasets = [self.dataset]
         if input_datasets:
             if not isinstance(input_datasets, list):
@@ -124,8 +125,8 @@ rm $message_file
         as an optional list of additional datasets
         """
         # import ipdb; ipdb.set_trace()
-        if self.dataset.dataset_id == dataset.dataset_id:
-            return None
+        # if self.dataset.dataset_id == dataset.dataset_id:
+        #     return None
 
         if self.dataset.project == 'E3SM':
             if dataset.experiment != self.dataset.experiment:
