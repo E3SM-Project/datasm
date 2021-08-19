@@ -1,37 +1,28 @@
-
 # The E3SM Automated Warehouse
 
-  
-
-The warehouse utility allows for the automation of complex nested workflows with conditional branching based on the success or failure of the jobs.
-
-  
-  
-  # User Guide
+The warehouse utility allows for the automation of complex nested workflows with conditional branching based on the success or failure of the jobs.  
 
 *Note: The warehouse is currently in active development, so many planned features may be missing or broken.*
 
-### installation
+## Installation
+1. Set up development environment [here](../README.md#Getting-Started)
 
-```
-git clone https://github.com/E3SM-Project/esgfpub.git
-cd esgfpub/warehouse
+2. Install local package with changes
+   ```bash
+      cd esgfpub/warehouse
+      python setup.py install
+      python setup.py clean
+   ```
 
-conda create -n warehouse -c conda-forge -c esgf-forge nco e3sm_to_cmip autocurator cmor pip esgconfigparser xarray netCDF4 tqdm termcolor numpy yaml watchdog ipdb statesmodels basemap cwltool nodejs -y
+3. Get the custom E3SM branch of the esgf publisher utility
 
-conda activate warehouse
-python setup.py install
-python setup.py clean
-```
-
-You'll also need the custom E3SM branch of the esgf publisher utility
-```
-git clone https://github.com/sashakames/esg-publisher -b e3sm-custom
-cd esg-publisher/pkg
-python setup.py install
-```
-
-### usage
+   ```bash
+   git clone https://github.com/sashakames/esg-publisher -b e3sm-custom
+   cd esg-publisher/pkg
+   python setup.py install
+   ```
+  
+## Usage
 
 There are two main modes of operation, either the full automated warehouse, or running any of the subordinate workflows individually. The automated warehouse can be run by itself with:
 ```
@@ -131,7 +122,7 @@ optional arguments:
 ```
   
 
-# Developer Guide
+## Developer Guide
 
 ### Manipulating the job flow
 Adding new jobs to a workflow, or manipulating the flow between jobs can be done entirely by changing values in the Transition Graphs for each workflow. Here's an example minimal set of transitions:
