@@ -158,7 +158,7 @@ def main():
                 con_message("info", message)
         else:
             con_message("error", f"cannot obtain message_file (from message_path) from environment for message {message}")
-            sys.exit(0)
+            sys.exit(1)
 
     con_message("info", f"calling conduct_move with method {move_method}")
 
