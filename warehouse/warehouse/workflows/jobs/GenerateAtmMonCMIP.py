@@ -1,10 +1,10 @@
 import yaml
 import os
-import string
-from pathlib import Path
+
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 from warehouse.workflows.jobs import WorkflowJob
+from warehouse.util import log_message
 
 NAME = 'GenerateAtmMonCMIP'
 
@@ -74,11 +74,11 @@ class GenerateAtmMonCMIP(WorkflowJob):
             parameters['plev_cmor_list'] = plev_cmor_list
             parameters['vrt_map_path'] = self.config['vrt_map_path']
             cwl_workflow = "atm-mon-plev/atm-plev.cwl"
-        if not plev and mlev:
+        elif not plev and mlev:
             parameters['std_var_list'] = std_var_list
             parameters['std_cmor_list'] = std_cmor_list
             cwl_workflow = "atm-mon-model-lev/atm-std.cwl"
-        if plev and mlev:
+        elif plev and mlev:
             parameters['plev_var_list'] = plev_var_list
             parameters['plev_cmor_list'] = plev_cmor_list
             
@@ -87,6 +87,9 @@ class GenerateAtmMonCMIP(WorkflowJob):
             
             parameters['vrt_map_path'] = self.config['vrt_map_path']
             cwl_workflow = "atm-unified/atm-unified.cwl"
+        else:
+            log_message("error", "Unable to determine the correct CWL workflow")
+            return 1
         
 
         parameters['tables_path'] = self.config['cmip_tables_path']

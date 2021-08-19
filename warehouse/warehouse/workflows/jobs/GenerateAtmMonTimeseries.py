@@ -1,4 +1,3 @@
-import yaml
 from warehouse.workflows.jobs import WorkflowJob
 
 
