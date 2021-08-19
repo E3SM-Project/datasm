@@ -58,7 +58,7 @@ def main():
     mapfile_temp = str(mapfile_path.resolve())
     mapfile_path.unlink()
     move(tempfile.name, mapfile_temp)
-    os.chmod(mapfile_temp, 0664)
+    os.chmod(mapfile_temp, 0o664)
     con_message("info", f"Completed fix_mapfile_paths, mapfile={mapfile_temp}")
 
     return 0
