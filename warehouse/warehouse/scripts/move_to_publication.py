@@ -139,6 +139,10 @@ def conduct_move(args, move_method="none"):
 
 def main():
     parsed_args = parse_args()
+
+    if not validate_args(parsed_args):
+        sys.exit(1)
+
     src_path = Path(parsed_args.src)
     dst_path = Path(parsed_args.dst)
     src_parent, _ = os.path.split(src_path)
@@ -153,11 +157,8 @@ def main():
                 outstream.write(message)
                 con_message("info", message)
         else:
-            con_message("error", "cannot obtain message_file {message_file} from environment for message {message}")
-        sys.exit(0)
-
-    if not validate_args(parsed_args):
-        sys.exit(1)
+            con_message("error", f"cannot obtain message_file (from message_path) from environment for message {message}")
+            sys.exit(1)
 
     con_message("info", f"calling conduct_move with method {move_method}")
 

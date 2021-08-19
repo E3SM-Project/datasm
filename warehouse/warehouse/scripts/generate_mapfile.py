@@ -116,6 +116,8 @@ def main():
             return 1
     os.chmod(outpath, 0o664)
 
+    os.chmod(outpath, 0o664)
+
     message = f"mapfile_path={outpath}"
     if messages_path := os.environ.get("message_file"):
         with open(messages_path, "w") as outstream:
