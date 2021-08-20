@@ -1,8 +1,7 @@
 import sys
 import argparse
 from pprint import pprint
-from warehouse import Dataset
-from warehouse.dataset import DatasetStatus
+from warehouse.dataset import Dataset, DatasetStatus
 
 
 def parse_args():

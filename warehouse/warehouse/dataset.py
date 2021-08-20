@@ -300,7 +300,7 @@ class Dataset(object):
             ).pop()
         except IndexError:
             latest_version = "0"
-        if latest_version.is_integer():
+        if not isinstance(latest_version, str) and latest_version.is_integer():
             latest_version = int(latest_version)
         return str(Path(self.publication_path, f"v{latest_version}").resolve())
 

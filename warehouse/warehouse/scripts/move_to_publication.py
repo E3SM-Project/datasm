@@ -105,7 +105,6 @@ def conduct_move(args, move_method="none"):
             outstream.write(message)
             con_message("info", f"{message}")
     else:
-        con_message("error", f"No message_file {message_file} in environment")
         con_message("info", f"Message is: {message}")
 
     # DEBUG:  return 1 so that files are NOT moved

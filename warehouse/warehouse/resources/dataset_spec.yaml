@@ -228,7 +228,7 @@ project:
       test:
         test:
           start: 1
-          end: 1
+          end: 2
           ens:
             - r1i1p1f1
           # the test case uses the piControl data

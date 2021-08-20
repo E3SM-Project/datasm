@@ -84,11 +84,15 @@ def main():
             "error", "Input directory does not exist or is not a directory")
         sys.exit(1)
 
-    outpath = parsed_args.outpath
-    if outpath:
+    if outpath := parsed_args.outpath:
         outpath = Path(outpath)
     else:
         outpath = Path(f"{dataset_id}.map")
+    
+    if not outpath.exists():
+        outpath.touch(0o664)
+    else:
+        outpath.chmod(0o664)
 
     futures = []
     pool = ProcessPoolExecutor(max_workers=numberproc)
