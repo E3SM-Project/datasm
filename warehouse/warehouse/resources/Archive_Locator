@@ -5,7 +5,7 @@ BGC-v1,1_1_ECA,hist-BCRD,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_
 BGC-v1,1_1_ECA,hist-BDRC,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/20190308.BDRC.1850-2014
 BGC-v1,1_1_ECA,hist-BDRD,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/20190308.BDRD.1850-2014
 BGC-v1,1_1_ECA,piControl,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/20190308.CNTL.1850-2014
-BGC-v1,1_1_ECA,piControl,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/CNTL_CNPECACNT_SSP85.ne30_oECv3.cori-knl
+BGC-v1,1_1_ECA,piControl-ext85yr,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/CNTL_CNPECACNT_SSP85.ne30_oECv3.cori-knl
 BGC-v1,1_1_ECA,ssp585-BCRC,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/BCRC_CNPECACNT_SSP85.ne30_oECv3.cori-knl
 BGC-v1,1_1_ECA,ssp585-BCRD,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/BCRD_CNPECACNT_SSP85.ne30_oECv3.cori-knl
 BGC-v1,1_1_ECA,ssp585-BDRC,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/20191108.BDRC.SSP85
@@ -17,7 +17,7 @@ BGC-v1,1_1,hist-BCRD,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1/BG
 BGC-v1,1_1,hist-BDRC,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1/BGC-v1/20181217.BDRC_CNPCTC20TR_OIBGC.ne30_oECv3.edison
 BGC-v1,1_1,hist-BDRD,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1/BGC-v1/20181217.BDRD_CNPCTC20TR_OIBGC.ne30_oECv3.edison
 BGC-v1,1_1,piControl,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1/BGC-v1/20181217.CNTL_CNPCTC1850_OIBGC.ne30_oECv3.edison
-BGC-v1,1_1,piControl,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1/BGC-v1/20191204.CNTL_CNPCTC1850_OIBGC.ne30_oECv3.compy
+BGC-v1,1_1,piControl-ext85yr,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1/BGC-v1/20191204.CNTL_CNPCTC1850_OIBGC.ne30_oECv3.compy
 BGC-v1,1_1,ssp585-BCRC,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1/BGC-v1/20191107.BCRC_CNPCTC_SSP585_OIBGC.ne30_oECv3.compy
 BGC-v1,1_1,ssp585-BCRD,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1/BGC-v1/20191204.BCRD_CNPCTC_SSP585_OIBGC.ne30_oECv3.compy
 BGC-v1,1_1,ssp585-BDRC,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1/BGC-v1/20191107.BDRC_CNPCTC_SSP585_OIBGC.ne30_oECv3.compy
