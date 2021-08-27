@@ -88,10 +88,10 @@ class WorkflowJob(object):
 if [ $? -ne 0 ]
 then
     touch $message_file
-    echo STAT:`date "+%Y/%m/%d %H.%M.%S.%6N"`:{self.parent}:{self.name}:Fail:`cat $message_file` >> {self.dataset.status_path}
+    echo STAT:`date -u "+%Y%m%d_%H%M%S_%6N"`:{self.parent}:{self.name}:Fail:`cat $message_file` >> {self.dataset.status_path}
 else
     touch $message_file
-    echo STAT:`date "+%Y/%m/%d %H.%M.%S.%6N"`:{self.parent}:{self.name}:Pass:`cat $message_file` >> {self.dataset.status_path}
+    echo STAT:`date -u "+%Y%m%d_%H%M%S_%6N"`:{self.parent}:{self.name}:Pass:`cat $message_file` >> {self.dataset.status_path}
     {self.render_cleanup()}
 fi
 rm $message_file

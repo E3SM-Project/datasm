@@ -5,6 +5,7 @@ from argparse import RawTextHelpFormatter
 import requests
 import time
 from datetime import datetime
+from pytz import UTC
 import yaml
 
 '''
@@ -55,7 +56,7 @@ gv_csv = True
 # esgf_pr   = '/p/user_pub/e3sm/bartoletti1/Pub_Status/sproket/ESGF_publication_report-20200915.144250'
 
 def ts():
-    return datetime.now().strftime('%Y%m%d_%H%M%S')
+    return UTC.localize(datetime.utcnow()).strftime('%Y%m%d_%H%M%S_%f')
 
 def assess_args():
     global thePWD

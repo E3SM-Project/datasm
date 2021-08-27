@@ -5,7 +5,6 @@ import shutil
 import subprocess
 import time
 from pathlib import Path
-from datetime import datetime
 from tqdm import tqdm
 from warehouse.util import con_message
 

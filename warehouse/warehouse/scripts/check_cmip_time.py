@@ -5,10 +5,10 @@ import xarray as xr
 
 from tqdm import tqdm
 from datetime import datetime
-
+from pytz import UTC
 
 def put_message(message):
-    print(f'{datetime.now().strftime("%Y%m%d_%H%M%S")}:{message}')
+    print(f'{UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")}:{message}')
 
 
 def check_file(file, freq, time_name="time"):

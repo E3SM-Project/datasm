@@ -5,6 +5,7 @@ from enum import Enum
 
 from pathlib import Path
 from datetime import datetime
+from pytz import UTC
 
 import ipdb
 
@@ -408,8 +409,8 @@ class Dataset(object):
         self._status = status
         
         with open(self.status_path, "a") as outstream:
-            # msg = f'STAT:{datetime.now().strftime("%Y%m%d_%H%M%S")}:WAREHOUSE:{status}'
-            msg = f'STAT:{datetime.now().strftime("%Y/%m/%d %H.%M.%S.%f")}:{status}'
+            tstamp =  UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+            msg = f'STAT:{tstamp}:WAREHOUSE:{status}'
             if params is not None:
                 items = [f"{k}={v}".replace(":", "^") for k, v in params.items()]
                 msg += ",".join(items)

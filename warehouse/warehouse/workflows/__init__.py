@@ -105,6 +105,7 @@ class Workflow(object):
         elif state_attrs[idx] == "WAREHOUSE":
             return self.next_state(dataset, state, params, idx + 1)
 
+        import ipdb; ipdb.set_trace()
         elif state_attrs[idx] in self.children.keys():
             return self.children[state_attrs[idx]].next_state(dataset, state, params, idx + 1)
 
