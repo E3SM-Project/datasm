@@ -1,4 +1,4 @@
-ATMVALIDATION:Ready:
+ATMValidation:Ready:
   default:
     - CheckTimeUnit:Ready
 
