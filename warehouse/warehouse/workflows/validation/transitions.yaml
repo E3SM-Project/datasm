@@ -10,19 +10,19 @@ CheckFileIntegrity:Pass:
     default:
         - Fail
     atmos-native-3hr:
-        - ATMVALIDATION:Ready
+        - ATMValidation:Ready
     atmos-native-3hr_snap:
-        - ATMVALIDATION:Ready
+        - ATMValidation:Ready
     atmos-native-6hr:
-        - ATMVALIDATION:Ready
+        - ATMValidation:Ready
     atmos-native-6hr_snap:
-        - ATMVALIDATION:Ready
+        - ATMValidation:Ready
     atmos-native-day:
-        - ATMVALIDATION:Ready
+        - ATMValidation:Ready
     atmos-native-mon:
-        - ATMVALIDATION:Ready
+        - ATMValidation:Ready
     atmos-native-day_cosp:
-        - ATMVALIDATION:Ready
+        - ATMValidation:Ready
     land-native-mon:
         - LNDVALIDATION:Ready
     river-native-mon:
@@ -38,10 +38,10 @@ CheckFileIntegrity:Fail:
     default:
         - Fail
 
-ATMVALIDATION:Pass:
+ATMValidation:Pass:
     default:
         - Pass
-ATMVALIDATION:Fail:
+ATMValidation:Fail:
     default:
         - Fail
 
