@@ -4,7 +4,6 @@ import json
 import requests
 import argparse
 import configparser as cfg
-from datetime import datetime
 from pathlib import Path
 from tqdm import tqdm
 from warehouse.util import con_message
@@ -43,7 +42,7 @@ def main():
         "--facets",
         required=True,
         nargs="*",
-        help="Space sepparated key/value pairs for facets to get updated, in the form key=value",
+        help="Space separated key/value pairs for facets to get updated, in the form key=value",
     )
     parser.add_argument("-c", "--cert", required=True, help="Path to ESGF cert")
     parser.add_argument(

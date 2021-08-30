@@ -4,11 +4,13 @@ import traceback
 import inspect
 import logging
 import requests
+import time
 
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
 from pathlib import Path
 from datetime import datetime
+from pytz import UTC
 from termcolor import colored, cprint
 
 
@@ -74,7 +76,7 @@ def print_debug(e):
 
 
 def setup_logging(loglevel, logpath):
-    logname = logpath + "-" + datetime.now().strftime("%Y%m%d_%H%M%S")
+    logname = logpath + "-" + UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
     if loglevel == "debug":
         level = logging.DEBUG
     elif loglevel == "error":
@@ -86,10 +88,11 @@ def setup_logging(loglevel, logpath):
     logging.basicConfig(
         filename=logname,
         # format="%(asctime)s:%(levelname)s:%(module)s:%(message)s",
-        format="%(asctime)s:%(levelname)s:%(message)s",
+        format="%(asctime)s_%(msecs)03d:%(levelname)s:%(message)s",
         datefmt="%m%d%Y_%H%M%S",
         level=level,
     )
+    logging.Formatter.converter = time.gmtime
     # should be a separate message call
     # logging.info(f"Starting up the warehouse with parameters: \n{pformat(self.__dict__)}")
 
@@ -112,8 +115,7 @@ def con_message(level, message):  # message ONLY to console (in color)
     level = level.upper()
     colors = {"INFO": "white", "WARNING": "yellow", "ERROR": "red", "DEBUG": "cyan"}
     color = colors[level]
-    tstamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # for console output
-    ts_verbose = datetime.now().strftime("%Y/%m/%d %H:%M:%S")  # for console output
+    tstamp = UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")  # for console output
     # to the console
     msg = f"{tstamp}:{level}:{message}"
     cprint(msg, color)
@@ -135,7 +137,7 @@ def log_message(level, message, user_level='INFO'):  # message BOTH to log file 
     level = level.upper()
     colors = {"INFO": "white", "WARNING": "yellow", "ERROR": "red", "DEBUG": "cyan"}
     color = colors.get(level, 'red')
-    ts_verbose = datetime.now().strftime("%Y/%m/%d %H:%M:%S")  # for console output
+    tstamp = UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")  # for console output
     # first, print to logfile
     if level == "DEBUG":
         logging.debug(message)
@@ -152,7 +154,7 @@ def log_message(level, message, user_level='INFO'):  # message BOTH to log file 
         pass
     else:
         # now to the console
-        msg = f"{ts_verbose}:{level}:{message}"
+        msg = f"{tstamp}:{level}:{message}"
         cprint(msg, color)
 
 

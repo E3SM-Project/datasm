@@ -6,7 +6,6 @@ import xarray as xr
 import numpy as np
 import netCDF4
 from tqdm import tqdm
-from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from warehouse.util import con_message
 
