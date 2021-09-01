@@ -20,7 +20,7 @@
 #  holodeck dir, If not, a symlink to the file with name modified to match the original "lead"
 #  is added to the holodeck.  The holodeck equivalent of a warehouse_root is returned.
 
-holospace="/p/user_pub/e3sm/staging/holospace/warehouse/"
+holospace="/p/user_pub/e3sm/staging/holospace/warehouse"
 
 # Generate full source path to files from dataset_id and source_root
 dataset_id=$1
@@ -71,7 +71,7 @@ fi
 
 ts=`date -u +%Y%m%d_%H%M%S_%6N`
 new_root="$holospace/holodeck-$ts"
-new_path="$new_root/$ds_part/$vdir"
+new_path="$new_root/$ds_part/$vdir" 
 
 mkdir -p $new_path
 
