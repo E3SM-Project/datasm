@@ -179,6 +179,7 @@ class Dataset(object):
             log_message("info", msg)
             self.status_path.touch(mode=0o660, exist_ok=True)
         
+        # why are these being set in this function?
         if self.project == 'CMIP6':
             self.warehouse_path = Path(
                 self.warehouse_base,
@@ -233,6 +234,10 @@ class Dataset(object):
             else:
                 self._status = latest
 
+        log_message("info", f"DBG: DS: init_stat_file: self._status = {self._status}")
+
+
+    # Anyone care to explain the logic here? This is fragile!
     def update_from_status_file(self, update=True):
         self.load_dataset_status_file()
         if latest := get_last_status_line(self.status_path):
@@ -399,6 +404,7 @@ class Dataset(object):
         self.load_dataset_status_file()
         latest, _ = self.get_latest_status()
         if status is None or status == self._status or latest == status:
+            log_message("info", f"DBG: DS: status.setter: Return pre-set with input status = {status}")
             return
         params = None
         if isinstance(status, tuple):
@@ -410,11 +416,13 @@ class Dataset(object):
         
         with open(self.status_path, "a") as outstream:
             tstamp =  UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
-            msg = f'STAT:{tstamp}:WAREHOUSE:{status}'
+            # msg = f'STAT:{tstamp}:WAREHOUSE:{status}'
+            msg = f'STAT:{tstamp}:{status}'
             if params is not None:
                 items = [f"{k}={v}".replace(":", "^") for k, v in params.items()]
                 msg += ",".join(items)
             outstream.write(msg + "\n")
+            log_message("info", f"DBG: DS: status.setter: Wrote STAT message: {msg}")
 
     def lock(self, path):
         if path is None or self.is_locked(path):

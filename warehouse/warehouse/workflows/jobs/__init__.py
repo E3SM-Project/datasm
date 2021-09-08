@@ -73,6 +73,7 @@ class WorkflowJob(object):
         self.add_cmd_suffix()
         slurm.render_script(self.cmd, str(script_path), self._slurm_opts)
         self._job_id = slurm.sbatch(str(script_path))
+        log_message("info", f"WF_jobs_init: _call_: setting status to {self._parent}:{self.name}:Engaged: for {self.dataset.dataset_id}")
         self.dataset.status = (f"{self._parent}:{self.name}:Engaged:", 
                                {"slurm_id": self.job_id})
         return self._job_id
@@ -128,6 +129,8 @@ rm $message_file
         # if self.dataset.dataset_id == dataset.dataset_id:
         #     return None
 
+        log_message("debug", f"WF_jobs_init: matches_requirement(): dataset.experiment={dataset.experiment}, self.dataset.experiment={self.dataset.experiment}")
+
         if self.dataset.project == 'E3SM':
             if dataset.experiment != self.dataset.experiment:
                 return None
@@ -143,6 +146,8 @@ rm $message_file
                 if not my_case_attrs == e3sm_cmip_case:
                     return None
         
+        log_message("debug", f"WF_jobs_init: matches_requirement(): Experiment ({dataset.experiment}) Aligns");
+
         dataset_model = dataset.model_version
         my_dataset_model = self.dataset.model_version
         if '_' in dataset_model:
@@ -151,6 +156,8 @@ rm $message_file
             my_dataset_model = 'E3SM-' + '-'.join(self.dataset.model_version.split('_'))
         if dataset_model != my_dataset_model:
             return None
+
+        log_message("debug", f"WF_jobs_init: matches_requirement(): Model_version ({dataset_model}) Aligns");
 
         dataset_ensemble = dataset.ensemble
         my_dataset_ensemble = self.dataset.ensemble
@@ -161,11 +168,15 @@ rm $message_file
         if dataset_ensemble != my_dataset_ensemble:
             return None
         
+        log_message("debug", f"WF_jobs_init: matches_requirement(): Ensemble ({dataset_ensemble}) Aligns");
+
         for req, ds in self._requires.items():
+            log_message("debug", f"WF_jobs_init: matches_requirement(): trying (req: ds) = {req}:{ds}")
             if ds:
                 continue
+            log_message("debug", f"WF_jobs_init: matches_requirement(): req = {req}")
             req_attrs = req.split('-')
-
+            log_message("debug", f"WF_jobs_init: matches_requirement(): Testing realm_grid_freq {dataset.realm}_{dataset.grid}_{dataset.freq} against {req}")
             if dataset.realm != req_attrs[0] and req_attrs[0] != '*':
                 continue
             if dataset.grid != req_attrs[1] and req_attrs[1] != '*':
@@ -173,7 +184,7 @@ rm $message_file
             if dataset.freq != req_attrs[2] and req_attrs[2] != '*':
                 continue
 
-            log_message('debug', f"found job requirement match")
+            log_message("debug", f"WF_jobs_init: found job requirement match")
             return req
         return None
 
@@ -182,7 +193,11 @@ rm $message_file
         Check if all the requirements for the job are met
         """
         for req in self._requires:
-            if not self._requires.get(req):
+            obtained = self._requires.get(req)
+            log_message("info", f"WF_jobs_init: job.meets_requirements(): checking req {req}")
+            log_message("debug", f"WF_jobs_init: job.meets_requirements(): self._requires.get(req) yields {obtained}")
+            if not obtained:
+                log_message("info", f"WF_jobs_init: job.meets_requirements(): returning False")
                 return False
         return True
 

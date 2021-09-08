@@ -73,26 +73,37 @@ class Workflow(object):
         """
         Parameters: 
             dataset (Dataset) : The dataset which is changing state
-            status (string) : The state to move out from
+            state (string) : The state to move out from (trimmed to "target_state" below)
             idx (int) : The recursive depth index
         Returns the name of the next state to transition to given the current state of the dataset
         """
+        log_message("info", f"WF_init next_state: self.name = {self.name} for dataset {dataset.dataset_id}")
+        log_message("debug", f"WF_init next_state: self.name = {self.name}")
+        log_message("debug", f"WF_init next_state: idx = {idx} (depth)")
+        log_message("debug", f"WF_init next_state: current state = {state}")
         # import ipdb; ipdb.set_trace()
-        self.print_debug(f"next_state: *{state}*")
+        self.print_debug(f"next_state: current = *{state}*")
         state_attrs = state.split(':')
         if len(state_attrs) < 3:
             target_state = state
         else:
             target_state = f"{state_attrs[-3]}:{state_attrs[-2]}"
         prefix = self.get_status_prefix()
+        log_message("debug", f"WF_init next_state: state_attrs = {state_attrs}")
+        log_message("debug", f"WF_init next_state: curr target_state = {target_state}")
+        log_message("debug", f"WF_init next_state: self.transitions.keys = {self.transitions.keys()}")
+        log_message("debug", f"WF_init next_state: self.children.keys = {self.children.keys()}")
+
         if target_state in self.transitions.keys():
             if dataset.grid == "native":
                 target_data_type = f'{dataset.realm}-native-{dataset.freq}'
             else:
                 target_data_type = f'{dataset.realm}-{dataset.data_type.replace("-", "")}-{dataset.freq}'
 
+            log_message("debug", f"WF_init next_state: target_data_type = {target_data_type}")
             self.print_debug(f"target_data_type: {target_data_type}")
             transitions = self.transitions[target_state].get(target_data_type)
+            log_message("debug", f"WF_init next_state: transitions = {transitions}")
             if transitions is None:
                 try:
                     return [(f'{prefix}{x}:', self, params) for x in self.transitions[target_state]['default']]
@@ -100,7 +111,9 @@ class Workflow(object):
                     log_message('error', f"Dataset {dataset.dataset_id} tried to go to the 'default' transition from the {target_state}, but no default was found")
                     sys.exit(1)
             else:
-                return [(f'{prefix}{x}:', self, params) for x in transitions]
+                ret_list = [(f'{prefix}{x}:', self, params) for x in transitions]
+                log_message("info", f"WF_init next_state: for {dataset.dataset_id} returning {ret_list}")
+                return ret_list
 
         elif state_attrs[idx] == "WAREHOUSE":
             return self.next_state(dataset, state, params, idx + 1)
@@ -110,7 +123,7 @@ class Workflow(object):
             return self.children[state_attrs[idx]].next_state(dataset, state, params, idx + 1)
 
         else:
-            log_message('error', f"{target_state} is not present in the transition graph for {self.name}")
+            log_message('error', f"WF_init next_state: target state {target_state} is not present in the transition graph for {self.name}")
             # import ipdb; ipdb.set_trace()
             sys.exit(1)
 
@@ -159,6 +172,8 @@ class Workflow(object):
             self.__class__)).parents[0], 'transitions.yaml')
         with open(transition_path, 'r') as instream:
             self.transitions = yaml.load(instream, Loader=yaml.SafeLoader)
+            log_message("info", f"WF_init: {self.name} loads transitions")
+            log_message("debug", f"WF_init: {self.name} loads transitions {self.transitions}")
 
     def load_children(self):
         my_path = Path(inspect.getfile(self.__class__)).parent.absolute()

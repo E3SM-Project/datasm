@@ -39,6 +39,33 @@ def get_last_status_line(file_path):
                 last_line = line
         return last_line
 
+# -----------------------------------------------
+# unify status case values
+
+def upper_list(alist):
+    retlist = list()
+    for item in alist:
+        if type(item) is str:
+            retlist.append(item.upper())
+        else:
+            print(f"ERROR: item type = {type(item)}")
+
+    return retlist
+
+def upper_dict(adict):
+    retdict = dict()
+    for akey in adict:
+        bkey = akey.upper()
+        aval = adict[akey]
+        if type(aval) is dict:
+            retdict[bkey] = upper_dict(aval)
+        elif type(aval) is list:
+            retdict[bkey] = upper_list(aval)
+        else:
+            print(f"ERROR: aval type = {type(aval)}")
+
+    return retdict
+
 
 # -----------------------------------------------
 
@@ -89,7 +116,7 @@ def setup_logging(loglevel, logpath):
         filename=logname,
         # format="%(asctime)s:%(levelname)s:%(module)s:%(message)s",
         format="%(asctime)s_%(msecs)03d:%(levelname)s:%(message)s",
-        datefmt="%m%d%Y_%H%M%S",
+        datefmt="%Y%m%d_%H%M%S",
         level=level,
     )
     logging.Formatter.converter = time.gmtime

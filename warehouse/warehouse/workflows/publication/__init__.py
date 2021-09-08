@@ -23,7 +23,7 @@ class Publication(Workflow):
         super().__init__(*args, **kwargs)
         self.name = NAME.upper()
         self.pub_path = None
-        log_message('info', f'initializing workflow {self.name}')
+        log_message('info', f'WF_pub_init Publication_init: initializing workflow {self.name}')
 
     def __call__(self, *args, **kwargs):
         from warehouse.warehouse import AutoWarehouse
@@ -31,38 +31,39 @@ class Publication(Workflow):
         dataset_id = self.params['dataset_id']
         tmpdir = self.params['tmp']
 
-        log_message('info', f'starting workflow {self.name} for datasets {dataset_id}')
+        log_message('info', f'WF_pub_init Publication_call: starting workflow {self.name} for datasets {dataset_id}')
 
         if (pub_base := self.params.get('publication_path')):
             self.pub_path = Path(pub_base)
             if not self.pub_path.exists():
+                log_message("info",f"WF_pub_init Publication_call: create pub dir {self.pub_path.resolve()}")
                 os.makedirs(self.pub_path.resolve())
         data_path = self.params.get('data_path')
         status_path = self.params.get('status_path')
 
-        if data_path is not None:
-            warehouse = AutoWarehouse(
-                workflow=self,
-                dataset_id=dataset_id,
-                warehouse_path=data_path,
-                publication_path=self.pub_path,
-                serial=True,
-                job_worker=self.job_workers,
-                status_path=status_path,
-                debug=self.debug,
-                tmpdir=tmpdir)
-        else:
-            warehouse = AutoWarehouse(
-                workflow=self,
-                dataset_id=dataset_id,
-                warehouse_path=self.params['warehouse_path'],
-                publication_path=self.pub_path,
-                serial=True,
-                job_worker=self.job_workers,
-                status_path=status_path,
-                debug=self.debug,
-                tmpdir=tmpdir)
+        log_message('debug', f'WF_pub_init Publication_call: supplied pub_base = {pub_base}')
+        log_message('debug', f'WF_pub_init Publication_call: supplied data_path = {data_path}')
+        log_message('debug', f'WF_pub_init Publication_call: supplied stat_path = {status_path}')
 
+        # set data source root
+        if data_path is not None:
+            w_path=data_path
+        else:
+            w_path=self.params['warehouse_path']
+            log_message("info", f"WF_pub_init Publication_call: AutoWarehouse(workflow={self},dataset_id={dataset_id},warehouse_path={w_path},publication_path={self.pub_path},serial=True,job_workers={self.job_workers},status_path={status_path}")
+
+        warehouse = AutoWarehouse(
+            workflow=self,
+            dataset_id=dataset_id,
+            warehouse_path=w_path,
+            publication_path=self.pub_path,
+            serial=True,
+            job_worker=self.job_workers,
+            status_path=status_path,
+            debug=self.debug,
+            tmpdir=tmpdir)
+
+        log_message('info', f'WF_pub_init Publication_call: issuing warehouse.setup_datasets()')
         warehouse.setup_datasets(check_esgf=False)
 
         for dataset_id, dataset in warehouse.datasets.items():
@@ -73,10 +74,11 @@ class Publication(Workflow):
             if DatasetStatusMessage.PUBLICATION_READY.value not in dataset.status:
                 dataset.status = DatasetStatusMessage.PUBLICATION_READY.value
 
+        log_message('info', f'WF_pub_init Publication_call: issuing warehouse.start_listener()')
         warehouse.start_listener()
 
         for dataset_id, dataset in warehouse.datasets.items():
-            log_message('info', f'starting job {self.name} for {dataset_id}')
+            log_message('info', f'WF_pub_init Publication_call: calling warehouse.start_datasets() starting job {self.name} for {dataset_id}')
             warehouse.start_datasets({dataset_id: dataset})
 
         while not warehouse.should_exit:
@@ -84,7 +86,7 @@ class Publication(Workflow):
 
         for dataset_id, dataset in warehouse.datasets.items():
             mtype = "info" if "Pass" in dataset.status else "error"
-            log_message(mtype, f"Publication complete, dataset {dataset_id} is in state {dataset.status}")
+            log_message(mtype, f"WF_pub_init Publication_call: Publication complete, dataset {dataset_id} is in state {dataset.status}")
 
         sys.exit(0)
 
