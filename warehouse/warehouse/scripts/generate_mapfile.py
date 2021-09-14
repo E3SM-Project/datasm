@@ -126,7 +126,7 @@ def main():
         with open(messages_path, "w") as outstream:
             outstream.write(message)
     else:
-        con_message("error", message)
+        con_message("info", message)
     return 0
 
 
