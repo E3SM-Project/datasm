@@ -65,7 +65,7 @@ def publish_dataset(args):
     # get the dataset_id from the mapfile
     with open(src_path, "r") as instream:
         line = instream.readline()
-    dataset_id = line.split("|")[0].replace("#", "v").strip()
+    dataset_id = line.split("|")[0].replace("#", ".v").strip()
 
     # check that this dataset doesnt already exist
     if "CMIP6" in dataset_id:

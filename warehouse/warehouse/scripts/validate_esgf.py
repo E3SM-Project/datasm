@@ -2,10 +2,11 @@ import sys
 import argparse
 from pprint import pprint
 from warehouse.dataset import Dataset, DatasetStatus
+from warehouse.util import con_message
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Publish a dataset to ESGF")
+    parser = argparse.ArgumentParser(description="Test for dataset publication to ESGF")
     parser.add_argument(
         "--dataset-id",
         type=str,
@@ -22,12 +23,12 @@ def main():
         no_status_file=True)
     status = dataset.get_esgf_status()
     if status not in [DatasetStatus.SUCCESS.value, DatasetStatus.PUBLISHED.value]:
-        print(f"ESGF validation failed, dataset in state {status}")
+        con_message("error", f"ESGF validation failed, dataset in state {status}")
         if missing := dataset.missing:
             pprint(missing)
         return 1
     else:
-        print("ESGF validation success")
+        con_message("info", f"ESGF validation success")
         return 0
 
 

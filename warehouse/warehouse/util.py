@@ -245,6 +245,7 @@ def search_esgf(
         latest (str): boolean (true/false not True/False) to search for only the latest version of a dataset
     """
     url = f"https://{node}/esg-search/search/?offset=0&limit=10000&project={project}&format=application%2Fsolr%2Bjson&latest={latest}&{'&'.join([f'{k}={v}' for k,v in facets.items()])}"
+    log_message("info", f"search_esgf: issues URL: {url}")
     req = requests.get(url)
     if req.status_code != 200:
         raise ValueError(f"ESGF search request failed: {url}")
