@@ -226,7 +226,7 @@ class Dataset(object):
             log_message("info", f"{self.dataset_id} initialized and set to {self._status}")
         else:
             # if we're initializing a dataset and the last update
-            # what that it had failed, or was Engaged
+            # was that it had failed, or was Engaged
             # roll the status back to just before
             latest, second = self.get_latest_status()
             if "Engaged" in latest or "Failed" in latest:
@@ -532,26 +532,31 @@ class Dataset(object):
     def get_esgf_status(self):
         """
         Check ESGF to see of the dataset has already been published,
-        if it exists check that the dataset is complete"""
+        if it exists check that the dataset is complete
+        """
         # import ipdb; ipdb.set_trace()
         # TODO: fix this at some point
 
-        facets = {"master_id": self.dataset_id, "type": "Dataset"}
         if "CMIP6" in self.dataset_id:
             project = "CMIP6"
         else:
             project = "e3sm"
+        facets = {"master_id": self.dataset_id, "type": "Dataset"}
         docs = search_esgf(project, facets)
 
         if not docs or int(docs[0]["number_of_files"]) == 0:
+            if not docs:
+                log_message("info", f"dataset.py get_esgf_status: search facets for Dataset returned empty docs")
+            else:
+                log_message("info", f"dataset.py get_esgf_status: dataset query returned file_count = {int(docs[0]['number_of_files'])}")
             return DatasetStatus.UNITITIALIZED.value
 
         facets = {"dataset_id": docs[0]["id"], "type": "File"}
 
         docs = search_esgf(project, facets)
         if not docs or len(docs) == 0:
+            log_message("info", f"dataset.py get_esgf_status: search facets for File returned empty docs")
             return DatasetStatus.UNITITIALIZED.value
-
 
         files = [x["title"] for x in docs]
         
@@ -691,10 +696,11 @@ class Dataset(object):
         files = [x.split("/")[-1] for x in sorted(files)]
         files_found = []
 
+        # DEBUG not self.datavasrs
         if not self.datavars:
             log_message(
                 "error",
-                f"dataset {self.dataset_id} is trying to validate time-series files, but has no datavars",
+                f"dataset.py: check_time_series: dataset {self.dataset_id} is trying to validate time-series files, but has no datavars",
             )
             sys.exit(1)
 
@@ -950,6 +956,8 @@ comm: {self.comm}"""
         into dictionary, key = STAT, rows are tuples (ts,'PROCESS:status1:status2:...')
         and for comments, key = COMM, rows are comment lines
         """
+        self.comm = list()
+
         if path is None:
             path = self.status_path
 

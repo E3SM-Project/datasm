@@ -194,7 +194,7 @@ rm $message_file
         """
         for req in self._requires:
             obtained = self._requires.get(req)
-            log_message("info", f"WF_jobs_init: job.meets_requirements(): checking req {req}")
+            # log_message("info", f"WF_jobs_init: job.meets_requirements(): checking req {req}")
             log_message("debug", f"WF_jobs_init: job.meets_requirements(): self._requires.get(req) yields {obtained}")
             if not obtained:
                 log_message("info", f"WF_jobs_init: job.meets_requirements(): returning False")
