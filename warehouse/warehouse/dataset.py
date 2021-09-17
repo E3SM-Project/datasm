@@ -537,15 +537,18 @@ class Dataset(object):
         # import ipdb; ipdb.set_trace()
         # TODO: fix this at some point
 
-        facets = {"master_id": self.dataset_id, "type": "Dataset"}
         if "CMIP6" in self.dataset_id:
             project = "CMIP6"
         else:
             project = "e3sm"
+        facets = {"master_id": self.dataset_id, "type": "Dataset"}
         docs = search_esgf(project, facets)
 
         if not docs or int(docs[0]["number_of_files"]) == 0:
-            log_message("info", f"dataset.py get_esgf_status: search facets for Dataset returned empty docs")
+            if not docs:
+                log_message("info", f"dataset.py get_esgf_status: search facets for Dataset returned empty docs")
+            else:
+                log_message("info", f"dataset.py get_esgf_status: dataset query returned file_count = {int(docs[0]['number_of_files'])}")
             return DatasetStatus.UNITITIALIZED.value
 
         facets = {"dataset_id": docs[0]["id"], "type": "File"}
@@ -953,6 +956,8 @@ comm: {self.comm}"""
         into dictionary, key = STAT, rows are tuples (ts,'PROCESS:status1:status2:...')
         and for comments, key = COMM, rows are comment lines
         """
+        self.comm = list()
+
         if path is None:
             path = self.status_path
 

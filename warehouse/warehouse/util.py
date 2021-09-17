@@ -248,12 +248,14 @@ def search_esgf(
     log_message("info", f"search_esgf: issues URL: {url}")
     req = requests.get(url)
     if req.status_code != 200:
+        log_message("error", f"util.py: search_esgf: ESGF search request failed: (stat_code {req.status_code}) {url}")
         raise ValueError(f"ESGF search request failed: {url}")
 
     docs = [
         {k: v for k, v in doc.items() if k not in filter_values}
         for doc in req.json()["response"]["docs"]
     ]
+    log_message("info", f"util.py: search_esgf: returning docs len={len(docs)}")
     return docs
 
 

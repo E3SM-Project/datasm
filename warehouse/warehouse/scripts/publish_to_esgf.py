@@ -69,7 +69,7 @@ def publish_dataset(args):
 
     # check that this dataset doesnt already exist
     if "CMIP6" in dataset_id:
-        project = "cmip6"
+        project = "CMIP6"
     else:
         project = "e3sm"
     facets = {"instance_id": dataset_id, "type": "Dataset"}

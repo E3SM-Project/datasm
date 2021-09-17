@@ -12,6 +12,7 @@ class PublishEsgf(WorkflowJob):
         super().__init__(*args, **kwargs)
         self.name = NAME
 
+        # log_message("info", f"JOB PublishEsgf: processing {self.dataset.dataset_id}")
         log_message("info", f"JOB PublishEsgf: processing {self.dataset}")
         mapfile_path = sorted([x for x in self.dataset.publication_path.glob('*.map')]).pop()
 
