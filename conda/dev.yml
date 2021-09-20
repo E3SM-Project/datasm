@@ -8,7 +8,7 @@ dependencies:
   # ==================
   - python=3.8.10
   - pip=21.2.4
-  - e3sm_to_cmip=1.7.3
+  - e3sm_to_cmip
   - nco=4.9.9
   - cmor=3.6.1
   - esgconfigparser=1.0.0a1
@@ -18,12 +18,18 @@ dependencies:
   - termcolor=1.1.0
   - numpy=1.21.2
   - yaml=0.2.5
+  # QUALITY ASSURANCE
+  # ==================
   - watchdog=2.1.3
   - ipdb=0.13.9
-  # NOTE: This package is only published for Linux
-  - esgf-forge::autocurator=0.1
+  - black=21.9b0
   # CWL
   # ==================
   - cwltool=3.1.20210816212154
   - nodejs=16.6.1
+  # ADDITIONAL
+  # ==================
+  - esgf-forge::autocurator # This package is only available for Linux
+  - esgf-forge::esgcet
+  - e3sm::zstash
 prefix: /opt/miniconda3/envs/esgfpub_dev

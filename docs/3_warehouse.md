@@ -13,14 +13,6 @@ The warehouse utility allows for the automation of complex nested workflows with
       python setup.py install
       python setup.py clean
    ```
-
-3. Get the custom E3SM branch of the esgf publisher utility
-
-   ```bash
-   git clone https://github.com/sashakames/esg-publisher -b e3sm-custom
-   cd esg-publisher/pkg
-   python setup.py install
-   ```
   
 ## Usage
 
