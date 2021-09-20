@@ -8,7 +8,7 @@ dependencies:
   # ==================
   - python=3.8.10
   - pip=21.2.4
-  - e3sm_to_cmip=1.7.3
+  - e3sm_to_cmip
   - nco=4.9.9
   - cmor=3.6.1
   - esgconfigparser=1.0.0a1
@@ -29,7 +29,7 @@ dependencies:
   - nodejs=16.6.1
   # ADDITIONAL
   # ==================
-  - esgf-forge::autocurator=0.1 # This package is only available for Linux
-  - esgf-forge::esgcet # Always get the latest version of esgcet
-  - e3sm::zstash=1.1.0
+  - esgf-forge::autocurator # This package is only available for Linux
+  - esgf-forge::esgcet
+  - e3sm::zstash
 prefix: /opt/miniconda3/envs/esgfpub_dev
