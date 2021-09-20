@@ -18,12 +18,18 @@ dependencies:
   - termcolor=1.1.0
   - numpy=1.21.2
   - yaml=0.2.5
+  # QUALITY ASSURANCE
+  # ==================
   - watchdog=2.1.3
   - ipdb=0.13.9
-  # NOTE: This package is only published for Linux
-  - esgf-forge::autocurator=0.1
+  - black=21.9b0
   # CWL
   # ==================
   - cwltool=3.1.20210816212154
   - nodejs=16.6.1
+  # ADDITIONAL
+  # ==================
+  - esgf-forge::autocurator=0.1 # This package is only available for Linux
+  - esgf-forge::esgcet # Always get the latest version of esgcet
+  - e3sm::zstash=1.1.0
 prefix: /opt/miniconda3/envs/esgfpub_dev
