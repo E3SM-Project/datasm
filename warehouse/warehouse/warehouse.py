@@ -464,9 +464,10 @@ class AutoWarehouse:
                 # otherwise the new state and its parameters need to be
                 # written to the dataset status file
                 else:
-                    msg = f"Dataset {dataset.dataset_id} transitioning to state {new_state}"
+                    msg = f"warehouse: start_datasets: Dataset {dataset.dataset_id} transitioning to state {new_state}"
                     if params:
                         msg += f" with params {params}"
+                    log_message("info", msg)
                     log_message("debug", msg, self.debug)
                     dataset.status = (new_state, params)
 

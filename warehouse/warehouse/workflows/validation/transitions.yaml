@@ -38,10 +38,10 @@ CheckFileIntegrity:Fail:
     default:
         - Fail
 
-ATMValidation:Pass:
+ATMVALIDATION:Pass:
     default:
         - Pass
-ATMValidation:Fail:
+ATMVALIDATION:Fail:
     default:
         - Fail
 
