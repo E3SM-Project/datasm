@@ -94,6 +94,8 @@ def main():
     else:
         outpath.chmod(0o664)
 
+    con_message("info", f"Generate_Mapfile: ({numberproc} processes) to {outpath}")
+
     futures = []
     pool = ProcessPoolExecutor(max_workers=numberproc)
     for path in input_path.glob("*.nc"):
@@ -120,6 +122,8 @@ def main():
             return 1
 
     outpath.chmod(0o664)
+
+    con_message("info", f"Generate_Mapfile: Completed")
 
     message = f"mapfile_path={outpath}"
     if messages_path := os.environ.get("message_file"):

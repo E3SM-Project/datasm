@@ -73,57 +73,66 @@ class Workflow(object):
         """
         Parameters: 
             dataset (Dataset) : The dataset which is changing state
-            state (string) : The state to move out from (trimmed to "target_state" below)
+            state (string) : The state to move out from (trimmed to "test_state" below)
             idx (int) : The recursive depth index
         Returns the name of the next state to transition to given the current state of the dataset
         """
+        log_message("info", " ----- entered next_state() ----- ")
         log_message("info", f"WF_init next_state: self.name = {self.name} for dataset {dataset.dataset_id}")
-        log_message("debug", f"WF_init next_state: self.name = {self.name}")
-        log_message("debug", f"WF_init next_state: idx = {idx} (depth)")
         log_message("debug", f"WF_init next_state: current state = {state}")
         # import ipdb; ipdb.set_trace()
         self.print_debug(f"next_state: current = *{state}*")
         state_attrs = state.split(':')
         if len(state_attrs) < 3:
-            target_state = state
+            test_state = state
         else:
-            target_state = f"{state_attrs[-3]}:{state_attrs[-2]}"
+            test_state = f"{state_attrs[-3]}:{state_attrs[-2]}"       # OMG this is brittle.
+
+        # test_state = test_state.upper()
+        state_attrs_curr = state_attrs[idx].upper()
+
         prefix = self.get_status_prefix()
-        log_message("debug", f"WF_init next_state: state_attrs = {state_attrs}")
-        log_message("debug", f"WF_init next_state: curr target_state = {target_state}")
+        log_message("info", f"WF_init next_state: status_prefix = {prefix}")
+        log_message("info", f"WF_init next_state: state_attrs = {state_attrs}")
+        log_message("info", f"WF_init next_state: curr test_state = {test_state}")
         log_message("debug", f"WF_init next_state: self.transitions.keys = {self.transitions.keys()}")
         log_message("debug", f"WF_init next_state: self.children.keys = {self.children.keys()}")
 
-        if target_state in self.transitions.keys():
+        if test_state in self.transitions.keys():
+            log_message("info", f"WF_init next_state: test_state {test_state} FOUND in self.transition.keys: leads to {self.transitions[test_state]}")
             if dataset.grid == "native":
                 target_data_type = f'{dataset.realm}-native-{dataset.freq}'
             else:
                 target_data_type = f'{dataset.realm}-{dataset.data_type.replace("-", "")}-{dataset.freq}'
 
-            log_message("debug", f"WF_init next_state: target_data_type = {target_data_type}")
+            log_message("info", f"WF_init next_state: target_data_type = {target_data_type}")
             self.print_debug(f"target_data_type: {target_data_type}")
-            transitions = self.transitions[target_state].get(target_data_type)
-            log_message("debug", f"WF_init next_state: transitions = {transitions}")
+            transitions = self.transitions[test_state].get(target_data_type)
+            log_message("info", f"WF_init next_state: transitions = {transitions}")
             if transitions is None:
                 try:
-                    return [(f'{prefix}{x}:', self, params) for x in self.transitions[target_state]['default']]
+                    return [(f'{prefix}{x}:', self, params) for x in self.transitions[test_state]['default']]
                 except KeyError as e:
-                    log_message('error', f"Dataset {dataset.dataset_id} tried to go to the 'default' transition from the {target_state}, but no default was found")
+                    log_message('error', f"Dataset {dataset.dataset_id} tried to go to the 'default' transition from the {test_state}, but no default was found")
                     sys.exit(1)
             else:
                 ret_list = [(f'{prefix}{x}:', self, params) for x in transitions]
                 log_message("info", f"WF_init next_state: for {dataset.dataset_id} returning {ret_list}")
                 return ret_list
 
-        elif state_attrs[idx] == "WAREHOUSE":
-            return self.next_state(dataset, state, params, idx + 1)
+        elif state_attrs_curr == "WAREHOUSE":
+            return self.next_state(dataset, state, params, idx + 1)     # jump over "WAREHOUSE" state component, try again
 
         # import ipdb; ipdb.set_trace()
-        elif state_attrs[idx] in self.children.keys():
-            return self.children[state_attrs[idx]].next_state(dataset, state, params, idx + 1)
+        elif state_attrs_curr in self.children.keys():
+            log_message("info", f"WF_init next_state: state_attrs_curr {state_attrs_curr} FOUND in self.children.keys: leads to {self.children[state_attrs_curr]}")
+            return self.children[state_attrs_curr].next_state(dataset, state, params, idx + 1)  # recurse
 
         else:
-            log_message('error', f"WF_init next_state: target state {target_state} is not present in the transition graph for {self.name}")
+            log_message("error", f"WF_init next_state: target state {test_state} is not present in the transition graph for {self.name}")
+            log_message("error", f"WF_init next_state: (info) idx={idx}, state_attrs_curr = {state_attrs_curr}")
+            log_message("error", f"WF_init next_state: (info) child_keys: {self.children.keys()}")
+
             # import ipdb; ipdb.set_trace()
             sys.exit(1)
 
