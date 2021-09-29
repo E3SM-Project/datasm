@@ -156,7 +156,7 @@ def main():
                 outstream.write(message)
                 con_message("info", message)
         else:
-            con_message("info", f"cannot obtain message_file (from message_path) from environment for message {message}")
+            con_message("warning", f"cannot obtain message_file (from message_path) from environment for message {message}")
 
     con_message("info", f"calling conduct_move with method {move_method}")
 
