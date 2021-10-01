@@ -26,20 +26,20 @@ helptext = '''
     Requires input file of one or more dataset_ids.
 
     The default behavior is to verify the ESGF publication status (proper match of files) for each dataset_id whose
-    data is found in the (default) publication_root directories, and then update the dataset status file accordingly.
-
-    If no status file can be found, one is NOT created. (May want to change that with a "--force-status" flag.)
+    data is found in the (default) publication_root directories, and reflect the status results to the console.
 
     In most cases, the line "<dataset_id>:<status>" is printed to stdout for each given dataset_id.
 
-    If -n, --no-status-update, the status files are unaffected and only messages are generated.
+    If -u, --update-status is supplied, then the corresponding dataset status file is updated accordingly.
+
+    If no status file can be found, one is NOT created. (May want to change that with a "--force-status" flag.)
 
     For each dataset_id listed in the input file:
         If the dataset is published and the pub_root version matches the esgf latest version and the list of files match,
-            Then report "PUBLICATION:Verified" (appending appropriate state to the status file.)
+            Then report "PUBLICATION:Verified" (appending appropriate state to the status file if "-u" supplied.)
         If the dataset is pub_root but appears unpublished, or other elements do not match,
             Then report "PUBLICATION:Verification_Fail:<reasons>" to the status file.
-        If the dataset is NOT in pub_root, issue warnings but do not update the status file.
+        If the dataset is NOT in pub_root, issue warnings but do not update the status file, irrespective of "-u".
 '''
 
 gv_stat_root = '/p/user_pub/e3sm/staging/status'
@@ -52,7 +52,7 @@ def assess_args():
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')
     required.add_argument('-i', '--input', action='store', dest="thedsidlist", type=str, required=True)
-    optional.add_argument('-n', '--no-status-update', action='store_true', dest="nostatupdt", required=False)
+    optional.add_argument('-u', '--update-status', action='store_true', dest="updatestatus", required=False)
 
     args = parser.parse_args()
 
@@ -279,7 +279,7 @@ def set_last_status_value(statfile,status_str):
 def main():
 
     pargs = assess_args()
-    do_stats = not pargs.nostatupdt
+    do_stats = pargs.updatestatus
 
     dsid_list = load_file_lines(pargs.thedsidlist)
 
