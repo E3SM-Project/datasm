@@ -1,6 +1,7 @@
 import sys
 import os
 import argparse
+import re
 from pathlib import Path
 from shutil import rmtree
 from subprocess import Popen, PIPE
@@ -79,7 +80,6 @@ def collision_free_name(apath, abase):
     return ret_file
 
 
-
 def conduct_move(args, move_method="none"):
     if move_method == "none":
         con_message("error","Move_to_Publication: Must set move_method to 'move' or to 'link'")
@@ -94,7 +94,7 @@ def conduct_move(args, move_method="none"):
 
     mapfile = next(src_path.parent.glob("*.map"))
     with open(mapfile, "r") as instream:
-        dataset_id = instream.readline().split("|")[0].strip().split("#")[0]
+        dataset_id = instream.readline().split("|")[0].strip().split("#")[0]    # just the first line, to obtain the dataset_id
     dst = Path(dst_path.parent, f"{dataset_id}.map")
     con_message("info", f"Moving the mapfile to {dst}")
     mapfile.replace(dst)
@@ -105,7 +105,7 @@ def conduct_move(args, move_method="none"):
             outstream.write(message)
             con_message("info", f"{message}")
     else:
-        con_message("info", f"Message is: {message}")
+        con_message("info", f"{message}")
 
     # DEBUG:  return 1 so that files are NOT moved
     # return 1
@@ -160,7 +160,11 @@ def main():
 
     con_message("info", f"calling conduct_move with method {move_method}")
 
-    return conduct_move(parsed_args, move_method)
+    retcode = conduct_move(parsed_args, move_method)
+    if retcode != 0:
+        con_message("error", f"move_to_publication: return code = {retcode}")
+
+    return 0
 
 
 if __name__ == "__main__":

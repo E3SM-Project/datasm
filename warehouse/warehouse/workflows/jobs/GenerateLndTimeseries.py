@@ -16,8 +16,17 @@ class GenerateLndTimeseries(WorkflowJob):
         exclude = self._spec['project']['E3SM'][self.dataset.model_version][self.dataset.experiment].get('except', [])
         variables = [x for x in self._spec['time-series']['land'] if x not in exclude]
 
+        dsid = f"{self.dataset.dataset_id}"
+        native_resolution = dsid.split(".")[3]
+        # NOTE: available grids are defined in resources/warehouse_config.yaml
+        mapkey = "ne30_to_180x360"
+        if native_resolution == "0_25deg_atm_18-6km_ocean":
+            mapkey = "ne120np4_to_cmip6_720x1440"
+            # or else maybe "ne120np4_to_cmip6_180x360"
+
+        map_path = self.config['grids'][mapkey]
+
         raw_dataset = self.requires['land-native-mon']
-        map_path = self.config['grids']['ne30_to_180x360']
         native_out = f"{self.dataset.latest_warehouse_dir}-tmp/"
 
         start = self.dataset.start_year

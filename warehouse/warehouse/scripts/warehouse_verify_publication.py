@@ -14,6 +14,7 @@ from subprocess import Popen, PIPE
 from pathlib import Path
 from datetime import datetime
 from pytz import UTC
+from termcolor import colored, cprint
 
 
 # -----------------------------------------------
@@ -138,8 +139,7 @@ def load_file_lines(file_path):
 
 # -----------------------------------------------
 
-def safe_search_esgf(
-    project,
+def raw_search_esgf(
     facets,
     offset="0",
     limit="50",
@@ -152,7 +152,6 @@ def safe_search_esgf(
     Make a search request to an ESGF node and return information about the datasets that match the search parameters
 
     Parameters:
-        project (str): The ESGF project to search inside
         facets (dict): A dict with keys of facets, and values of facet values to search
         offset (str) : offset into available results to return data
         limit (str)  : number of results to return (default = 50, max = 10000)
@@ -167,9 +166,9 @@ def safe_search_esgf(
         return None
 
     if len(facets):
-        url = f"https://{node}/esg-search/search/?offset={offset}&limit={limit}&project={project}&type={qtype}&format=application%2Fsolr%2Bjson&latest={latest}&fields={fields}&{'&'.join([f'{k}={v}' for k,v in facets.items()])}"
+        url = f"https://{node}/esg-search/search/?offset={offset}&limit={limit}&type={qtype}&format=application%2Fsolr%2Bjson&latest={latest}&fields={fields}&{'&'.join([f'{k}={v}' for k,v in facets.items()])}"
     else:
-        url = f"https://{node}/esg-search/search/?offset={offset}&limit={limit}&project={project}&type={qtype}&format=application%2Fsolr%2Bjson&latest={latest}&fields={fields}"
+        url = f"https://{node}/esg-search/search/?offset={offset}&limit={limit}&type={qtype}&format=application%2Fsolr%2Bjson&latest={latest}&fields={fields}"
 
     # print(f"Executing URL: {url}")
     req = requests.get(url)
@@ -188,8 +187,7 @@ def safe_search_esgf(
 
 # ----------------------------------------------
 
-def paginate_query(
-    project,
+def safe_search_esgf(
     facets,
     node="esgf-node.llnl.gov",
     qtype="Dataset",
@@ -210,15 +208,16 @@ def paginate_query(
 
     full_docs = list()
 
+    qlimit = 10000
     curr_offset = 0
 
     while True:
-        docs = safe_search_esgf(project, facets, offset=curr_offset, limit=10000, qtype=f"{qtype}", fields=f"{fields}", latest=f"{latest}")
-        # print(f"DEBUG: safe_search returned {len(docs)} records")
+        docs = raw_search_esgf(facets, offset=curr_offset, limit=f"{qlimit}", qtype=f"{qtype}", fields=f"{fields}", latest=f"{latest}")
+        # print(f"DEBUG: raw_search returned {len(docs)} records")
         full_docs = full_docs + docs
-        if len(docs) < 10000:
+        if len(docs) < qlimit:
             return full_docs
-        curr_offset += 10000
+        curr_offset += qlimit
         # time.sleep(1)
 
     return full_docs
@@ -294,6 +293,9 @@ def main():
         project = dsid.split(".")[0]
         if project == "E3SM":
             project = project.lower()
+        add_facet = dict()
+        if project == "CMIP6":
+            add_facet = { "institution_id": "E3SM-Project" }
 
         if do_stats:
             statname = f"{dsid}.status"
@@ -326,14 +328,25 @@ def main():
         # print(f"DBG: p_len = {p_len}")
 
         # obtain data from ESGF search API
-        docs = paginate_query(project, {"master_id": dsid}, qtype="Dataset", fields="version,data_node")
+        facets = {"project": f"{project}", "master_id": dsid}
+        facets.update(add_facet)
+
+        docs = safe_search_esgf(facets, qtype="Dataset", fields="version,data_node")
+        if not docs:
+            reason = f"Dataset query returned empty docs"
+            log_message("error", f"dataset_id {dsid}: {reason}")
+            continue
+
         for item in docs: # should be only one
             version = item['version']
             data_node = item['data_node']
 
         dataset_id = f"{dsid}.v{version}|{data_node}"
 
-        docs = paginate_query(project, {"dataset_id": dataset_id}, qtype="File", fields="title")
+        facets = {"project": f"{project}", "dataset_id": dataset_id}
+        facets.update(add_facet)
+
+        docs = safe_search_esgf({"project": f"{project}", "dataset_id": dataset_id}, qtype="File", fields="title")
         if not docs:
             print(f"{dsid}:Empty docs!")
             continue
