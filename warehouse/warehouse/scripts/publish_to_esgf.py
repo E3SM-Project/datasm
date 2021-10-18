@@ -108,7 +108,7 @@ def publish_dataset(args):
             )
             proc.wait()
 
-        con_message("info", f"Return code {str(proc.returncode)} on cmd: {cmd}")
+        # con_message("info", f"Return code {str(proc.returncode)} on cmd: {cmd}")      # generated weird error in 3_Publish/slurm_scripts-20211013_185431_334581
 
         return proc.returncode
 

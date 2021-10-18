@@ -7,6 +7,8 @@ DEFAULT_PLOT_PATH: /var/www/acme/acme-diags/baldwin32/cmip_verification
 grids:
   ne30_to_180x360: /home/zender1/data/maps/map_ne30np4_to_cmip6_180x360_aave.20181001.nc
   oEC60to30_to_180x360: /home/zender1/data/maps/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc
+  ne120np4_to_cmip6_180x360: /home/zender1/data/maps/map_ne120np4_to_cmip6_180x360_aave.20181001.nc
+  ne120np4_to_cmip6_720x1440: /home/zender1/data/maps/map_ne120np4_to_cmip6_720x1440_aave.20181001.nc
 
 cmip_metadata_path: /p/user_pub/e3sm/baldwin32/resources/CMIP6-Metadata/
 cmip_tables_path: /home/baldwin32/projects/cmip6-cmor-tables/Tables/
