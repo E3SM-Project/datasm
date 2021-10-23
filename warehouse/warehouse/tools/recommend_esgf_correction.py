@@ -172,7 +172,7 @@ def raw_search_esgf(
     else:
         url = f"https://{node}/esg-search/search/?offset={offset}&limit={limit}&type={qtype}&format=application%2Fsolr%2Bjson&latest={latest}&fields={fields}"
 
-    # print(f"Executing URL: {url}")
+    print(f"DEBUG: Executing URL: {url}")
     req = requests.get(url)
     # print(f"BIG_DEBUG: type req = {type(req)}, req.json()={req.json()}")
     retcode = req.json()["responseHeader"]["status"]
@@ -360,10 +360,10 @@ def main():
         for record in docs:
             if record['version'] == max_latest_version:
                 if record['latest'] != True:
-                    print(f"{dsid}.{max_latest_version}|{record['data_node']},latest,True")
+                    print(f"{dsid}.v{max_latest_version}|{record['data_node']},latest,True")
             else:
                 if record['latest'] != False:
-                    print(f"{dsid}.{record['version']}|{record['data_node']},latest,False")
+                    print(f"{dsid}.v{record['version']}|{record['data_node']},latest,False")
 
 
     sys.exit(0)
