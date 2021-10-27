@@ -276,10 +276,22 @@ def get_last_status_value(statlist):
     return list()
 
 def set_last_status_value(statfile,status_str):
+    if os.access(statfile, os.W_OK):
+        with open(statfile, "a") as outstream:
+            tstamp =  UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+            msg = f'STAT:{tstamp}:{status_str}'
+            outstream.write(msg + "\n")
+    else:
+        log_message("warning", f"No permission to write {statfile}")
+
+'''
+
+def set_last_status_value(statfile,status_str):
     with open(statfile, "a") as outstream:
         tstamp =  UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
         msg = f'STAT:{tstamp}:{status_str}'
         outstream.write(msg + "\n")
+'''
 
 # -----------------------------------------------
 
@@ -305,34 +317,44 @@ def main():
         if project == "CMIP6" and not pargs.unrestricted:
             add_facet = { "institution_id": "E3SM-Project" }
 
+        got_sfile = False
+        got_stats = False
         if do_stats:
             statname = f"{dsid}.status"
             statfile = stat_root / statname
             # print(f"statfile = {statfile}")
             statents = load_file_lines(statfile)
             if not statents:
-                log_message("error", f"warehouse_verify_publication: No status file entries in file: {statfile}")
+                log_message("error", f"warehouse_verify_publication: No status file or status file entries in file: {statfile}")
                 continue
+            got_sfile = True
             last_stats = get_last_status_value(statents)
-            # print(f"Last Stat = {last_stats}")
+            if len(last_stats):
+                got_stats = True
+                # print(f"Last Stat = {last_stats}")
+
+        log_message("info", f"Processing:{dsid}: statfile={got_sfile},stat_ents={got_stats}")
+
         facet_path = Path(dsid.replace('.', '/'))
         ds_path = pub_root / facet_path
         dsp = f"{ds_path}"
+        p_set = set()
+        p_len = 0
+        p_ver = ""
         if not os.path.exists(dsp):
             log_message("warning", f"{dsid}: No dataset publication path exists {dsp}")
-            p_set = set()
-            p_len = 0
         else:
             v_list = next(os.walk(dsp))[1]
-            maxv = maxversion(v_list)
-            pub_path = ds_path / Path(maxv)
-            # print(f"pub_path = {pub_path}")
-            pfiles = get_path_files(pub_path)
-            if not pfiles or len(pfiles) == 0:
-                log_message("warning", f"{dsid}: No dataset publication path files exist in {dsp}")
-            p_set = set(pfiles)
-            p_len = len(p_set)
-        # print(f"DBG: p_len = {p_len}")
+            p_ver = maxversion(v_list)
+            if p_ver != "vNONE":
+                pub_path = ds_path / Path(p_ver)
+                # print(f"pub_path = {pub_path}")
+                pfiles = get_path_files(pub_path)
+                if not pfiles or len(pfiles) == 0:
+                    log_message("warning", f"{dsid}: No dataset publication path files exist in {dsp}")
+                else:
+                    p_set = set(pfiles)
+                    p_len = len(p_set)
 
         # obtain data from ESGF search API
         facets = {"project": f"{project}", "master_id": dsid, "replica": "False"}
@@ -341,7 +363,7 @@ def main():
         docs, numFound = safe_search_esgf(facets, qtype="Dataset", fields="version,data_node,latest")
         if not docs:
             reason = f"Dataset query returned empty docs"
-            log_message("error", f"Dataset_ID {dsid}: {reason}")
+            log_message("error", f"{dsid}: {reason}")
             continue
 
         # ENSURE we are examining the highest version of "latest=True" ONLY.
@@ -359,10 +381,19 @@ def main():
                 best_record = record
                 break
 
-        version = best_record['version']
+        version = f"v{best_record['version']}"
         data_node = best_record['data_node']
 
-        dataset_id = f"{dsid}.v{version}|{data_node}"
+        if version != p_ver:    # inconsistent "max" versions
+            reason = f"MismatchedVersions: (p_ver;s_ver) = ({p_ver};{version})"
+            statmsg = f"PUBLICATION:Verification_Fail:{reason}"
+            verbmsg = statmsg
+            if do_stats:
+                set_last_status_value(statfile, statmsg)
+            print(f"{dsid}:{verbmsg}")
+            continue
+        
+        dataset_id = f"{dsid}.{version}|{data_node}"
 
         facets = {"project": f"{project}", "dataset_id": dataset_id}
         facets.update(add_facet)
@@ -370,7 +401,7 @@ def main():
         docs, numFound = safe_search_esgf({"project": f"{project}", "dataset_id": dataset_id}, qtype="File", fields="title")
         if not docs:
             reason = f"File query returned empty docs"
-            log_message("error", f"Dataset_ID {dsid}: {reason}")
+            log_message("error", f"{dsid}: {reason}")
             continue
 
         s_set = set({ f"{item['title']}" for item in docs })
@@ -379,8 +410,6 @@ def main():
         if s_len > 0 and s_set == p_set:   # publication verified
             statmsg = "PUBLICATION:Verified"
             verbmsg = statmsg
-            if numFound != s_len:
-                verbmsg = f"PUBLICATION:Verified (But numFound = {numFound}, s_len = {s_len})"
         else:
             if( not s_set or s_len == 0 ):
                 reason = f"No ESGF publication found for {dsid}"
@@ -393,9 +422,7 @@ def main():
             verbmsg = statmsg
 
         if do_stats:
-            # print(f"(ersatz) stat message: {statmsg}")
             set_last_status_value(statfile, statmsg)
-
         print(f"{dsid}:{verbmsg}")
 
 

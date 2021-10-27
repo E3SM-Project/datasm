@@ -5,7 +5,7 @@ from argparse import RawTextHelpFormatter
 import requests
 import time
 from datetime import datetime
-from pytz import UTC
+import pytz
 import yaml
 
 '''
@@ -24,9 +24,9 @@ ds_struct. Update the entry (adding new if not found) with data appropriate to t
 '''
 
 helptext = '''
-    Usage:  awps_dataset_status -s sproket_publication_report
+    Usage:  consolidated_cmip_dataset_report [--unrestricted]
 
-        The awps_dataset_status is produced by plying 5 sources to determine whether datasets exist
+        The report is produced by plying 5 sources to determine whether datasets exist
         in any of (DatasetSpec,Archive,Warehouse,PubDirs,(ESGF)SearchNode), hereafter (D,A,W,P,S).
 
         Existence is determined by:
@@ -37,6 +37,7 @@ helptext = '''
         (P):  The Publication directories (/p/user_pub/work/E3SM/(facets)/[v0|v1...]/
         (S):  The (ESGF) Search node (determined by live https request queries to esgf-node.llnl.gov)
 
+    if [--unrestricted] is specified, datasets will be included even if they do NOT appear in the Dataset_Spec.
 '''
 
 # INPUT FILES (These could be in a nice config somewhere.  staging/.paths
@@ -56,23 +57,19 @@ gv_csv = True
 # esgf_pr   = '/p/user_pub/e3sm/bartoletti1/Pub_Status/sproket/ESGF_publication_report-20200915.144250'
 
 def ts():
-    return UTC.localize(datetime.utcnow()).strftime('%Y%m%d_%H%M%S_%f')
+    return pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
 
 def assess_args():
-    global thePWD
-    global esgf_pr
-    global gv_csv
 
-    thePWD = os.getcwd()
-    # parser = argparse.ArgumentParser(description=helptext, prefix_chars='-')
     parser = argparse.ArgumentParser(description=helptext, prefix_chars='-', formatter_class=RawTextHelpFormatter)
     parser._action_groups.pop()
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')
 
-    # required.add_argument('-s', action='store', dest="esgf_pr", type=str, required=True)
+    optional.add_argument('--unrestricted', action='store_true', dest="unrestricted", required=False)
+
     args = parser.parse_args()
-    # esgf_pr = args.esgf_pr
+    return args
 
 # Generic Convenience Functions =============================
 
@@ -86,8 +83,7 @@ def loadFileLines(afile):
 
 # HTTP Request Functions ====================================
 
-def safe_search_esgf(
-    project,
+def raw_search_esgf(
     facets,
     offset="0",
     limit="50",
@@ -100,7 +96,6 @@ def safe_search_esgf(
     Make a search request to an ESGF node and return information about the datasets that match the search parameters
 
     Parameters:
-        project (str): The ESGF project to search inside
         facets (dict): A dict with keys of facets, and values of facet values to search
         offset (str) : offset into available results to return data
         limit (str)  : number of results to return (default = 50, max = 10000)
@@ -115,9 +110,9 @@ def safe_search_esgf(
         return None
 
     if len(facets):
-        url = f"https://{node}/esg-search/search/?offset={offset}&limit={limit}&project={project}&type={qtype}&format=application%2Fsolr%2Bjson&latest={latest}&fields={fields}&{'&'.join([f'{k}={v}' for k,v in facets.items()])}"
+        url = f"https://{node}/esg-search/search/?offset={offset}&limit={limit}&type={qtype}&format=application%2Fsolr%2Bjson&latest={latest}&fields={fields}&{'&'.join([f'{k}={v}' for k,v in facets.items()])}"
     else:
-        url = f"https://{node}/esg-search/search/?offset={offset}&limit={limit}&project={project}&type={qtype}&format=application%2Fsolr%2Bjson&latest={latest}&fields={fields}"
+        url = f"https://{node}/esg-search/search/?offset={offset}&limit={limit}&type={qtype}&format=application%2Fsolr%2Bjson&latest={latest}&fields={fields}"
 
     # print(f"Executing URL: {url}")
     req = requests.get(url)
@@ -125,19 +120,20 @@ def safe_search_esgf(
 
     if req.status_code != 200:
         # print(f"ERROR: ESGF search request returned non-200 status code: {req.status_code}")
-        return list()
+        return list(), 0
+
+    numFound = req.json()["response"]["numFound"]
 
     docs = [
         {k: v for k, v in doc.items()}
         for doc in req.json()["response"]["docs"]
     ]
 
-    return docs
+    return docs, numFound
 
 # ----------------------------------------------
 
-def paginate_query(
-    project,
+def safe_search_esgf(
     facets,
     node="esgf-node.llnl.gov",
     qtype="Dataset",
@@ -157,19 +153,22 @@ def paginate_query(
     """
 
     full_docs = list()
+    full_found = 0
 
+    qlimit=10000
     curr_offset = 0
 
     while True:
-        docs = safe_search_esgf(project, facets, offset=curr_offset, limit=10000, qtype=f"{qtype}", fields=f"{fields}", latest=f"{latest}")
-        # print(f"DEBUG: safe_search returned {len(docs)} records")
+        docs, numFound = raw_search_esgf(facets, offset=curr_offset, limit=f"{qlimit}", qtype=f"{qtype}", fields=f"{fields}", latest=f"{latest}")
+        # print(f"DEBUG: raw_search returned {len(docs)} records")
         full_docs = full_docs + docs
-        if len(docs) < 10000:
-            return full_docs
-        curr_offset += 10000
+        full_found = full_found + numFound
+        if len(docs) < qlimit:
+            return full_docs, full_found
+        curr_offset += qlimit
         # time.sleep(1)
 
-    return full_docs
+    return full_docs, full_found
 
 # ----------------------------------------------
 
@@ -249,15 +248,37 @@ def isVLeaf(_):
         return True
     return False
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+def maxversion(vlist):
+    nlist = list()
+    for txt in vlist:
+        if not is_number(txt[1:]):
+            continue
+        nlist.append(float(txt[1:]))
+    if not nlist or len(nlist) == 0:
+        return "vNONE"
+    nlist.sort()
+    retv = nlist[-1]
+    if retv.is_integer():
+        return f"v{int(retv)}"
+    return f"v{retv}"
+
+
 def get_maxv_info(edir):
     ''' given an ensemble directory, return the max "v#" subdirectory and its file count '''
-    tuplist = []
+    v_dict = dict()
     for root, dirs, files in os.walk(edir):
         if not dirs:
-            tuplist.append(tuple([os.path.split(root)[1],len(files)]))
-    tuplist.sort()
-    return tuplist[-1]
-    
+            v_dict[os.path.split(root)[1]] = len(files)
+    maxv = maxversion(v_dict.keys())
+    return maxv, v_dict[maxv]
+
 def get_leaf_dirs_by_walk(rootpath,project):
     leaf_dirs = []
     seekpath = os.path.join(rootpath,project)
@@ -267,7 +288,8 @@ def get_leaf_dirs_by_walk(rootpath,project):
     return leaf_dirs
 
 def get_dataset_path_tuples(rootpath):
-    leaf_dirs = get_leaf_dirs_by_walk(rootpath,'E3SM')
+    # leaf_dirs = get_leaf_dirs_by_walk(rootpath,'E3SM')
+    leaf_dirs = get_leaf_dirs_by_walk(rootpath,'CMIP6')
     path_tuples = list()
     for adir in leaf_dirs:
         ensdir, vleaf = os.path.split(adir)
@@ -298,7 +320,12 @@ def get_sf_laststat(dsid):
     sf_path = get_statfile_path(dsid)
     if sf_path == '':
         return ':NO_STATUS_FILE_PATH'
-    sf_list = loadFileLines(sf_path)
+    sf_rawlist = loadFileLines(sf_path)
+    sf_list = list()
+    for aline in sf_rawlist:
+        if aline.split(':')[0] != "STAT":
+            continue
+        sf_list.append(aline)
     if len(sf_list) == 0:
         return ':EMPTY_STATUS_FILE'
     sf_last = sf_list[-1]
@@ -309,14 +336,15 @@ def get_sf_laststat(dsid):
 
 ds_struct[] will be keyed by FULL DSID.  The Values with be a dictionary of 
 
-    Campaign, Model, Experiment, Resolution, Ensemble, Output_Type, DatasetType, Realm, Grid, Freq, AWPS, A, W, P, S, StatDate, Status, W_Version, W_Count, P_Version, P_Count, S_Version, S_Count, W_Path, P_Path, FirstFile, LastFile
+    (E3SM):  Campaign, Model, Experiment, Resolution, Ensemble, Output_Type, DatasetType, Realm, Grid, Freq, DAWPS, D, A, W, P, S, StatDate, Status, W_Version, W_Count, P_Version, P_Count, S_Version, S_Count, W_Path, P_Path, FirstFile, LastFile
+    (CMIP6): Project, Activity, Institution, SourceID, Experiment, Variant, Frequency, Variable, Grid, DAWPS, D, A, W, P, S, StatDate, Status, W_Version, W_Count, P_Version, P_Count, S_Version, S_Count, W_Path, P_Path, FirstFile, LastFile
 
 '''
  
 # ==== new stuff ==== #
 
 def new_ds_record():
-    return { 'project':'', 'campaign':'', 'model':'', 'experiment':'', 'ensemble':'', 'output_type':'', 'datasettype':'', 'realm':'', 'grid':'', 'frequency':'', 'DAWPS':'', 'D':'_', 'A':'_', 'W':'_', 'P':'_', 'S':'_', 'StatDate':'', 'Status':'', \
+    return { 'Project':'', 'Activity':'', 'Institution':'', 'SourceID':'', 'Experiment':'', 'Variant':'', 'Frequency':'', 'Variable':'', 'Grid':'', 'DAWPS':'', 'D':'_', 'A':'_', 'W':'_', 'P':'_', 'S':'_', 'StatDate':'', 'Status':'', \
         'W_Version':'', 'W_Count':0, 'P_Version':'', 'P_Count':0, 'S_Version':'', 'S_Count':0, 'W_Path':'', 'P_Path':'', 'FirstFile':'', 'LastFile':'' }
 
 def realm_grid_freq_from_dstype(dstype):
@@ -363,7 +391,10 @@ def campaign_via_model_experiment(model,experiment):
 
 def collect_esgf_search_datasets():
 
-    docs = safe_search_esgf("e3sm", list(), limit=1000, qtype="Dataset", fields="id,title,instance_id,version,data_node,number_of_files")  # test if datanode made a difference
+    project = "CMIP6"
+    facets = { "project": f"{project}", "institution_id": "E3SM-Project" }
+
+    docs, numFound = safe_search_esgf(facets, qtype="Dataset", fields="id,title,instance_id,version,data_node,number_of_files")  # test if datanode made a difference
 
     if docs == None:
         print("ERROR: could not execute Dataset query")
@@ -391,11 +422,11 @@ def collect_esgf_search_datasets():
         f_count = esgf_collected[ident]["file_count"]
         total_file_count += f_count
 
-        facets = {"dataset_id": f"{dataset_id_key}"}
+        facets = {"project": f"{project}", "dataset_id": f"{dataset_id_key}"}
 
-        docs = paginate_query("e3sm", facets, qtype="File", fields="title")     # title is filename here
+        docs, numFound = safe_search_esgf(facets, qtype="File", fields="title")     # title is filename here
 
-        if len(docs) == 0:
+        if not docs or len(docs) == 0:
             # print(f"PROBLEM: {ident}: No records returned.")  # check if datanode is the criteria
             continue
         if len(docs) != f_count:
@@ -417,28 +448,27 @@ def collect_esgf_search_datasets():
 
 # ==== generate dsids from dataset spec
 
-def collect_e3sm_datasets(dataset_spec):
-    for version in dataset_spec['project']['E3SM']:
-        for experiment, experimentinfo in dataset_spec['project']['E3SM'][version].items():
-            for ensemble in experimentinfo['ens']:
-                for res in experimentinfo['resolution']:
-                    for comp in experimentinfo['resolution'][res]:
-                        for item in experimentinfo['resolution'][res][comp]:
-                            for data_type in item['data_types']:
-                                if item.get('except') and data_type in item['except']:
-                                    continue
-                                dataset_id = f"E3SM.{version}.{experiment}.{res}.{comp}.{item['grid']}.{data_type}.{ensemble}"
-                                yield dataset_id
+def collect_cmip_datasets(dataset_spec):
+    for activity_name, activity_val in dataset_spec['project']['CMIP6'].items():
+        for version_name, version_value in activity_val.items():
+            for experimentname, experimentvalue in version_value.items():
+                for ensemble in experimentvalue['ens']:
+                    for table_name, table_value in dataset_spec['tables'].items():
+                        for variable in table_value:
+                            if variable in experimentvalue['except'] or table_name in experimentvalue['except']:
+                                continue
+                            dataset_id = f"CMIP6.{activity_name}.E3SM-Project.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr"
+                            yield dataset_id
 
 
 def dsids_from_dataset_spec(dataset_spec_path):
     with open(dataset_spec_path, 'r') as instream:
         dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
-        # cmip6_ids = [x for x in collect_cmip_datasets(dataset_spec)]
-        e3sm_ids = [x for x in collect_e3sm_datasets(dataset_spec)]
+        cmip6_ids = [x for x in collect_cmip_datasets(dataset_spec)]
+        # e3sm_ids = [x for x in collect_e3sm_datasets(dataset_spec)]
         # dataset_ids = cmip6_ids + e3sm_ids
 
-    return e3sm_ids
+    return cmip6_ids
     # return dataset_ids
 
 
@@ -470,27 +500,22 @@ def dsid_from_archive_map(amline):
     dsid = '.'.join(dsid_items)
     return dsid
 
+    # CMIP6.C4MIP.E3SM-Project.E3SM-1-1-ECA.hist-bgc.r1i1p1f1.3hr.pr_highfreq.gr
+    # project.activity.institution.sourceid.experiment.variant.freq.variable.grid
+
 def dict_from_dsid(dsid):
+    # print(f"dict_from_dsid: {dsid}")
     dsiddict = dict()
     dsidlist = dsid.split('.')
-    dsiddict['project'] = dsidlist[0]
-    dsiddict['model'] = dsidlist[1]
-    dsiddict['experiment'] = dsidlist[2]
-    dsiddict['resolution'] = dsidlist[3]
-    if len(dsidlist) > 9:
-        dsiddict['tuning'] = dsidlist[4]
-        dsiddict['realm'] = dsidlist[5]
-        dsiddict['grid'] = dsidlist[6]
-        dsiddict['outputtype'] = dsidlist[7]
-        dsiddict['frequency'] = dsidlist[8]
-        dsiddict['ensemble'] = dsidlist[9]
-    else:
-        dsiddict['tuning'] = ''
-        dsiddict['realm'] = dsidlist[4]
-        dsiddict['grid'] = dsidlist[5]
-        dsiddict['outputtype'] = dsidlist[6]
-        dsiddict['frequency'] = dsidlist[7]
-        dsiddict['ensemble'] = dsidlist[8]
+    dsiddict['Project'] = dsidlist[0]
+    dsiddict['Activity'] = dsidlist[1]
+    dsiddict['Institution'] = dsidlist[2]
+    dsiddict['SourceID'] = dsidlist[3]          # ~model
+    dsiddict['Experiment'] = dsidlist[4]
+    dsiddict['Variant'] = dsidlist[5]
+    dsiddict['Frequency'] = dsidlist[6]
+    dsiddict['Variable'] = dsidlist[7]
+    dsiddict['Grid'] = dsidlist[8]
 
     return dsiddict
 
@@ -513,36 +538,32 @@ def dsid_from_warehouse_path(whpath):
 def dsid_from_publication_path(pbpath):
     return '.'.join(pbpath.split(os.sep)[4:])
 
-def dsid_from_sproket_rep(vline):
-    return '.'.join(vline.split('.')[:-1])
-
 def init_ds_record_from_dsid(dsrec,dsid):
     dsiddict = dict_from_dsid(dsid)
     for key in dsiddict.keys():
         dsrec[key] = dsiddict[key]
-    dsrec['datasettype'] = get_dsid_dstype(dsid)
+    # dsrec['datasettype'] = get_dsid_dstype(dsid)
 
 def dumplist(alist):
     for item in alist:
         print(f'DUMPING: {item}', flush = True)
 
 def report_ds_struct(ds_struct):
-    out_line = 'Campaign,Model,Experiment,Resolution,Ensemble,OutputType,DatasetType,Realm,Grid,Freq,DAWPS,D,A,W,P,S,StatDate,Status,W_Version,W_Count,P_Version,P_Count,S_Version,S_Count,W_Path,P_Path,FirstFile,LastFile'
+    out_line = 'Project,Activity,Institution,SourceID,Experiment,Variant,Frequency,Variable,Grid,DAWPS,D,A,W,P,S,StatDate,Status,W_Version,W_Count,P_Version,P_Count,S_Version,S_Count,W_Path,P_Path,FirstFile,LastFile'
     print(f'{out_line}')
         
     for dsid in ds_struct:
         ds = ds_struct[dsid]
         out_list = []
-        out_list.append(ds['campaign'])
-        out_list.append(ds['model'])
-        out_list.append(ds['experiment'])
-        out_list.append(ds['resolution'])
-        out_list.append(ds['ensemble'])
-        out_list.append(ds['outputtype'])
-        out_list.append(ds['datasettype'])
-        out_list.append(ds['realm'])
-        out_list.append(ds['grid'])
-        out_list.append(ds['frequency'])
+        out_list.append(ds['Project'])
+        out_list.append(ds['Activity'])
+        out_list.append(ds['Institution'])
+        out_list.append(ds['SourceID'])
+        out_list.append(ds['Experiment'])
+        out_list.append(ds['Variant'])
+        out_list.append(ds['Frequency'])
+        out_list.append(ds['Variable'])
+        out_list.append(ds['Grid'])
         out_list.append(ds['DAWPS'])
         out_list.append(ds['D'])
         out_list.append(ds['A'])
@@ -568,13 +589,15 @@ def report_ds_struct(ds_struct):
 debug = False
 
 ''' build
-    Project, Campaign, Model, Experiment, Resolution, Ensemble, OutputType, DatasetType, Realm, Grid, Freq, DAWPS, D, A, W, P, S,
+    Project, Activity, Institution, SourceID, Experiment, Variant, Frequency, Variable, Grid, DAWPS, D, A, W, P, S,
         StatDate, Status, W_Version, W_Count, P_Version, P_Count, S_Version, S_Count, W_Path, P_Path, FirstFile, LastFile
 '''
 
 def main():
 
-    assess_args()
+    args = assess_args()
+    unrestricted = args.unrestricted
+    print(f"DEBUG: unrestricted = {unrestricted}")
 
     ds_struct = dict()
 
@@ -588,18 +611,30 @@ def main():
         init_ds_record_from_dsid(ds, dsid)
         ds['D'] = 'D'
 
+    ds_count = len(ds_struct)
+    print(f"{ts()}:DEBUG: Completed Stage 0: dataset_spec: ds_count = {ds_count}", flush=True)
+
+    ''' OUCH.  No CMIP6 stuff exists in the Archive Map '''
     ''' STAGE 1:  Update ds_struct with datasets found in the archive_map. '''
 
+    '''
     # split the Archive_Map into a list of records, each record a list of fields
     #   Campaign,Model,Experiment,Resolution,Ensemble,DatasetType,ArchivePath,DatatypeTarExtractionPattern,Notes
     am_lines = loadFileLines(ARCH_MAP)
     for amline in am_lines:
         dsid = dsid_from_archive_map(amline)
         if not dsid in ds_struct:
-            ds_struct[dsid] = new_ds_record()
-            init_ds_record_from_dsid(ds_struct[dsid],dsid)
+            if unrestricted:
+                ds_struct[dsid] = new_ds_record()
+                init_ds_record_from_dsid(ds_struct[dsid],dsid)
+            else:
+                continue
         ds = ds_struct[dsid]
         ds['A'] = 'A'
+
+    ds_count = len(ds_struct)
+    print(f"{ts()}:DEBUG: Completed Stage 1: archive map: ds_count = {ds_count}", flush=True)
+    '''
 
     ''' STAGE 2:  Walk the warehouse.  Collect dataset path, max version, and filecount of max version '''
 
@@ -608,8 +643,11 @@ def main():
     for w_path in dataset_paths:
         dsid = dsid_from_warehouse_path(w_path)
         if not dsid in ds_struct:
-            ds_struct[dsid] = new_ds_record()
-            init_ds_record_from_dsid(ds_struct[dsid],dsid)
+            if unrestricted:
+                ds_struct[dsid] = new_ds_record()
+                init_ds_record_from_dsid(ds_struct[dsid],dsid)
+            else:
+                continue
         ds = ds_struct[dsid]
 
         ds['W'] = 'W'
@@ -617,6 +655,9 @@ def main():
         ds['W_Path'] = w_path
         ds['W_Version'] = maxv
         ds['W_Count'] = maxc
+
+    ds_count = len(ds_struct)
+    print(f"{ts()}:DEBUG: Completed Stage 2: warehouse: ds_count = {ds_count}", flush=True)
 
     ''' STAGE 3:  Walk the publication dirs. Collect dataset path, max version, and filecount of max version '''
 
@@ -626,8 +667,11 @@ def main():
     for p_path in dataset_paths:
         dsid = dsid_from_publication_path(p_path)
         if not dsid in ds_struct:
-            ds_struct[dsid] = new_ds_record()
-            init_ds_record_from_dsid(ds_struct[dsid],dsid)
+            if unrestricted:
+                ds_struct[dsid] = new_ds_record()
+                init_ds_record_from_dsid(ds_struct[dsid],dsid)
+            else:
+                continue
         ds = ds_struct[dsid]
 
         ds['P'] = 'P'
@@ -636,10 +680,8 @@ def main():
         ds['P_Version'] = maxv
         ds['P_Count'] = maxc
 
-    ''' DEBUG
-    for dsid in ds_struct:
-        print(f"IN_HOUSE:{dsid}")
-    '''
+    ds_count = len(ds_struct)
+    print(f"{ts()}:DEBUG: Completed Stage 3: publication: ds_count = {ds_count}", flush=True)
 
     ''' STAGE 4: Process the supplied (latest) sproket-generated ESGF_publication_report.  Collect max version, and filecount of max version. '''
 
@@ -652,32 +694,43 @@ def main():
     sys.exit(0)
     '''
 
-
-
     for dsid_key in esgf_report:
         dsid = esgf_report[dsid_key]["title"]
         vers = esgf_report[dsid_key]["version"]
         filecount = esgf_report[dsid_key]["file_count"]
         if not dsid in ds_struct:
-            ds_struct[dsid] = new_ds_record()
-            init_ds_record_from_dsid(ds_struct[dsid],dsid)
+            if unrestricted:
+                ds_struct[dsid] = new_ds_record()
+                init_ds_record_from_dsid(ds_struct[dsid],dsid)
+            else:
+                continue
         ds = ds_struct[dsid]
 
         ds['S'] = 'S'
         ds['S_Version'] = vers
         ds['S_Count'] = filecount
 
+    ds_count = len(ds_struct)
+    print(f"{ts()}:DEBUG: Completed Stage 4: esgf search: ds_count = {ds_count}", flush=True)
+
     ''' STAGE 5: Set Campaign, Seek a status file for each ds_struct entry, enter as "date" and "status", set AWPS code '''
 
     for dsid in ds_struct:
         ds = ds_struct[dsid]
         
-        ds['campaign'] = campaign_via_model_experiment(ds['model'],ds['experiment'])
+        # ds['campaign'] = campaign_via_model_experiment(ds['model'],ds['experiment'])
         sf_data = get_sf_laststat(dsid)
         sf_ts = sf_data.split(':')[0] 
-        ds['StatDate'] = clean_timestamp(sf_ts)             # date from last status value
-        ds['Status']  = ':'.join(sf_data.split(':')[1:])    # stat from last status value
+        ds['StatDate'] = clean_timestamp(sf_ts)        # date from last status value
+        stat_parts = sf_data.split(':')[1:]
+        if stat_parts[0] != "WAREHOUSE":
+            ds['Status'] = ':'.join(stat_parts)
+        else:
+            ds['Status'] = ':'.join(stat_parts[1:])    # stat from last status value
         ds['DAWPS'] = ds['D']+ds['A']+ds['W']+ds['P']+ds['S']
+
+    report_ds_struct(ds_struct)
+    sys.exit(0)
 
     # first file and last file of highest version in esgf_search, else in pub, else in warehouse
 
@@ -711,6 +764,8 @@ def main():
         dsid = dsid_from_warehouse_path(wh_tup[0])
         if dsid in dsids_covered:
             continue
+        if not dsid in ds_struct:
+            continue
         ds = ds_struct[dsid]
         if len(ds['FirstFile']):
             continue
@@ -721,6 +776,9 @@ def main():
             ds['LastFile'] = lfile
             dsids_covered.append(dsid)
         
+    ds_count = len(ds_struct)
+    print(f"{ts()}:DEBUG: Completed Stage 5: status files and first/last files: ds_count = {ds_count}", flush=True)
+
     ''' Print the Report '''
 
     report_ds_struct(ds_struct)
