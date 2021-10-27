@@ -114,7 +114,7 @@ def raw_search_esgf(
     else:
         url = f"https://{node}/esg-search/search/?offset={offset}&limit={limit}&type={qtype}&format=application%2Fsolr%2Bjson&latest={latest}&fields={fields}"
 
-    # print(f"Executing URL: {url}")
+    # print(f"DEBUG: Executing URL: {url}")
     req = requests.get(url)
     # print(f"type req = {type(req)}")
 
@@ -389,10 +389,14 @@ def campaign_via_model_experiment(model,experiment):
 
 # ==== Conduct ESGF Search Node Queries =======================
 
-def collect_esgf_search_datasets():
+def collect_esgf_search_datasets(unrestricted):
 
     project = "CMIP6"
-    facets = { "project": f"{project}", "institution_id": "E3SM-Project" }
+
+    if unrestricted:
+        facets = { "project": f"{project}" }
+    else:
+        facets = { "project": f"{project}", "institution_id": "E3SM-Project" }
 
     docs, numFound = safe_search_esgf(facets, qtype="Dataset", fields="id,title,instance_id,version,data_node,number_of_files")  # test if datanode made a difference
 
@@ -666,6 +670,7 @@ def main():
     dataset_paths = list(set([ atup[0] for atup in pb_path_tuples ]))
     for p_path in dataset_paths:
         dsid = dsid_from_publication_path(p_path)
+
         if not dsid in ds_struct:
             if unrestricted:
                 ds_struct[dsid] = new_ds_record()
@@ -683,9 +688,9 @@ def main():
     ds_count = len(ds_struct)
     print(f"{ts()}:DEBUG: Completed Stage 3: publication: ds_count = {ds_count}", flush=True)
 
-    ''' STAGE 4: Process the supplied (latest) sproket-generated ESGF_publication_report.  Collect max version, and filecount of max version. '''
+    ''' STAGE 4: Conduct ESGF Server search for published datasets.  Collect max version, and filecount of max version. '''
 
-    esgf_report = collect_esgf_search_datasets()
+    esgf_report = collect_esgf_search_datasets(unrestricted)
 
     ''' DEBUG
     for dsid_key in esgf_report:
