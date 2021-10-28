@@ -389,10 +389,7 @@ def campaign_via_model_experiment(model,experiment):
 
 # ==== Conduct ESGF Search Node Queries =======================
 
-def collect_esgf_search_datasets():
-
-    project = "e3sm"
-    facets = { "project": f"{project}" }
+def collect_esgf_search_datasets(facets):
 
     docs, numFound = safe_search_esgf(facets, qtype="Dataset", fields="id,title,instance_id,version,data_node,number_of_files")  # test if datanode made a difference
 
@@ -699,7 +696,8 @@ def main():
 
     ''' STAGE 4: Process the supplied (latest) sproket-generated ESGF_publication_report.  Collect max version, and filecount of max version. '''
 
-    esgf_report = collect_esgf_search_datasets()
+    facets = { "project": "e3sm" }
+    esgf_report = collect_esgf_search_datasets(facets)
 
     ''' DEBUG
     for dsid_key in esgf_report:

@@ -389,14 +389,7 @@ def campaign_via_model_experiment(model,experiment):
 
 # ==== Conduct ESGF Search Node Queries =======================
 
-def collect_esgf_search_datasets(unrestricted):
-
-    project = "CMIP6"
-
-    if unrestricted:
-        facets = { "project": f"{project}" }
-    else:
-        facets = { "project": f"{project}", "institution_id": "E3SM-Project" }
+def collect_esgf_search_datasets(facets):
 
     docs, numFound = safe_search_esgf(facets, qtype="Dataset", fields="id,title,instance_id,version,data_node,number_of_files")  # test if datanode made a difference
 
@@ -689,8 +682,18 @@ def main():
     print(f"{ts()}:DEBUG: Completed Stage 3: publication: ds_count = {ds_count}", flush=True)
 
     ''' STAGE 4: Conduct ESGF Server search for published datasets.  Collect max version, and filecount of max version. '''
+    ''' To accommodate "unlimited", we must produce the unique set of "institution_ID", and query for each, and update the '''
+    ''' "esgf_report" with the results of each call. '''
 
-    esgf_report = collect_esgf_search_datasets(unrestricted)
+    if unrestricted:
+        esgf_report = dict()
+        institutes = set( [ ds_struct[dsid]["Institution"] for dsid in ds_struct ] )
+        for inst in institutes:
+            facets = { "project": "CMIP6", "institution_id": inst }
+            esgf_report.update( collect_esgf_search_datasets(facets) )
+    else:
+        facets = { "project": "CMIP6" }
+        esgf_report = collect_esgf_search_datasets(facets)
 
     ''' DEBUG
     for dsid_key in esgf_report:
@@ -698,6 +701,7 @@ def main():
 
     sys.exit(0)
     '''
+    skipcount = 0
 
     for dsid_key in esgf_report:
         dsid = esgf_report[dsid_key]["title"]
@@ -708,6 +712,7 @@ def main():
                 ds_struct[dsid] = new_ds_record()
                 init_ds_record_from_dsid(ds_struct[dsid],dsid)
             else:
+                skipcount += 1
                 continue
         ds = ds_struct[dsid]
 
@@ -716,7 +721,7 @@ def main():
         ds['S_Count'] = filecount
 
     ds_count = len(ds_struct)
-    print(f"{ts()}:DEBUG: Completed Stage 4: esgf search: ds_count = {ds_count}", flush=True)
+    print(f"{ts()}:DEBUG: Completed Stage 4: esgf search: ds_count = {ds_count}, skipcount = {skipcount}", flush=True)
 
     ''' STAGE 5: Set Campaign, Seek a status file for each ds_struct entry, enter as "date" and "status", set AWPS code '''
 
