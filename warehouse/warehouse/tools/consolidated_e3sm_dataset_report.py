@@ -419,6 +419,9 @@ def collect_esgf_search_datasets(facets):
         f_count = esgf_collected[ident]["file_count"]
         total_file_count += f_count
 
+        # should pull "project" from dataset_id_key, if needed at all
+        project = "e3sm"
+
         facets = {"project": f"{project}", "dataset_id": f"{dataset_id_key}"}
 
         docs, numFound = safe_search_esgf(facets, qtype="File", fields="title")     # title is filename here
