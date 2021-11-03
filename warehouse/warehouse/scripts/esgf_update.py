@@ -81,13 +81,14 @@ def main():
         key, value = item.split("=")
         facets[key] = value
 
-    url = f"https://{index_node}/esg-search/search/?offset=0&limit=10000&type=Dataset&format=application%2Fsolr%2Bjson&latest=true&{search}"
+    # url = f"https://{index_node}/esg-search/search/?offset=0&limit=10000&type=Dataset&format=application%2Fsolr%2Bjson&latest=true&{search}"
+    url = f"https://{index_node}/esg-search/search/?offset=0&limit=10000&type=Dataset&format=application%2Fsolr%2Bjson&{search}"
     if verbose:
         con_message("info", url)
     res = requests.get(url)
 
     if not res.status_code == 200:
-        con_message("error", "Error")
+        con_message("error", f"query return code: {res.status_code}")
         return 1
 
     res = json.loads(res.text)
