@@ -44,6 +44,7 @@ helptext = '''
 '''
 
 gv_stat_root = '/p/user_pub/e3sm/staging/status'
+gv_stat_root_ext = '/p/user_pub/e3sm/staging/status_ext'
 gv_pub_root = '/p/user_pub/work'
 
 def assess_args():
@@ -264,6 +265,15 @@ def get_path_files(vdir):
     for root, dirs, files in os.walk(vdir):
         return files
 
+def is_dsid_external(dsid)
+    project = dsid.split(".")[0]
+    if dsid.split(".")[0] == "E3SM":  # project
+        return False
+    if dsid.split(".")[0] == "CMIP6": # project
+        if dsid.split(".")[2] == "E3SM-Project":  # institution_id
+            return False
+    return True
+
 def get_last_status_value(statlist):
     newlist = list()
     for item in statlist:
@@ -304,10 +314,13 @@ def main():
 
     # print(f"Found {len(dsid_list)} dataset ids.  do_stats = {do_stats}")
 
-    stat_root = Path(gv_stat_root)
     pub_root = Path(gv_pub_root)
     
     for dsid in dsid_list:
+
+        stat_root = Path(gv_stat_root)      # must do this per dsid - may encounter both internal and external dataset_ids
+        if is_dsid_external(dsid):
+            stat_root = Path(gv_stat_root_ext)
 
         # establish project
         project = dsid.split(".")[0]
