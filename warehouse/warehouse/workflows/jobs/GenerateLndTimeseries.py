@@ -32,7 +32,7 @@ class GenerateLndTimeseries(WorkflowJob):
         start = self.dataset.start_year
         end = self.dataset.end_year
 
-        flags = "-7 --dfl_lvl=1 --no_cll_msr "
+        flags = "-7 --dfl_lvl=1 --no_cell_measures "
         self._cmd = f"""
             ncclimo {flags} -v {','.join(variables)} -s {start} -e {end} -o {native_out} --map={map_path}  -O {self.dataset.latest_warehouse_dir} --ypf=10 -i {raw_dataset.latest_warehouse_dir} --sgs_frc={Path(raw_dataset.latest_warehouse_dir).glob('*.nc').__next__()}/landfrac
         """
