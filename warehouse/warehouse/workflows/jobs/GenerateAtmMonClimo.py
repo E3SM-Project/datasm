@@ -41,7 +41,7 @@ class GenerateAtmMonClimo(WorkflowJob):
         native_out = f"{os.environ.get('TMPDIR', '/tmp')}{os.sep}{self.dataset.dataset_id}/climo/"
         self._cmd = f"""
             cd {self.scripts_path}
-            ncclimo -c {casename} -a sdd -s {start} -e {end} -i {inpath} -r {map_path} -o {native_out} -O {outpath} --no_amwg_links
+            ncclimo -c {casename} -s {start} -e {end} -i {inpath} -r {map_path} -o {native_out} -O {outpath}
         """
     
     
