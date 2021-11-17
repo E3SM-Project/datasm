@@ -179,6 +179,26 @@ def realm_longname(realmcode):
 
     return ret
                    
+def is_int(str):
+    try:
+        int(str)
+    except:
+        return False
+    return True
+
+def maxversion(vlist):
+    nlist = list()
+    for txt in vlist:
+        if not is_int(txt[1:]):
+            continue
+        nlist.append(int(txt[1:]))
+    if not nlist or len(nlist) == 0:
+        return "vNONE"
+    nlist.sort()
+    return f"v{nlist[-1]}"
+
+#            p_ver = maxversion(v_list)
+#            if p_ver != "vNONE":
 
 def setStatus(statfile,parent,statspec):
     tsval = ts('')
@@ -208,6 +228,17 @@ def ensureDatasetPath(ens_path):
     if not os.path.exists(ens_path):
         os.makedirs(ens_path,exist_ok=True)
         os.chmod(ens_path,0o775)
+
+def ensureDestinationVersion(ens_path):
+    if not os.path.exists(ens_path):
+        return Path( os.path.join(ens_path,"v0") )
+    v_list = next(os.walk(ens_path))[1]
+    p_ver = maxversion(v_list)
+    if p_ver == "vNONE":   
+        return Path( os.path.join(ens_path,"v0") )
+    next_num = 1 + int(p_ver[1:])
+    next_ver = f"v{next_num}"
+    return Path( os.path.join(ens_path,next_ver) )
 
 def collision_free_name(apath, abase):
     ''' assuming we must protect a file's extension "filename.ext"
@@ -297,7 +328,10 @@ def main():
             setStatus(statfile,'WAREHOUSE','EXTRACTION:Engaged')
             setStatus(statfile,'EXTRACTION','SETUP:Engaged')
 
-            dest_path = os.path.join(ens_path,gv_jobset_config['pubversion'])
+            # should negotiate for "best dest_path" here in case existing will interfere:
+            # (old) dest_path = os.path.join(ens_path,gv_jobset_config['pubversion'])
+            dest_path = ensureDestinationVersion(ens_path)
+
 
             setStatus(statfile,'EXTRACTION','SETUP:Pass')
             setStatus(statfile,'EXTRACTION','ZSTASH:Ready')

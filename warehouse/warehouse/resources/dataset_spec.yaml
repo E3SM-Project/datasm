@@ -583,44 +583,43 @@ project:
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
-                                    - model-output.3hr
-                                    - model-output.6hr_ave
-                                    - model-output.6hr_snap
+                                    - time-series.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
                                     - model-output.day
                                     - model-output.day_cosp
-                                    - model-output.mon
+                                    - model-output.6hr_snap
+                                    - model-output.3hr
+                                    - model-output.6hr
                         land:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
                             -
                                 grid: 180x360
                                 data_types:
-                                    - model-output.mon
-                        river:
-                            - 
-                                grid: native
-                                data_types:
-                                    - model-output.mon
-                        misc:
-                            -
-                                grid: native
-                                data_types:
-                                    - mapping.fixed
+                                    - time-series.mon
                         ocean:
                             -
                                 grid: native
                                 data_types:
+                                    - model-output.mon
                                     - model-output.5day_snap
-                                    - model-output.mon
-                        river:
-                            -
-                                grid: 360x720
-                                data_types:
-                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.day
+                                    # - model-output.day
                                     - model-output.mon
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+
             1950-Control:
                 start: 26
                 end: 55
@@ -2425,7 +2424,7 @@ project:
                                     - model-output.mon
             B-1850-DIB-ISMF:
                 start: 1
-                end: 156
+                end: 200
                 ens:
                     - ens1
                 campaign: Cryosphere-v1
@@ -2490,7 +2489,7 @@ project:
         '1_2_1':
             B-1850-DIB-ISMF-3dGM:
                 start: 1
-                end: 100
+                end: 200
                 ens:
                     - ens1
                 campaign: Cryosphere-v1
