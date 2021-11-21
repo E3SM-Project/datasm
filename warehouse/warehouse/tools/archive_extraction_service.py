@@ -213,6 +213,9 @@ def ensureStatusFile(dsid):
     statfile = os.path.join(gv_stat_root,dsid + '.status')
     if not os.path.exists(statfile):
         open(statfile,"w+").close()
+        statid=f"DATASETID={dsid}"
+        with open(statfile, 'a') as statf:
+            statf.write(statid)
         setStatus(statfile,'WAREHOUSE','EXTRACTION:Ready')
         setStatus(statfile,'WAREHOUSE','VALIDATION:Unblocked:')
         setStatus(statfile,'WAREHOUSE','POSTPROCESS:Unblocked:')
