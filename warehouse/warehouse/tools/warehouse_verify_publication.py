@@ -251,21 +251,12 @@ def maxversion(vlist):
     nlist.sort()
     return f"v{nlist[-1]}"
 
-def get_maxv_info(edir):
-    ''' given an ensemble directory, return the max "v#" subdirectory and its file count '''
-    v_dict = dict()
-    for root, dirs, files in os.walk(edir):
-        if not dirs:
-            v_dict[os.path.split(root)[1]] = len(files)
-    maxv = maxversion(v_dict.keys())
-    return maxv, v_dict[maxv]
-
 def get_path_files(vdir):
     ''' given a version directory, return the list of ".nc" files contained '''
     for root, dirs, files in os.walk(vdir):
         return files
 
-def is_dsid_external(dsid)
+def is_dsid_external(dsid):
     project = dsid.split(".")[0]
     if dsid.split(".")[0] == "E3SM":  # project
         return False
