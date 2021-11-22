@@ -220,7 +220,7 @@ class AutoWarehouse:
         if not self.dataset_ids:
             log_message(
                 "error",
-                f"No datasets match pattern from command line parameter --dataset-id {self.dataset_ids}",
+                f"No datasets in dataset_spec match pattern from command line parameter --dataset-id {self.dataset_ids}",
             )
             sys.exit(1)
         else:
