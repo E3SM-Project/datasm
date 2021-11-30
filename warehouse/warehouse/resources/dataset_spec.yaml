@@ -153,57 +153,56 @@ tables:
 
 time-series:
     atmos:
-        - TREFHT
-        - TS
-        - PS
-        - PSL
-        - U10
-        - QREFHT
+        - CLDHGH
+        - CLDICE
+        - CLDLOW
+        - CLDMED
+        - CLDTOT
+        - CLOUD
+        - FLDS
+        - FLNS
+        - FLNSC
+        - FLNT
+        - FLUT
+        - FLUTC
+        - FSDS
+        - FSDSC
+        - FSNS
+        - FSNSC
+        - FSNT
+        - FSNTOA
+        - FSUTOA
+        - FSUTOAC
+        - LHFLX
+        - LWCF
+        - O3
+        - OMEGA
+        - PHIS
         - PRECC
         - PRECL
         - PRECSC
         - PRECSL
+        - PS
+        - PSL
+        - Q
         - QFLX
+        - QREFHT
+        - RELHUM
+        - SHFLX
+        - SOLIN
+        - SWCF
+        - T
         - TAUX
         - TAUY
-        - LHFLX
-        - CLDTOT
-        - SHFLX
-        - CLOUD
-        - CLDLOW
-        - CLDMED
-        - CLDHGH
-        - CLDICE
-        - TGCLDIWP
         - TGCLDCWP
-        - RELHUM
-        - FSNTOA
-        - PHIS
-        - LWCF
-        - SWCF
+        - TGCLDIWP
         - TMQ
-        - FLUTC
-        - FLUT
-        - FSDSC
-        - SOLIN
-        - FSUTOA
-        - FSUTOAC
-        - FLNS
-        - FSNS
-        - FLNSC
-        - FSNT
-        - FLNT
-        - FSDSC
-        - FSNSC
-        - FLDS
-        - FSDS
-        - T
+        - TREFHT
+        - TS
         - U
+        - U10
         - V
-        - OMEGA
         - Z3
-        - Q
-        - O3
         # - ICEFRAC
         # - LANDFRAC
         # - OCNFRAC
