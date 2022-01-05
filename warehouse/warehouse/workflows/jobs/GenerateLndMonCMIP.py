@@ -84,3 +84,4 @@ class GenerateLndMonCMIP(WorkflowJob):
 
         # step three, render out the CWL run command
         self._cmd = f"cwltool --outdir {self.dataset.warehouse_base} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+        print(f"DEBUG-001: render out the CWL run command: {self._cmd}")

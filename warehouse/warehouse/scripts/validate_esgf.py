@@ -35,6 +35,8 @@ def main():
         return 0
     '''
     con_message("info", f"ESGF validation success (elision)")
+    ''' elision '''
+    return 0
 
 
 if __name__ == "__main__":
