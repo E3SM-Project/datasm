@@ -20,7 +20,7 @@ cwl_workflows_path: /p/user_pub/e3sm/staging/resource/cmor/cwl_workflows/
 # cwl_workflows_path: /home/baldwin32/projects/e3sm_to_cmip/scripts/cwl_workflows/
 
 cmip_atm_mon:
-  frequency: 25
+  frequency: 50
   num_workers: 12
   account: e3sm
   partition: debug
@@ -45,7 +45,7 @@ cmip_atm_3hr:
   time_steps_per_day: "8"
 
 cmip_lnd_mon:
-  frequency: 25
+  frequency: 50
   num_workers: 12
   account: e3sm
   partition: debug
