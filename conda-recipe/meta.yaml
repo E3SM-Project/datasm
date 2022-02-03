@@ -1,0 +1,63 @@
+{% set name = "esgfpub" %}
+{% set version = "0.1.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  git_url: https://github.com/E3SM-Project/esgfpub.git
+  git_rev: v{{ version }}
+
+build:
+  noarch: python
+  script: "python -m pip install . -vv"
+
+about:
+  home: https://github.com/E3SM-Project/esgfpub
+  summary: Automated publication to ESGF
+
+requirements:
+  build:
+    - python >=3.8
+    - setuptools
+    - pip
+
+  run:
+    - python >=3.8
+    - yaml
+    - nco
+    - cmor >=3.6.0
+    - netcdf4
+    - numpy
+    - xarray
+    - matplotlib
+    - distributed
+    - tqdm
+    - termcolor
+    - watchdog
+    - e3sm_to_cmip
+    - zstash
+    # Required for CWL workflows
+    - cwltool
+    - nodejs
+
+test:
+  imports:
+    - esgfpub
+    - esgfpub.esgfpub
+    - esgfpub.warehouse
+  commands:
+    - esgfpub -h
+    - warehouse -h
+
+about:
+  home: https://github.com/E3SM-Project/esgfpub
+  license: MIT License
+  license_family: MIT
+  license_file: LICENSE
+  summary: A cli utility to automate complex nested workflows for publishing E3SM data to ESGF.
+  description: |
+    The warehouse utility allows for the automation of complex nested workflows with
+    conditional branching based on the success or failure of the jobs.
+  dev_url: https://github.com/E3SM-Project/esgfpub
