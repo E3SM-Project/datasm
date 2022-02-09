@@ -103,7 +103,9 @@ def main():
     p.add_argument('dataset_id', help="The dataset_id of the variable being validated")
     args = p.parse_args()
 
-    # elided plotting due to unfathomable errors in imports
+    # FIXME elided plotting due to unfathomable errors in imports
+    # NOTE also, a failure in graphics here should be a caught exception and generate a warning - NOT lead to process abort.
+    #   This should not be on the critical path. 
     # plot_seasonal_decomp(args.input, args.dataset_id, args.output)
     return 0
 
