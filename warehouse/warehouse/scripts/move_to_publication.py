@@ -147,7 +147,7 @@ def main():
     dst_path = Path(parsed_args.dst)
 
     if src_path == dst_path:
-        con_message("info", f"move_to_publication: move elided; src is dst")
+        con_message("info", "move_to_publication: move elided; src is dst")
         sys.exit(0)
 
     src_parent, _ = os.path.split(src_path)
