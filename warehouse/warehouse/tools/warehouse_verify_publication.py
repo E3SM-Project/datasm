@@ -313,6 +313,9 @@ def main():
         if is_dsid_external(dsid):
             stat_root = Path(gv_stat_root_ext)
 
+        # print(f"DEBUG STATPATH: stat_root = {stat_root} for dsid {dsid}")
+        # continue
+
         # establish project
         project = dsid.split(".")[0]
         if project == "E3SM":
@@ -337,7 +340,7 @@ def main():
                 got_stats = True
                 # print(f"Last Stat = {last_stats}")
 
-        log_message("info", f"Processing:{dsid}: statfile={got_sfile},stat_ents={got_stats}")
+            log_message("info", f"Processing:{dsid}: statfile={got_sfile},stat_ents={got_stats}")
 
         facet_path = Path(dsid.replace('.', '/'))
         ds_path = pub_root / facet_path
@@ -389,7 +392,7 @@ def main():
         data_node = best_record['data_node']
 
         if version != p_ver:    # inconsistent "max" versions
-            reason = f"MismatchedVersions: (p_ver;s_ver) = ({p_ver};{version})"
+            reason = f"MismatchedVersions:p_ver;s_ver={p_ver};{version}"
             statmsg = f"PUBLICATION:Verification_Fail:{reason}"
             verbmsg = statmsg
             if do_stats:
@@ -412,14 +415,14 @@ def main():
         s_len = len(s_set)
 
         if s_len > 0 and s_set == p_set:   # publication verified
-            statmsg = "PUBLICATION:Verified"
+            statmsg = f"PUBLICATION:Verified:{version}"
             verbmsg = statmsg
         else:
             if( not s_set or s_len == 0 ):
                 reason = f"No ESGF publication found for {dsid}"
             else:
                 if s_len != p_len:
-                    reason = f"MismatchedFilecount:(pubroot;esgf)=({p_len};{s_len})"
+                    reason = f"MismatchedFilecount:pubroot;esgf={p_len};{s_len}"
                 else:
                     reason = "MismatchedFileLists"               
             statmsg = f"PUBLICATION:Verification_Fail:{reason}"
