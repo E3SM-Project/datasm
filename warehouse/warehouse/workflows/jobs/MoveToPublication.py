@@ -9,7 +9,11 @@ class MoveToPublication(WorkflowJob):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        dst_version = self.dataset.pub_version + 1
+
+        # Need to CLEAN THIS UP!  Eliminate variant versioning.
+        dst_version = self.dataset.pub_version
+        if self.project == "E3SM":
+            dst_version = self.dataset.pub_version + 1
         
         self._cmd = f"""
 cd {self.scripts_path}

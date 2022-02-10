@@ -12,7 +12,6 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Move all files from given source directory to given destination directory.  "
         'Move parent source directory ".mapfile", if it exists, to the parent destination directory, '
-        'along with the corresponding ".status" file.'
     )
     parser.add_argument(
         "--src-path",
@@ -54,7 +53,8 @@ def validate_args(args):
     return True
 
 def collision_free_name(apath, abase):
-    ''' assuming we must protect a file's extension "filename.ext"
+    ''' UNUSED in this module.
+        assuming we must protect a file's extension "filename.ext"
         we test for name.ext, name(1).ext, name(2).ext, ... in apath
         and create from "abase = name.ext" whatever is next in that
         sequence.
@@ -91,6 +91,7 @@ def conduct_move(args, move_method="none"):
     dst_path = Path(args.dst)
 
     # move mapfile first. If fails, don't bother moving the files.
+    # NOTE:  This section should be removed once mapfile are only generated in final publication location.
 
     mapfile = next(src_path.parent.glob("*.map"))
     with open(mapfile, "r") as instream:
@@ -144,6 +145,11 @@ def main():
 
     src_path = Path(parsed_args.src)
     dst_path = Path(parsed_args.dst)
+
+    if src_path == dst_path:
+        con_message("info", "move_to_publication: move elided; src is dst")
+        sys.exit(0)
+
     src_parent, _ = os.path.split(src_path)
     dst_parent, _ = os.path.split(dst_path)
 

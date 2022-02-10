@@ -10,13 +10,13 @@ grids:
   ne120np4_to_cmip6_180x360: /home/zender1/data/maps/map_ne120np4_to_cmip6_180x360_aave.20181001.nc
   ne120np4_to_cmip6_720x1440: /home/zender1/data/maps/map_ne120np4_to_cmip6_720x1440_aave.20181001.nc
 
-cmip_metadata_path: /p/user_pub/e3sm/baldwin32/resources/CMIP6-Metadata/
-cmip_tables_path: /home/baldwin32/projects/cmip6-cmor-tables/Tables/
-vrt_map_path: /p/user_pub/e3sm/baldwin32/resources/vrt_remap_plev19.nc
-cwl_workflows_path: /home/baldwin32/projects/e3sm_to_cmip/scripts/cwl_workflows/
+cmip_metadata_path: /p/user_pub/e3sm/staging/resource/CMIP6-Metadata/
+cmip_tables_path: /p/user_pub/e3sm/staging/resource/cmip6-cmor-tables/Tables/
+vrt_map_path: /p/user_pub/e3sm/staging/resource/cmor/vrt_remap_plev19.nc
+cwl_workflows_path: /p/user_pub/e3sm/staging/resource/cmor/cwl_workflows/
 
 cmip_atm_mon:
-  frequency: 25
+  frequency: 50
   num_workers: 12
   account: e3sm
   partition: debug
@@ -41,7 +41,7 @@ cmip_atm_3hr:
   time_steps_per_day: "8"
 
 cmip_lnd_mon:
-  frequency: 25
+  frequency: 50
   num_workers: 12
   account: e3sm
   partition: debug

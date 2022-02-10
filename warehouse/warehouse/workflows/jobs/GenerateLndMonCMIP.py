@@ -44,7 +44,7 @@ class GenerateLndMonCMIP(WorkflowJob):
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
-            print(err)
+            print(f"ERROR: {err} from command {cmd}")
             return None
     
         with open(info_file.name, 'r') as instream:
@@ -83,4 +83,5 @@ class GenerateLndMonCMIP(WorkflowJob):
             yaml.dump(parameters, outstream)
 
         # step three, render out the CWL run command
+        print(f"DEBUG-001: render out the CWL run command: cwltool --outdir {self.dataset.warehouse_base} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}")
         self._cmd = f"cwltool --outdir {self.dataset.warehouse_base} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"

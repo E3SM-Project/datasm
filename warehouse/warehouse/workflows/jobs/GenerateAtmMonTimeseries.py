@@ -33,7 +33,7 @@ class GenerateAtmMonTimeseries(WorkflowJob):
         map_path = self.config['grids'][mapkey]
 
         self._cmd = f"""
-            ncclimo --ypf=10 -v {','.join(variables)} -j {self._job_workers} -s {start} -e {end} -i {raw_dataset.latest_warehouse_dir} -o {native_out}  -O {self.find_outpath()} --map={map_path}
+            ncclimo --ypf=50 -v {','.join(variables)} -j {self._job_workers} -s {start} -e {end} -i {raw_dataset.latest_warehouse_dir} -o {native_out}  -O {self.find_outpath()} --map={map_path}
         """
     
     def render_cleanup(self):

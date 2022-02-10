@@ -71,6 +71,7 @@ class WorkflowJob(object):
         self._cmd = f"export message_file={message_file.name}\n" + self._cmd
 
         self.add_cmd_suffix()
+        log_message("info", f"WF_jobs_init:render_script: self,cmd={self.cmd}, script_path={str(script_path)}")
         slurm.render_script(self.cmd, str(script_path), self._slurm_opts)
         self._job_id = slurm.sbatch(str(script_path))
         log_message("info", f"WF_jobs_init: _call_: setting status to {self._parent}:{self.name}:Engaged: for {self.dataset.dataset_id}")
