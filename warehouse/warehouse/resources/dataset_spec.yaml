@@ -721,6 +721,126 @@ project:
                                 grid: native
                                 data_types:
                                     - model-output.mon
+            1950-Control-HR-56-136:
+                start: 56
+                end: 136
+                ens:
+                    - ens1
+                campaign: HighResMIP-v1
+                resolution:
+                    0_25deg_atm_18-6km_ocean:
+                        atmos:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - model-output.mon
+                            -
+                                grid: 720x1440
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr_ave
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                        land:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - model-output.mon
+                            -
+                                grid: 720x1440
+                                data_types:
+                                    - model-output.mon
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                        ocean:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.5day_snap
+                        sea-ice:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                        misc:
+                            -
+                                grid: native
+                                data_types:
+                                    - mapping.fixed
+                                    - restart.fixed
+            1950-Control-HR-136-150:
+                start: 136
+                end: 150
+                ens:
+                    - ens1
+                campaign: HighResMIP-v1
+                resolution:
+                    0_25deg_atm_18-6km_ocean:
+                        atmos:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - model-output.mon
+                            -
+                                grid: 720x1440
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr_ave
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                        land:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - model-output.mon
+                            -
+                                grid: 720x1440
+                                data_types:
+                                    - model-output.mon
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                        ocean:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.5day_snap
+                        sea-ice:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                        misc:
+                            -
+                                grid: native
+                                data_types:
+                                    - mapping.fixed
+                                    - restart.fixed
             1pctCO2:
                 start: 1
                 end: 150
