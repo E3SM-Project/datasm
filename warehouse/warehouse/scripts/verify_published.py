@@ -92,7 +92,7 @@ def verify_dataset(src_path, base_path, scripts_path, out_path, pbar, **kwargs):
 
 def main():
 
-    # elided as unreliable - timing issue?
+    # FIXME: elided as unreliable - timing issue?
     return 0
 
 
