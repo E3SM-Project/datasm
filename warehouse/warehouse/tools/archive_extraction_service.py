@@ -51,11 +51,7 @@ helptext = '''
 def ts(prefix):
     return prefix + pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
 
-gv_jobset_configfile = '/p/user_pub/e3sm/archive/.cfg/jobset_config'
-gv_jobset_config = dict()
-
 def assess_args():
-    global gv_jobset_config
 
     parser = argparse.ArgumentParser(description=helptext, prefix_chars='-', formatter_class=RawTextHelpFormatter)
     parser._action_groups.pop()
@@ -64,9 +60,6 @@ def assess_args():
     optional.add_argument('-c', '--config', action='store', dest="jobset_config", type=str, required=False)
 
     args = parser.parse_args()
-
-    if args.jobset_config:
-        gv_jobset_config = args.jobset_config
 
     return True
 
@@ -275,7 +268,6 @@ def collision_free_name(apath, abase):
 # Must test for existence of facet dest, if augmenting.  May create to 0_extraction/init_status_files/, move later
 
 def main():
-    global gv_jobset_config
 
     assess_args()
     logMessageInit('runlog_archive_extraction_service')
@@ -288,8 +280,6 @@ def main():
         sys.exit(1)
 
     logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Startup:zstash version = {zstashversion}')
-
-    gv_jobset_config = parse_jobset_config(gv_jobset_configfile)
 
     # The outer request loop:
     while True:
@@ -331,8 +321,7 @@ def main():
             setStatus(statfile,'WAREHOUSE','EXTRACTION:Engaged')
             setStatus(statfile,'EXTRACTION','SETUP:Engaged')
 
-            # should negotiate for "best dest_path" here in case existing will interfere:
-            # (old) dest_path = os.path.join(ens_path,gv_jobset_config['pubversion'])
+            # negotiate for "best dest_path" here in case existing will interfere:
             dest_path = ensureDestinationVersion(ens_path)
 
 
