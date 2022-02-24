@@ -71,6 +71,9 @@ class GenerateOceanCMIP(WorkflowJob):
             yaml.dump(parameters, outstream)
 
         # step three, render out the CWL run command
+        # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
+        self.dataset.warehouse_base = '/p/user_pub/e3sm/warehouse'      # testing testing testing ...
+
         if not self.serial:
             parallel = "--parallel"
         else:

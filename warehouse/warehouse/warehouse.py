@@ -44,13 +44,11 @@ class AutoWarehouse:
     def __init__(self, *args, **kwargs):
         super().__init__()
 
-        self.warehouse_path = Path(kwargs.get(
-            "warehouse_path", DEFAULT_WAREHOUSE_PATH))
-        self.publication_path = Path(
-            kwargs.get("publication_path", DEFAULT_PUBLICATION_PATH)
-        )
-        self.archive_path = Path(kwargs.get(
-            "archive_path", DEFAULT_ARCHIVE_PATH))
+        self.warehouse_path = Path(kwargs.get( "warehouse_path", DEFAULT_WAREHOUSE_PATH))
+        self.publication_path = Path( kwargs.get("publication_path", DEFAULT_PUBLICATION_PATH))
+        # Did we really get the command line publication path here?
+
+        self.archive_path = Path(kwargs.get( "archive_path", DEFAULT_ARCHIVE_PATH))
         self.status_path = Path(kwargs.get("status_path", DEFAULT_STATUS_PATH))
         self.spec_path = Path(kwargs.get("spec_path", DEFAULT_SPEC_PATH))
         self.num_workers = kwargs.get("num", 8)
@@ -81,6 +79,9 @@ class AutoWarehouse:
 
         # not sure where to put this - Tony
         setup_logging("debug", f"{self.slurm_path}/warehouse.log")
+        log_message("info", f"TOP: self.warehouse_path = {self.warehouse_path}")
+        log_message("info", f"TOP: self.publication_path = {self.publication_path}")
+        log_message("info", f"TOP: self.slurm_path = {self.slurm_path}")
 
         if self.report_missing:
             pass
@@ -506,27 +507,37 @@ class AutoWarehouse:
 
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
-            log_message("info", f"starting job: {job}")
             job_name = f"{job}".split(':')[0]
+            log_message("info", f"starting job: {job_name}")
             # import ipdb; ipdb.set_trace()
-            if not job.meets_requirements() and job.dataset.project == "CMIP6" or ( job_name == 'POSTPROCESS' and ('time-series' in job.dataset.dataset_id or 'climo' in job.dataset.dataset_id) ):
+            job_reqs_met = job.meets_requirements()
+            log_message("info", f"job_reqs_met={job_reqs_met}, project={job.dataset.project}, job_name={job_name}")
+            if not job_reqs_met and job.dataset.project == "CMIP6" or ( job_name == 'POSTPROCESS' and ('time-series' in job.dataset.dataset_id or 'climo' in job.dataset.dataset_id) ):
                 source_dataset = self.find_e3sm_source_dataset(job)
                 if source_dataset is None:
                     msg = f"Cannot find raw input requirement for job {job}. source_dataset is None from self.find_e3sm_source_dataset(job)"
                     log_message("error", msg)
                     continue
+                log_message("info", f"found E3SM source dataset: {source_dataset}")
                 job.setup_requisites(source_dataset)
-            if job.job_id is None and job.meets_requirements():
-                log_message(
-                    "info", f"Job {job} meets its input dataset requirements")
+                job_reqs_met = job.meets_requirements()
+                log_message("info", f"job_reqs_met={job_reqs_met}")
+            if job.job_id is None and job_reqs_met:
+                log_message("info", f"Job {job} meets its input dataset requirements")
                 job_id = job(self.slurm)
+                log_message("info", f"DGB: WH: got job_id {job_id} from job(self.slurm)")
                 if job_id is not None:
                     job.job_id = job_id
                     self.job_pool.append(job)
                 else:
                     log_message("error", f"Error starting up job {job}")
             else:
-                log_message("info", "DGB: WH: Is it possible to fall through to here?")
+                log_message("error", "DGB: WH: job NOT added to pool")
+                log_message("info", f"DGB: WH: job.job_id = {job.job_id}, job_reqs_met = {job_reqs_met}")
+                attributes = [attr for attr in dir(job) if not attr.startswith('__')]
+                for attr in attributes:
+                    print(f"{attr} = {getattr(job,attr)}")
+
         return
 
     def start_listener(self):

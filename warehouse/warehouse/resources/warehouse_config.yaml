@@ -56,4 +56,4 @@ cmip_ocn_mon:
   partition: debug
   timeout: 1800
   slurm_timeout: "12:00:00"
-  mpas_region_path: /p/user_pub/e3sm/baldwin32/resources/oEC60to30v3_Atlantic_region_and_southern_transect.nc
+  mpas_region_path: /p/user_pub/e3sm/staging/resource/oEC60to30v3_Atlantic_region_and_southern_transect.nc

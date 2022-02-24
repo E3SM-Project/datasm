@@ -4,6 +4,7 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 from warehouse.workflows.jobs import WorkflowJob
+from warehouse.util import log_message
 
 NAME = 'GenerateLndMonCMIP'
 
@@ -18,8 +19,25 @@ class GenerateLndMonCMIP(WorkflowJob):
 
     def resolve_cmd(self):
 
+        print("============================================================================================================================")
+        print(f"self.dataset.data_path: {self.dataset.data_path}")
+        # print(f"self.dataset.last_pdir: {self.dataset.latest_pub_dir}")
+        # print(f"self.dataset.last_wdir: {self.dataset.latest_warehouse_dir}")
+        print(f"self.dataset.pub_base:  {self.dataset.pub_base}")
+        print(f"self.dataset.pub_path:  {self.dataset.publication_path}")
+        print(f"self.dataset.wh_base:   {self.dataset.warehouse_base}")
+        print(f"self.dataset.wh_path:   {self.dataset.warehouse_path}")
+        print("============================================================================================================================")
+        print(" ", flush=True)
+        # all debugging
+        # self._cmd = f"ls -l"
+        # return
+        # all debugging
+        
+
         raw_dataset = self.requires['land-native-mon']
         if raw_dataset is None:
+            log_message("error", f"Job {NAME} doesnt have its requirements filled: {self.requires}")
             raise ValueError(f"Job {NAME} doesnt have its requirements filled: {self.requires}")
         cwl_config = self.config['cmip_lnd_mon']
 
@@ -44,12 +62,13 @@ class GenerateLndMonCMIP(WorkflowJob):
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
-            print(f"ERROR: {err} from command {cmd}")
+            log_message("error", f"{err} from command {cmd}");
             return None
     
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
         if variable_info is None:
+            log_message("error", f"Unable to find correct input variable for requested CMIP conversion, is {cmd} correct?")
             raise ValueError(f"Unable to find correct input variable for requested CMIP conversion, is {cmd} correct?")
 
         for item in variable_info:
@@ -83,5 +102,9 @@ class GenerateLndMonCMIP(WorkflowJob):
             yaml.dump(parameters, outstream)
 
         # step three, render out the CWL run command
-        print(f"DEBUG-001: render out the CWL run command: cwltool --outdir {self.dataset.warehouse_base} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}")
+        # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
+        self.dataset.warehouse_base = '/p/user_pub/e3sm/warehouse'      # testing testing testing ...
+        
+        log_message("info", f"DEBUG-001: render out the CWL run command: cwltool --outdir {self.dataset.warehouse_base} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}")
         self._cmd = f"cwltool --outdir {self.dataset.warehouse_base} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+

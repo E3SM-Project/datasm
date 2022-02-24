@@ -110,16 +110,19 @@ rm $message_file
         datasets = [self.dataset]
         if input_datasets:
             if not isinstance(input_datasets, list):
-                input_datasets = [input_datasets]
+                input_datasets = [input_datasets]       # turn singleton into a list
             datasets.extend(input_datasets)
+            log_message("info", f"setup_requisites: incoming datasets: {[x.dataset_id for x in input_datasets]}");
 
         for dataset in datasets:
             # cprint(f"checking if {dataset.dataset_id} is a good match for {self.name}", "yellow")
+            log_message("info", f"setup_requisites: checking if {dataset.dataset_id} is a good match for {self.name}");
             if (req := self.matches_requirement(dataset)) is not None:
                 # cprint(f'Found matching input requirements for {dataset.dataset_id}: {[x.dataset_id for x in self.requires.values()]}', 'green')
                 self._requires[req] = dataset
             # else:
             #     cprint(f'{dataset.dataset_id} does not match for {self.requires}', 'red')
+
 
     def matches_requirement(self, dataset):
         """
