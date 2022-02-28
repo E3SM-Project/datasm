@@ -9,5 +9,5 @@ dependencies:
   # ==================
   - python=3.9.10
   - pip=22.0.3
-  - esgfpub=0.1.0 # NOTE: This package has not been released on Anaconda yet.
+  - warehouse=0.1.0 # NOTE: This package has not been released on Conda yet.
 prefix: /opt/miniconda3/envs/warehouse_prod
