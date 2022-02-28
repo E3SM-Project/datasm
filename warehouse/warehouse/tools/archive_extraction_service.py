@@ -376,6 +376,14 @@ def main():
             print(f'{proc_out}',flush=True)
             print(f'{proc_err}',flush=True)
 
+            # CONFIRM files extracted
+
+            extracted_files = glob.glob(arch_patt)
+            logMessage("INFO",f"Extracted {len(extracted_files)} files with arch_patt: {arch_patt}")
+            if len(extracted_files) == 0:
+                logMessage("ERROR",f"Failure to extract files: {dsid}")
+                setStatus(statfile,'EXTRACTION','ZSTASH:Fail')
+                continue
 
             # BECOME TRANSFER:  move Holodeck files to warehouse destination path:
 
@@ -387,7 +395,7 @@ def main():
 
             setStatus(statfile,'EXTRACTION','TRANSFER:Engaged')
             fcount = 0
-            for datafile in glob.glob(arch_patt):
+            for datafile in extracted_files:
                 bname = os.path.basename(datafile)
                 cname = collision_free_name(dest_path,bname)
                 dst = os.path.join(dest_path,cname)
@@ -406,6 +414,7 @@ def main():
                 if moved:
                     fcount += 1
 
+            
             tm_final = time.time()
             ET = tm_final - tm_start
             logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Completed file transfer to warehouse: filecount = {fcount}, ET = {ET}')
@@ -415,8 +424,7 @@ def main():
 
             setStatus(statfile,'WAREHOUSE',f'EXTRACTION:Pass:dstdir=v0,filecount={fcount}')
 
-
-        setStatus(statfile,'WAREHOUSE','VALIDATION:Ready')
+            setStatus(statfile,'WAREHOUSE','VALIDATION:Ready')
 
         time.sleep(5)
 
