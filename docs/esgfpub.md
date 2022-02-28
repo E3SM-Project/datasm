@@ -1,26 +1,52 @@
-# ESGF Publication - Automated publication to ESGF for E3SM model output
+# The ESGF Publisher
 
-The esgfpub tool consists of three main commands: [stage](#Stage), [publish](#Publish) and [check](#Check). 
+The ESGF Publisher (`esgfpub`) library consists of scripts to automate publication of E3SM model outputs to ESGF. `esgfpub` has three main commands: [stage](#stage), [publish](#publish), and [check](#check).
 
-## Installation
-### Development Environment 
+- **_Note: The `esgfpub` module is not being actively developed and is decoupled from the `warehouse` module._**
 
-1. Set up development environment [here](1_developers_guide.md#Getting-Started)
+## Prerequisites
 
-2. Install local package with changes from source
+1. Install Miniconda (recommended) or Anaconda
+
+   - [https://docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)
+
+2. Clone the repo or fork
+
    ```bash
-   cd esgfpub/esgfpub
-   python setup.py install
-   python setup.py clean
-   ```
-### Latest Stable Release
-
-1. Install from Anaconda 
-   ```bash
-   conda install -c e3sm esgfpub
+   git clone https://github.com/E3SM-Project/esgfpub.git
    ```
 
-## Usage
+## Environment Setup By Use Case
+
+### Development Environment
+
+This environment is for testing local source code changes to the `esgfpub` modules before merging them to production (the `master` branch).
+
+1. Open a branch from `master` for local development
+2. Create and activate the environment
+
+   ```bash
+   cd esgfpub
+    # Optionally, you can specify -n <NAME_OF_ENV> for a custom env name.
+    # The default name is listed in dev.yml (`warehouse_dev`).
+   conda env create -f conda-env/dev.yml
+   conda activate warehouse_dev
+   ```
+
+3. Make changes to the source code in `/esgfpub`
+4. Install local package with changes from source
+
+   ```bash
+      cd esgfpub
+      pip install .
+   ```
+
+5. Test changes by following [ESGF Publication Usage](#esgf-publication-usage)
+6. Add and commit changes, then push to remote branch
+7. Open a pull request (PR) with this branch for review
+8. Merge PR to `master`
+
+## ESGF Publication Usage
 
 ```bash
 >>> esgfpub -h
@@ -42,7 +68,7 @@ subcommands:
 
 ### Stage
 
-The "stage" subcommand is used to move data from holding directories into the correct ESGF directory structure given the facets of the case. This tool is expected to be used on a per-case basis, and currently only supports staging data from a single case at once. 
+The "stage" subcommand is used to move data from holding directories into the correct ESGF directory structure given the facets of the case. This tool is expected to be used on a per-case basis, and currently only supports staging data from a single case at once.
 
 ```bash
 >>> esgfpub stage -h
@@ -65,8 +91,6 @@ optional arguments:
   --debug
 ```
 
-
-
 The main requirement for the stage command is a configuration file in the yaml format listing out the ESGF search facets for the case (used to generate the directory structure), and a listing of the source directories to pull the model data from. Here's an example config:
 
 ```yaml
@@ -86,10 +110,10 @@ num_workers: 24                <- The number of parallel workers to use when has
 ini_path: /path/to/ini/directory <- Path to directory containing the ESGF ini files
 
 data_paths:
-    atmos: /path/to/atmos/data 
-    land: /path/to/land/data
-    sea-ice: /path/t/sea-ice/data
-    ocean: /path/to/ocean/data
+  atmos: /path/to/atmos/data
+  land: /path/to/land/data
+  sea-ice: /path/t/sea-ice/data
+  ocean: /path/to/ocean/data
 ```
 
 ### Publish

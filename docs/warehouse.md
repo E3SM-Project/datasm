@@ -1,28 +1,120 @@
 # The E3SM Automated Warehouse
 
-The warehouse utility allows for the automation of complex nested workflows with conditional branching based on the success or failure of the jobs.  
+The E3SM Automated Warehouse (`warehouse`) library automates complex nested workflows for handling E3SM outputs. These workflows use conditional branching based on the success or failure of the jobs within the workflows. The jobs include `extract`, `validate`, `postprocess`, and `publish`.
 
-*Note: The warehouse is currently in active development, so many planned features may be missing or broken.*
+- **_Note: The warehouse is currently in active development, so many planned features may be a work in progress, missing, or broken._**
 
-## Installation
-1. Set up development environment [here](1_developers_guide.md#Getting-Started)
+## Prerequisites
 
-2. Install local package with changes
+1. Install Miniconda (recommended) or Anaconda
+
+   - [https://docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)
+
+2. Clone the repo or fork
+
    ```bash
-      cd esgfpub/warehouse
-      python setup.py install
-      python setup.py clean
+   git clone https://github.com/E3SM-Project/esgfpub.git
    ```
-  
-## Usage
+
+Additional:
+
+- Linux OS if you intend on building the [`warehouse` publishing environment](#publishing-environment) and running the warehouse `publish` operation
+
+## Environment Setup By Use Case
+
+### Development Environment
+
+This environment is for testing local source code changes to the `warehouse` modules before merging them to production (the `master` branch).
+
+1. Open a branch from `master` for local development
+2. Create and activate the environment
+
+   ```bash
+    # Optionally, you can specify -n <NAME_OF_ENV> for a custom env name.
+    # The default name is listed in dev.yml (`warehouse_dev`).
+   conda env create -f conda-env/dev.yml
+   conda activate warehouse_dev
+   ```
+
+3. Make changes to the source code to `/warehouse`
+4. Install local package with changes from source
+
+   ```bash
+      cd warehouse
+      pip install .
+   ```
+
+5. Test changes by following [Warehouse Usage](#warehouse-usage)
+6. Add and commit changes, then push to remote branch
+7. Open a pull request (PR) with this branch for review
+8. Merge PR to `master`
+
+### Production Environment
+
+This environment is used for performing warehouse production operations (`extract`, `validate`, `postprocess`) using the latest stable releases of the dependencies listed in the env's yml file (`prod.yml`).
+
+1. Create and activate the environment
+
+   ```bash
+   # Optionally, you can specify -n <NAME_OF_ENV> for a custom env name.
+   # The default name is listed in prod.yml (`warehouse_prod`).
+   conda env create -f conda-env/prod.yml
+   conda activate warehouse_prod
+   ```
+
+2. Proceed to [Warehouse Usage](#warehouse-usage) section
+
+### Publishing Environment
+
+This environment is for the `warehouse` publishing operation to ESGF (`publish`). It includes the latest stable releases of `esgf-forge` dependencies.
+
+- `autocurator=0.1` is only available for Linux and does not support `python>3.8`
+- `autocurator=0.1` requires `libnetcdf >=4.7.4,<4.7.5.0a0`, which is not compatible with `nco>=5`
+- As a result of these conflicts, `esgf-forge` dependencies could not be included in `prod.yml`
+
+1. Create and activate the environment
+
+   ```bash
+   # Optionally, you can specify -n <NAME_OF_ENV> for a custom env name.
+   # The default name is listed in pub.yml (`warehouse_pub`).
+   conda env create -f conda-env/pub.yml
+   conda activate warehouse_pub
+   ```
+
+2. Proceed to [Warehouse Usage](#warehouse-usage) section
+
+#### How to Update Dependencies
+
+Occasionally, the dependencies in the conda env yml files are updated to include the latest bug fixes or features. To update the dependencies in the yml files remotely and pull them in locally to your environments:
+
+1. Check the latest version on Anaconda's package repository [website](https://anaconda.org/).
+2. Open a branch from the latest `master`
+3. Update pinned version(s) of dependencies in yml files
+4. Open PR for review, then merge to `master` when ready
+5. Checkout `master` branch locally and pull latest changes
+
+   ```bash
+   git checkout master && git pull
+   ```
+
+6. Update existing conda envs with yml files:
+
+   ```bash
+   # -n <NAME_OF_ENV> must be specified if you used a custom env name instead of the default name found in the yml file.
+   conda env update --f conda-env/<NAME_OF_YML>.yml
+   ```
+
+## Warehouse Usage
 
 There are two main modes of operation, either the full automated warehouse, or running any of the subordinate workflows individually. The automated warehouse can be run by itself with:
-```
+
+```bash
 warehouse auto
 ```
 
 The default behavior tries to make guesses for the correct mode of operation, but options can be changed manually as well
-```
+
+```bash
 usage: warehouse auto [-h] [-n NUM] [-s] [-w WAREHOUSE_PATH] [-p PUBLICATION_PATH] [-a ARCHIVE_PATH] [-d DATASET_SPEC]
                       [--dataset-id [DATASET_ID ...]] [--job-workers JOB_WORKERS] [--testing] [--sproket SPROKET]
                       [--slurm-path SLURM_PATH] [--report-missing]
@@ -53,21 +145,24 @@ optional arguments:
   --report-missing      After collecting the datasets, print out any that have missing files and exit
 ```
 
-By default, the warehouse will collect ALL datasets from both the CMIP6 and E3SM project, and shepherd them towards publication, however the `--dataset-id` flag can be used to narrow the focus down to a specific dataset (by supplying the complete dataset_id), or to a subset of datasets (by supplying a substring of the dataset_id). 
+By default, the warehouse will collect ALL datasets from both the CMIP6 and E3SM project, and shepherd them towards publication, however the `--dataset-id` flag can be used to narrow the focus down to a specific dataset (by supplying the complete dataset_id), or to a subset of datasets (by supplying a substring of the dataset_id).
 
 Example full dataset_id: `CMIP6.CMIP.E3SM-Project.E3SM-1-1.piControl.r1i1p1f1.Amon.cl.gr`
 Example substring: `CMIP6.CMIP.E3SM-Project.E3SM-1-0.piControl` this will target all datasets from CMIP6 for the 1.0 version of the model, and the piControl experiment.
 
-#### Standalone workflow execution
+### Standalone workflow execution
+
 Each of the subordinate workflows can be executed on a single dataset by themselves by using the following command (the example is Validation, but the same command will work for all the workflows):
 
-```
+```bash
 warehouse validate --dataset-id <YOUR_DATASET_ID> --data-path <PATH_TO_YOUR_DATA>
 ```
+
 The path should be to the directory one level up from the netCDF files themselves, and the files should be stored in a version directory, e.g. v0, v0.1, v1 etc
 
 The full list of available workflows can be found in the top level help
-```
+
+```bash
 >>> warehouse --help
 usage: warehouse [-h] {publish,validate,auto,report,extract,cleanup,postprocess} ...
 
@@ -84,8 +179,7 @@ subcommands:
     report              Print out a report of the dataset status for all datasets under the given root
 ```
 
-
-```
+```bash
 >>> warehouse validate --help
 usage: warehouse validate [-h] [--job-workers JOB_WORKERS] [-d [DATASET_ID ...]] [--data-path DATA_PATH]
 
@@ -112,20 +206,20 @@ optional arguments:
                         version.case.variant.table.variable.gr' for example: 'CMIP6.CMIP.E3SM-
                         Project.E3SM-1-1.historical.r1i1p1f1.CFmon.cllcalipso.gr
 ```
-  
 
-## Developer Guide
+## Warehouse Developer Guide
 
 ### Manipulating the job flow
+
 Adding new jobs to a workflow, or manipulating the flow between jobs can be done entirely by changing values in the Transition Graphs for each workflow. Here's an example minimal set of transitions:
 
-```
+```bash
 MPASVALIDATION:Ready:
   ocean-native-mon:
     -  MPASTimeCheck:Ready
   sea-ice-native-mon:
     -  MPASTimeCheck:Ready
-  
+
 MPASTimeCheck:Ready:
   default:
     -  MPASTimeCheck:Engaged
@@ -138,8 +232,10 @@ MPASTimeCheck:Fail:
   default:
     -  Fail
 ```
+
 The "Pass"/"Fail" keywords are used to denote global success/failure for the whole workflow, otherwise each node in the graph should have exactly four entries, STEP:Ready, which transitions directly to STEP:Engaged:
-```
+
+```bash
 MPASTimeCheck:Ready:
   default:
     -  MPASTimeCheck:Engaged
@@ -150,10 +246,12 @@ And then a STEP:Pass and a STEP:Fail
 Each step has the ability to route different data-types to different subsequent steps, but every step should also include a "default" for routing any datasets that don't match any other explicit routing option.
 
 ### Adding workflow jobs
+
 The names of each step need to match up with the NAME field (and the class name) for a WorkflowJob class in the /esgfpub/warehouse/workflows/jobs directory. The contents of this directory are dynamically loaded in at runtime, so if a new job is added, no additional imports are required.
 
 Here's an example implementation of a WorkflowJob:
-```
+
+```bash
 from warehouse.workflows.jobs import WorkflowJob
 
 NAME  =  'CheckFileIntegrity'
@@ -169,10 +267,9 @@ python check_file_integrity.py -p {self._job_workers}  {self.dataset.latest_ware
 """
 ```
 
-* The class `name` field should match the NAME constant and the name of the class itself. 
-* The `_requires` field should be in the form of `realm-grid-freq` for example, `atmos-native-mon`, with `*` wildcards to denote "any." This sets up the required datasets needed for the job to execute, multiple entries are allowed.
-* The `_cmd` field is where most of the work takes place, this is the string that will be placed in the slurm batch script, and the exit code of this string when executed will determine if the job goes to the Pass or Fail path in the parent workflow.
-
+- The class `name` field should match the NAME constant and the name of the class itself.
+- The `_requires` field should be in the form of `realm-grid-freq` for example, `atmos-native-mon`, with `*` wildcards to denote "any." This sets up the required datasets needed for the job to execute, multiple entries are allowed.
+- The `_cmd` field is where most of the work takes place, this is the string that will be placed in the slurm batch script, and the exit code of this string when executed will determine if the job goes to the Pass or Fail path in the parent workflow.
 
 ### Adding a new simulation
 
@@ -186,12 +283,12 @@ Dataset Spec structure:
 Project:
   CMIP6:
     Activity:
-        model-version:          
-          experiment-name:
-            start: first year of data
-            end: last year of data
-            ens: a list of variant labels
-            except: a list of variables that arent included, all variables are assumed to be included unless they're in this list
+      model-version:
+        experiment-name:
+          start: first year of data
+          end: last year of data
+          ens: a list of variant labels
+          except: a list of variables that arent included, all variables are assumed to be included unless they're in this list
   E3SM:
     model-version:
       experiment-name:
@@ -205,8 +302,7 @@ Project:
         resolution:
           res-name:
             component:
-              -
-                grid: grid name
+              - grid: grid name
                 data_types: list of  data-types with time freq
 ```
 
@@ -227,42 +323,37 @@ project:
             - siv
             - clcalipso
   E3SM:
-    '1_0':
+    "1_0":
       piControl:
         start: 1
         end: 500
         ens:
           - ens1
         except:
-        - PRECSCS
-        - PRECSCL
+          - PRECSCS
+          - PRECSCL
         campaign: DECK-v1
         science_driver: Water Cycle
         cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.piControl
         resolution:
           1deg_atm_60-30km_ocean:
             land:
-              - 
-                grid: native
+              - grid: native
                 data_types:
                   - model-output.mon
-              - 
-                grid: 180x360
+              - grid: 180x360
                 data_types:
                   - time-series.mon
             river:
-              - 
-                grid: native
+              - grid: native
                 data_types:
                   - model-output.mon
             atmos:
-              - 
-                grid: 180x360
+              - grid: 180x360
                 data_types:
                   - climo.mon
                   - time-series.mon
-              - 
-                grid: native
+              - grid: native
                 data_types:
                   - model-output.day
                   - model-output.mon
@@ -271,23 +362,20 @@ project:
                   - model-output.3hr
                   - model-output.6hr
             ocean:
-              -
-                grid: native
+              - grid: native
                 data_types:
                   - model-output.mon
                   - model-output.5day_snap
             sea-ice:
-              -
-                grid: native
+              - grid: native
                 data_types:
                   - model-output.mon
             misc:
-              -
-                grid: native
+              - grid: native
                 data_types:
                   - mapping.fixed
 ```
 
 Once the new simulation has been added to the spec, the raw data needs to be staged before the datasets can be generated. Once the data is staged in the warehouse (or archive, once the extraction workflow has been implemented), you can run the `warehouse auto` to have the automation manage the processing and publication, or use the workflows directly to handle specific steps.
 
-For example, if the above piControl experiment had just been added to the spec and included in the warehouse directory, you could run `warehouse auto --dataset-id E3SM.1_0.piControl*` to have it manage the workflows for all the datasets. 
+For example, if the above piControl experiment had just been added to the spec and included in the warehouse directory, you could run `warehouse auto --dataset-id E3SM.1_0.piControl*` to have it manage the workflows for all the datasets.

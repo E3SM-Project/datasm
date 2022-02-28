@@ -2,7 +2,8 @@
 Setup for esgfpub
 """
 from setuptools import find_packages, setup
-from esgfpub.version import __version__
+
+from esgfpub import __version__
 
 setup(
     name="esgfpub",
