@@ -66,7 +66,7 @@ tables:
         - huss
         - tasmin
         - tasmax
-        - rlut
+        - rlut_highfreq
         - all
     3hr:
         - pr_highfreq
