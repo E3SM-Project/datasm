@@ -1,5 +1,8 @@
 from warehouse.workflows.jobs import WorkflowJob
 from pathlib import Path
+from datetime import datetime
+from pytz import UTC
+
 
 NAME = 'MoveToPublication'
 
@@ -13,7 +16,7 @@ class MoveToPublication(WorkflowJob):
         # Need to CLEAN THIS UP!  Eliminate variant versioning.
         dst_version = self.dataset.pub_version
         if self.project == "E3SM":
-            dst_version = self.dataset.pub_version + 1
+            dst_version = UTC.localize(datetime.utcnow()).strftime("%Y%m%d")
         
         self._cmd = f"""
 cd {self.scripts_path}

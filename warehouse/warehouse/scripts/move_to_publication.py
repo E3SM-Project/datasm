@@ -32,8 +32,8 @@ def parse_args():
 
 def validate_args(args):
     """
-    Ensure the src path exists and is not empty.
-    Ensure the dst path exists and is empty.
+    Ensure the src path (including vdir) exists and is not empty.
+    Ensure the dst path (including vdir) exists and is empty.
     """
     src_path = Path(args.src)
     dst_path = Path(args.dst)
