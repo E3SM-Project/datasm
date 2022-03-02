@@ -1,4 +1,4 @@
-{% set name = "esgfpub" %}
+{% set name = "e3sm_warehouse" %}
 {% set version = "0.1.0" %}
 
 package:
@@ -44,11 +44,8 @@ requirements:
 
 test:
   imports:
-    - esgfpub
-    - esgfpub.esgfpub
-    - esgfpub.e3sm_warehouse
+    - e3sm_warehouse
   commands:
-    - esgfpub -h
     - e3sm_warehouse -h
 
 about:
@@ -58,6 +55,6 @@ about:
   license_file: LICENSE
   summary: A cli utility to automate complex nested workflows for publishing E3SM data to ESGF.
   description: |
-    The warehouse utility allows for the automation of complex nested workflows with
-    conditional branching based on the success or failure of the jobs.
+    The E3SM Automated Warehouse (warehouse) library automates complex nested workflows for handling E3SM outputs.
+    These workflows use conditional branching based on the success or failure of the jobs within the workflows.
   dev_url: https://github.com/E3SM-Project/esgfpub

@@ -1,4 +1,4 @@
-# Conda development environment for testing local source code changes to the `esgfpub` and `e3sm_warehouse` modules before merging them to production (`master` branch).
+# Conda development environment for testing local source code changes to the `e3sm_warehouse` modules before merging them to production (`master` branch).
 # It supports the e3sm_warehouse operations extract, validate, and postprocess.
 name: warehouse_dev
 channels:
