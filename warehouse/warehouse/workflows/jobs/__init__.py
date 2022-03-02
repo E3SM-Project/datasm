@@ -46,7 +46,12 @@ class WorkflowJob(object):
         msg = f"Starting job: {str(self)} with reqs {[x.dataset_id for x in self.requires.values()]}"
         log_message('debug', msg)
 
-        self.resolve_cmd()
+        # self.resolve_cmd()
+        info_fail = 0
+        if self.resolve_cmd() == 1:
+            log_message('error', f"bad resolve_cmd for {self.name}:{self.dataset.dataset_id}")
+            info_fail = 1
+            # return None [It appears that ANY return other than a valid job_id causes the warehouse to hang.] 
 
         working_dir = self.dataset.latest_warehouse_dir
         if self.dataset.is_locked(working_dir):
@@ -68,7 +73,10 @@ class WorkflowJob(object):
 
         message_file = NamedTemporaryFile(dir=self.tmpdir, delete=False)
         Path(message_file.name).touch()
-        self._cmd = f"export message_file={message_file.name}\n" + self._cmd
+        if info_fail == 1:
+            self._cmd = f"export message_file={message_file.name}\n" + "\necho INFO_FAIL\n"
+        else:
+            self._cmd = f"export message_file={message_file.name}\n" + self._cmd
 
         self.add_cmd_suffix()
         log_message("info", f"WF_jobs_init:render_script: self,cmd={self.cmd}, script_path={str(script_path)}")

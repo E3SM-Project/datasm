@@ -10,5 +10,5 @@ class ValidateMapfile(WorkflowJob):
         self.name = NAME
         self._cmd = f"""
 cd {self.scripts_path}
-python validate_mapfile.py --data-path {self.dataset.latest_warehouse_dir} --mapfile {self.params['mapfile_path']}
+python validate_mapfile.py --data-path {self.dataset.latest_pub_dir} --mapfile {self.params['mapfile_path']}
 """

@@ -48,9 +48,10 @@ class GenerateAtmMonCMIP(WorkflowJob):
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
-            print(cmd)
-            print(err)
-            return None
+            log_message("error", f"resolve_cmd failed to obtain e3sm_to_cmip info {info_file.name}")
+            log_message("error", f"  cmd = {cmd}")
+            log_message("error", f"  err = {err}")
+            return 1    # was return None
     
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)

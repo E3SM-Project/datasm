@@ -1,6 +1,16 @@
 PUBLICATION:Ready:
   default:
+    - MoveToPublication:Ready
+
+MoveToPublication:Ready:
+  default:
+    - MoveToPublication:Engaged
+MoveToPublication:Pass:
+  default:
     - GenerateMapfile:Ready
+MoveToPublication:Fail:
+  default:
+    - Fail
 
 GenerateMapfile:Ready:
   default:
@@ -17,28 +27,8 @@ ValidateMapfile:Ready:
     - ValidateMapfile:Engaged
 ValidateMapfile:Pass:
   default:
-    - MoveToPublication:Ready
-ValidateMapfile:Fail:
-  default:
-    - Fail
-
-MoveToPublication:Ready:
-  default:
-    - MoveToPublication:Engaged
-MoveToPublication:Pass:
-  default:
-    - FixMapfilePaths:Ready
-MoveToPublication:Fail:
-  default:
-    - Fail
-
-FixMapfilePaths:Ready:
-  default:
-    - FixMapfilePaths:Engaged
-FixMapfilePaths:Pass:
-  default:
     - PublishEsgf:Ready
-FixMapfilePaths:Fail:
+ValidateMapfile:Fail:
   default:
     - Fail
 
@@ -47,18 +37,8 @@ PublishEsgf:Ready:
     - PublishEsgf:Engaged
 PublishEsgf:Pass:
   default:
-    - ValidateEsgf:Ready
-PublishEsgf:Fail:
-  default:
-    - Fail
-
-ValidateEsgf:Ready:
-  default:
-    - ValidateEsgf:Engaged
-ValidateEsgf:Pass:
-  default:
     - Pass
-ValidateEsgf:Fail:
+PublishEsgf:Fail:
   default:
     - Fail
 
