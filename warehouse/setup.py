@@ -3,7 +3,7 @@ Setup for the E3SM warehouse
 """
 from setuptools import find_packages
 from distutils.core import setup
-from warehouse.version import __version__
+from warehouse.warehouse import __version__
 
 import distutils.cmd
 import os
