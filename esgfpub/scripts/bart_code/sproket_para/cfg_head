@@ -1,4 +1,0 @@
-{
-    "search_api": "https://esgf-node.llnl.gov/esg-search/search/",
-    "data_node_priority": ["aims3.llnl.gov", "esgf-data1.llnl.gov"],
-    "fields": {

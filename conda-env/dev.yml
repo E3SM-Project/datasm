@@ -1,6 +1,6 @@
-# Conda development environment for testing local source code changes to the `warehouse` modules before merging them to production (`master` branch).
-# It supports the warehouse operations extract, validate, and postprocess.
-name: warehouse_dev
+# Conda development environment for testing local source code changes to the `datasm` modules before merging them to production (`master` branch).
+# It supports the datasm operations extract, validate, and postprocess.
+name: datasm_dev
 channels:
   - conda-forge
   - e3sm
@@ -34,4 +34,4 @@ dependencies:
   # Quality Assurance
   # ==================
   - black=22.1.0
-prefix: /opt/miniconda3/envs/warehouse_dev
+prefix: /opt/miniconda3/envs/datasm_dev

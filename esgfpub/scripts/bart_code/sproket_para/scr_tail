@@ -1,8 +1,0 @@
-
-# to obtain ALL file names
-touch $flagon
-$sprok -config $config -urls.only -no.download -no.verify -y > $output
-rm -f $flagon
-
-exit 0
-

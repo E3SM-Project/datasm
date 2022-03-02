@@ -1,6 +1,4 @@
-"""
-Setup for the E3SM warehouse
-"""
+"""The setup script."""
 import distutils.cmd
 import os
 from distutils.core import setup
@@ -36,8 +34,8 @@ class CleanCommand(distutils.cmd.Command):
 
 
 setup(
-    author="esgfpub developers",
-    python_requires=">=3.8,<3.9",
+    author="datasm developers",
+    python_requires=">=3.8",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
@@ -46,23 +44,21 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
     ],
-    description="Automated E3SM processing and publication to ESGF",
+    description="A cli utility to automate complex nested workflows for publishing E3SM data to ESGF.",
     license="MIT License",
     include_package_data=True,
-    keywords=["esgfpub"],
-    name="esgfpub",
-    packages=find_packages(include=["esgfpub", "esgfpub.*"]),
-    package_dir={"esgfpub": "esgfpub"},
+    keywords=["datasm"],
+    name="datasm",
+    packages=find_packages(include=["datasm", "datasm.*"]),
+    package_dir={"datasm": "datasm"},
     entry_points={
         "console_scripts": [
-            "warehouse = warehouse.__main__:main",
-            "esgfpub = esgfpub.__main__:main",
-            "timecheck = esgfpub.scripts.timerect.timechecker:main",
-            "timerect = esgfpub.scripts.timerect.timerectifier:main",
+            "datasm = datasm.__main__:main",
         ],
     },
     test_suite="tests",
-    url="https://github.com/XCDAT/xcdat",
+    # TODO: Update this URL once the repo is renamed.
+    url="https://github.com/E3SM-Project/esgfpub",
     version="0.1.0",
     zip_safe=False,
     cmdclass={
