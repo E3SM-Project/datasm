@@ -40,7 +40,7 @@ This environment is for testing local source code changes to the `warehouse` mod
 4. Install local package with changes from source
 
    ```bash
-      cd warehouse
+      cd e3sm_warehouse
       pip install .
    ```
 
@@ -109,13 +109,13 @@ Occasionally, the dependencies in the conda env yml files are updated to include
 There are two main modes of operation, either the full automated warehouse, or running any of the subordinate workflows individually. The automated warehouse can be run by itself with:
 
 ```bash
-warehouse auto
+e3sm_warehouse auto
 ```
 
 The default behavior tries to make guesses for the correct mode of operation, but options can be changed manually as well
 
 ```bash
-usage: warehouse auto [-h] [-n NUM] [-s] [-w WAREHOUSE_PATH] [-p PUBLICATION_PATH] [-a ARCHIVE_PATH] [-d DATASET_SPEC]
+usage: e3sm_warehouse auto [-h] [-n NUM] [-s] [-w WAREHOUSE_PATH] [-p PUBLICATION_PATH] [-a ARCHIVE_PATH] [-d DATASET_SPEC]
                       [--dataset-id [DATASET_ID ...]] [--job-workers JOB_WORKERS] [--testing] [--sproket SPROKET]
                       [--slurm-path SLURM_PATH] [--report-missing]
 
@@ -123,21 +123,21 @@ optional arguments:
   -h, --help            show this help message and exit
   -n NUM, --num NUM     Number of parallel workers
   -s, --serial          Run everything in serial
-  -w WAREHOUSE_PATH, --warehouse-path WAREHOUSE_PATH
-                        The root path for pre-publication dataset staging, default=/p/user_pub/e3sm/warehouse/
+  -w WAREHOUSE_PATH, --e3sm_warehouse-path WAREHOUSE_PATH
+                        The root path for pre-publication dataset staging, default=/p/user_pub/e3sm/e3sm_warehouse/
   -p PUBLICATION_PATH, --publication-path PUBLICATION_PATH
                         The root path for data publication, default=/p/user_pub/work/
   -a ARCHIVE_PATH, --archive-path ARCHIVE_PATH
                         The root path for the data archive, default=/p/user_pub/e3sm/archive
   -d DATASET_SPEC, --dataset-spec DATASET_SPEC
                         The path to the dataset specification yaml file,
-                        default=/warehouse/resources/dataset_spec.yaml
+                        default=/e3sm_warehouse/resources/dataset_spec.yaml
   --dataset-id [DATASET_ID ...]
                         Only run the automated processing for the given datasets, this can the the complete dataset_id, or a
                         wildcard such as E3SM.1_0.
   --job-workers JOB_WORKERS
                         number of parallel workers each job should create when running, default=8
-  --testing             run the warehouse in testing mode
+  --testing             run the e3sm_warehouse in testing mode
   --sproket SPROKET     path to sproket binary if its not in your $PATH
   --slurm-path SLURM_PATH
                         The directory to hold slurm batch scripts as well as console output from batch jobs,
@@ -155,7 +155,7 @@ Example substring: `CMIP6.CMIP.E3SM-Project.E3SM-1-0.piControl` this will target
 Each of the subordinate workflows can be executed on a single dataset by themselves by using the following command (the example is Validation, but the same command will work for all the workflows):
 
 ```bash
-warehouse validate --dataset-id <YOUR_DATASET_ID> --data-path <PATH_TO_YOUR_DATA>
+e3sm_warehouse validate --dataset-id <YOUR_DATASET_ID> --data-path <PATH_TO_YOUR_DATA>
 ```
 
 The path should be to the directory one level up from the netCDF files themselves, and the files should be stored in a version directory, e.g. v0, v0.1, v1 etc
@@ -163,25 +163,25 @@ The path should be to the directory one level up from the netCDF files themselve
 The full list of available workflows can be found in the top level help
 
 ```bash
->>> warehouse --help
-usage: warehouse [-h] {publish,validate,auto,report,extract,cleanup,postprocess} ...
+>>> e3sm_warehouse --help
+usage: e3sm_warehouse [-h] {publish,validate,auto,report,extract,cleanup,postprocess} ...
 
-Automated E3SM data warehouse utilities
+Automated E3SM data e3sm_warehouse utilities
 
 optional arguments:
   -h, --help            show this help message and exit
 
 subcommands:
-  warehouse subcommands
+  e3sm_warehouse subcommands
 
   {publish,validate,auto,report,extract,cleanup,postprocess}
-    auto                Automated warehouse processing
+    auto                Automated e3sm_warehouse processing
     report              Print out a report of the dataset status for all datasets under the given root
 ```
 
 ```bash
->>> warehouse validate --help
-usage: warehouse validate [-h] [--job-workers JOB_WORKERS] [-d [DATASET_ID ...]] [--data-path DATA_PATH]
+>>> e3sm_warehouse validate --help
+usage: e3sm_warehouse validate [-h] [--job-workers JOB_WORKERS] [-d [DATASET_ID ...]] [--data-path DATA_PATH]
 
 Runs the Validation workflow on a single dataset. The input directory should be one level up from the data directory which should
 me named v0, the input path will be used to hold the .status file and intermediate working directories for the workflow steps. The
@@ -195,7 +195,7 @@ optional arguments:
                         number of parallel workers each job should create when running, default is 8
   -d [DATASET_ID ...], --dataset-id [DATASET_ID ...]
                         Dataset IDs that should have the workflow applied to them. If this is given without the data-path, the
-                        default warehouse value will be used.
+                        default e3sm_warehouse value will be used.
   --data-path DATA_PATH
                         Path to a directory containing a single dataset that should have the workflow applied to them. If given,
                         also use the --dataset-id flag to specify the dataset-id that should be applied to the data If its an E3SM
@@ -252,7 +252,7 @@ The names of each step need to match up with the NAME field (and the class name)
 Here's an example implementation of a WorkflowJob:
 
 ```bash
-from warehouse.workflows.jobs import WorkflowJob
+from e3sm_warehouse.workflows.jobs import WorkflowJob
 
 NAME  =  'CheckFileIntegrity'
 

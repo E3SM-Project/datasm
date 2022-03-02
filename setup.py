@@ -1,5 +1,5 @@
 """
-Setup for the E3SM warehouse
+Setup for the E3SM e3sm_warehouse
 """
 import distutils.cmd
 import os
@@ -55,7 +55,7 @@ setup(
     package_dir={"esgfpub": "esgfpub"},
     entry_points={
         "console_scripts": [
-            "warehouse = warehouse.__main__:main",
+            "e3sm_warehouse = e3sm_warehouse.__main__:main",
             "esgfpub = esgfpub.__main__:main",
             "timecheck = esgfpub.scripts.timerect.timechecker:main",
             "timerect = esgfpub.scripts.timerect.timerectifier:main",

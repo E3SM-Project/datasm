@@ -46,10 +46,10 @@ test:
   imports:
     - esgfpub
     - esgfpub.esgfpub
-    - esgfpub.warehouse
+    - esgfpub.e3sm_warehouse
   commands:
     - esgfpub -h
-    - warehouse -h
+    - e3sm_warehouse -h
 
 about:
   home: https://github.com/E3SM-Project/esgfpub

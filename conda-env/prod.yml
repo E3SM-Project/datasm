@@ -1,4 +1,4 @@
-# Conda production environment for warehouse production operations (`extract`, `validate`, and `postprocess`)
+# Conda production environment for e3sm_warehouse production operations (`extract`, `validate`, and `postprocess`)
 name: warehouse_prod
 channels:
   - conda-forge
@@ -9,5 +9,5 @@ dependencies:
   # ==================
   - python=3.9.10
   - pip=22.0.3
-  - warehouse=0.1.0 # NOTE: This package has not been released on Conda yet.
+  - e3sm_warehouse=0.1.0 # NOTE: This package has not been released on Conda yet.
 prefix: /opt/miniconda3/envs/warehouse_prod
