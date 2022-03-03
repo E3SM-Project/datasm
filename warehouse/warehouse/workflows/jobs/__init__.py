@@ -46,7 +46,12 @@ class WorkflowJob(object):
         msg = f"Starting job: {str(self)} with reqs {[x.dataset_id for x in self.requires.values()]}"
         log_message('debug', msg)
 
-        self.resolve_cmd()
+        # self.resolve_cmd()
+        info_fail = 0
+        if self.resolve_cmd() == 1:
+            log_message('error', f"bad resolve_cmd for {self.name}:{self.dataset.dataset_id}")
+            info_fail = 1
+            # return None [It appears that ANY return other than a valid job_id causes the warehouse to hang.] 
 
         working_dir = self.dataset.latest_warehouse_dir
         if self.dataset.is_locked(working_dir):
@@ -68,7 +73,10 @@ class WorkflowJob(object):
 
         message_file = NamedTemporaryFile(dir=self.tmpdir, delete=False)
         Path(message_file.name).touch()
-        self._cmd = f"export message_file={message_file.name}\n" + self._cmd
+        if info_fail == 1:
+            self._cmd = f"export message_file={message_file.name}\n" + "\necho INFO_FAIL\n"
+        else:
+            self._cmd = f"export message_file={message_file.name}\n" + self._cmd
 
         self.add_cmd_suffix()
         log_message("info", f"WF_jobs_init:render_script: self,cmd={self.cmd}, script_path={str(script_path)}")
@@ -110,16 +118,19 @@ rm $message_file
         datasets = [self.dataset]
         if input_datasets:
             if not isinstance(input_datasets, list):
-                input_datasets = [input_datasets]
+                input_datasets = [input_datasets]       # turn singleton into a list
             datasets.extend(input_datasets)
+            log_message("info", f"setup_requisites: incoming datasets: {[x.dataset_id for x in input_datasets]}");
 
         for dataset in datasets:
             # cprint(f"checking if {dataset.dataset_id} is a good match for {self.name}", "yellow")
+            log_message("info", f"setup_requisites: checking if {dataset.dataset_id} is a good match for {self.name}");
             if (req := self.matches_requirement(dataset)) is not None:
                 # cprint(f'Found matching input requirements for {dataset.dataset_id}: {[x.dataset_id for x in self.requires.values()]}', 'green')
                 self._requires[req] = dataset
             # else:
             #     cprint(f'{dataset.dataset_id} does not match for {self.requires}', 'red')
+
 
     def matches_requirement(self, dataset):
         """

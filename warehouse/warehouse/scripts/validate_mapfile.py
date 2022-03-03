@@ -61,6 +61,7 @@ def validate_mapfile(mapfile: str, srcdir: Path, quiet: bool):
     Returns:
         True if the mapfile is valid, False otherwise
     """
+    con_message("info", f"checking mapfile {mapfile}")
 
     dataset_files = sorted([x.name for x in srcdir.glob("*.nc")])
     mapfile_lines = sorted(loadFileLines(mapfile))

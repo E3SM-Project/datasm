@@ -22,6 +22,7 @@ def parse_args(arg_sources, checkers):
 
     parsed_args = parser.parse_args()
 
+    # call a subcommand-specific arg-checker
     valid, name = checkers[parsed_args.subparser_name](parsed_args)
     if not valid:
         print("invalid")

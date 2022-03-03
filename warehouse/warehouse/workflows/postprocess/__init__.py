@@ -34,33 +34,30 @@ class PostProcess(Workflow):
         if (metadata_path := self.params.get('metadata_path')):
             self.metadata_path = Path(metadata_path)
         data_path = self.params.get('data_path')
+        publ_path = self.params.get('publication_path')
+        natv_path = self.params.get('publication_path')
         tmpdir = self.params.get('tmp')
         status_path = self.params.get('status_path')
         testing = self.params.get('testing')
 
+        log_message("info", f'self.params data_path = {data_path}')
+        log_message("info", f'self.params publ_path = {publ_path}')
+        log_message("info", f'self.params natv_path = {natv_path}')
 
+        wh_path=self.params['warehouse_path']
         if data_path is not None:
-            warehouse = AutoWarehouse(
-                workflow=self,
-                dataset_id=dataset_id,
-                warehouse_path=data_path,
-                serial=self.serial,
-                job_worker=self.job_workers,
-                debug=self.debug,
-                status_path=status_path,
-                testing=testing,
-                tmpdir=tmpdir)
-        else:
-            warehouse = AutoWarehouse(
-                workflow=self,
-                dataset_id=dataset_id,
-                warehouse_path=self.params['warehouse_path'],
-                serial=self.serial,
-                job_worker=self.job_workers,
-                debug=self.debug,
-                status_path=status_path,
-                testing=testing,
-                tmpdir=tmpdir)
+            wh_path=data_path
+        
+        warehouse = AutoWarehouse(
+            workflow=self,
+            dataset_id=dataset_id,
+            warehouse_path=wh_path,
+            serial=self.serial,
+            job_worker=self.job_workers,
+            debug=self.debug,
+            status_path=status_path,
+            testing=testing,
+            tmpdir=tmpdir)
 
         warehouse.setup_datasets(check_esgf=False)
 
@@ -91,6 +88,13 @@ class PostProcess(Workflow):
         parser = parser.add_parser(
             name=COMMAND,
             description='postprocess datasets')
+        parser.add_argument(
+            '--native-srcroot',
+            action="store_true",
+            required=False,
+            # default=f"{os.environ.get('TMPDIR', '/tmp')}",
+            default="/p/user_pub/work",
+            help="The root directory to seek native data for post-processing.  Default is the publication_path (root)")
         parser.add_argument(
             '--parallel',
             action="store_true",

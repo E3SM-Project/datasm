@@ -30,6 +30,36 @@ def load_file_lines(file_path):
         ]
     return retlist
 
+# -----------------------------------------------
+
+def collision_free_name(apath, abase):
+    ''' 
+        assuming we must protect a file's extension "filename.ext"
+        we test for name.ext, name(1).ext, name(2).ext, ... in apath
+        and create from "abase = name.ext" whatever is next in that
+        sequence.
+    '''
+    complist = abase.split('.')
+    if len(complist) == 1:
+        corename = abase
+        ext_name = ""
+    else:
+        corename = '.'.join(complist[:-1])
+        ext_name = '.' + complist[-1]
+
+    abase = ''.join([corename, ext_name])
+    dst = os.path.join(apath, abase)
+    alt = 0
+    ret_file = abase
+    while os.path.exists(dst):
+        alt += 1
+        ret_core = corename + '(' + str(alt) + ')'
+        ret_file = ''.join([ret_core, ext_name])
+        dst = os.path.join(apath, ret_file)
+
+    return ret_file
+
+# -----------------------------------------------
 
 def get_last_status_line(file_path):
     with open(file_path, "r") as instream:
