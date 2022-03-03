@@ -35,7 +35,7 @@ class CleanCommand(distutils.cmd.Command):
 
 setup(
     author="e3sm_warehouse developers",
-    python_requires=">=3.8,<3.9",
+    python_requires=">=3.8",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",

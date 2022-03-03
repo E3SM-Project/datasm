@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+
+recursive-include e3sm_warehouse/resources *
+recursive-include e3sm_warehouse/workflows *

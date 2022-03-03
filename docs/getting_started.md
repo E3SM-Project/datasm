@@ -2,7 +2,7 @@
 
 The E3SM Automated Warehouse (`e3sm_warehouse`) library automates complex nested workflows for handling E3SM outputs. These workflows use conditional branching based on the success or failure of the jobs within the workflows. The jobs include `extract`, `validate`, `postprocess`, and `publish`.
 
-- **_Note: The warehouse is currently in active development, so many planned features may be a work in progress, missing, or broken._**
+- **_Note: The `e3sm_warehouse` is currently in active development, so many planned features may be a work in progress, missing, or broken._**
 
 ## Prerequisites
 
@@ -36,7 +36,7 @@ This environment is for testing local source code changes to the `e3sm_warehouse
    conda activate warehouse_dev
    ```
 
-3. Make changes to the source code to `/warehouse`
+3. Make changes to the source code to `/e3sm_warehouse`
 4. Install local package with changes from source
 
    ```bash
@@ -247,7 +247,7 @@ Each step has the ability to route different data-types to different subsequent 
 
 ### Adding workflow jobs
 
-The names of each step need to match up with the NAME field (and the class name) for a WorkflowJob class in the /esgfpub/warehouse/workflows/jobs directory. The contents of this directory are dynamically loaded in at runtime, so if a new job is added, no additional imports are required.
+The names of each step need to match up with the NAME field (and the class name) for a WorkflowJob class in the /esgfpub/e3sm_warehouse/workflows/jobs directory. The contents of this directory are dynamically loaded in at runtime, so if a new job is added, no additional imports are required.
 
 Here's an example implementation of a WorkflowJob:
 
@@ -273,7 +273,7 @@ python check_file_integrity.py -p {self._job_workers}  {self.dataset.latest_ware
 
 ### Adding a new simulation
 
-When a new simulation is slated for publication, the first thing that needs to happen is for it to be added to the dataset_spec.yaml under the warehouse/resources directory.
+When a new simulation is slated for publication, the first thing that needs to happen is for it to be added to the dataset_spec.yaml under the `e3sm_warehouse/resources` directory.
 
 The dataset spec has two top level items, the Tables dictionary, which lists all the CMIP6 tables and the variables that are slated for publication in them, and the Projects dictionary, which contains all the information about the simulations we have published to the CMIP6 and E3SM project.
 
