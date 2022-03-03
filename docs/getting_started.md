@@ -1,6 +1,6 @@
 # The E3SM Automated Warehouse
 
-The E3SM Automated Warehouse (`warehouse`) library automates complex nested workflows for handling E3SM outputs. These workflows use conditional branching based on the success or failure of the jobs within the workflows. The jobs include `extract`, `validate`, `postprocess`, and `publish`.
+The E3SM Automated Warehouse (`e3sm_warehouse`) library automates complex nested workflows for handling E3SM outputs. These workflows use conditional branching based on the success or failure of the jobs within the workflows. The jobs include `extract`, `validate`, `postprocess`, and `publish`.
 
 - **_Note: The warehouse is currently in active development, so many planned features may be a work in progress, missing, or broken._**
 
@@ -18,13 +18,13 @@ The E3SM Automated Warehouse (`warehouse`) library automates complex nested work
 
 Additional:
 
-- Linux OS if you intend on building the [`warehouse` publishing environment](#publishing-environment) and running the warehouse `publish` operation
+- Linux OS if you intend on building the [`e3sm_warehouse` publishing environment](#publishing-environment) and running the warehouse `publish` operation
 
 ## Environment Setup By Use Case
 
 ### Development Environment
 
-This environment is for testing local source code changes to the `warehouse` modules before merging them to production (the `master` branch).
+This environment is for testing local source code changes to the `e3sm_warehouse` modules before merging them to production (the `master` branch).
 
 1. Open a branch from `master` for local development
 2. Create and activate the environment
@@ -66,7 +66,7 @@ This environment is used for performing warehouse production operations (`extrac
 
 ### Publishing Environment
 
-This environment is for the `warehouse` publishing operation to ESGF (`publish`). It includes the latest stable releases of `esgf-forge` dependencies.
+This environment is for the `e3sm_warehouse` publishing operation to ESGF (`publish`). It includes the latest stable releases of `esgf-forge` dependencies.
 
 - `autocurator=0.1` is only available for Linux and does not support `python>3.8`
 - `autocurator=0.1` requires `libnetcdf >=4.7.4,<4.7.5.0a0`, which is not compatible with `nco>=5`
