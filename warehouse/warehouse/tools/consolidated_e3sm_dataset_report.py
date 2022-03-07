@@ -375,9 +375,10 @@ def realm_grid_freq_from_dstype(dstype):
 def campaign_via_model_experiment(model,experiment):
     if model in ['1_0']:
         if experiment in ['1950-Control-HR','1950-Control-LR','1950-Control-LRtunedHR','1950-Control-21yrContHiVol-HR',\
-            'F2010-HR','F2010-LR','F2010-LRtunedHR','F2010-nudgeUV-HR','F2010-nudgeUV-LR','F2010-nudgeUV-LRtunedHR',\
-            'F2010-nudgeUV-1850aero-HR','F2010-nudgeUV-1850aero-LR','F2010-nudgeUV-1850aero-LRtunedHR',\
-            'F2010-plus4k-HR','F2010-plus4k-LR','F2010-plus4k-LRtunedHR']:
+            '1950-Control', '1950-Control-HR-56-136', '1950-Control-HR-136-150', '1950-Control-Transient-LRtunedHR',\
+            'F2010', 'F2010-HR','F2010-LR','F2010-LRtunedHR', 'F2010-nudgeUV', 'F2010-nudgeUV-HR','F2010-nudgeUV-LR','F2010-nudgeUV-LRtunedHR',\
+            'F2010-nudgeUV-1850aero', 'F2010-nudgeUV-1850aero-HR','F2010-nudgeUV-1850aero-LR','F2010-nudgeUV-1850aero-LRtunedHR',\
+            'F2010-plus4k', 'F2010-plus4k-HR','F2010-plus4k-LR','F2010-plus4k-LRtunedHR']:
             return 'HR-v1'
         return 'DECK-v1'
     elif model in ['1_1','1_1_ECA']:
