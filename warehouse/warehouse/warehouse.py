@@ -208,10 +208,18 @@ class AutoWarehouse:
 
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
-        
+
+        log_message("info", f"setup_datasets: self.dataset_ids = {self.dataset_ids}")
+        for x in cmip6_ids:
+            print(f"{x}", flush=True)
+        sys.exit(1)
+
         if self.dataset_ids and self.dataset_ids is not None:
             dataset_ids = []
             for dataset_pattern in self.dataset_ids:
+                log_message("info", f"testing for pattern {dataset_pattern} in all_dataset_ids")
+                new_ids = fnmatch.filter(all_dataset_ids, dataset_pattern)
+                log_message("info", f"matches are: {new_ids}")
                 if new_ids := fnmatch.filter(all_dataset_ids, dataset_pattern):
                     dataset_ids.extend(new_ids)
             self.dataset_ids = dataset_ids

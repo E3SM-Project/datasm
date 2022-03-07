@@ -61,15 +61,15 @@ tables:
         - clhcalipso
         - all
     day:
-        - pr_highfreq
+        - pr
         - tas
         - huss
         - tasmin
         - tasmax
-        - rlut_highfreq
+        - rlut
         - all
     3hr:
-        - pr_highfreq
+        - pr
         - all
     Lmon:
         - mrsos
@@ -1540,7 +1540,7 @@ project:
                     - ens1
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
-                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1.piControl
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1.piControl-ext85yr
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
