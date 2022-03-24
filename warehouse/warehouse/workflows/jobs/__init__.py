@@ -9,7 +9,7 @@ class WorkflowJob(object):
     def __init__(self, dataset, state, scripts_path, slurm_out_path, slurm_opts=[], params={}, **kwargs):
         super().__init__()
         self.name = "WorkflowJobBase"
-        self._requires = { '*-*-*': None }
+        self._requires = { '*-*-*': None }      # dictionary where requires[req] = a_dataset (object)
         self._dataset = dataset
         self._starting_state = state
         self._scripts_path = scripts_path
@@ -44,7 +44,7 @@ class WorkflowJob(object):
             log_message("error", f"Job does not meet requirements! {self.requires}")
             return None
         msg = f"Starting job: {str(self)} with reqs {[x.dataset_id for x in self.requires.values()]}"
-        log_message('debug', msg)
+        log_message('info', msg)
 
         # self.resolve_cmd()
         info_fail = 0
@@ -74,7 +74,7 @@ class WorkflowJob(object):
         message_file = NamedTemporaryFile(dir=self.tmpdir, delete=False)
         Path(message_file.name).touch()
         if info_fail == 1:
-            self._cmd = f"export message_file={message_file.name}\n" + "\necho INFO_FAIL\n"
+            self._cmd = f"export message_file={message_file.name}\n" + "\necho E2C_INFO_FAIL\n"
         else:
             self._cmd = f"export message_file={message_file.name}\n" + self._cmd
 
@@ -115,6 +115,15 @@ rm $message_file
         """
         # cprint(f"incomming datasets {[x.dataset_id for x in input_datasets]}", "yellow")
         # ipdb.set_trace()
+
+        for req, _ in self._requires.items():
+            log_message("info", f"setup_requisites: DBG_REQ: self {self.name} has req {req}")
+
+        if input_datasets == None:
+            log_message("info", "setup_requisites: no input datasets")
+        else:
+            log_message("info", f"setup_requisites: got input datasets")
+
         datasets = [self.dataset]
         if input_datasets:
             if not isinstance(input_datasets, list):
@@ -126,12 +135,16 @@ rm $message_file
             # cprint(f"checking if {dataset.dataset_id} is a good match for {self.name}", "yellow")
             log_message("info", f"setup_requisites: checking if {dataset.dataset_id} is a good match for {self.name}");
             if (req := self.matches_requirement(dataset)) is not None:
+                log_message("info", f"setup_requisites: self.matches_requirement(dataset) returns req = {req}");
+                # log_message("info", f"setup_requisites: Found: {[x.dataset_id for x in self.requires.values()]}");
                 # cprint(f'Found matching input requirements for {dataset.dataset_id}: {[x.dataset_id for x in self.requires.values()]}', 'green')
                 self._requires[req] = dataset
-            # else:
-            #     cprint(f'{dataset.dataset_id} does not match for {self.requires}', 'red')
+            else:
+                log_message("info", f"setup_requisites: ERR: {dataset.dataset_id} does not match for {self.requires}");
+                # cprint(f'{dataset.dataset_id} does not match for {self.requires}', 'red')
 
 
+    # dataset: has dataset_id, status_path, pub_base, warehouse_base, archive_base, no_status_file=True from caller, else from class
     def matches_requirement(self, dataset):
         """
         Checks that the self.dataset matches the jobs requirements, as well
@@ -140,8 +153,10 @@ rm $message_file
         # import ipdb; ipdb.set_trace()
         # if self.dataset.dataset_id == dataset.dataset_id:
         #     return None
+        for req, _ in self._requires.items():
+            log_message("debug", f"matches_requirement: DBG_REQ: self {self.name} has req {req}")
 
-        log_message("debug", f"WF_jobs_init: matches_requirement(): dataset.experiment={dataset.experiment}, self.dataset.experiment={self.dataset.experiment}")
+        log_message("debug", f"WF_jobs_init: matches_requirement(): trying dataset.experiment={dataset.experiment}, self.dataset.experiment={self.dataset.experiment}")
 
         if self.dataset.project == 'E3SM':
             if dataset.experiment != self.dataset.experiment:
@@ -188,15 +203,23 @@ rm $message_file
                 continue
             log_message("debug", f"WF_jobs_init: matches_requirement(): req = {req}")
             req_attrs = req.split('-')
-            log_message("debug", f"WF_jobs_init: matches_requirement(): Testing realm_grid_freq {dataset.realm}_{dataset.grid}_{dataset.freq} against {req}")
-            if dataset.realm != req_attrs[0] and req_attrs[0] != '*':
+            if len(req_attrs) > 3 and req_attrs[0] == 'sea':
+                req_attrs[0] = req_attrs[0] + req_attrs[1]
+                req_attrs[1] = req_attrs[2]
+                req_attrs[2] = req_attrs[3]
+            req = '-'.join([req_attrs[0], req_attrs[1], req_attrs[2]]) 
+            log_message("info", f"WF_jobs_init: matches_requirement(): Testing realm_grid_freq {req_attrs[0]}-{req_attrs[1]}-{req_attrs[2]} against {req}")
+            rcode = dataset.realm.replace('-','')
+            gcode = dataset.grid.replace('-','')
+            fcode = dataset.freq.replace('-','')
+            if rcode != req_attrs[0] and req_attrs[0] != '*':
                 continue
-            if dataset.grid != req_attrs[1] and req_attrs[1] != '*':
+            if gcode != req_attrs[1] and req_attrs[1] != '*':
                 continue
-            if dataset.freq != req_attrs[2] and req_attrs[2] != '*':
+            if fcode != req_attrs[2] and req_attrs[2] != '*':
                 continue
 
-            log_message("debug", f"WF_jobs_init: found job requirement match")
+            log_message("info", f"WF_jobs_init: returning job requirement req={req} for dataset {dataset}")
             return req
         return None
 
@@ -206,8 +229,8 @@ rm $message_file
         """
         for req in self._requires:
             obtained = self._requires.get(req)
-            # log_message("info", f"WF_jobs_init: job.meets_requirements(): checking req {req}")
-            log_message("debug", f"WF_jobs_init: job.meets_requirements(): self._requires.get(req) yields {obtained}")
+            log_message("info", f"WF_jobs_init: job.meets_requirements(): checking req {req}")
+            log_message("info", f"WF_jobs_init: job.meets_requirements(): self._requires.get(req) yields {obtained}")
             if not obtained:
                 log_message("info", f"WF_jobs_init: job.meets_requirements(): returning False")
                 return False

@@ -6,27 +6,27 @@ from subprocess import Popen, PIPE
 from warehouse.workflows.jobs import WorkflowJob
 from warehouse.util import log_message
 
-NAME = 'GenerateOceanCMIP'
+NAME = 'GenerateSeaIceCMIP'
 
 
-class GenerateOceanCMIP(WorkflowJob):
+class GenerateSeaIceCMIP(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        self._requires = { 'ocean-native-mon': None, }
+        self._requires = { 'seaice-native-mon': None, }
         self._cmd = ''
 
     def resolve_cmd(self):
 
         log_message("info", "resolve_cmp: Begin")
 
-        raw_ocean_dataset = self.requires['ocean-native-mon']
+        raw_seaice_dataset = self.requires['seaice-native-mon']
         # raw_atmos_dataset = self.requires['atmos-native-mon']
         cwl_config = self.config['cmip_ocn_mon']
 
         # Begin parameters collection
-        parameters = { 'data_path': raw_ocean_dataset.latest_warehouse_dir, }
+        parameters = { 'data_path': raw_seaice_dataset.latest_warehouse_dir, }
         parameters.update(cwl_config)
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
@@ -48,7 +48,7 @@ class GenerateOceanCMIP(WorkflowJob):
         # Call E2C to obtain variable info
         mapfile="/p/user_pub/e3sm/staging/resource/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc"   # WARNING HARDCODED
         info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip -i {parameters['data_path']} --info --realm mpaso --map {mapfile} -v {var_string} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmd = f"e3sm_to_cmip -i {parameters['data_path']} --info --realm mpassi --map {mapfile} -v {var_string} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         log_message("info", f"E2C --info call: cmd = {cmd}")
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
@@ -81,10 +81,10 @@ class GenerateOceanCMIP(WorkflowJob):
         log_message("info", f"DBG: resolve_cmd: obtained std_cmor_list = {std_cmor_list}")
 
         # Apply variable info to parameters collection
-        parameters['std_var_list'] = ['PSL']    # for pbo, pso
+        # parameters['std_var_list'] = ['PSL']    # for pbo, pso
         # parameters['cmor_var_list'] = std_cmor_list
         parameters['cmor_var_list'] = cmip_var
-        cwl_workflow = "mpaso/mpaso.cwl"
+        cwl_workflow = "mpassi/mpassi.cwl"
 
         parameters['tables_path'] = self.config['cmip_tables_path']
         # was 'metadata_path'
@@ -99,15 +99,15 @@ class GenerateOceanCMIP(WorkflowJob):
         parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['oEC60to30_to_180x360'] }
         log_message("info", f"Applying to parameters[mapfile]: type = {type(parameters['mapfile'])}")
 
-        raw_case_spec = self._spec['project']['E3SM'][raw_ocean_dataset.model_version][raw_ocean_dataset.experiment]
+        raw_case_spec = self._spec['project']['E3SM'][raw_seaice_dataset.model_version][raw_seaice_dataset.experiment]
 
         #DEBUG
         for item in raw_case_spec:
             log_message("info", f"resolve_cmd: raw_case_spec[{item}] = {raw_case_spec[item]}")
 
-        # parameters['mpas_namelist_path'] = raw_case_spec['mpaso_namelist']
+        # parameters['mpas_namelist_path'] = raw_case_spec['mpassi_namelist']
         # parameters['mpas_restart_path'] = raw_case_spec['mpas_restart']
-        parameters['namelist_path'] = "/p/user_pub/e3sm/staging/resource/namefiles/mpaso_in"                       # WARNING HARDCODED
+        parameters['namelist_path'] = "/p/user_pub/e3sm/staging/resource/namefiles/mpassi_in"                      # WARNING HARDCODED
         parameters['restart_path'] = "/p/user_pub/e3sm/staging/resource/restarts/mpaso.rst.1851-01-01_00000.nc"    # WARNING HARDCODED
         parameters['region_path'] = "/p/user_pub/e3sm/staging/resource/oEC60to30v3_Atlantic_region_and_southern_transect.nc"  # WARNING HARDCODED
         # parameters['mapfile'] = mapfile

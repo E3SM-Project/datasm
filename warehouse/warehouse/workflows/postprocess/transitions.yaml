@@ -11,19 +11,19 @@ POSTPROCESS:Ready:
     - GenerateAtm3hrCMIP:Ready
   atmos-cmip-fixed:
     - GenerateAtmFixedCMIP:Ready
-
   land-timeseries-mon:
     - GenerateLndTimeseries:Ready
   land-cmip-mon:
     - GenerateLndMonCMIP:Ready
-  
   ocean-cmip-mon:
     - GenerateOceanCMIP:Ready
   ocean-cmip-fixed:
     - GenerateOceanFixedCMIP:Ready
-
+  seaice-cmip-mon:
+    - GenerateSeaIceCMIP:Ready
   ice-cmip-mon:
     - GenerateIceCMIP:Ready
+
   default:
     - Pass
 
@@ -108,6 +108,16 @@ GenerateOceanCMIP:Fail:
   default:
     - Fail
 
+GenerateSeaIceCMIP:Ready:
+  default:
+    - GenerateSeaIceCMIP:Engaged
+GenerateSeaIceCMIP:Pass:
+  default:
+    - Pass
+GenerateSeaIceCMIP:Fail:
+  default:
+    - Fail
+ 
 GenerateIceCMIP:Ready:
   default:
     - GenerateIceCMIP:Engaged
@@ -117,7 +127,7 @@ GenerateIceCMIP:Pass:
 GenerateIceCMIP:Fail:
   default:
     - Fail
-  
+
 ValidateCMIP:Ready:
   default:
     - ValidateCMIP:Engaged
