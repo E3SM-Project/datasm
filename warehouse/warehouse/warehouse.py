@@ -189,12 +189,11 @@ class AutoWarehouse:
                 warehouse_base=self.warehouse_path,
                 archive_base=self.archive_path,
                 no_status_file=True)
-            # log_message("info", f"DBG: Dataset() returned: {dataset}, Testing for 'matches_requirement()'")
+            log_message("debug", f"DBG: find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'matches_requirement()'")
             if job.matches_requirement(dataset):
-                # log_message("info", f"DBG: dataset matched job requirement")
+                log_message("info", f"DBG: find_e3sm_source_dataset: dataset {dataset.dataset_id} matched job requirement")
                 dataset.initialize_status_file()
-                msg = f"matching dataset found: {dataset.dataset_id}"
-                log_message("debug", msg, self.debug)
+                # log_message("debug", msg, self.debug)
                 return dataset
         return None
 
@@ -209,10 +208,10 @@ class AutoWarehouse:
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
 
-        log_message("info", f"setup_datasets: self.dataset_ids = {self.dataset_ids}")
-        for x in cmip6_ids:
-            print(f"{x}", flush=True)
-        sys.exit(1)
+        # log_message("info", f"setup_datasets: self.dataset_ids = {self.dataset_ids}")
+        # for x in cmip6_ids:
+        #     print(f"{x}", flush=True)
+        # sys.exit(1)
 
         if self.dataset_ids and self.dataset_ids is not None:
             dataset_ids = []
@@ -235,6 +234,7 @@ class AutoWarehouse:
         else:
             msg = f"Running with datasets {pformat(self.dataset_ids)}"
             log_message('debug', msg)
+            log_message("info", f"setup_datasets: Running with {len(self.dataset_ids)} datasets")
             # log_message("info", f"DBG: WH: Running with datasets {pformat(self.dataset_ids)}")
 
         # instantiate the dataset objects with the paths to
@@ -432,7 +432,7 @@ class AutoWarehouse:
                 for item in parameters.split(","):
                     key, value = item.split("=")
                     params[key] = value.replace("^", ":")
-                    log_message("debug", f"WH: start_datasets: params[{key}] = {params[key]}")
+                    log_message("info", f"WH: start_datasets: params[{key}] = {params[key]}")
 
             state = dataset.status
             workflow = self.workflow
@@ -506,7 +506,7 @@ class AutoWarehouse:
                 # check if the new job is a duplicate
                 if (matching_job := self.find_matching_job(newjob)) is None:
                     log_message(
-                        "debug",
+                        "info",
                         f"Created jobs from {state} for dataset {dataset_id}"
                     )
                     new_jobs.append(newjob)
@@ -516,7 +516,7 @@ class AutoWarehouse:
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
             job_name = f"{job}".split(':')[0]
-            log_message("info", f"starting job: {job_name}")
+            log_message("info", f"start_datasets: starting job: {job_name}")
             # import ipdb; ipdb.set_trace()
             job_reqs_met = job.meets_requirements()
             log_message("info", f"job_reqs_met={job_reqs_met}, project={job.dataset.project}, job_name={job_name}")

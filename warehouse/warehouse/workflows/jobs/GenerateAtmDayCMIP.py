@@ -5,6 +5,7 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 from warehouse.workflows.jobs import WorkflowJob
+from warehouse.util import log_message
 
 NAME = 'GenerateAtmDayCMIP'
 
@@ -23,6 +24,7 @@ class GenerateAtmDayCMIP(WorkflowJob):
         raw_dataset = self.requires['atmos-native-day']
         cwl_config = self.config['cmip_atm_day']
 
+        # log_message("debug", f"Using raw input from {raw_dataset.latest_warehouse_dir}")
         parameters = {'data_path': raw_dataset.latest_warehouse_dir}
         parameters.update(cwl_config)
 
@@ -34,28 +36,49 @@ class GenerateAtmDayCMIP(WorkflowJob):
             is_all = True
             cmip_var = [x for x in self._spec['tables'][table] if x != 'all']
         else:
-            is_all = True
+            is_all = False
             cmip_var = [cmip_var]
 
-        e3sm_vars = []
+        # need to ADD "_high_freq" for selected variables, crufty but necessary to not pollute the dataset_spec
+        # only for the day and 3hr jobs.
+        list1 = [ f"{x}_highfreq" for x in cmip_var if x in ['pr', 'rlut'] ]
+        list2 = [ x for x in  cmip_var if x not in ['pr', 'rlut'] ]
+        cmip_vars = list1 + list2
+
         info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq day -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq day -v {', '.join(cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        log_message("info", f"resolve_cmd: issuing info cmd: {cmd}")
+
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
-            print(err)
+            log_message("debug", f"Error checking variables: {err}")
             return None
+        # else:
+        #     log_message("debug", "e3sm_to_cmip returned variable info")
     
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
+
+        # the high freq variable handler may have a different
+        # name then the actual CMIP6 variable, for example
+        # the daily pr handler is named pr_highfreq
+        e3sm_vars = []
+        real_cmip_vars = []
         for item in variable_info:
-            if ',' in item['E3SM Variables']:
-                e3sm_vars.extend([v for v in item['E3SM Variables'].split(',')])
+            if isinstance(item['E3SM Variables'], list):
+                e3sm_vars.extend([v for v in item['E3SM Variables']])
             else:
                 e3sm_vars.append(item['E3SM Variables'])
 
+            vname = item['CMIP6 Name']
+            if vname in ['pr', 'rlut']:
+                vname = f"{vname}_highfreq" # only for this day or 3hr job
+
+            real_cmip_vars.append(vname)
+
         parameters['std_var_list'] = e3sm_vars
-        parameters['std_cmor_list'] = cmip_var
+        parameters['std_cmor_list'] = real_cmip_vars
         
         cwl_workflow = "atm-highfreq/atm-highfreq.cwl"
         parameters['tables_path'] = self.config['cmip_tables_path']
@@ -64,9 +87,9 @@ class GenerateAtmDayCMIP(WorkflowJob):
         parameters['hrz_atm_map_path'] = self.config['grids']['ne30_to_180x360']
 
         # step two, write out the parameter file and setup the temp directory
-        self._cmip_var = 'all' if is_all else cmip_var[0]
+        var_id = 'all' if is_all else cmip_vars[0]
         parameter_path = os.path.join(
-            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-day-{self._cmip_var}.yaml")
+            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-day-{var_id}.yaml")
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 

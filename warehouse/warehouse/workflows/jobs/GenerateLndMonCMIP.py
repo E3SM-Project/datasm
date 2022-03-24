@@ -41,6 +41,7 @@ class GenerateLndMonCMIP(WorkflowJob):
             raise ValueError(f"Job {NAME} doesnt have its requirements filled: {self.requires}")
         cwl_config = self.config['cmip_lnd_mon']
 
+        # Begin parameters collection
         parameters = {'lnd_data_path': raw_dataset.latest_warehouse_dir}
         parameters.update(cwl_config)
 
@@ -55,6 +56,7 @@ class GenerateLndMonCMIP(WorkflowJob):
             is_all = False
             cmip_var = [cmip_var]
 
+        # Call E2C to obtain variable info
         std_var_list = []
         std_cmor_list = []
         info_file = NamedTemporaryFile(delete=False)
@@ -82,7 +84,7 @@ class GenerateLndMonCMIP(WorkflowJob):
             std_var_list.extend(e3sm_var)
             std_cmor_list.append(item['CMIP6 Name'])
 
-
+        # Apply variable info to parameters collection
         parameters['lnd_var_list'] = std_var_list
         parameters['cmor_var_list'] = std_cmor_list
         parameters['one_land_file'] = os.path.join(

@@ -284,6 +284,29 @@ project:
                         - siv
                         - clcalipso
         ScenarioMIP:
+            E3SM-1-0:
+                ssp585:
+                    start: 2015
+                    end: 2099
+                    ens:
+                        - r1i1p1f1
+                        - r2i1p1f1
+                        - r3i1p1f1
+                        - r4i1p1f1
+                        - r5i1p1f1
+                    except:
+                        - cLitter
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
             E3SM-1-1:
                 ssp585:
                     start: 2015
@@ -304,6 +327,28 @@ project:
                         - siu
                         - siv
                         - clcalipso
+        DAMIP:
+            E3SM-1-0:
+                hist-GHG:
+                    start: 1850
+                    end: 2014
+                    ens:
+                        - r1i1p1f1
+                        - r2i1p1f1
+                        - r3i1p1f1
+                    except:
+                        - cLitter
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
         CMIP:
             E3SM-1-0:
                 piControl:
@@ -1114,6 +1159,7 @@ project:
                     - ens3
                 campaign: DECK-v1
                 science_driver: Water Cycle
+                cmip_case: CMIP6.DAMIP.E3SM-Project.E3SM-1-0.hist-GHG
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
@@ -1218,6 +1264,7 @@ project:
                     - ens5
                 campaign: DECK-v1
                 science_driver: Water Cycle
+                cmip_case: CMIP6.ScenarioMIP.E3SM-Project.E3SM-1-0.ssp585
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
