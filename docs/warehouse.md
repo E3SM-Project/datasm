@@ -38,7 +38,7 @@ This environment is for testing local source code changes to the `warehouse` mod
    ```
 
 3. (Optional) Make changes to the `extract`, `validate`, and `postprocess` modules in `/warehouse`
-4. Install local package with changes from source
+4. Install package from local build
 
    ```bash
       cd warehouse
@@ -84,7 +84,7 @@ This environment is for testing local source code changes to the `warehouse` mod
    ```
 
 3. (Optional) Make changes to the `publish` modules in `/warehouse`
-4. Install local package with changes from source
+4. Install local package from local build
 
    ```bash
       cd warehouse
