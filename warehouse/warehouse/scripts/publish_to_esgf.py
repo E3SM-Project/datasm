@@ -88,7 +88,7 @@ def publish_dataset(args):
             project = "cmip6"
 
     with TemporaryDirectory() as tmpdir:
-        cmd = f"esgpublish --project {project} --map {src_path}"
+        cmd = f"esgpublish --map {src_path}"
         if project == "e3sm":
             if optional_facets is not None and optional_facets:
                 project_metadata_path = os.path.join(tmpdir, f"{dataset_id}.json")
@@ -108,7 +108,7 @@ def publish_dataset(args):
             )
             proc.wait()
 
-        # con_message("info", f"Return code {str(proc.returncode)} on cmd: {cmd}")      # generated weird error in 3_Publish/slurm_scripts-20211013_185431_334581
+        con_message("info", f"Return code {str(proc.returncode)} on cmd: {cmd}")      # generated weird error in 3_Publish/slurm_scripts-20211013_185431_334581
 
         return proc.returncode
 
