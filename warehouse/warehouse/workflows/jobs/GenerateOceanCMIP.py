@@ -14,19 +14,27 @@ class GenerateOceanCMIP(WorkflowJob):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        self._requires = { 'ocean-native-mon': None, }
+        # including atmos-native_mon as (pbo requires PSL)
+        self._requires = {
+            'ocean-native-mon': None,
+            'atmos-native-mon': None    
+        }
         self._cmd = ''
 
     def resolve_cmd(self):
 
         log_message("info", "resolve_cmp: Begin")
 
+        # including atmos-native_mon as (pbo requires PSL)
         raw_ocean_dataset = self.requires['ocean-native-mon']
-        # raw_atmos_dataset = self.requires['atmos-native-mon']
+        raw_atmos_dataset = self.requires['atmos-native-mon']
         cwl_config = self.config['cmip_ocn_mon']
 
         # Begin parameters collection
-        parameters = { 'data_path': raw_ocean_dataset.latest_warehouse_dir, }
+        parameters = {
+            'mpas_data_path': raw_ocean_dataset.latest_warehouse_dir,
+            'atm_data_path': raw_atmos_dataset.latest_warehouse_dir
+        }
         parameters.update(cwl_config)
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
@@ -48,7 +56,7 @@ class GenerateOceanCMIP(WorkflowJob):
         # Call E2C to obtain variable info
         mapfile="/p/user_pub/e3sm/staging/resource/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc"   # WARNING HARDCODED
         info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip -i {parameters['data_path']} --info --realm mpaso --map {mapfile} -v {var_string} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmd = f"e3sm_to_cmip -i {parameters['mpas_data_path']} --info --realm mpaso --map {mapfile} -v {var_string} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         log_message("info", f"E2C --info call: cmd = {cmd}")
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
@@ -65,14 +73,18 @@ class GenerateOceanCMIP(WorkflowJob):
             raise ValueError(f"Unable to find correct input variable for requested CMIP conversion, is {cmd} correct?")
             return 1    # was return None
 
-        std_var_list = []
-        std_cmor_list = []
-
+        # I just want to see what "variable_info" is returned
         log_message("info", "==================================================================================")
         for item in variable_info:
             log_message("info", f"DBG: E2C INFO item = {item}")
         log_message("info", "==================================================================================")
 
+        std_var_list = []
+        std_cmor_list = []
+
+        parameters['std_var_list'] = ['PSL']    # for pbo, pso
+
+        # Apply variable info to parameters collection
         for item in variable_info:
             if isinstance(item['E3SM Variables'], list):
                 std_var_list.extend([v for v in item['E3SM Variables']])
@@ -80,8 +92,6 @@ class GenerateOceanCMIP(WorkflowJob):
 
         log_message("info", f"DBG: resolve_cmd: obtained std_cmor_list = {std_cmor_list}")
 
-        # Apply variable info to parameters collection
-        parameters['std_var_list'] = ['PSL']    # for pbo, pso
         # parameters['cmor_var_list'] = std_cmor_list
         parameters['cmor_var_list'] = cmip_var
         cwl_workflow = "mpaso/mpaso.cwl"
