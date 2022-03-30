@@ -4,6 +4,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
 from warehouse.workflows.jobs import WorkflowJob
+from warehouse.util import log_message
 
 NAME = 'GenerateOcnAtmCMIP'
 
@@ -21,18 +22,23 @@ class GenerateOcnAtmCMIP(WorkflowJob):
 
     def resolve_cmd(self):
 
+        log_message("info", "resolve_cmd: Begin")
+
+        # including atmos-native_mon as (pbo requires PSL)
         raw_ocean_dataset = self.requires['ocean-native-mon']
         raw_atmos_dataset = self.requires['atmos-native-mon']
         cwl_config = self.config['cmip_ocn_mon']
 
+        # Begin parameters collection
         parameters = {
             'mpas_data_path': raw_ocean_dataset.latest_warehouse_dir,
             'atm_data_path': raw_atmos_dataset.latest_warehouse_dir
         }
-        parameters.update(cwl_config)
+        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout, mpas_region_path
 
-        _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split(
-            '.')
+        _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+
+        log_message("info", f"resolve_cmd: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
 
         # if we want to run all the variables
         # we can pull them from the dataset spec
@@ -45,6 +51,10 @@ class GenerateOcnAtmCMIP(WorkflowJob):
 
         parameters['std_var_list'] = ['PSL']
         parameters['mpas_var_list'] = cmip_var
+
+        # NOTE:  Entire sequence for calling e2c to obtain "variable info" is missing here
+        #       This would initiate the std_var_list[] and mpas_var_list[].
+
         cwl_workflow = "mpaso-atm/mpaso-atm.cwl"
 
         parameters['tables_path'] = self.config['cmip_tables_path']

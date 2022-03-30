@@ -19,7 +19,7 @@ class GenerateSeaIceCMIP(WorkflowJob):
 
     def resolve_cmd(self):
 
-        log_message("info", "resolve_cmp: Begin")
+        log_message("info", "resolve_cmd: Begin")
 
         raw_seaice_dataset = self.requires['seaice-native-mon']
         # raw_atmos_dataset = self.requires['atmos-native-mon']
@@ -31,7 +31,7 @@ class GenerateSeaIceCMIP(WorkflowJob):
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
-        log_message("info", f"resolve_cmp: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
+        log_message("info", f"resolve_cmd: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
 
         # if we want to run all the variables
         # we can pull them from the dataset spec
