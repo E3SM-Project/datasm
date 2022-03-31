@@ -4,10 +4,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
 from warehouse.workflows.jobs import WorkflowJob
-<<<<<<< HEAD
 from warehouse.util import log_message
-=======
->>>>>>> 87b3c52d6ee7a42df64f9710aab7f4fa27b79bed
 
 NAME = 'GenerateOcnAtmCMIP'
 
