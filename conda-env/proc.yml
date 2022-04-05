@@ -1,7 +1,6 @@
-# Conda development environment.
-# Intended for testing local source code changes to the `datasm` modules before merging them to production (`master` branch).
-# It supports the datasm operations extract, validate, and postprocess.
-name: datasm_dev
+# Conda processing environment
+# This environment is for testing local source code changes to the `datasm` modules related to the data processing operations `extract`, `validate`, and `postprocess` before merging them to production (the `master` branch).
+name: datasm_proc
 channels:
   - conda-forge
   - e3sm
@@ -35,4 +34,4 @@ dependencies:
   # Quality Assurance
   # ==================
   - black=22.1.0
-prefix: /opt/miniconda3/envs/datasm_dev
+prefix: /opt/miniconda3/envs/datasm_proc

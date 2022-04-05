@@ -22,19 +22,18 @@ Additional:
 
 ## Environment Setup By Use Case
 
-### Development Environment
+### Data Processing Environment
 
-This environment is for testing local source code changes to the `datasm` modules related to the
-`extract`, `validate`, and `postprocess` operations before merging them to production (the `master` branch).
+This environment is for testing local source code changes to the `datasm` modules related to the data processing operations (`extract`, `validate`, and `postprocess`) before merging them to production (the `master` branch).
 
 1. Open a branch from `master` for local development
 2. Create and activate the environment
 
    ```bash
    # Optionally, you can specify -n <NAME_OF_ENV> for a custom env name.
-   # The default name is listed in dev.yml (`datasm_dev`).
-   conda env create -f conda-env/dev.yml
-   conda activate datasm_dev
+   # The default name is listed in dev.yml (`datasm_proc`).
+   conda env create -f conda-env/proc.yml
+   conda activate datasm_proc
    ```
 
 3. (Optional) Make changes to the `extract`, `validate`, and `postprocess` modules in `/datasm`
@@ -50,9 +49,9 @@ This environment is for testing local source code changes to the `datasm` module
 7. Open a pull request (PR) with this branch for review
 8. Merge PR to `master`
 
-### Publishing Environment
+### Data Publishing Environment
 
-This environment is for testing local source code changes to the `datasm` modules related to the `publish` operation before merging to `master`. It includes the latest stable releases of `esgf-forge` dependencies.
+This environment is for testing local source code changes to the `datasm` modules related to the data publishing operation (`publish`) before merging to `master`. It includes the latest stable releases of `esgf-forge` dependencies.
 
 - `autocurator=0.1` is only available for Linux and does not support `python>3.8`
 - `autocurator=0.1` requires `libnetcdf >=4.7.4,<4.7.5.0a0`, which is not compatible with `nco>=5`
