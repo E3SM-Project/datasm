@@ -1,8 +1,8 @@
-# The E3SM Data State Machine Warehouse
+# The E3SM Data State Machine
 
-The E3SM Data State Machine (`datasm`) library automates complex nested workflows for handling E3SM outputs. These workflows use conditional branching based on the success or failure of the jobs within the workflows. The jobs include `extract`, `validate`, `postprocess`, and `publish`.
+The E3SM Data State Machine (`datasm`) library automates complex nested workflows for handling E3SM outputs. These workflows use conditional branching based on the success or failure of the jobs within the workflows. These jobs include `extract`, `validate`, `postprocess`, and `publish`.
 
-- **_Note: The `warehouse` is currently in active development, so many planned features may be a work in progress, missing, or broken._**
+- **_Note: The `datasm` is currently in active development, so many planned features may be a work in progress, missing, or broken._**
 
 ## Prerequisites
 
@@ -18,13 +18,13 @@ The E3SM Data State Machine (`datasm`) library automates complex nested workflow
 
 Additional:
 
-- Linux OS if you intend on building the [`warehouse` publishing environment](#publishing-environment) and running the warehouse `publish` operation
+- Linux OS if you intend on building the [`datasm` publishing environment](#publishing-environment) and running the datasm `publish` operation
 
 ## Environment Setup By Use Case
 
 ### Development Environment
 
-This environment is for testing local source code changes to the `warehouse` modules related to the
+This environment is for testing local source code changes to the `datasm` modules related to the
 `extract`, `validate`, and `postprocess` operations before merging them to production (the `master` branch).
 
 1. Open a branch from `master` for local development
@@ -32,12 +32,12 @@ This environment is for testing local source code changes to the `warehouse` mod
 
    ```bash
    # Optionally, you can specify -n <NAME_OF_ENV> for a custom env name.
-   # The default name is listed in dev.yml (`warehouse_dev`).
+   # The default name is listed in dev.yml (`datasm_dev`).
    conda env create -f conda-env/dev.yml
-   conda activate warehouse_dev
+   conda activate datasm_dev
    ```
 
-3. (Optional) Make changes to the `extract`, `validate`, and `postprocess` modules in `/warehouse`
+3. (Optional) Make changes to the `extract`, `validate`, and `postprocess` modules in `/datasm`
 4. Install package from local build
 
    ```bash
@@ -45,29 +45,14 @@ This environment is for testing local source code changes to the `warehouse` mod
       pip install .
    ```
 
-5. Test changes by following [Warehouse Usage](#warehouse-usage)
+5. Test changes by following [Data State Machine Usage](#data-state-machine-usage)
 6. Add and commit changes, then push to remote branch
 7. Open a pull request (PR) with this branch for review
 8. Merge PR to `master`
 
-### Production Environment
-
-This environment is used for performing warehouse production operations (`extract`, `validate`, `postprocess`) using the latest stable releases of the dependencies listed in the env's yml file (`prod.yml`).
-
-1. Create and activate the environment
-
-   ```bash
-   # Optionally, you can specify -n <NAME_OF_ENV> for a custom env name.
-   # The default name is listed in prod.yml (`warehouse_prod`).
-   conda env create -f conda-env/prod.yml
-   conda activate warehouse_prod
-   ```
-
-2. Proceed to [Warehouse Usage](#warehouse-usage) section
-
 ### Publishing Environment
 
-This environment is for testing local source code changes to the `warehouse` modules related to the `publish` operation before merging to `master`. It includes the latest stable releases of `esgf-forge` dependencies.
+This environment is for testing local source code changes to the `datasm` modules related to the `publish` operation before merging to `master`. It includes the latest stable releases of `esgf-forge` dependencies.
 
 - `autocurator=0.1` is only available for Linux and does not support `python>3.8`
 - `autocurator=0.1` requires `libnetcdf >=4.7.4,<4.7.5.0a0`, which is not compatible with `nco>=5`
@@ -78,20 +63,20 @@ This environment is for testing local source code changes to the `warehouse` mod
 
    ```bash
     # Optionally, you can specify -n <NAME_OF_ENV> for a custom env name.
-    # The default name is listed in pub.yml (`warehouse_pub`).
+    # The default name is listed in pub.yml (`datasm_pub`).
    conda env create -f conda-env/pub.yml
-   conda activate warehouse_pub
+   conda activate datasm_pub
    ```
 
-3. (Optional) Make changes to the `publish` modules in `/warehouse`
+3. (Optional) Make changes to the `publish` modules in `/datasm`
 4. Install local package from local build
 
    ```bash
-      cd warehouse
+      cd datasm
       pip install .
    ```
 
-5. Test changes by following [Warehouse Usage](#warehouse-usage)
+5. Test changes by following [Data State Machine Usage](#data-state-machine-usage)
 6. Add and commit changes, then push to remote branch
 7. Open a pull request (PR) with this branch for review
 8. Merge PR to `master`
@@ -117,7 +102,7 @@ Occasionally, the dependencies in the conda env yml files are updated to include
    conda env update --f conda-env/<NAME_OF_YML>.yml
    ```
 
-## Warehouse Usage
+## Data State Machine Usage
 
 There are two main modes of operation, either the full automated warehouse, or running any of the subordinate workflows individually. The automated warehouse can be run by itself with:
 
@@ -220,7 +205,7 @@ optional arguments:
                         Project.E3SM-1-1.historical.r1i1p1f1.CFmon.cllcalipso.gr
 ```
 
-## Warehouse Developer Guide
+## Data State Machine Developer Guide
 
 ### Manipulating the job flow
 
@@ -286,7 +271,7 @@ python check_file_integrity.py -p {self._job_workers}  {self.dataset.latest_ware
 
 ### Adding a new simulation
 
-When a new simulation is slated for publication, the first thing that needs to happen is for it to be added to the dataset_spec.yaml under the `warehouse/resources` directory.
+When a new simulation is slated for publication, the first thing that needs to happen is for it to be added to the dataset_spec.yaml under the `datasm/resources` directory.
 
 The dataset spec has two top level items, the Tables dictionary, which lists all the CMIP6 tables and the variables that are slated for publication in them, and the Projects dictionary, which contains all the information about the simulations we have published to the CMIP6 and E3SM project.
 

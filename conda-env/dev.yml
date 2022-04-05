@@ -1,4 +1,5 @@
-# Conda development environment for testing local source code changes to the `datasm` modules before merging them to production (`master` branch).
+# Conda development environment.
+# Intended for testing local source code changes to the `datasm` modules before merging them to production (`master` branch).
 # It supports the datasm operations extract, validate, and postprocess.
 name: datasm_dev
 channels:
