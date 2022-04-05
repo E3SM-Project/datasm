@@ -22,7 +22,7 @@ class GenerateOcnAtmCMIP(WorkflowJob):
 
     def resolve_cmd(self):
 
-        log_message("info", "resolve_cmd: Begin")
+        log_message("info", f"resolve_cmd: Start: dsid={self.dataset.dataset_id}")
 
         # including atmos-native_mon as (pbo requires PSL)
         raw_ocean_dataset = self.requires['ocean-native-mon']
@@ -38,7 +38,7 @@ class GenerateOcnAtmCMIP(WorkflowJob):
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
-        log_message("info", f"resolve_cmd: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
+        # log_message("info", f"resolve_cmd: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
 
         # if we want to run all the variables
         # we can pull them from the dataset spec
@@ -49,14 +49,17 @@ class GenerateOcnAtmCMIP(WorkflowJob):
             is_all = False
             cmip_var = [cmip_var]
 
+        var_string = ', '.join(cmip_var)
+        log_message("info", f"DBG: resolve_cmd: var_string = {var_string}")
+
         parameters['std_var_list'] = ['PSL']
         parameters['mpas_var_list'] = cmip_var
 
         # NOTE:  Entire sequence for calling e2c to obtain "variable info" is missing here
         #       This would initiate the std_var_list[] and mpas_var_list[].
 
-        cwl_workflow = "mpaso-atm/mpaso-atm.cwl"
-
+        cwl_workflow_main = "mpaso-atm/mpaso-atm.cwl"
+        cwl_workflow = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
         parameters['tables_path'] = self.config['cmip_tables_path']
         parameters['metadata_path'] = {
             'class': 'File',
@@ -68,10 +71,12 @@ class GenerateOcnAtmCMIP(WorkflowJob):
         parameters['hrz_atm_map_path'] = self.config['grids']['ne30_to_180x360']
         parameters['mpas_map_path'] = self.config['grids']['oEC60to30_to_180x360']
 
-        raw_case_spec = spec['project']['E3SM'][raw_ocean_dataset.model_version][raw_ocean_dataset.experiment]
-        parameters['mpas_namelist_path'] = raw_case_spec['mpaso_namelist']
-        parameters['mpas_restart_path'] = raw_case_spec['mpas_restart']
-        parameters['workflow_output'] = str(self.dataset.warehouse_path)
+        raw_model_version = raw_ocean_dataset.model_version
+        raw_experiment = raw_ocean_dataset.experiment
+
+        parameters['mpas_namelist_path'] = os.path.join(self.config['e3sm_namefile_path'],raw_model_version,raw_experiment,'mpaso_in')
+        parameters['mpas_restart_path'] = os.path.join(self.config['e3sm_restarts_path'],raw_model_version,raw_experiment,'mpaso.rst.1851-01-01_00000.nc')
+        parameters['workflow_output'] = '/p/user_pub/e3sm/warehouse'
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else cmip_var[0]
@@ -88,4 +93,4 @@ class GenerateOcnAtmCMIP(WorkflowJob):
             parallel = "--parallel"
         else:
             parallel = ''
-        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow} {parameter_path}"

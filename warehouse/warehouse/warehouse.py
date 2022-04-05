@@ -418,7 +418,7 @@ class AutoWarehouse:
             # for all the datasets, if they're not yet published or in the warehouse
             # then mark them as ready to start
             if dataset.status in ready_states:
-                log_message('debug', f"WH: start_datasets: Dataset {dataset.dataset_id} is transitioning from {dataset.status} to {DatasetStatus.READY.value}")
+                log_message('info', f"WH: start_datasets: Dataset {dataset.dataset_id} is transitioning from {dataset.status} to {DatasetStatus.READY.value}")
                 dataset.status = DatasetStatus.READY.value
                 continue
 
@@ -437,8 +437,8 @@ class AutoWarehouse:
             state = dataset.status
             workflow = self.workflow
 
-            log_message("debug", f"WH: start_datasets: state = {state}")
-            log_message("debug", f"WH: start_datasets: workflow = {self.workflow}")
+            log_message("info", f"WH: start_datasets: state = {state}")
+            log_message("info", f"WH: start_datasets: workflow = {self.workflow}")
 
             if state == DatasetStatus.UNITITIALIZED.value:
                 state = DatasetStatusMessage.WAREHOUSE_READY.value

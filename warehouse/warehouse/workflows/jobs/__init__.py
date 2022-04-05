@@ -104,7 +104,7 @@ else
     echo STAT:`date -u "+%Y%m%d_%H%M%S_%6N"`:{self.parent}:{self.name}:Pass:`cat $message_file` >> {self.dataset.status_path}
     {self.render_cleanup()}
 fi
-rm $message_file
+# rm $message_file
 """
         self._cmd = self._cmd + suffix
 

@@ -33,16 +33,10 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         # we can pull them from the dataset spec
         if cmip_var == 'all':
             is_all = True
-            cmip_var = [x for x in self._spec['tables'][table] if x != 'all']
+            cmip_vars = [x for x in self._spec['tables'][table] if x != 'all']
         else:
             is_all = False
-            cmip_var = [cmip_var]
-
-        # need to ADD "_high_freq" for selected variables, crufty but necessary to not pollute the dataset_spec
-        # only for the day and 3hr jobs.
-        list1 = [ f"{x}_highfreq" for x in cmip_var if x in ['pr', 'rlut'] ]
-        list2 = [ x for x in  cmip_var if x not in ['pr', 'rlut'] ]
-        cmip_vars = list1 + list2
+            cmip_vars = [cmip_var]
 
         info_file = NamedTemporaryFile(delete=False)
         cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq 3hr -v {', '.join(cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"

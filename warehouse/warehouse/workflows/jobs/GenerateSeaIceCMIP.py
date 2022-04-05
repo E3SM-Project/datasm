@@ -19,7 +19,7 @@ class GenerateSeaIceCMIP(WorkflowJob):
 
     def resolve_cmd(self):
 
-        log_message("info", "resolve_cmd: Begin")
+        log_message("info", f"resolve_cmd: Start: dsid={self.dataset.dataset_id}")
 
         raw_seaice_dataset = self.requires['seaice-native-mon']
         # raw_atmos_dataset = self.requires['atmos-native-mon']
@@ -27,11 +27,11 @@ class GenerateSeaIceCMIP(WorkflowJob):
 
         # Begin parameters collection
         parameters = { 'data_path': raw_seaice_dataset.latest_warehouse_dir, }
-        parameters.update(cwl_config)
+        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout, mpas_region_path
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
-        log_message("info", f"resolve_cmd: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
+        # log_message("info", f"resolve_cmd: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
 
         # if we want to run all the variables
         # we can pull them from the dataset spec
@@ -45,10 +45,10 @@ class GenerateSeaIceCMIP(WorkflowJob):
         var_string = ', '.join(cmip_var)
         log_message("info", f"DBG: resolve_cmd: var_string = {var_string}")
 
+        '''
         # Call E2C to obtain variable info
-        mapfile="/p/user_pub/e3sm/staging/resource/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc"   # WARNING HARDCODED
         info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip -i {parameters['data_path']} --info --realm mpassi --map {mapfile} -v {var_string} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmd = f"e3sm_to_cmip --info --realm mpassi --map dummy -v {var_string} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         log_message("info", f"E2C --info call: cmd = {cmd}")
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
@@ -79,15 +79,15 @@ class GenerateSeaIceCMIP(WorkflowJob):
             std_cmor_list.append(item['CMIP6 Name'])
 
         log_message("info", f"DBG: resolve_cmd: obtained std_cmor_list = {std_cmor_list}")
+        '''
 
         # Apply variable info to parameters collection
-        # parameters['std_var_list'] = ['PSL']    # for pbo, pso
-        # parameters['cmor_var_list'] = std_cmor_list
         parameters['cmor_var_list'] = cmip_var
-        cwl_workflow = "mpassi/mpassi.cwl"
+
+        cwl_workflow_main = "mpassi/mpassi.cwl"
+        cwl_workflow = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
 
         parameters['tables_path'] = self.config['cmip_tables_path']
-        # was 'metadata_path'
         parameters['metadata'] = {
             'class': 'File',
             'path': os.path.join(
@@ -95,24 +95,17 @@ class GenerateSeaIceCMIP(WorkflowJob):
                 model_version, 
                 f"{experiment}_{variant}.json")
             }
-        # parameters['hrz_atm_map_path'] = self.config['grids']['ne30_to_180x360']
+        parameters['region_path'] = parameters['mpas_region_path']
+        mapfile="/p/user_pub/e3sm/staging/resource/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc"   # WARNING HARDCODED
         parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['oEC60to30_to_180x360'] }
         log_message("info", f"Applying to parameters[mapfile]: type = {type(parameters['mapfile'])}")
 
-        raw_case_spec = self._spec['project']['E3SM'][raw_seaice_dataset.model_version][raw_seaice_dataset.experiment]
+        raw_model_version = raw_seaice_dataset.model_version
+        raw_experiment = raw_seaice_dataset.experiment
 
-        #DEBUG
-        for item in raw_case_spec:
-            log_message("info", f"resolve_cmd: raw_case_spec[{item}] = {raw_case_spec[item]}")
-
-        # parameters['mpas_namelist_path'] = raw_case_spec['mpassi_namelist']
-        # parameters['mpas_restart_path'] = raw_case_spec['mpas_restart']
-        parameters['namelist_path'] = "/p/user_pub/e3sm/staging/resource/namefiles/mpassi_in"                      # WARNING HARDCODED
-        parameters['restart_path'] = "/p/user_pub/e3sm/staging/resource/restarts/mpaso.rst.1851-01-01_00000.nc"    # WARNING HARDCODED
-        parameters['region_path'] = "/p/user_pub/e3sm/staging/resource/oEC60to30v3_Atlantic_region_and_southern_transect.nc"  # WARNING HARDCODED
-        # parameters['mapfile'] = mapfile
-        parameters['workflow_output'] = str(self.dataset.warehouse_path)
-        parameters['frequency'] = 10
+        parameters['namelist_path'] = os.path.join(self.config['e3sm_namefile_path'],raw_model_version,raw_experiment,'mpassi_in')
+        parameters['restart_path'] = os.path.join(self.config['e3sm_restarts_path'],raw_model_version,raw_experiment,'mpaso.rst.1851-01-01_00000.nc')
+        parameters['workflow_output'] = '/p/user_pub/e3sm/warehouse'
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else cmip_var[0]
@@ -129,4 +122,4 @@ class GenerateSeaIceCMIP(WorkflowJob):
             parallel = "--parallel"
         else:
             parallel = ''
-        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow} {parameter_path}"

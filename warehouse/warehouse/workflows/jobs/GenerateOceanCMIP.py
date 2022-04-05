@@ -14,34 +14,25 @@ class GenerateOceanCMIP(WorkflowJob):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        # including atmos-native_mon as (pbo requires PSL)
-        self._requires = {
-            'ocean-native-mon': None,
-            'atmos-native-mon': None    
-        }
+        self._requires = { 'ocean-native-mon': None, }
         self._cmd = ''
 
     def resolve_cmd(self):
 
-        cmip6_dsid = self.dataset.dataset_id
-
-        log_message("info", f"resolve_cmd: Begin, dsid={cmip6_dsid}")
+        log_message("info", f"resolve_cmd: Start: dsid={self.dataset.dataset_id}")
 
         # including atmos-native_mon as (pbo requires PSL)
         raw_ocean_dataset = self.requires['ocean-native-mon']
-        raw_atmos_dataset = self.requires['atmos-native-mon']
+        # raw_atmos_dataset = self.requires['atmos-native-mon']
         cwl_config = self.config['cmip_ocn_mon']
 
         # Begin parameters collection:  use 'mpas_data_path' and 'atm_data_path' for mpaso-atm.
-        parameters = {
-            'data_path': raw_ocean_dataset.latest_warehouse_dir,
-            # 'atm_data_path': raw_atmos_dataset.latest_warehouse_dir
-        }
+        parameters = { 'data_path': raw_ocean_dataset.latest_warehouse_dir, }
         parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout, mpas_region_path
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
-        log_message("info", f"resolve_cmd: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
+        # log_message("info", f"resolve_cmd: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
 
         # if we want to run all the variables
         # we can pull them from the dataset spec
@@ -55,11 +46,7 @@ class GenerateOceanCMIP(WorkflowJob):
         var_string = ', '.join(cmip_var)
         log_message("info", f"DBG: resolve_cmd: var_string = {var_string}")
 
-        parameters['std_var_list'] = ['PSL']    # for pbo, pso
-        std_cmor_list = []
-        # parameters['cmor_var_list'] = std_cmor_list
-        parameters['cmor_var_list'] = cmip_var
-
+        '''
         # Call E2C to obtain variable info
         info_file = NamedTemporaryFile(delete=False)
         cmd = f"e3sm_to_cmip --info --realm mpaso --map dummy -v {var_string} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
@@ -85,15 +72,26 @@ class GenerateOceanCMIP(WorkflowJob):
             log_message("info", f"DBG: E2C INFO item = {item}")
         log_message("info", "==================================================================================")
 
+        parameters['std_var_list'] = std_var_list
         # Apply variable info to parameters collection
         for item in variable_info:
             if isinstance(item['E3SM Variables'], list):
+                log_message("info", f"DBG: extending std_var_list[] with {item['E3SM Variables']}")
                 parameters['std_var_list'].extend([v for v in item['E3SM Variables']])
+            elif isinstance(item['E3SM Variables'], str):
+                log_message("info", f"DBG: extending std_var_list[] with {item['E3SM Variables']}")
+                parameters['std_var_list'].extend([v for v in item['E3SM Variables'].split(', ')])
+                
             std_cmor_list.append(item['CMIP6 Name'])
 
         log_message("info", f"DBG: resolve_cmd: obtained std_cmor_list = {std_cmor_list}")
+        '''
 
-        cwl_workflow = "mpaso/mpaso.cwl"
+        # Apply variable info to parameters collection
+        parameters['cmor_var_list'] = cmip_var
+
+        cwl_workflow_main = "mpaso/mpaso.cwl"
+        cwl_workflow = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
 
         parameters['tables_path'] = self.config['cmip_tables_path']
         parameters['metadata'] = {
@@ -103,23 +101,16 @@ class GenerateOceanCMIP(WorkflowJob):
                 model_version, 
                 f"{experiment}_{variant}.json")
             }
+        parameters['region_path'] = parameters['mpas_region_path']
         parameters['hrz_atm_map_path'] = self.config['grids']['ne30_to_180x360']
         parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['oEC60to30_to_180x360'] }
-        log_message("info", f"Applying to parameters[mapfile]: type = {type(parameters['mapfile'])}")
 
-        raw_case_spec = self._spec['project']['E3SM'][raw_ocean_dataset.model_version][raw_ocean_dataset.experiment]
+        raw_model_version = raw_ocean_dataset.model_version
+        raw_experiment = raw_ocean_dataset.experiment
 
-        #DEBUG
-        # for item in raw_case_spec:
-        #     log_message("info", f"resolve_cmd: raw_case_spec[{item}] = {raw_case_spec[item]}")
-
-        # parameters['mpas_namelist_path'] = raw_case_spec['mpaso_namelist']
-        # parameters['mpas_restart_path'] = raw_case_spec['mpas_restart']
-        parameters['namelist_path'] = "/p/user_pub/e3sm/staging/resource/namefiles/mpaso_in"                       # WARNING HARDCODED
-        parameters['restart_path'] = "/p/user_pub/e3sm/staging/resource/restarts/mpaso.rst.1851-01-01_00000.nc"    # WARNING HARDCODED
-        # parameters['mapfile'] = mapfile
-        parameters['workflow_output'] = str(self.dataset.warehouse_path)
-        parameters['frequency'] = 10
+        parameters['namelist_path'] = os.path.join(self.config['e3sm_namefile_path'],raw_model_version,raw_experiment,'mpaso_in')
+        parameters['restart_path'] = os.path.join(self.config['e3sm_restarts_path'],raw_model_version,raw_experiment,'mpaso.rst.1851-01-01_00000.nc')
+        parameters['workflow_output'] = '/p/user_pub/e3sm/warehouse'
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else cmip_var[0]
@@ -136,4 +127,4 @@ class GenerateOceanCMIP(WorkflowJob):
             parallel = "--parallel"
         else:
             parallel = ''
-        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow} {parameter_path}"
