@@ -108,6 +108,16 @@ GenerateOceanCMIP:Fail:
   default:
     - Fail
 
+GenerateOcnAtmCMIP:Ready:
+  default:
+    - GenerateOcnAtmCMIP:Engaged
+GenerateOcnAtmCMIP:Pass:
+  default:
+    - Pass
+GenerateOcnAtmCMIP:Fail:
+  default:
+    - Fail
+
 GenerateSeaIceCMIP:Ready:
   default:
     - GenerateSeaIceCMIP:Engaged

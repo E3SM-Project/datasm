@@ -117,31 +117,28 @@ fi
         # ipdb.set_trace()
 
         for req, _ in self._requires.items():
-            log_message("info", f"setup_requisites: DBG_REQ: self {self.name} has req {req}")
+            log_message("info", f"WF_jobs_init: setup_requisites: DBG_REQ: self {self.name} has req {req}")
 
         if input_datasets == None:
-            log_message("info", "setup_requisites: no input datasets")
+            log_message("info", "WF_jobs_init: setup_requisites: no input datasets")
         else:
-            log_message("info", f"setup_requisites: got input datasets")
+            log_message("info", f"WF_jobs_init: setup_requisites: got input datasets")
 
         datasets = [self.dataset]
         if input_datasets:
             if not isinstance(input_datasets, list):
                 input_datasets = [input_datasets]       # turn singleton into a list
             datasets.extend(input_datasets)
-            log_message("info", f"setup_requisites: incoming datasets: {[x.dataset_id for x in input_datasets]}");
+            log_message("info", f"WF_jobs_init: setup_requisites: incoming datasets: {[x.dataset_id for x in input_datasets]}");
 
         for dataset in datasets:
             # cprint(f"checking if {dataset.dataset_id} is a good match for {self.name}", "yellow")
-            log_message("info", f"setup_requisites: checking if {dataset.dataset_id} is a good match for {self.name}");
+            log_message("info", f"WF_jobs_init: setup_requisites: checking if {dataset.dataset_id} is a good match for {self.name}");
             if (req := self.matches_requirement(dataset)) is not None:
-                log_message("info", f"setup_requisites: self.matches_requirement(dataset) returns req = {req}");
-                # log_message("info", f"setup_requisites: Found: {[x.dataset_id for x in self.requires.values()]}");
-                # cprint(f'Found matching input requirements for {dataset.dataset_id}: {[x.dataset_id for x in self.requires.values()]}', 'green')
+                log_message("info", f"WF_jobs_init: setup_requisites: Yes: self.matches_requirement(dataset) returns req = {req}");
                 self._requires[req] = dataset
             else:
-                log_message("info", f"setup_requisites: ERR: {dataset.dataset_id} does not match for {self.requires}");
-                # cprint(f'{dataset.dataset_id} does not match for {self.requires}', 'red')
+                log_message("info", f"WF_jobs_init: setup_requisites: ERR: {dataset.dataset_id} does not match for {self.name} requires {self.requires}");
 
 
     # dataset: has dataset_id, status_path, pub_base, warehouse_base, archive_base, no_status_file=True from caller, else from class
@@ -197,21 +194,25 @@ fi
         
         log_message("debug", f"WF_jobs_init: matches_requirement(): Ensemble ({dataset_ensemble}) Aligns");
 
+        log_message("info", f"WF_jobs_init: matches_requirement(): === ") 
+        log_message("info", f"WF_jobs_init: matches_requirement(): Trying all self._requires.items() for dataset_id {self.dataset.dataset_id}") 
+
         for req, ds in self._requires.items():
-            log_message("debug", f"WF_jobs_init: matches_requirement(): trying (req: ds) = {req}:{ds}")
             if ds:
+                log_message("info", f"WF_jobs_init: matches_requirement(): already satisfied (req: ds) = {req}:{ds.dataset_id}")
                 continue
-            log_message("debug", f"WF_jobs_init: matches_requirement(): req = {req}")
+            else:
+                log_message("info", f"WF_jobs_init: matches_requirement(): unsatisfied (req) = {req}")
             req_attrs = req.split('-')
-            if len(req_attrs) > 3 and req_attrs[0] == 'sea':
+            if len(req_attrs) > 3 and req_attrs[0] == 'sea':    # adjust for hyphennated sea-ice
                 req_attrs[0] = req_attrs[0] + req_attrs[1]
                 req_attrs[1] = req_attrs[2]
                 req_attrs[2] = req_attrs[3]
             req = '-'.join([req_attrs[0], req_attrs[1], req_attrs[2]]) 
-            log_message("info", f"WF_jobs_init: matches_requirement(): Testing realm_grid_freq {req_attrs[0]}-{req_attrs[1]}-{req_attrs[2]} against {req}")
             rcode = dataset.realm.replace('-','')
             gcode = dataset.grid.replace('-','')
             fcode = dataset.freq.replace('-','')
+            log_message("info", f"WF_jobs_init: matches_requirement(): Testing realm_grid_freq {rcode}-{gcode}-{fcode} against {req}")
             if rcode != req_attrs[0] and req_attrs[0] != '*':
                 continue
             if gcode != req_attrs[1] and req_attrs[1] != '*':
@@ -219,22 +220,28 @@ fi
             if fcode != req_attrs[2] and req_attrs[2] != '*':
                 continue
 
-            log_message("info", f"WF_jobs_init: returning job requirement req={req} for dataset {dataset}")
+            log_message("info", f"WF_jobs_init: returning job requirement req={req} for dataset {dataset.dataset_id}")
             return req
+
+        log_message("info", f"WF_jobs_init: returning requirement None for dataset {dataset.dataset_id}")
         return None
 
     def meets_requirements(self):
         """
         Check if all the requirements for the job are met
         """
+        retval = True
         for req in self._requires:
-            obtained = self._requires.get(req)
             log_message("info", f"WF_jobs_init: job.meets_requirements(): checking req {req}")
-            log_message("info", f"WF_jobs_init: job.meets_requirements(): self._requires.get(req) yields {obtained}")
+            obtained = self._requires.get(req)
             if not obtained:
-                log_message("info", f"WF_jobs_init: job.meets_requirements(): returning False")
-                return False
-        return True
+                log_message("info", f"WF_jobs_init: job.meets_requirements(): self._requires.get(req) yields None")
+                retval = False
+            else:
+                log_message("info", f"WF_jobs_init: job.meets_requirements(): self._requires.get(req) yields {obtained.dataset_id}")
+
+        log_message("info", f"WF_jobs_init: job.meets_requirements(): returning {retval}")
+        return retval
 
     def find_outpath(self):
         latest_path = self._dataset.latest_warehouse_dir

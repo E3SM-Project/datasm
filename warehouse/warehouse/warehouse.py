@@ -163,6 +163,12 @@ class AutoWarehouse:
         if not found_missing:
             log_message("info", "No missing files in datasets")
 
+    '''
+    The find_e3sm_source_dataset function will take each E3SM dataset_id, instantiate a "Dataset" object that breaks out
+    the component facets (project, experiment, etc) and then passes that Dataset object to the "job.matches_requirement()"
+    function defined in workflows/__init__.py to test if it matches the requirements for the job.
+    '''
+
     def find_e3sm_source_dataset(self, job):
         """
         Given a job with a CMIP6 dataset that needs to be run, 
@@ -174,14 +180,10 @@ class AutoWarehouse:
         Returns:
             Dataset, the E3SM dataset that matches the input requirements for the job if found, else None
         """
-        # msg = f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}"
-        # log_message("debug", msg)
+        # log_message("debug", f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}")
+        log_message("info", f"find_e3sm_source_dataset: Seeking raw E3SM dataset for job {job.name}")
         
         for x in self.collect_e3sm_datasets():
-            # log_message("info", f"DBG: ==== looping =========================================================================")
-            # log_message("info", f"DBG: processing dataset x={x} in list of self.collect_e3sm_datasets(). Calling Dataset with")
-            # log_message("info", f"DBG:     pub_base={self.publication_path}")
-            # log_message("info", f"DBG:     war_base={self.warehouse_path}")
             dataset = Dataset(
                 dataset_id=x,
                 status_path=os.path.join(self.status_path, f"{x}.status"),
@@ -194,7 +196,9 @@ class AutoWarehouse:
                 log_message("info", f"DBG: find_e3sm_source_dataset: dataset {dataset.dataset_id} matched job requirement")
                 dataset.initialize_status_file()
                 # log_message("debug", msg, self.debug)
+                log_message("info", f"find_e3sm_source_dataset: Found {dataset.dataset_id} for job {job.name}")
                 return dataset
+        log_message("info", f"find_e3sm_source_dataset: Found None for job {job.name}")
         return None
 
     def setup_datasets(self, check_esgf=True):
@@ -390,7 +394,7 @@ class AutoWarehouse:
         Returns: list of new job objects
         """
 
-        log_message("info", f"WH: start_datasets: Generate job objects for each dataset")
+        log_message("info", f"WH: start_datasets: Generate job objects for each dataset (hangs here until slurmed workflows complete)")
         log_message("debug", f"WH: start_datasets: datasets={datasets}") 
         new_jobs = []
         ready_states = [DatasetStatus.NOT_IN_PUBLICATION.value, DatasetStatus.NOT_IN_WAREHOUSE.value,
@@ -409,7 +413,7 @@ class AutoWarehouse:
         for dataset_id, dataset in datasets.items():
             
             log_message("debug", f"WH: start_datasets: working datasets_id {dataset_id} from datasets.items()") 
-            log_message("debug", f"WH: start_datasets: dataset.status = {dataset.status}") 
+            log_message("info", f"WH: start_datasets: dataset = {dataset_id}, status = {dataset.status}") 
 
             if "Engaged" in dataset.status:
                 log_message("debug", f"WH: start_datasets: 'Engaged' in dataset.status: continue") 
@@ -519,33 +523,36 @@ class AutoWarehouse:
             log_message("info", f"start_datasets: starting job: {job_name}")
             # import ipdb; ipdb.set_trace()
             job_reqs_met = job.meets_requirements()
-            log_message("info", f"job_reqs_met={job_reqs_met}, project={job.dataset.project}, job_name={job_name}")
+            log_message("info", f"start_datasets: job_reqs_met={job_reqs_met}, project={job.dataset.project}, job_name={job_name}")
             if not job_reqs_met and job.dataset.project == "CMIP6" or ( job_name == 'POSTPROCESS' and ('time-series' in job.dataset.dataset_id or 'climo' in job.dataset.dataset_id) ):
+                log_message("info", f"start_datasets: Calling self.find_e3sm_source_dataset(job) for job {job_name}")
                 source_dataset = self.find_e3sm_source_dataset(job)
+                log_message("info", f"start_datasets: Returns self.find_e3sm_source_dataset(job) for job {job_name}")
                 if source_dataset is None:
                     msg = f"Cannot find raw input requirement for job {job}. source_dataset is None from self.find_e3sm_source_dataset(job)"
                     log_message("error", msg)
                     continue
-                log_message("info", f"found E3SM source dataset: {source_dataset}")
+                log_message("info", f"start_datasets: found E3SM source dataset: {source_dataset.dataset_id}")
                 job.setup_requisites(source_dataset)
                 job_reqs_met = job.meets_requirements()
-                log_message("info", f"job_reqs_met={job_reqs_met}")
+                log_message("info", f"start_datasets: job_reqs_met={job_reqs_met}")
             if job.job_id is None and job_reqs_met:
-                log_message("info", f"Job {job} meets its input dataset requirements")
+                log_message("info", f"start_datasets: Job {job_name} meets its input dataset requirements")
                 job_id = job(self.slurm)
-                log_message("info", f"DGB: WH: got job_id {job_id} from job(self.slurm)")
+                log_message("info", f"start_datasets: DGB: got job_id {job_id} from job(self.slurm)")
                 if job_id is not None:
                     job.job_id = job_id
                     self.job_pool.append(job)
                 else:
                     log_message("error", f"Error starting up job {job}")
             else:
-                log_message("error", "DGB: WH: job NOT added to pool")
-                log_message("info", f"DGB: WH: job.job_id = {job.job_id}, job_reqs_met = {job_reqs_met}")
+                log_message("error", "DGB: job NOT added to pool")
+                log_message("info", f"start_datasets: DGB: job.job_id = {job.job_id}, job_reqs_met = {job_reqs_met}")
                 attributes = [attr for attr in dir(job) if not attr.startswith('__')]
                 for attr in attributes:
                     print(f"{attr} = {getattr(job,attr)}")
-
+            log_message("info", f"start_datasets: (bottom loop: for job in new_jobs)")
+        log_message("info", f"start_datasets: Returns")
         return
 
     def start_listener(self):
@@ -594,7 +601,9 @@ class AutoWarehouse:
         Returns:
             WorkflowJob: the matching job
         """
+        log_message("info", "find_matching_job: searching all job in self.job_pool")
         for job in self.job_pool:
+            log_message("info", f"find_matching_job:     trying job {job.name} against searchjob {searchjob.name}")
             if (
                 job.name == searchjob.name
                 and job.dataset.experiment == searchjob.dataset.experiment
@@ -605,7 +614,9 @@ class AutoWarehouse:
                 and job.matches_requirement(searchjob.dataset)
                 and searchjob.matches_requirement(job.dataset)
             ):
+                log_message("info", f"find_matching_job:     Returning job {job.name}")
                 return job
+        log_message("info", f"find_matching_job:     Returning None")
         return
 
     def collect_cmip_datasets(self, **kwargs):
@@ -623,7 +634,7 @@ class AutoWarehouse:
                                     or variable == "all"
                                 ):
                                     continue
-                                if "_highfreq" in variable:
+                                if "_highfreq" in variable:     # should be unnecessary now
                                     idx = variable.find('_')
                                     variable = variable[:idx]
                                 dataset_id = f"CMIP6.{activity_name}.E3SM-Project.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr"
