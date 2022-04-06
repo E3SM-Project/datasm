@@ -1,5 +1,23 @@
-import os, sys
+import os, sys, argparse
 import yaml
+from argparse import RawTextHelpFormatter
+
+
+helptext = '''
+    Usage:  python list_e3sm_dsids.py  (generates all E3SM dataset_ids to stdout)
+'''
+
+def assess_args():
+
+    parser = argparse.ArgumentParser(description=helptext, prefix_chars='-', formatter_class=RawTextHelpFormatter)
+    parser._action_groups.pop()
+    required = parser.add_argument_group('required arguments')
+    optional = parser.add_argument_group('optional arguments')
+
+    args = parser.parse_args()
+
+    return args
+
 
 resource_path = '/p/user_pub/e3sm/staging/resource/'
 
@@ -64,8 +82,21 @@ all_e3sm_dsids = dsids_from_dataset_spec(DEFAULT_SPEC_PATH)
 
 all_e3sm_dsids.sort()
 
-for dsid in all_e3sm_dsids:
-    # print(f'{aline}')
-    print(f'{dsid}')
-    # print(" ")
+
+def main():
+
+    assess_args()
+
+    all_e3sm_dsids = dsids_from_dataset_spec(DEFAULT_SPEC_PATH)
+
+    all_e3sm_dsids.sort()
+
+    for dsid in all_e3sm_dsids:
+        print(f'{dsid}')
+
+    sys.exit(0)
+
+if __name__ == "__main__":
+    sys.exit(main())
+
 

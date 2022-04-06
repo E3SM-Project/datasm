@@ -1,5 +1,23 @@
-import os, sys
+import os, sys, argparse
 import yaml
+from argparse import RawTextHelpFormatter
+
+
+helptext = '''
+    Usage:  python list_cmip6_dsids.py  (generates all CMIP6 dataset_ids to stdout)
+'''
+
+def assess_args():
+
+    parser = argparse.ArgumentParser(description=helptext, prefix_chars='-', formatter_class=RawTextHelpFormatter)
+    parser._action_groups.pop()
+    required = parser.add_argument_group('required arguments')
+    optional = parser.add_argument_group('optional arguments')
+
+    args = parser.parse_args()
+
+    return args
+
 
 resource_path = '/p/user_pub/e3sm/staging/resource/'
 
@@ -62,12 +80,20 @@ def dsids_from_dataset_spec(dataset_spec_path):
     return cmip6_ids
     # return dataset_ids
 
-all_cmip6_dsids = dsids_from_dataset_spec(DEFAULT_SPEC_PATH)
+def main():
 
-all_cmip6_dsids.sort()
+    assess_args()
 
-for dsid in all_cmip6_dsids:
-    # print(f'{aline}')
-    print(f'{dsid}')
-    # print(" ")
+    all_cmip6_dsids = dsids_from_dataset_spec(DEFAULT_SPEC_PATH)
+
+    all_cmip6_dsids.sort()
+
+    for dsid in all_cmip6_dsids:
+        print(f'{dsid}')
+
+    sys.exit(0)
+
+if __name__ == "__main__":
+    sys.exit(main())
+
 
