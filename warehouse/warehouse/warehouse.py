@@ -165,7 +165,7 @@ class AutoWarehouse:
 
     '''
     The find_e3sm_source_dataset function will take each E3SM dataset_id, instantiate a "Dataset" object that breaks out
-    the component facets (project, experiment, etc) and then passes that Dataset object to the "job.matches_requirement()"
+    the component facets (project, experiment, etc) and then passes that Dataset object to the "job.requires_dataset()"
     function defined in workflows/__init__.py to test if it matches the requirements for the job.
     '''
 
@@ -191,8 +191,8 @@ class AutoWarehouse:
                 warehouse_base=self.warehouse_path,
                 archive_base=self.archive_path,
                 no_status_file=True)
-            log_message("debug", f"DBG: find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'matches_requirement()'")
-            if job.matches_requirement(dataset):
+            log_message("debug", f"DBG: find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'requires_dataset()'")
+            if job.requires_dataset(dataset):
                 log_message("info", f"DBG: find_e3sm_source_dataset: dataset {dataset.dataset_id} matched job requirement")
                 dataset.initialize_status_file()
                 # log_message("debug", msg, self.debug)
@@ -611,8 +611,8 @@ class AutoWarehouse:
                 and job.dataset.ensemble == searchjob.dataset.ensemble
                 and not job.meets_requirements()
                 and not searchjob.meets_requirements()
-                and job.matches_requirement(searchjob.dataset)
-                and searchjob.matches_requirement(job.dataset)
+                and job.requires_dataset(searchjob.dataset)
+                and searchjob.requires_dataset(job.dataset)
             ):
                 log_message("info", f"find_matching_job:     Returning job {job.name}")
                 return job
