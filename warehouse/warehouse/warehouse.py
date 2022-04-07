@@ -202,9 +202,9 @@ class AutoWarehouse:
         return None
 
     def setup_datasets(self, check_esgf=True):
-        log_message("info", "WH: setup_datasets: Initializing the warehouse")
-        log_message("info", f"WH: self.warehouse_path = {self.warehouse_path}")
-        log_message("info", f"WH: self.publication_path = {self.publication_path}")
+        log_message("info", "setup_datasets: Initializing the warehouse")
+        log_message("info", f"setup_datasets: self.warehouse_path = {self.warehouse_path}")
+        log_message("info", f"setup_datasets: self.publication_path = {self.publication_path}")
         cmip6_ids = [x for x in self.collect_cmip_datasets()]
         e3sm_ids = [x for x in self.collect_e3sm_datasets()]
         all_dataset_ids = cmip6_ids + e3sm_ids
@@ -220,9 +220,9 @@ class AutoWarehouse:
         if self.dataset_ids and self.dataset_ids is not None:
             dataset_ids = []
             for dataset_pattern in self.dataset_ids:
-                log_message("info", f"testing for pattern {dataset_pattern} in all_dataset_ids")
+                log_message("info", f"setup_datasets: testing for pattern {dataset_pattern} in all_dataset_ids")
                 new_ids = fnmatch.filter(all_dataset_ids, dataset_pattern)
-                log_message("info", f"matches are: {new_ids}")
+                log_message("info", f"setup_datasets: matches are: {new_ids}")
                 if new_ids := fnmatch.filter(all_dataset_ids, dataset_pattern):
                     dataset_ids.extend(new_ids)
             self.dataset_ids = dataset_ids
@@ -230,16 +230,13 @@ class AutoWarehouse:
             self.dataset_ids = all_dataset_ids
 
         if not self.dataset_ids:
-            log_message(
-                "error",
-                f"No datasets in dataset_spec match pattern from command line parameter --dataset-id {self.dataset_ids}",
-            )
+            log_message( "error", f"setup_datasets: No datasets in dataset_spec match pattern from command line parameter --dataset-id {self.dataset_ids}")
             sys.exit(1)
         else:
             msg = f"Running with datasets {pformat(self.dataset_ids)}"
             log_message('debug', msg)
             log_message("info", f"setup_datasets: Running with {len(self.dataset_ids)} datasets")
-            # log_message("info", f"DBG: WH: Running with datasets {pformat(self.dataset_ids)}")
+            # log_message("info", f"setup_datasets: Running with datasets {pformat(self.dataset_ids)}")
 
         # instantiate the dataset objects with the paths to
         # where they should look for their data files
@@ -258,10 +255,10 @@ class AutoWarehouse:
 
         ''' DBG
         for dsn, dsv in self.datasets.items():
-            log_message("info", f"DBG: WH: type(dsv) = {type(dsv)}")
-            log_message("info", f"DBG: WH: dsv.warehouse_base = {dsv.warehouse_base}")
-            log_message("info", f"DBG: WH: dsv.warehouse_path = {dsv.warehouse_path}")
-            log_message("info", f"DBG: WH: dsv.pub_base = {dsv.pub_base}")
+            log_message("info", f"setup_datasets: type(dsv) = {type(dsv)}")
+            log_message("info", f"setup_datasets: dsv.warehouse_base = {dsv.warehouse_base}")
+            log_message("info", f"setup_datasets: dsv.warehouse_path = {dsv.warehouse_path}")
+            log_message("info", f"setup_datasets: dsv.pub_base = {dsv.pub_base}")
         '''
 
         # fill in the start and end year for each dataset
@@ -330,7 +327,7 @@ class AutoWarehouse:
                 self.should_exit = True
                 sys.exit(0)
 
-        log_message("info", f"WH: RETURN from setup_datasets()")
+        log_message("info", f"setup_datasets: RETURN from setup_datasets()")
 
         return
 
@@ -394,8 +391,8 @@ class AutoWarehouse:
         Returns: list of new job objects
         """
 
-        log_message("info", f"WH: start_datasets: Generate job objects for each dataset (hangs here until slurmed workflows complete)")
-        log_message("debug", f"WH: start_datasets: datasets={datasets}") 
+        log_message("info", f"start_datasets: Generate job objects for each dataset (hangs here until slurmed workflows complete)")
+        log_message("debug", f"start_datasets: datasets={datasets}") 
         new_jobs = []
         ready_states = [DatasetStatus.NOT_IN_PUBLICATION.value, DatasetStatus.NOT_IN_WAREHOUSE.value,
                         DatasetStatus.PARTIAL_PUBLISHED.value, DatasetStatus.UNITITIALIZED.value]
@@ -412,17 +409,17 @@ class AutoWarehouse:
 
         for dataset_id, dataset in datasets.items():
             
-            log_message("debug", f"WH: start_datasets: working datasets_id {dataset_id} from datasets.items()") 
-            log_message("info", f"WH: start_datasets: dataset = {dataset_id}, status = {dataset.status}") 
+            log_message("debug", f"start_datasets: working datasets_id {dataset_id} from datasets.items()") 
+            log_message("info", f"start_datasets: dataset = {dataset_id}, status = {dataset.status}") 
 
             if "Engaged" in dataset.status:
-                log_message("debug", f"WH: start_datasets: 'Engaged' in dataset.status: continue") 
+                log_message("debug", f"start_datasets: 'Engaged' in dataset.status: continue") 
                 continue
 
             # for all the datasets, if they're not yet published or in the warehouse
             # then mark them as ready to start
             if dataset.status in ready_states:
-                log_message('info', f"WH: start_datasets: Dataset {dataset.dataset_id} is transitioning from {dataset.status} to {DatasetStatus.READY.value}")
+                log_message('info', f"start_datasets: Dataset {dataset.dataset_id} is transitioning from {dataset.status} to {DatasetStatus.READY.value}")
                 dataset.status = DatasetStatus.READY.value
                 continue
 
@@ -430,19 +427,19 @@ class AutoWarehouse:
             # we keep a reference to the workflow instance, so when
             # we make a job we can reconstruct the parent workflow name
             # for the status file
-            log_message("debug", f"WH: start_datasets: To reconstruct parent workflow name:")
+            log_message("debug", f"start_datasets: To reconstruct parent workflow name:")
             params = {}
             if parameters := dataset.status.split(":")[-1].strip():
                 for item in parameters.split(","):
                     key, value = item.split("=")
                     params[key] = value.replace("^", ":")
-                    log_message("info", f"WH: start_datasets: params[{key}] = {params[key]}")
+                    log_message("info", f"start_datasets: params[{key}] = {params[key]}")
 
             state = dataset.status
             workflow = self.workflow
 
-            log_message("info", f"WH: start_datasets: state = {state}")
-            log_message("info", f"WH: start_datasets: workflow = {self.workflow}")
+            log_message("info", f"start_datasets: state = {state}")
+            log_message("info", f"start_datasets: workflow = {self.workflow}")
 
             if state == DatasetStatus.UNITITIALIZED.value:
                 state = DatasetStatusMessage.WAREHOUSE_READY.value
@@ -477,7 +474,7 @@ class AutoWarehouse:
                 # otherwise the new state and its parameters need to be
                 # written to the dataset status file
                 else:
-                    msg = f"warehouse: start_datasets: Dataset {dataset.dataset_id} transitioning to state {new_state}"
+                    msg = f"start_datasets: Dataset {dataset.dataset_id} transitioning to state {new_state}"
                     if params:
                         msg += f" with params {params}"
                     log_message("info", msg)
@@ -509,12 +506,10 @@ class AutoWarehouse:
 
                 # check if the new job is a duplicate
                 if (matching_job := self.find_matching_job(newjob)) is None:
-                    log_message(
-                        "info",
-                        f"Created jobs from {state} for dataset {dataset_id}"
-                    )
+                    log_message("info", f"start_datasets: Adding job {newjob.name} for dataset {dataset_id} in state {state}")
                     new_jobs.append(newjob)
                 else:
+                    log_message("info", f"start_datasets: Found job {matching_job.name} for dataset {dataset_id} in state {state}, calling setup_requisites for new job {newjob.name} and dataset {newjob.dataset.dataset_id}")
                     matching_job.setup_requisites(newjob.dataset)
 
         # start the jobs in the job_pool if they're ready
@@ -533,6 +528,7 @@ class AutoWarehouse:
                     log_message("error", msg)
                     continue
                 log_message("info", f"start_datasets: found E3SM source dataset: {source_dataset.dataset_id}")
+                log_message("info", f"start_datasets: calling setup_requisites : {source_dataset.dataset_id}")
                 job.setup_requisites(source_dataset)
                 job_reqs_met = job.meets_requirements()
                 log_message("info", f"start_datasets: job_reqs_met={job_reqs_met}")
@@ -552,7 +548,7 @@ class AutoWarehouse:
                 for attr in attributes:
                     print(f"{attr} = {getattr(job,attr)}")
             log_message("info", f"start_datasets: (bottom loop: for job in new_jobs)")
-        log_message("info", f"start_datasets: Returns")
+        log_message("info", f"start_datasets: Return")
         return
 
     def start_listener(self):

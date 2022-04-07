@@ -131,8 +131,9 @@ fi
             datasets.extend(input_datasets)
             log_message("info", f"WF_jobs_init: setup_requisites: incoming datasets: {[x.dataset_id for x in input_datasets]}");
 
-        for dataset in datasets:
-            # cprint(f"checking if {dataset.dataset_id} is a good match for {self.name}", "yellow")
+        # Now includes BOTH self.dataset and any input_datasets
+        # Will fail on self.dataset if self is a derivative to be generated.
+        for dataset in datasets:        # now includes BOTH self.dataset and any input_datasets
             log_message("info", f"WF_jobs_init: setup_requisites: checking if {dataset.dataset_id} is a good match for {self.name}");
             if (req := self.requires_dataset(dataset)) is not None:
                 log_message("info", f"WF_jobs_init: setup_requisites: Yes: self.requires_dataset(dataset) returns req = {req}");
@@ -142,6 +143,10 @@ fi
 
 
     # dataset: has dataset_id, status_path, pub_base, warehouse_base, archive_base, no_status_file=True from caller, else from class
+    # NOTE: This function is used in two different ways
+    #    1.  At "job init", to check whether the "self.dataset" intended for this job to manage has been assigned correctly.
+    #    2.  To check whether a given arbitrary dataset matches the requirements for a "raw source" dataset.
+
     def requires_dataset(self, dataset):
         """
         Checks that the self.dataset matches the jobs requirements, as well
