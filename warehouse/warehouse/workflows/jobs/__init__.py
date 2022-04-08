@@ -203,9 +203,6 @@ fi
         log_message("info", f"WF_jobs_init: requires_dataset(): Trying all self._requires.items() for dataset_id {self.dataset.dataset_id}") 
 
         for req, ds in self._requires.items():
-            log_message("info", f"WF_jobs_init: requires_dataset(): DEBUG: self._requires includes req = {req}")
-
-        for req, ds in self._requires.items():
             if ds:
                 log_message("info", f"WF_jobs_init: requires_dataset(): already satisfied (req: ds) = {req}:{ds.dataset_id}")
                 continue

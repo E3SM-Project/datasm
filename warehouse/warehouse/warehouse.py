@@ -167,6 +167,8 @@ class AutoWarehouse:
     The find_e3sm_source_dataset function will take each E3SM dataset_id, instantiate a "Dataset" object that breaks out
     the component facets (project, experiment, etc) and then passes that Dataset object to the "job.requires_dataset()"
     function defined in workflows/__init__.py to test if it matches the requirements for the job.
+
+    If a dataset matches a requirement, that dataset is returned to the caller, else None is returned.
     '''
 
     def find_e3sm_source_dataset(self, job):
@@ -183,6 +185,9 @@ class AutoWarehouse:
         # log_message("debug", f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}")
         log_message("info", f"find_e3sm_source_dataset: Seeking raw E3SM dataset for job {job.name}")
         
+        for req, ds in job._requires.items():
+            log_message("info", f"find_e3sm_source_dataset: DEBUG: job._requires includes req = {req}")
+
         for x in self.collect_e3sm_datasets():
             dataset = Dataset(
                 dataset_id=x,
@@ -486,6 +491,8 @@ class AutoWarehouse:
 
             for state, workflow, params in engaged_states:
                 # import ipdb; ipdb.set_trace()
+                # Triggers workflow __init__ get_job to call job init
+                log_message("info", f"start_datasets: instantiating newjob = self.workflow.get_job() for dataset {dataset.dataset_id}")
                 newjob = self.workflow.get_job(
                     dataset,
                     state,
