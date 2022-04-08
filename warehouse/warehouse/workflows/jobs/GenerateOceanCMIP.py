@@ -19,7 +19,7 @@ class GenerateOceanCMIP(WorkflowJob):
         cmip_var = self.dataset.dataset_id.split('.')[-2]
         if cmip_var in oa_vars:
             self._requires = { 'ocean-native-mon': None, 'atmos-native-mon': None }
-        else
+        else:
             self._requires = { 'ocean-native-mon': None }
         self._cmd = ''
 
