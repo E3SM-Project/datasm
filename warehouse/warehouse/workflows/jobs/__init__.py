@@ -160,6 +160,7 @@ fi
 
         log_message("debug", f"WF_jobs_init: requires_dataset(): trying dataset.experiment={dataset.experiment}, self.dataset.experiment={self.dataset.experiment}")
 
+        # for project E3SM jobs, the "sought" dataset must match the job's (self.)dataset.
         if self.dataset.project == 'E3SM':
             if dataset.experiment != self.dataset.experiment:
                 return None
@@ -167,11 +168,13 @@ fi
             dataset_facets = dataset.dataset_id.split('.')
             if self.dataset.project == 'CMIP6' and dataset.project == 'E3SM':
                 e3sm_cmip_case = self._spec['project']['E3SM'][dataset_facets[1]][dataset_facets[2]].get('cmip_case')
+                # reject if this E3SM dataset does not have a "cmip_case" in the dataset_spec.
                 if not e3sm_cmip_case:
                     return None
                 
                 my_dataset_facets = self.dataset.dataset_id.split('.')
                 my_case_attrs = '.'.join(my_dataset_facets[:5])
+                # reject if the found cmip_case does not match the job's dataset major facets.
                 if not my_case_attrs == e3sm_cmip_case:
                     return None
         
@@ -184,6 +187,7 @@ fi
         if '_' in my_dataset_model:
             my_dataset_model = 'E3SM-' + '-'.join(self.dataset.model_version.split('_'))
         if dataset_model != my_dataset_model:
+            # reject if (translated) model does not match
             return None
 
         log_message("debug", f"WF_jobs_init: requires_dataset(): Model_version ({dataset_model}) Aligns");
@@ -195,6 +199,7 @@ fi
         if 'ens' in my_dataset_ensemble:
             my_dataset_ensemble = f"r{self.dataset.ensemble[3:]}i1p1f1"
         if dataset_ensemble != my_dataset_ensemble:
+            # reject if N in E3SM "ensN" does not match the N in the job's "rNi1p1f1"
             return None
         
         log_message("debug", f"WF_jobs_init: requires_dataset(): Ensemble ({dataset_ensemble}) Aligns");
@@ -208,16 +213,22 @@ fi
                 continue
             else:
                 log_message("info", f"WF_jobs_init: requires_dataset(): unsatisfied (req) = {req}")
-            req_attrs = req.split('-')
+
+            req_attrs = req.split('-')  # breakout realm, grid, freq
+
             if len(req_attrs) > 3 and req_attrs[0] == 'sea':    # adjust for hyphennated sea-ice
                 req_attrs[0] = req_attrs[0] + req_attrs[1]
                 req_attrs[1] = req_attrs[2]
                 req_attrs[2] = req_attrs[3]
+
             req = '-'.join([req_attrs[0], req_attrs[1], req_attrs[2]]) 
+
             rcode = dataset.realm.replace('-','')
             gcode = dataset.grid.replace('-','')
             fcode = dataset.freq.replace('-','')
-            log_message("info", f"WF_jobs_init: requires_dataset(): Testing realm_grid_freq {rcode}-{gcode}-{fcode} against {req}")
+            log_message("info", f"WF_jobs_init: requires_dataset(): Testing this dataset {rcode}-{gcode}-{fcode} against job req {req}")
+
+            # skip dataset if any non-* item does not match
             if rcode != req_attrs[0] and req_attrs[0] != '*':
                 continue
             if gcode != req_attrs[1] and req_attrs[1] != '*':

@@ -8,7 +8,7 @@ from warehouse.util import log_message
 
 NAME = 'GenerateOceanCMIP'
 
-oa_vars = ['pbo', 'pso', 'thkcello', 'volcello', 'zhalfo']
+oa_vars = ['pbo', 'pso']
 
 class GenerateOceanCMIP(WorkflowJob):
 

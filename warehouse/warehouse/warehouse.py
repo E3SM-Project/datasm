@@ -396,7 +396,7 @@ class AutoWarehouse:
         Returns: list of new job objects
         """
 
-        log_message("info", f"start_datasets: Generate job objects for each dataset (hangs here until slurmed workflows complete)")
+        log_message("info", f"start_datasets: Generate job objects for each dataset")
         log_message("debug", f"start_datasets: datasets={datasets}") 
         new_jobs = []
         ready_states = [DatasetStatus.NOT_IN_PUBLICATION.value, DatasetStatus.NOT_IN_WAREHOUSE.value,
@@ -556,6 +556,7 @@ class AutoWarehouse:
                     print(f"{attr} = {getattr(job,attr)}")
             log_message("info", f"start_datasets: (bottom loop: for job in new_jobs)")
         log_message("info", f"start_datasets: Return")
+        log_message("info", f"start_datasets: (hangs here until slurmed workflows complete)")
         return
 
     def start_listener(self):
