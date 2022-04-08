@@ -8,29 +8,44 @@ from warehouse.util import log_message
 
 NAME = 'GenerateOceanCMIP'
 
+oa_vars = ['pbo', 'pso', 'thkcello', 'volcello', 'zhalfo']
 
 class GenerateOceanCMIP(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        self._requires = { 'ocean-native-mon': None, }
+        log_message("info", f"INIT: set self.name = {NAME} self.dataset.dataset_id = {self.dataset.dataset_id}")
+        cmip_var = self.dataset.dataset_id.split('.')[-2]
+        if cmip_var in oa_vars:
+            self._requires = { 'ocean-native-mon': None, 'atmos-native-mon': None }
+        else
+            self._requires = { 'ocean-native-mon': None }
         self._cmd = ''
 
     def resolve_cmd(self):
 
         log_message("info", f"resolve_cmd: Start: dsid={self.dataset.dataset_id}")
 
-        # including atmos-native_mon as (pbo requires PSL)
-        raw_ocean_dataset = self.requires['ocean-native-mon']
-        # raw_atmos_dataset = self.requires['atmos-native-mon']
         cwl_config = self.config['cmip_ocn_mon']
 
-        # Begin parameters collection:  use 'mpas_data_path' and 'atm_data_path' for mpaso-atm.
-        parameters = { 'data_path': raw_ocean_dataset.latest_warehouse_dir, }
-        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout, mpas_region_path
-
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+
+        is_oa_var = False
+        if cmip_var in oa_vars:
+            is_oa_var = True
+        
+        # Begin parameters collection:  use 'mpas_data_path' and 'atm_data_path' for mpaso-atm.
+        # including atmos-native_mon as (pbo requires PSL, etc)
+        if is_oa_var:
+            raw_ocean_dataset = self.requires['ocean-native-mon']
+            raw_atmos_dataset = self.requires['atmos-native-mon']
+            parameters = { 'mpas_data_path': raw_ocean_dataset.latest_warehouse_dir, 'atm_data_path': raw_atmos_dataset.latest_warehouse_dir }
+        else:
+            raw_ocean_dataset = self.requires['ocean-native-mon']
+            parameters = { 'data_path': raw_ocean_dataset.latest_warehouse_dir, }
+
+        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout, mpas_region_path
 
         # log_message("info", f"resolve_cmd: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
 
@@ -88,9 +103,15 @@ class GenerateOceanCMIP(WorkflowJob):
         '''
 
         # Apply variable info to parameters collection
-        parameters['cmor_var_list'] = cmip_var
 
-        cwl_workflow_main = "mpaso/mpaso.cwl"
+        if is_oa_var:
+            parameters['std_var_list'] = ['PSL']
+            parameters['mpas_var_list'] = cmip_var
+            cwl_workflow_main = "mpaso-atm/mpaso-atm.cwl"
+        else:
+            parameters['cmor_var_list'] = cmip_var
+            cwl_workflow_main = "mpaso/mpaso.cwl"
+
         cwl_workflow = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
 
         parameters['tables_path'] = self.config['cmip_tables_path']
@@ -101,9 +122,16 @@ class GenerateOceanCMIP(WorkflowJob):
                 model_version, 
                 f"{experiment}_{variant}.json")
             }
+
+        if is_oa_var:
+            parameters['metadata_path'] = parameters['metadata']
+
         parameters['region_path'] = parameters['mpas_region_path']
         parameters['hrz_atm_map_path'] = self.config['grids']['ne30_to_180x360']
         parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['oEC60to30_to_180x360'] }
+
+        if is_oa_var:
+            parameters['mpas_map_path'] = self.config['grids']['oEC60to30_to_180x360']
 
         raw_model_version = raw_ocean_dataset.model_version
         raw_experiment = raw_ocean_dataset.experiment
