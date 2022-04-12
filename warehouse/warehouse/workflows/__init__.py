@@ -40,6 +40,7 @@ class Workflow(object):
         self.job_workers = kwargs.get('job_workers')
         self.debug = kwargs.get('debug')
         setup_logging('info', 'Warehouse.log')
+        log_message("info", f"Workflow {self.name} initialized")
 
     def load_jobs(self):
         """
@@ -189,8 +190,8 @@ class Workflow(object):
             self.__class__)).parents[0], 'transitions.yaml')
         with open(transition_path, 'r') as instream:
             self.transitions = yaml.load(instream, Loader=yaml.SafeLoader)
-            log_message("info", f"WF_init: {self.name} loads transitions")
-            log_message("debug", f"WF_init: {self.name} loads transitions {self.transitions}")
+            log_message("info", f"load_transitions(): {self.name}")
+            log_message("debug", f"load_tansitions(): {self.name} loaded {self.transitions}")
 
     def load_children(self):
         my_path = Path(inspect.getfile(self.__class__)).parent.absolute()
@@ -212,6 +213,7 @@ class Workflow(object):
                 module_name = f'warehouse.workflows{str(my_path)[idx+len(workflows_string):].replace(os.sep, ".")}.{d.name}'
 
             self.print_debug(f"loading workflow module {module_name}")
+            log_message("info",f"load_children(): loading workflow module {module_name}")
 
             module = importlib.import_module(module_name)
             workflow_class = getattr(module, module.NAME)
