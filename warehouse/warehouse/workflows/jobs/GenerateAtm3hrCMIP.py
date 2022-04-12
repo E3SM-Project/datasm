@@ -33,15 +33,14 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         # we can pull them from the dataset spec
         if cmip_var == 'all':
             is_all = True
-            cmip_var = [x for x in self._spec['tables'][table] if x != 'all']
+            cmip_vars = [x for x in self._spec['tables'][table] if x != 'all']
         else:
-            is_all = True
-            cmip_var = [cmip_var]
+            is_all = False
+            cmip_vars = [cmip_var]
 
-        e3sm_vars = []
         info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq 3hr -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
-        # log_message("debug", f"Using e3sm_to_cmip to check for available variables: {cmd}")
+        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq 3hr -v {', '.join(cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        # log_message("debug", f"resolve_cmd: Using e3sm_to_cmip to check for available variables: {cmd}")
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
@@ -57,6 +56,7 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         # the high freq variable handler may have a different
         # name then the actual CMIP6 variable, for example
         # the daily pr handler is named pr_highfreq
+        e3sm_vars = []
         real_cmip_vars = []
         for item in variable_info:
             if isinstance(item['E3SM Variables'], list):
@@ -64,7 +64,11 @@ class GenerateAtm3hrCMIP(WorkflowJob):
             else:
                 e3sm_vars.append(item['E3SM Variables'])
             
-            real_cmip_vars.append(item['CMIP6 Name'])
+            vname = item['CMIP6 Name']
+            if vname in ['pr', 'rlut']:
+                vname = f"{vname}_highfreq" # only for the day and 3hr jobs
+
+            real_cmip_vars.append(vname)
         
         # import ipdb; ipdb.set_trace()
         # log_message("debug", f"Found the following E3SM variable to use as input {', '.join(e3sm_vars)}")
@@ -79,7 +83,7 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         parameters['hrz_atm_map_path'] = self.config['grids']['ne30_to_180x360']
 
         # step two, write out the parameter file and setup the temp directory
-        var_id = 'all' if is_all else cmip_var[0]
+        var_id = 'all' if is_all else cmip_vars[0]
         parameter_path = os.path.join(
             self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-3hr-{var_id}.yaml")
         with open(parameter_path, 'w') as outstream:

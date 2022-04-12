@@ -5,15 +5,18 @@ DEFAULT_STATUS_PATH: /p/user_pub/e3sm/staging/status/
 DEFAULT_PLOT_PATH: /var/www/acme/acme-diags/baldwin32/cmip_verification
 
 grids:
-  ne30_to_180x360: /home/zender1/data/maps/map_ne30np4_to_cmip6_180x360_aave.20181001.nc
-  oEC60to30_to_180x360: /home/zender1/data/maps/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc
-  ne120np4_to_cmip6_180x360: /home/zender1/data/maps/map_ne120np4_to_cmip6_180x360_aave.20181001.nc
-  ne120np4_to_cmip6_720x1440: /home/zender1/data/maps/map_ne120np4_to_cmip6_720x1440_aave.20181001.nc
+  ne30_to_180x360: /p/user_pub/e3sm/staging/resource/maps/map_ne30np4_to_cmip6_180x360_aave.20181001.nc
+  oEC60to30_to_180x360: /p/user_pub/e3sm/staging/resource/maps/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc
+  ne120np4_to_cmip6_180x360: /p/user_pub/e3sm/staging/resource/maps/map_ne120np4_to_cmip6_180x360_aave.20181001.nc
+  ne120np4_to_cmip6_720x1440: /p/user_pub/e3sm/staging/resource/maps/map_ne120np4_to_cmip6_720x1440_aave.20181001.nc
 
+e3sm_resource_path: /p/user_pub/e3sm/staging/resource/
+e3sm_namefile_path: /p/user_pub/e3sm/staging/resource/namefiles/
+e3sm_restarts_path: /p/user_pub/e3sm/staging/resource/restarts/
 cmip_metadata_path: /p/user_pub/e3sm/staging/resource/CMIP6-Metadata/
 cmip_tables_path: /p/user_pub/e3sm/staging/resource/cmip6-cmor-tables/Tables/
-vrt_map_path: /p/user_pub/e3sm/staging/resource/cmor/vrt_remap_plev19.nc
 cwl_workflows_path: /p/user_pub/e3sm/staging/resource/cmor/cwl_workflows/
+vrt_map_path: /p/user_pub/e3sm/staging/resource/grids/vrt_remap_plev19.nc
 
 cmip_atm_mon:
   frequency: 50
@@ -50,10 +53,10 @@ cmip_lnd_mon:
   lnd_destination_grid: /home/zender1/data/grids/cmip6_180x360_scrip.20181001.nc
 
 cmip_ocn_mon:
-  frequency: 1
+  frequency: 10
   num_workers: 12
   account: e3sm
   partition: debug
   timeout: 1800
   slurm_timeout: "12:00:00"
-  mpas_region_path: /p/user_pub/e3sm/staging/resource/oEC60to30v3_Atlantic_region_and_southern_transect.nc
+  mpas_region_path: /p/user_pub/e3sm/staging/resource/grids/oEC60to30v3_Atlantic_region_and_southern_transect.nc

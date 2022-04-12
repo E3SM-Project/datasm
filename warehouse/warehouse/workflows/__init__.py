@@ -40,6 +40,7 @@ class Workflow(object):
         self.job_workers = kwargs.get('job_workers')
         self.debug = kwargs.get('debug')
         setup_logging('info', 'Warehouse.log')
+        log_message("info", f"Workflow {self.name} initialized")
 
     def load_jobs(self):
         """
@@ -100,6 +101,7 @@ class Workflow(object):
 
         if test_state in self.transitions.keys():
             log_message("info", f"WF_init next_state: test_state {test_state} FOUND in self.transition.keys: leads to {self.transitions[test_state]}")
+            dataset.realm = dataset.realm.replace("-", "") #ALWAYS
             if dataset.grid == "native":
                 target_data_type = f'{dataset.realm}-native-{dataset.freq}'
             else:
@@ -146,6 +148,7 @@ class Workflow(object):
             parent = f"{state_attrs[0]}:{state_attrs[1]}"
 
         self.print_debug(f"initializing job {job_name} for {dataset.dataset_id} from state {state}:{params}")
+        log_message('info', f"get_job: initializing job {job_name} for {dataset.dataset_id} from state {state}:{params}")
 
         job = self.jobs[job_name]
         job_instance = job(
@@ -164,7 +167,13 @@ class Workflow(object):
             tmpdir=kwargs.get('tmpdir', os.environ.get('TMPDIR', '/tmp')))
 
         other_datasets = [x for x in kwargs.get('other_datasets') if x.dataset_id != dataset.dataset_id]
-        job_instance.setup_requisites(other_datasets)
+
+        if other_datasets == None:
+            log_message('info', f"get_job: no other_datasets from kwargs")
+        else:
+            log_message('info', f"get_job: found {len(other_datasets)} other_datasets from kwargs")
+            job_instance.setup_requisites(other_datasets)
+
         try:
             job_reqs = {k:v.dataset_id for k,v in job_instance.requires.items() if v is not None}
         except AttributeError as error:
@@ -181,8 +190,8 @@ class Workflow(object):
             self.__class__)).parents[0], 'transitions.yaml')
         with open(transition_path, 'r') as instream:
             self.transitions = yaml.load(instream, Loader=yaml.SafeLoader)
-            log_message("info", f"WF_init: {self.name} loads transitions")
-            log_message("debug", f"WF_init: {self.name} loads transitions {self.transitions}")
+            log_message("info", f"load_transitions(): {self.name}")
+            log_message("debug", f"load_tansitions(): {self.name} loaded {self.transitions}")
 
     def load_children(self):
         my_path = Path(inspect.getfile(self.__class__)).parent.absolute()
@@ -204,6 +213,7 @@ class Workflow(object):
                 module_name = f'warehouse.workflows{str(my_path)[idx+len(workflows_string):].replace(os.sep, ".")}.{d.name}'
 
             self.print_debug(f"loading workflow module {module_name}")
+            log_message("info",f"load_children(): loading workflow module {module_name}")
 
             module = importlib.import_module(module_name)
             workflow_class = getattr(module, module.NAME)

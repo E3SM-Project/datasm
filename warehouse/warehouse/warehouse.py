@@ -163,6 +163,14 @@ class AutoWarehouse:
         if not found_missing:
             log_message("info", "No missing files in datasets")
 
+    '''
+    The find_e3sm_source_dataset function will take each E3SM dataset_id, instantiate a "Dataset" object that breaks out
+    the component facets (project, experiment, etc) and then passes that Dataset object to the "job.requires_dataset()"
+    function defined in workflows/__init__.py to test if it matches the requirements for the job.
+
+    If a dataset matches a requirement, that dataset is returned to the caller, else None is returned.
+    '''
+
     def find_e3sm_source_dataset(self, job):
         """
         Given a job with a CMIP6 dataset that needs to be run, 
@@ -174,14 +182,13 @@ class AutoWarehouse:
         Returns:
             Dataset, the E3SM dataset that matches the input requirements for the job if found, else None
         """
-        # msg = f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}"
-        # log_message("debug", msg)
+        # log_message("debug", f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}")
+        log_message("info", f"find_e3sm_source_dataset: Seeking raw E3SM dataset for job {job.name}")
         
+        for req, ds in job._requires.items():
+            log_message("info", f"find_e3sm_source_dataset: DEBUG: job._requires includes req = {req}")
+
         for x in self.collect_e3sm_datasets():
-            # log_message("info", f"DBG: ==== looping =========================================================================")
-            # log_message("info", f"DBG: processing dataset x={x} in list of self.collect_e3sm_datasets(). Calling Dataset with")
-            # log_message("info", f"DBG:     pub_base={self.publication_path}")
-            # log_message("info", f"DBG:     war_base={self.warehouse_path}")
             dataset = Dataset(
                 dataset_id=x,
                 status_path=os.path.join(self.status_path, f"{x}.status"),
@@ -189,29 +196,38 @@ class AutoWarehouse:
                 warehouse_base=self.warehouse_path,
                 archive_base=self.archive_path,
                 no_status_file=True)
-            # log_message("info", f"DBG: Dataset() returned: {dataset}, Testing for 'matches_requirement()'")
-            if job.matches_requirement(dataset):
-                # log_message("info", f"DBG: dataset matched job requirement")
+            log_message("debug", f"DBG: find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'requires_dataset()'")
+            if job.requires_dataset(dataset):
+                log_message("info", f"DBG: find_e3sm_source_dataset: dataset {dataset.dataset_id} matched job requirement")
                 dataset.initialize_status_file()
-                msg = f"matching dataset found: {dataset.dataset_id}"
-                log_message("debug", msg, self.debug)
+                # log_message("debug", msg, self.debug)
+                log_message("info", f"find_e3sm_source_dataset: Found {dataset.dataset_id} for job {job.name}")
                 return dataset
+        log_message("info", f"find_e3sm_source_dataset: Found None for job {job.name}")
         return None
 
     def setup_datasets(self, check_esgf=True):
-        log_message("info", "WH: setup_datasets: Initializing the warehouse")
-        log_message("info", f"WH: self.warehouse_path = {self.warehouse_path}")
-        log_message("info", f"WH: self.publication_path = {self.publication_path}")
+        log_message("info", "setup_datasets: Initializing the warehouse")
+        log_message("info", f"setup_datasets: self.warehouse_path = {self.warehouse_path}")
+        log_message("info", f"setup_datasets: self.publication_path = {self.publication_path}")
         cmip6_ids = [x for x in self.collect_cmip_datasets()]
         e3sm_ids = [x for x in self.collect_e3sm_datasets()]
         all_dataset_ids = cmip6_ids + e3sm_ids
 
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
-        
+
+        # log_message("info", f"setup_datasets: self.dataset_ids = {self.dataset_ids}")
+        # for x in cmip6_ids:
+        #     print(f"{x}", flush=True)
+        # sys.exit(1)
+
         if self.dataset_ids and self.dataset_ids is not None:
             dataset_ids = []
             for dataset_pattern in self.dataset_ids:
+                log_message("info", f"setup_datasets: testing for pattern {dataset_pattern} in all_dataset_ids")
+                new_ids = fnmatch.filter(all_dataset_ids, dataset_pattern)
+                log_message("info", f"setup_datasets: matches are: {new_ids}")
                 if new_ids := fnmatch.filter(all_dataset_ids, dataset_pattern):
                     dataset_ids.extend(new_ids)
             self.dataset_ids = dataset_ids
@@ -219,15 +235,13 @@ class AutoWarehouse:
             self.dataset_ids = all_dataset_ids
 
         if not self.dataset_ids:
-            log_message(
-                "error",
-                f"No datasets in dataset_spec match pattern from command line parameter --dataset-id {self.dataset_ids}",
-            )
+            log_message( "error", f"setup_datasets: No datasets in dataset_spec match pattern from command line parameter --dataset-id {self.dataset_ids}")
             sys.exit(1)
         else:
             msg = f"Running with datasets {pformat(self.dataset_ids)}"
             log_message('debug', msg)
-            # log_message("info", f"DBG: WH: Running with datasets {pformat(self.dataset_ids)}")
+            log_message("info", f"setup_datasets: Running with {len(self.dataset_ids)} datasets")
+            # log_message("info", f"setup_datasets: Running with datasets {pformat(self.dataset_ids)}")
 
         # instantiate the dataset objects with the paths to
         # where they should look for their data files
@@ -246,10 +260,10 @@ class AutoWarehouse:
 
         ''' DBG
         for dsn, dsv in self.datasets.items():
-            log_message("info", f"DBG: WH: type(dsv) = {type(dsv)}")
-            log_message("info", f"DBG: WH: dsv.warehouse_base = {dsv.warehouse_base}")
-            log_message("info", f"DBG: WH: dsv.warehouse_path = {dsv.warehouse_path}")
-            log_message("info", f"DBG: WH: dsv.pub_base = {dsv.pub_base}")
+            log_message("info", f"setup_datasets: type(dsv) = {type(dsv)}")
+            log_message("info", f"setup_datasets: dsv.warehouse_base = {dsv.warehouse_base}")
+            log_message("info", f"setup_datasets: dsv.warehouse_path = {dsv.warehouse_path}")
+            log_message("info", f"setup_datasets: dsv.pub_base = {dsv.pub_base}")
         '''
 
         # fill in the start and end year for each dataset
@@ -318,7 +332,7 @@ class AutoWarehouse:
                 self.should_exit = True
                 sys.exit(0)
 
-        log_message("info", f"WH: RETURN from setup_datasets()")
+        log_message("info", f"setup_datasets: RETURN from setup_datasets()")
 
         return
 
@@ -382,8 +396,8 @@ class AutoWarehouse:
         Returns: list of new job objects
         """
 
-        log_message("info", f"WH: start_datasets: Generate job objects for each dataset")
-        log_message("debug", f"WH: start_datasets: datasets={datasets}") 
+        log_message("info", f"start_datasets: Generate job objects for each dataset")
+        log_message("debug", f"start_datasets: datasets={datasets}") 
         new_jobs = []
         ready_states = [DatasetStatus.NOT_IN_PUBLICATION.value, DatasetStatus.NOT_IN_WAREHOUSE.value,
                         DatasetStatus.PARTIAL_PUBLISHED.value, DatasetStatus.UNITITIALIZED.value]
@@ -400,17 +414,17 @@ class AutoWarehouse:
 
         for dataset_id, dataset in datasets.items():
             
-            log_message("debug", f"WH: start_datasets: working datasets_id {dataset_id} from datasets.items()") 
-            log_message("debug", f"WH: start_datasets: dataset.status = {dataset.status}") 
+            log_message("debug", f"start_datasets: working datasets_id {dataset_id} from datasets.items()") 
+            log_message("info", f"start_datasets: dataset = {dataset_id}, status = {dataset.status}") 
 
             if "Engaged" in dataset.status:
-                log_message("debug", f"WH: start_datasets: 'Engaged' in dataset.status: continue") 
+                log_message("debug", f"start_datasets: 'Engaged' in dataset.status: continue") 
                 continue
 
             # for all the datasets, if they're not yet published or in the warehouse
             # then mark them as ready to start
             if dataset.status in ready_states:
-                log_message('debug', f"WH: start_datasets: Dataset {dataset.dataset_id} is transitioning from {dataset.status} to {DatasetStatus.READY.value}")
+                log_message('info', f"start_datasets: Dataset {dataset.dataset_id} is transitioning from {dataset.status} to {DatasetStatus.READY.value}")
                 dataset.status = DatasetStatus.READY.value
                 continue
 
@@ -418,19 +432,19 @@ class AutoWarehouse:
             # we keep a reference to the workflow instance, so when
             # we make a job we can reconstruct the parent workflow name
             # for the status file
-            log_message("debug", f"WH: start_datasets: To reconstruct parent workflow name:")
+            log_message("debug", f"start_datasets: To reconstruct parent workflow name:")
             params = {}
             if parameters := dataset.status.split(":")[-1].strip():
                 for item in parameters.split(","):
                     key, value = item.split("=")
                     params[key] = value.replace("^", ":")
-                    log_message("debug", f"WH: start_datasets: params[{key}] = {params[key]}")
+                    log_message("info", f"start_datasets: params[{key}] = {params[key]}")
 
             state = dataset.status
             workflow = self.workflow
 
-            log_message("debug", f"WH: start_datasets: state = {state}")
-            log_message("debug", f"WH: start_datasets: workflow = {self.workflow}")
+            log_message("info", f"start_datasets: state = {state}")
+            log_message("info", f"start_datasets: workflow = {self.workflow}")
 
             if state == DatasetStatus.UNITITIALIZED.value:
                 state = DatasetStatusMessage.WAREHOUSE_READY.value
@@ -465,7 +479,7 @@ class AutoWarehouse:
                 # otherwise the new state and its parameters need to be
                 # written to the dataset status file
                 else:
-                    msg = f"warehouse: start_datasets: Dataset {dataset.dataset_id} transitioning to state {new_state}"
+                    msg = f"start_datasets: Dataset {dataset.dataset_id} transitioning to state {new_state}"
                     if params:
                         msg += f" with params {params}"
                     log_message("info", msg)
@@ -477,6 +491,8 @@ class AutoWarehouse:
 
             for state, workflow, params in engaged_states:
                 # import ipdb; ipdb.set_trace()
+                # Triggers workflow __init__ get_job to call job init
+                log_message("info", f"start_datasets: instantiating newjob = self.workflow.get_job() for dataset {dataset.dataset_id}")
                 newjob = self.workflow.get_job(
                     dataset,
                     state,
@@ -497,47 +513,50 @@ class AutoWarehouse:
 
                 # check if the new job is a duplicate
                 if (matching_job := self.find_matching_job(newjob)) is None:
-                    log_message(
-                        "debug",
-                        f"Created jobs from {state} for dataset {dataset_id}"
-                    )
+                    log_message("info", f"start_datasets: Adding job {newjob.name} for dataset {dataset_id} in state {state}")
                     new_jobs.append(newjob)
                 else:
+                    log_message("info", f"start_datasets: Found job {matching_job.name} for dataset {dataset_id} in state {state}, calling setup_requisites for new job {newjob.name} and dataset {newjob.dataset.dataset_id}")
                     matching_job.setup_requisites(newjob.dataset)
 
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
             job_name = f"{job}".split(':')[0]
-            log_message("info", f"starting job: {job_name}")
+            log_message("info", f"start_datasets: starting job: {job_name}")
             # import ipdb; ipdb.set_trace()
             job_reqs_met = job.meets_requirements()
-            log_message("info", f"job_reqs_met={job_reqs_met}, project={job.dataset.project}, job_name={job_name}")
+            log_message("info", f"start_datasets: job_reqs_met={job_reqs_met}, project={job.dataset.project}, job_name={job_name}")
             if not job_reqs_met and job.dataset.project == "CMIP6" or ( job_name == 'POSTPROCESS' and ('time-series' in job.dataset.dataset_id or 'climo' in job.dataset.dataset_id) ):
+                log_message("info", f"start_datasets: Calling self.find_e3sm_source_dataset(job) for job {job_name}")
                 source_dataset = self.find_e3sm_source_dataset(job)
+                log_message("info", f"start_datasets: Returns self.find_e3sm_source_dataset(job) for job {job_name}")
                 if source_dataset is None:
                     msg = f"Cannot find raw input requirement for job {job}. source_dataset is None from self.find_e3sm_source_dataset(job)"
                     log_message("error", msg)
                     continue
-                log_message("info", f"found E3SM source dataset: {source_dataset}")
+                log_message("info", f"start_datasets: found E3SM source dataset: {source_dataset.dataset_id}")
+                log_message("info", f"start_datasets: calling setup_requisites : {source_dataset.dataset_id}")
                 job.setup_requisites(source_dataset)
                 job_reqs_met = job.meets_requirements()
-                log_message("info", f"job_reqs_met={job_reqs_met}")
+                log_message("info", f"start_datasets: job_reqs_met={job_reqs_met}")
             if job.job_id is None and job_reqs_met:
-                log_message("info", f"Job {job} meets its input dataset requirements")
+                log_message("info", f"start_datasets: Job {job_name} meets its input dataset requirements")
                 job_id = job(self.slurm)
-                log_message("info", f"DGB: WH: got job_id {job_id} from job(self.slurm)")
+                log_message("info", f"start_datasets: DGB: got job_id {job_id} from job(self.slurm)")
                 if job_id is not None:
                     job.job_id = job_id
                     self.job_pool.append(job)
                 else:
                     log_message("error", f"Error starting up job {job}")
             else:
-                log_message("error", "DGB: WH: job NOT added to pool")
-                log_message("info", f"DGB: WH: job.job_id = {job.job_id}, job_reqs_met = {job_reqs_met}")
+                log_message("error", "DGB: job NOT added to pool")
+                log_message("info", f"start_datasets: DGB: job.job_id = {job.job_id}, job_reqs_met = {job_reqs_met}")
                 attributes = [attr for attr in dir(job) if not attr.startswith('__')]
                 for attr in attributes:
                     print(f"{attr} = {getattr(job,attr)}")
-
+            log_message("info", f"start_datasets: (bottom loop: for job in new_jobs)")
+        log_message("info", f"start_datasets: Return")
+        log_message("info", f"start_datasets: (hangs here until slurmed workflows complete)")
         return
 
     def start_listener(self):
@@ -586,7 +605,9 @@ class AutoWarehouse:
         Returns:
             WorkflowJob: the matching job
         """
+        log_message("info", "find_matching_job: searching all job in self.job_pool")
         for job in self.job_pool:
+            log_message("info", f"find_matching_job:     trying job {job.name} against searchjob {searchjob.name}")
             if (
                 job.name == searchjob.name
                 and job.dataset.experiment == searchjob.dataset.experiment
@@ -594,10 +615,12 @@ class AutoWarehouse:
                 and job.dataset.ensemble == searchjob.dataset.ensemble
                 and not job.meets_requirements()
                 and not searchjob.meets_requirements()
-                and job.matches_requirement(searchjob.dataset)
-                and searchjob.matches_requirement(job.dataset)
+                and job.requires_dataset(searchjob.dataset)
+                and searchjob.requires_dataset(job.dataset)
             ):
+                log_message("info", f"find_matching_job:     Returning job {job.name}")
                 return job
+        log_message("info", f"find_matching_job:     Returning None")
         return
 
     def collect_cmip_datasets(self, **kwargs):
@@ -615,7 +638,7 @@ class AutoWarehouse:
                                     or variable == "all"
                                 ):
                                     continue
-                                if "_highfreq" in variable:
+                                if "_highfreq" in variable:     # should be unnecessary now
                                     idx = variable.find('_')
                                     variable = variable[:idx]
                                 dataset_id = f"CMIP6.{activity_name}.E3SM-Project.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr"

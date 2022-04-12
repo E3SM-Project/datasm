@@ -41,8 +41,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
         std_cmor_list = []
         plev_cmor_list = []
         plev_var_list = []
-        plev = False
-        mlev = False
+
         info_file = NamedTemporaryFile(delete=False)
         cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq mon -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
@@ -53,6 +52,8 @@ class GenerateAtmMonCMIP(WorkflowJob):
             log_message("error", f"  err = {err}")
             return 1    # was return None
     
+        plev = False
+        mlev = False
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
         for item in variable_info:
@@ -89,7 +90,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
             parameters['vrt_map_path'] = self.config['vrt_map_path']
             cwl_workflow = "atm-unified/atm-unified.cwl"
         else:
-            log_message("error", "Unable to determine the correct CWL workflow")
+            log_message("error", "Unable to determine the correct CWL workflow: no variable info returned from e2c")
             return 1
         
 

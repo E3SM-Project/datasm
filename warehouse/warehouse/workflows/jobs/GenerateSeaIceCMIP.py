@@ -6,46 +6,30 @@ from subprocess import Popen, PIPE
 from warehouse.workflows.jobs import WorkflowJob
 from warehouse.util import log_message
 
-NAME = 'GenerateOceanCMIP'
+NAME = 'GenerateSeaIceCMIP'
 
-oa_vars = ['pbo', 'pso']
 
-class GenerateOceanCMIP(WorkflowJob):
+class GenerateSeaIceCMIP(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        log_message("info", f"INIT: set self.name = {NAME} self.dataset.dataset_id = {self.dataset.dataset_id}")
-        cmip_var = self.dataset.dataset_id.split('.')[-2]
-        if cmip_var in oa_vars:
-            self._requires = { 'ocean-native-mon': None, 'atmos-native-mon': None }
-        else:
-            self._requires = { 'ocean-native-mon': None }
+        self._requires = { 'seaice-native-mon': None, }
         self._cmd = ''
 
     def resolve_cmd(self):
 
         log_message("info", f"resolve_cmd: Start: dsid={self.dataset.dataset_id}")
 
+        raw_seaice_dataset = self.requires['seaice-native-mon']
+        # raw_atmos_dataset = self.requires['atmos-native-mon']
         cwl_config = self.config['cmip_ocn_mon']
 
-        _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
-
-        is_oa_var = False
-        if cmip_var in oa_vars:
-            is_oa_var = True
-        
-        # Begin parameters collection:  use 'mpas_data_path' and 'atm_data_path' for mpaso-atm.
-        # including atmos-native_mon as (pbo requires PSL, etc)
-        if is_oa_var:
-            raw_ocean_dataset = self.requires['ocean-native-mon']
-            raw_atmos_dataset = self.requires['atmos-native-mon']
-            parameters = { 'mpas_data_path': raw_ocean_dataset.latest_warehouse_dir, 'atm_data_path': raw_atmos_dataset.latest_warehouse_dir }
-        else:
-            raw_ocean_dataset = self.requires['ocean-native-mon']
-            parameters = { 'data_path': raw_ocean_dataset.latest_warehouse_dir, }
-
+        # Begin parameters collection
+        parameters = { 'data_path': raw_seaice_dataset.latest_warehouse_dir, }
         parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout, mpas_region_path
+
+        _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
         # log_message("info", f"resolve_cmd: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
 
@@ -64,7 +48,7 @@ class GenerateOceanCMIP(WorkflowJob):
         '''
         # Call E2C to obtain variable info
         info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip --info --realm mpaso --map dummy -v {var_string} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmd = f"e3sm_to_cmip --info --realm mpassi --map dummy -v {var_string} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         log_message("info", f"E2C --info call: cmd = {cmd}")
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
@@ -81,37 +65,26 @@ class GenerateOceanCMIP(WorkflowJob):
             raise ValueError(f"Unable to find correct input variable for requested CMIP conversion, is {cmd} correct?")
             return 1    # was return None
 
-        # I just want to see what "variable_info" is returned
+        std_var_list = []
+        std_cmor_list = []
+
         log_message("info", "==================================================================================")
         for item in variable_info:
             log_message("info", f"DBG: E2C INFO item = {item}")
         log_message("info", "==================================================================================")
 
-        parameters['std_var_list'] = std_var_list
-        # Apply variable info to parameters collection
         for item in variable_info:
             if isinstance(item['E3SM Variables'], list):
-                log_message("info", f"DBG: extending std_var_list[] with {item['E3SM Variables']}")
-                parameters['std_var_list'].extend([v for v in item['E3SM Variables']])
-            elif isinstance(item['E3SM Variables'], str):
-                log_message("info", f"DBG: extending std_var_list[] with {item['E3SM Variables']}")
-                parameters['std_var_list'].extend([v for v in item['E3SM Variables'].split(', ')])
-                
+                std_var_list.extend([v for v in item['E3SM Variables']])
             std_cmor_list.append(item['CMIP6 Name'])
 
         log_message("info", f"DBG: resolve_cmd: obtained std_cmor_list = {std_cmor_list}")
         '''
 
         # Apply variable info to parameters collection
+        parameters['cmor_var_list'] = cmip_var
 
-        if is_oa_var:
-            parameters['std_var_list'] = ['PSL']
-            parameters['mpas_var_list'] = cmip_var
-            cwl_workflow_main = "mpaso-atm/mpaso-atm.cwl"
-        else:
-            parameters['cmor_var_list'] = cmip_var
-            cwl_workflow_main = "mpaso/mpaso.cwl"
-
+        cwl_workflow_main = "mpassi/mpassi.cwl"
         cwl_workflow = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
 
         parameters['tables_path'] = self.config['cmip_tables_path']
@@ -122,21 +95,15 @@ class GenerateOceanCMIP(WorkflowJob):
                 model_version, 
                 f"{experiment}_{variant}.json")
             }
-
-        if is_oa_var:
-            parameters['metadata_path'] = parameters['metadata']
-
         parameters['region_path'] = parameters['mpas_region_path']
-        parameters['hrz_atm_map_path'] = self.config['grids']['ne30_to_180x360']
+        mapfile="/p/user_pub/e3sm/staging/resource/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc"   # WARNING HARDCODED
         parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['oEC60to30_to_180x360'] }
+        log_message("info", f"Applying to parameters[mapfile]: type = {type(parameters['mapfile'])}")
 
-        if is_oa_var:
-            parameters['mpas_map_path'] = self.config['grids']['oEC60to30_to_180x360']
+        raw_model_version = raw_seaice_dataset.model_version
+        raw_experiment = raw_seaice_dataset.experiment
 
-        raw_model_version = raw_ocean_dataset.model_version
-        raw_experiment = raw_ocean_dataset.experiment
-
-        parameters['namelist_path'] = os.path.join(self.config['e3sm_namefile_path'],raw_model_version,raw_experiment,'mpaso_in')
+        parameters['namelist_path'] = os.path.join(self.config['e3sm_namefile_path'],raw_model_version,raw_experiment,'mpassi_in')
         parameters['restart_path'] = os.path.join(self.config['e3sm_restarts_path'],raw_model_version,raw_experiment,'mpaso.rst.1851-01-01_00000.nc')
         parameters['workflow_output'] = '/p/user_pub/e3sm/warehouse'
 
