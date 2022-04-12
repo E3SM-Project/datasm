@@ -10,7 +10,7 @@ class GenerateLndTimeseries(WorkflowJob):
         self.name = NAME
         self._requires = { 'land-native-mon': None }
         self._cmd = ''
-    
+
     def resolve_cmd(self):
 
         exclude = self._spec['project']['E3SM'][self.dataset.model_version][self.dataset.experiment].get('except', [])
@@ -40,13 +40,13 @@ class GenerateLndTimeseries(WorkflowJob):
         self._cmd = f"""
             ncclimo {flags} -v {','.join(variables)} -s {start} -e {end} -o {native_out} --map={map_path}  -O {self.dataset.latest_warehouse_dir} --ypf={ypf} -i {raw_dataset.latest_warehouse_dir} --sgs_frc={Path(raw_dataset.latest_warehouse_dir).glob('*.nc').__next__()}/landfrac
         """
-    
+
     def render_cleanup(self):
         native_out = f"{self.dataset.latest_warehouse_dir}-tmp/"
         cmd = f"""
             if [ -d {native_out} ]; then
                 rm -rf {native_out}
-            fi        
+            fi
         """
         return cmd
-        
+

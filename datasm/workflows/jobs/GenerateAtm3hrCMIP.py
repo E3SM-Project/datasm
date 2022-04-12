@@ -1,11 +1,12 @@
-import yaml
 import os
 from pathlib import Path
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
-from termcolor import cprint
-from datasm.workflows.jobs import WorkflowJob
+
+import yaml
 from datasm.util import log_message
+from datasm.workflows.jobs import WorkflowJob
+from termcolor import cprint
 
 NAME = 'GenerateAtm3hrCMIP'
 
@@ -28,7 +29,7 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         parameters.update(cwl_config)
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
-        
+
         # if we want to run all the variables
         # we can pull them from the dataset spec
         if cmip_var == 'all':
@@ -49,7 +50,7 @@ class GenerateAtm3hrCMIP(WorkflowJob):
             return None
         # else:
         #     log_message("debug", "e3sm_to_cmip returned variable info")
-    
+
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
 
@@ -63,19 +64,19 @@ class GenerateAtm3hrCMIP(WorkflowJob):
                 e3sm_vars.extend([v for v in item['E3SM Variables']])
             else:
                 e3sm_vars.append(item['E3SM Variables'])
-            
+
             vname = item['CMIP6 Name']
             if vname in ['pr', 'rlut']:
                 vname = f"{vname}_highfreq" # only for the day and 3hr jobs
 
             real_cmip_vars.append(vname)
-        
+
         # import ipdb; ipdb.set_trace()
         # log_message("debug", f"Found the following E3SM variable to use as input {', '.join(e3sm_vars)}")
 
         parameters['std_var_list'] = e3sm_vars
         parameters['std_cmor_list'] = real_cmip_vars
-        
+
         cwl_workflow = "atm-highfreq/atm-highfreq.cwl"
         parameters['tables_path'] = self.config['cmip_tables_path']
         parameters['metadata_path'] = os.path.join(

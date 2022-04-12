@@ -11,8 +11,8 @@ NAME = 'Publication'
 COMMAND = 'publish'
 
 HELP_TEXT = """
-Publish a set of E3SM datasets to ESGF. If used, the --data-path argument should be 
-one level up from the data directory (which should be named vN where N is an integer 0 or greater), 
+Publish a set of E3SM datasets to ESGF. If used, the --data-path argument should be
+one level up from the data directory (which should be named vN where N is an integer 0 or greater),
 and will be used to hold the .status file and intermediate working directories for the workflow steps.
 """
 

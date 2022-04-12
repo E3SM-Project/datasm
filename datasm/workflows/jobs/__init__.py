@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+
 from datasm.util import log_message
 
 
@@ -19,7 +20,7 @@ class WorkflowJob(object):
         self._outname = None
         self._parent = kwargs.get('parent')
         self._parameters = params
-        
+
         workers = kwargs.get('job_workers')
         if workers is None:
             workers = 8
@@ -28,11 +29,11 @@ class WorkflowJob(object):
         self._job_id = None
         self._spec_path = kwargs.get('spec_path')
         self._spec = kwargs.get('spec')
-        self._config = kwargs.get('config') 
+        self._config = kwargs.get('config')
         self.debug = kwargs.get('debug')
         self.serial = kwargs.get('serial', True)
         self.tmpdir = kwargs.get('tmpdir', os.environ.get('TMPDIR', '/tmp'))
-    
+
     def resolve_cmd(self):
         return
 
@@ -83,10 +84,10 @@ class WorkflowJob(object):
         slurm.render_script(self.cmd, str(script_path), self._slurm_opts)
         self._job_id = slurm.sbatch(str(script_path))
         log_message("info", f"WF_jobs_init: _call_: setting status to {self._parent}:{self.name}:Engaged: for {self.dataset.dataset_id}")
-        self.dataset.status = (f"{self._parent}:{self.name}:Engaged:", 
+        self.dataset.status = (f"{self._parent}:{self.name}:Engaged:",
                                {"slurm_id": self.job_id})
         return self._job_id
-    
+
     def get_slurm_output_script_name(self):
         return f'{self.dataset.dataset_id}-{self.name}.out'
 
@@ -171,13 +172,13 @@ fi
                 # reject if this E3SM dataset does not have a "cmip_case" in the dataset_spec.
                 if not e3sm_cmip_case:
                     return None
-                
+
                 my_dataset_facets = self.dataset.dataset_id.split('.')
                 my_case_attrs = '.'.join(my_dataset_facets[:5])
                 # reject if the found cmip_case does not match the job's dataset major facets.
                 if not my_case_attrs == e3sm_cmip_case:
                     return None
-        
+
         log_message("debug", f"WF_jobs_init: requires_dataset(): Experiment ({dataset.experiment}) Aligns");
 
         dataset_model = dataset.model_version
@@ -201,11 +202,11 @@ fi
         if dataset_ensemble != my_dataset_ensemble:
             # reject if N in E3SM "ensN" does not match the N in the job's "rNi1p1f1"
             return None
-        
+
         log_message("debug", f"WF_jobs_init: requires_dataset(): Ensemble ({dataset_ensemble}) Aligns");
 
-        log_message("info", f"WF_jobs_init: requires_dataset(): === ") 
-        log_message("info", f"WF_jobs_init: requires_dataset(): Trying all self._requires.items() for dataset_id {self.dataset.dataset_id}") 
+        log_message("info", f"WF_jobs_init: requires_dataset(): === ")
+        log_message("info", f"WF_jobs_init: requires_dataset(): Trying all self._requires.items() for dataset_id {self.dataset.dataset_id}")
 
         for req, ds in self._requires.items():
             if ds:
@@ -221,7 +222,7 @@ fi
                 req_attrs[1] = req_attrs[2]
                 req_attrs[2] = req_attrs[3]
 
-            req = '-'.join([req_attrs[0], req_attrs[1], req_attrs[2]]) 
+            req = '-'.join([req_attrs[0], req_attrs[1], req_attrs[2]])
 
             rcode = dataset.realm.replace('-','')
             gcode = dataset.grid.replace('-','')
@@ -269,7 +270,7 @@ fi
             version_number = int(version)
         new_version = version_number + 1
         return Path(Path(self._dataset.latest_warehouse_dir).parents[0], f"v0.{new_version}")
-    
+
     def render_cleanup(self):
         return ""
 
@@ -308,7 +309,7 @@ fi
     @job_id.setter
     def job_id(self, new_id):
         self._job_id = new_id
-    
+
     @property
     def config(self):
         return self._config

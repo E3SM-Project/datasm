@@ -33,7 +33,7 @@ class GenerateLndMonCMIP(WorkflowJob):
         # self._cmd = f"ls -l"
         # return
         # all debugging
-        
+
 
         raw_dataset = self.requires['land-native-mon']
         if raw_dataset is None:
@@ -46,7 +46,7 @@ class GenerateLndMonCMIP(WorkflowJob):
         parameters.update(cwl_config)
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
-        
+
         # if we want to run all the variables
         # we can pull them from the dataset spec
         if cmip_var == 'all':
@@ -68,7 +68,7 @@ class GenerateLndMonCMIP(WorkflowJob):
             log_message("error", f"  cmd = {cmd}")
             log_message("error", f"  err = {err}")
             return 1    # was return None
-    
+
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
         if variable_info is None:
@@ -108,7 +108,7 @@ class GenerateLndMonCMIP(WorkflowJob):
         # step three, render out the CWL run command
         # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
         outpath = '/p/user_pub/e3sm/warehouse'  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
-        
+
         log_message("info", f"DEBUG-001: render out the CWL run command: cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}")
         self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
 

@@ -35,7 +35,7 @@ class PublishEsgf(WorkflowJob):
         self._cmd = f"""
             cd {self.scripts_path}
             python publish_to_esgf.py --src-path {mapfile_path} --log-path {self._slurm_out.resolve()} """
-        
+
         if optional_facets:
             self._cmd += '--optional-facets "' + '" "'.join([f"{key}={value}" for key, value in optional_facets.items()]) + '"'
-        
+

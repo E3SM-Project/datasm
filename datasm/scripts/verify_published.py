@@ -76,7 +76,7 @@ def verify_dataset(src_path, base_path, scripts_path, out_path, pbar, **kwargs):
             print(f"Error creating mapfile: {cmd}")
             print(err)
             return 1
-    
+
     cmd = f"esgpublish --project {project} --map {map_path}"
     proc = Popen(
         cmd.split(), stdout=PIPE, stderr=PIPE, universal_newlines=True
@@ -108,14 +108,14 @@ def main():
     pbar = tqdm(total=len(source_paths))
     for src_path in source_paths:
         ret = verify_dataset(
-            src_path=src_path, 
+            src_path=src_path,
             base_path=parsed_args.base_path,
             scripts_path=parsed_args.scripts_path,
             out_path=parsed_args.mapfile_path,
             pbar=pbar)
         if ret != 0:
             return 1
-    
+
     return 0
 
 if __name__ == "__main__":

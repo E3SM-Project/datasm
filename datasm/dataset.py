@@ -98,7 +98,7 @@ class Dataset(object):
         self.versions = versions
 
         facets = self.dataset_id.split(".")
-        
+
         if facets[0] == "CMIP6":
             self.project = "CMIP6"
             self.data_type = "cmip"
@@ -178,7 +178,7 @@ class Dataset(object):
             msg = f"creating new status file {self.status_path}"
             log_message("info", msg)
             self.status_path.touch(mode=0o660, exist_ok=True)
-        
+
         # why are these being set in this function?
         if self.project == 'CMIP6':
             self.warehouse_path = Path(
@@ -331,7 +331,7 @@ class Dataset(object):
         except IndexError:
             return 0
         return int(latest_version)
-    
+
     @property
     def warehouse_version(self):
         """
@@ -413,7 +413,7 @@ class Dataset(object):
         # msg = f"setting {self.dataset_id} to {status}"
         # log_message("debug", msg, )
         self._status = status
-        
+
         with open(self.status_path, "a") as outstream:
             tstamp =  UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
             # msg = f'STAT:{tstamp}:WAREHOUSE:{status}'
@@ -508,7 +508,7 @@ class Dataset(object):
                 else:
                     self.missing = [self.dataset_id]
                     return False
-            
+
             self.missing = self.check_spans(files)
         else:
             if "model-output.mon" in self.dataset_id:
@@ -559,7 +559,7 @@ class Dataset(object):
             return DatasetStatus.UNITITIALIZED.value
 
         files = [x["title"] for x in docs]
-        
+
         if self.check_dataset_is_complete(files):
             return DatasetStatus.PUBLISHED.value
         else:

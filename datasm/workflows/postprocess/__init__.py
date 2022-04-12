@@ -47,7 +47,7 @@ class PostProcess(Workflow):
         wh_path=self.params['warehouse_path']
         if data_path is not None:
             wh_path=data_path
-        
+
         warehouse = AutoWarehouse(
             workflow=self,
             dataset_id=dataset_id,

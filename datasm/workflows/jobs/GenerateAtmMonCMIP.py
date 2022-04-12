@@ -27,7 +27,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
         parameters.update(cwl_config)
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
-        
+
         # if we want to run all the variables
         # we can pull them from the dataset spec
         if cmip_var == 'all':
@@ -51,7 +51,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
             log_message("error", f"  cmd = {cmd}")
             log_message("error", f"  err = {err}")
             return 1    # was return None
-    
+
         plev = False
         mlev = False
         with open(info_file.name, 'r') as instream:
@@ -83,16 +83,16 @@ class GenerateAtmMonCMIP(WorkflowJob):
         elif plev and mlev:
             parameters['plev_var_list'] = plev_var_list
             parameters['plev_cmor_list'] = plev_cmor_list
-            
+
             parameters['std_var_list'] = std_var_list
             parameters['std_cmor_list'] = std_cmor_list
-            
+
             parameters['vrt_map_path'] = self.config['vrt_map_path']
             cwl_workflow = "atm-unified/atm-unified.cwl"
         else:
             log_message("error", "Unable to determine the correct CWL workflow: no variable info returned from e2c")
             return 1
-        
+
 
         parameters['tables_path'] = self.config['cmip_tables_path']
         parameters['metadata_path'] = os.path.join(

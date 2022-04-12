@@ -72,7 +72,7 @@ class Workflow(object):
 
     def next_state(self, dataset, state, params, idx=0):
         """
-        Parameters: 
+        Parameters:
             dataset (Dataset) : The dataset which is changing state
             state (string) : The state to move out from (trimmed to "test_state" below)
             idx (int) : The recursive depth index
@@ -182,7 +182,7 @@ class Workflow(object):
 
         if not job_instance.meets_requirements() and job_instance.dataset.project != 'CMIP6' and 'time-series' not in job_instance.dataset.dataset_id and 'climo' not in job_instance.dataset.dataset_id:
             log_message('error', f"Job {job_instance} has unsatisfiable requirements {job_reqs}")
-            
+
         return job_instance
 
     def load_transitions(self):

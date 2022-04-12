@@ -13,14 +13,14 @@ class GenerateAtmMonClimo(WorkflowJob):
         self.name = NAME
         self._requires = { 'atmos-native-mon': None }
         self._cmd = ''
-    
+
     def resolve_cmd(self):
 
         raw_dataset = self.requires['atmos-native-mon']
-        
+
         start = self.dataset.start_year
         end = self.dataset.end_year
-        
+
         inpath = raw_dataset.latest_warehouse_dir
         outpath =  self.dataset.latest_warehouse_dir
 
@@ -43,13 +43,13 @@ class GenerateAtmMonClimo(WorkflowJob):
             cd {self.scripts_path}
             ncclimo -c {casename} -s {start} -e {end} -i {inpath} -r {map_path} -o {native_out} -O {outpath}
         """
-    
-    
+
+
     def render_cleanup(self):
         native_out = f"{os.environ.get('TMPDIR', '/tmp')}{os.sep}{self.dataset.dataset_id}/climo/"
         cmd = f"""
             if [ -d {native_out} ]; then
                 rm -rf {native_out}
-            fi        
+            fi
         """
         return cmd

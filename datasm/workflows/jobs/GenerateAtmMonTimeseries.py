@@ -10,9 +10,9 @@ class GenerateAtmMonTimeseries(WorkflowJob):
         self.name = NAME
         self._requires = { 'atmos-native-mon': None }
         self._cmd = ""
-    
+
     def resolve_cmd(self):
-        
+
         exclude = self._spec['project']['E3SM'][self.dataset.model_version][self.dataset.experiment].get('except', [])
         variables = [x for x in self._spec['time-series']['atmos'] if x not in exclude]
 
@@ -21,7 +21,7 @@ class GenerateAtmMonTimeseries(WorkflowJob):
 
         start = self.dataset.start_year
         end = self.dataset.end_year
-        
+
         dsid = f"{self.dataset.dataset_id}"
         native_resolution = dsid.split(".")[3]
         # NOTE: available grids are defined in resources/warehouse_config.yaml
@@ -35,12 +35,12 @@ class GenerateAtmMonTimeseries(WorkflowJob):
         self._cmd = f"""
             ncclimo --ypf=50 -v {','.join(variables)} -j {self._job_workers} -s {start} -e {end} -i {raw_dataset.latest_warehouse_dir} -o {native_out}  -O {self.find_outpath()} --map={map_path}
         """
-    
+
     def render_cleanup(self):
         native_out = f"{self.dataset.latest_warehouse_dir}-tmp/"
         cmd = f"""
             if [ -d {native_out} ]; then
                 rm -rf {native_out}
-            fi        
+            fi
         """
         return cmd

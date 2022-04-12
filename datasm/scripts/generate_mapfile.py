@@ -27,13 +27,13 @@ def parse_args():
         help="Path to a directory full of netCDF files"
     )
     parser.add_argument(
-        "dataset_id", 
-        type=str, 
+        "dataset_id",
+        type=str,
         help="The ESGF dataset id"
     )
     parser.add_argument(
-        "version_number", 
-        type=int, 
+        "version_number",
+        type=int,
         help="The version number of the dataset, should be and int and not include the 'v' prefix"
     )
     parser.add_argument(
@@ -88,7 +88,7 @@ def main():
         outpath = Path(outpath)
     else:
         outpath = Path(f"{dataset_id}.map")
-    
+
     if not outpath.exists():
         outpath.touch(0o664)
     else:
