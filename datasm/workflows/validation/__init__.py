@@ -15,7 +15,7 @@ Runs the Validation workflow on a single dataset or list of datasets. If running
 a single dataset, the --data-path should point one level up from the data directory
 which should me named v0, the input path will be used to hold the .status file and intermediate working directories for the workflow steps.
 
-Multiple datasets can be run at once as long as the datasets exist under the --datasm-path directory in the expected
+Multiple datasets can be run at once as long as the datasets exist under the --warehouse-path directory in the expected
 faceted structure. This structure should mirror the E3SM publication directory structure.
 
 The --dataset-id flag should be in the facet format of the ESGF project.
