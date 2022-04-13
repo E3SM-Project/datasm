@@ -80,7 +80,7 @@ This environment is for testing local source code changes to the `datasm` module
 7. Open a pull request (PR) with this branch for review
 8. Merge PR to `master`
 
-#### How to Update Dependencies
+### How to Update Dependencies
 
 Occasionally, the dependencies in the conda env yml files are updated to include the latest bug fixes or features. To update the dependencies in the yml files remotely and pull them in locally to your environments:
 
