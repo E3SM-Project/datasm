@@ -18,26 +18,26 @@ from datasm.util import (
 
 
 class DatasetStatus(Enum):
-    UNITITIALIZED = "WAREHOUSE:UNINITIALIZED:"
-    INITIALIZED = "WAREHOUSE:INITIALIZED:"
-    RUNNING = "WAREHOUSE:RUNNING:"
-    READY = "WAREHOUSE:Ready:"
-    FAILED = "WAREHOUSE:Fail:"
-    SUCCESS = "WAREHOUSE:Pass:"
-    IN_WAREHOUSE = "WAREHOUSE:IN_WAREHOUSE:"
-    IN_PUBLICATION = "WAREHOUSE:IN_PUBLICATION:"
-    NOT_PUBLISHED = "WAREHOUSE:NOT_PUBLISHED:"
-    NOT_IN_PUBLICATION = "WAREHOUSE:NOT_IN_PUBLICATION:"
-    NOT_IN_WAREHOUSE = "WAREHOUSE:NOT_IN_WAREHOUSE:"
-    PARTIAL_PUBLISHED = "WAREHOUSE:PARTIAL_PUBLISHED:"
-    PUBLISHED = "WAREHOUSE:PUBLICATION:Pass:"
+    UNITITIALIZED = "DATASM:UNINITIALIZED:"
+    INITIALIZED = "DATASM:INITIALIZED:"
+    RUNNING = "DATASM:RUNNING:"
+    READY = "DATASM:Ready:"
+    FAILED = "DATASM:Fail:"
+    SUCCESS = "DATASM:Pass:"
+    IN_WAREHOUSE = "DATASM:IN_WAREHOUSE:"
+    IN_PUBLICATION = "DATASM:IN_PUBLICATION:"
+    NOT_PUBLISHED = "DATASM:NOT_PUBLISHED:"
+    NOT_IN_PUBLICATION = "DATASM:NOT_IN_PUBLICATION:"
+    NOT_IN_WAREHOUSE = "DATASM:NOT_IN_WAREHOUSE:"
+    PARTIAL_PUBLISHED = "DATASM:PARTIAL_PUBLISHED:"
+    PUBLISHED = "DATASM:PUBLICATION:Pass:"
 
 
 class DatasetStatusMessage(Enum):
-    PUBLICATION_READY = "WAREHOUSE:PUBLICATION:Ready:"
-    WAREHOUSE_READY = "WAREHOUSE:Ready:"
-    VALIDATION_READY = "WAREHOUSE:VALIDATION:Ready:"
-    POSTPROCESS_READY = "WAREHOUSE:POSTPROCESS:Ready:"
+    PUBLICATION_READY = "DATASM:PUBLICATION:Ready:"
+    DATASM_READY = "DATASM:Ready:"
+    VALIDATION_READY = "DATASM:VALIDATION:Ready:"
+    POSTPROCESS_READY = "DATASM:POSTPROCESS:Ready:"
 
 
 non_binding_status = ["Blocked:", "Unblocked:", "Approved:", "Unapproved:"]
@@ -214,10 +214,7 @@ class Dataset(object):
                     found_id = True
                     break
         if not found_id:
-            log_message(
-                "info",
-                f"status file {self.status_path} doesnt list its dataset id, adding it",
-            )
+            log_message("info", f"initialize_status_file: status file {self.status_path} doesnt list its dataset id, adding it")
             with open(self.status_path, "a") as outstream:
                 outstream.write(f"DATASETID={self.dataset_id}\n")
 
@@ -234,7 +231,7 @@ class Dataset(object):
             else:
                 self._status = latest
 
-        log_message("info", f"DBG: DS: init_stat_file: self._status = {self._status}")
+        log_message("info", f"initialize_status_file: self._status = {self._status}")
 
 
     # Anyone care to explain the logic here? This is fragile!
@@ -404,7 +401,7 @@ class Dataset(object):
         self.load_dataset_status_file()
         latest, _ = self.get_latest_status()
         if status is None or status == self._status or latest == status:
-            log_message("info", f"DBG: DS: status.setter: Return pre-set with input status = {status}")
+            log_message("info", f"status.setter: Return pre-set with input status = {status}")
             return
         params = None
         if isinstance(status, tuple):
@@ -416,13 +413,13 @@ class Dataset(object):
 
         with open(self.status_path, "a") as outstream:
             tstamp =  UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
-            # msg = f'STAT:{tstamp}:WAREHOUSE:{status}'
+            # msg = f'STAT:{tstamp}:DATASM:{status}'
             msg = f'STAT:{tstamp}:{status}'
             if params is not None:
                 items = [f"{k}={v}".replace(":", "^") for k, v in params.items()]
                 msg += ",".join(items)
             outstream.write(msg + "\n")
-            log_message("info", f"DBG: DS: status.setter: Wrote STAT message: {msg}")
+            log_message("info", f"status.setter: Wrote STAT message: {msg}")
 
     def lock(self, path):
         if path is None or self.is_locked(path):
@@ -927,8 +924,8 @@ class Dataset(object):
 
         status_attrs = state.split(":")
         blocked = False
-        if status_attrs[0] in self.stat["WAREHOUSE"].keys():
-            state_messages = sorted(self.stat["WAREHOUSE"][status_attrs[0]])
+        if status_attrs[0] in self.stat["DATASM"].keys():
+            state_messages = sorted(self.stat["DATASM"][status_attrs[0]])
             for ts, message in state_messages:
                 if "Blocked" not in message and "Unblocked" not in message:
                     continue

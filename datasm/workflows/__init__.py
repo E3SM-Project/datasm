@@ -122,8 +122,8 @@ class Workflow(object):
                 log_message("info", f"WF_init next_state: for {dataset.dataset_id} returning {ret_list}")
                 return ret_list
 
-        elif state_attrs_curr == "WAREHOUSE":
-            return self.next_state(dataset, state, params, idx + 1)     # jump over "WAREHOUSE" state component, try again
+        elif state_attrs_curr == "DATASM":
+            return self.next_state(dataset, state, params, idx + 1)     # jump over "DATASM" state component, try again
 
         # import ipdb; ipdb.set_trace()
         elif state_attrs_curr in self.children.keys():

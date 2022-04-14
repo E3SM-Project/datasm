@@ -190,9 +190,9 @@ class AutoDataSM:
                 warehouse_base=self.warehouse_path,
                 archive_base=self.archive_path,
                 no_status_file=True)
-            log_message("debug", f"DBG: find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'requires_dataset()'")
+            log_message("debug", f"find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'requires_dataset()'")
             if job.requires_dataset(dataset):
-                log_message("info", f"DBG: find_e3sm_source_dataset: dataset {dataset.dataset_id} matched job requirement")
+                log_message("info", f"find_e3sm_source_dataset: dataset {dataset.dataset_id} matched job requirement")
                 dataset.initialize_status_file()
                 # log_message("debug", msg, self.debug)
                 log_message("info", f"find_e3sm_source_dataset: Found {dataset.dataset_id} for job {job.name}")
@@ -383,7 +383,7 @@ class AutoDataSM:
         rsm = ""
         for stateval in ready_states:
             rsm = rsm + f"{stateval},"
-        log_message("info", f"DBG: start_datasets: ready_states include {rsm}")
+        log_message("info", f"start_datasets: ready_states include {rsm}")
         end DBG '''
 
         if datasets is None:

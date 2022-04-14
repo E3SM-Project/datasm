@@ -736,7 +736,7 @@ def main():
         sf_ts = sf_data.split(':')[0] 
         ds['StatDate'] = clean_timestamp(sf_ts)        # date from last status value
         stat_parts = sf_data.split(':')[1:]
-        if stat_parts[0] != "WAREHOUSE":
+        if stat_parts[0] != "DATASM":
             ds['Status'] = ':'.join(stat_parts)
         else:
             ds['Status'] = ':'.join(stat_parts[1:])    # stat from last status value

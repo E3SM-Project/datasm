@@ -209,12 +209,12 @@ def ensureStatusFile(dsid):
         statid=f"DATASETID={dsid}\n"
         with open(statfile, 'a') as statf:
             statf.write(statid)
-        setStatus(statfile,'WAREHOUSE','EXTRACTION:Ready')
-        setStatus(statfile,'WAREHOUSE','VALIDATION:Unblocked:')
-        setStatus(statfile,'WAREHOUSE','POSTPROCESS:Unblocked:')
-        setStatus(statfile,'WAREHOUSE','PUBLICATION:Blocked:')
-        setStatus(statfile,'WAREHOUSE','PUBLICATION:Unapproved:')
-        setStatus(statfile,'WAREHOUSE','CLEANUP:Blocked:')
+        setStatus(statfile,'DATASM','EXTRACTION:Ready')
+        setStatus(statfile,'DATASM','VALIDATION:Unblocked:')
+        setStatus(statfile,'DATASM','POSTPROCESS:Unblocked:')
+        setStatus(statfile,'DATASM','PUBLICATION:Blocked:')
+        setStatus(statfile,'DATASM','PUBLICATION:Unapproved:')
+        setStatus(statfile,'DATASM','CLEANUP:Blocked:')
         logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Created new status file for dataset:{dsid}')
         time.sleep(5)
 
@@ -318,7 +318,7 @@ def main():
 
             ensureDatasetPath(ens_path)
 
-            setStatus(statfile,'WAREHOUSE','EXTRACTION:Engaged')
+            setStatus(statfile,'DATASM','EXTRACTION:Engaged')
             setStatus(statfile,'EXTRACTION','SETUP:Engaged')
 
             # negotiate for "best dest_path" here in case existing will interfere:
@@ -422,9 +422,9 @@ def main():
             os.chdir(parentdir)
             shutil.rmtree(holodeck,ignore_errors=True)
 
-            setStatus(statfile,'WAREHOUSE',f'EXTRACTION:Pass:dstdir=v0,filecount={fcount}')
+            setStatus(statfile,'DATASM',f'EXTRACTION:Pass:dstdir=v0,filecount={fcount}')
 
-            setStatus(statfile,'WAREHOUSE','VALIDATION:Ready')
+            setStatus(statfile,'DATASM','VALIDATION:Ready')
 
         time.sleep(5)
 
