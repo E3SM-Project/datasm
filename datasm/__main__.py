@@ -1,7 +1,7 @@
 import sys
 
 from datasm import parse_args
-from datasm.warehouse import AutoWarehouse
+from datasm.datasm import AutoDataSM
 from datasm.workflows.extraction import Extraction
 from datasm.workflows.cleanup import CleanUp
 from datasm.workflows.postprocess import PostProcess
@@ -9,7 +9,7 @@ from datasm.workflows.publication import Publication
 from datasm.workflows.validation import Validation
 
 subcommands = {
-    "auto": AutoWarehouse,
+    "auto": AutoDataSM,
     "extract": Extraction,
     "cleanup": CleanUp,
     "postprocess": PostProcess,
@@ -17,7 +17,7 @@ subcommands = {
     "validate": Validation,
 }
 arg_sources = [
-    AutoWarehouse.add_args,
+    AutoDataSM.add_args,
     Publication.add_args,
     Validation.add_args,
     Extraction.add_args,
@@ -25,7 +25,7 @@ arg_sources = [
     PostProcess.add_args,
 ]
 arg_checkers = {
-    "auto": AutoWarehouse.arg_checker,
+    "auto": AutoDataSM.arg_checker,
     "extract": Extraction.arg_checker,
     "cleanup": CleanUp.arg_checker,
     "postprocess": PostProcess.arg_checker,

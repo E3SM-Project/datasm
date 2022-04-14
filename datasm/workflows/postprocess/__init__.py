@@ -26,7 +26,7 @@ class PostProcess(Workflow):
         log_message('info', f'initializing workflow {self.name}')
 
     def __call__(self):
-        from datasm.warehouse import AutoWarehouse
+        from datasm.datasm import AutoDataSM
 
         dataset_id = self.params['dataset_id']
         log_message("info", f'Starting with datasets {dataset_id}')
@@ -48,7 +48,7 @@ class PostProcess(Workflow):
         if data_path is not None:
             wh_path=data_path
 
-        warehouse = AutoWarehouse(
+        datasm = AutoDataSM(
             workflow=self,
             dataset_id=dataset_id,
             warehouse_path=wh_path,
@@ -59,9 +59,9 @@ class PostProcess(Workflow):
             testing=testing,
             tmpdir=tmpdir)
 
-        warehouse.setup_datasets(check_esgf=False)
+        datasm.setup_datasets(check_esgf=False)
 
-        for dataset_id, dataset in warehouse.datasets.items():
+        for dataset_id, dataset in datasm.datasets.items():
             dataset.warehouse_base = Path(self.params['warehouse_path'])
             if data_path:
                 dataset.warehouse_path = Path(data_path)
@@ -69,15 +69,15 @@ class PostProcess(Workflow):
             if DatasetStatusMessage.POSTPROCESS_READY.value not in dataset.status:
                 dataset.status = DatasetStatusMessage.POSTPROCESS_READY.value
 
-        warehouse.start_listener()
+        datasm.start_listener()
 
-        for dataset_id, dataset in warehouse.datasets.items():
-            warehouse.start_datasets({dataset_id: dataset})
+        for dataset_id, dataset in datasm.datasets.items():
+            datasm.start_datasets({dataset_id: dataset})
 
-        while not warehouse.should_exit:
+        while not datasm.should_exit:
             sleep(2)
 
-        for dataset_id, dataset in warehouse.datasets.items():
+        for dataset_id, dataset in datasm.datasets.items():
             color = "green" if "Pass" in dataset.status else "red"
             cprint(
                 f"Postprocessing complete, dataset {dataset_id} is in state {dataset.status}", color)

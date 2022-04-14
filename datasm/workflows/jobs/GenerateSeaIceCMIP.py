@@ -3,8 +3,8 @@ import yaml
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
-from warehouse.workflows.jobs import WorkflowJob
-from warehouse.util import log_message
+from datasm.workflows.jobs import WorkflowJob
+from datasm.util import log_message
 
 NAME = 'GenerateSeaIceCMIP'
 

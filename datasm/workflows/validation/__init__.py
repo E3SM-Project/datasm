@@ -33,7 +33,7 @@ class Validation(Workflow):
         log_message('info', f'initializing workflow {self.name}')
 
     def __call__(self, *args, **kwargs):
-        from datasm.warehouse import AutoWarehouse
+        from datasm.datasm import AutoDataSM
         log_message('info', f'starting workflow {self.name}')
 
         dataset_ids = self.params['dataset_id']
@@ -43,7 +43,7 @@ class Validation(Workflow):
         status_path = self.params.get('status_path')
 
         if (data_path := self.params.get('data_path')):
-            warehouse = AutoWarehouse(
+            datasm = AutoDataSM(
                 workflow=self,
                 dataset_id=dataset_ids,
                 warehouse_path=data_path,
@@ -54,7 +54,7 @@ class Validation(Workflow):
                 job_worker=self.job_workers,
                 debug=self.debug)
         else:
-            warehouse = AutoWarehouse(
+            datasm = AutoDataSM(
                 workflow=self,
                 dataset_id=dataset_ids,
                 warehouse_path=warehouse_path,
@@ -65,25 +65,25 @@ class Validation(Workflow):
                 job_worker=self.job_workers,
                 debug=self.debug)
 
-        warehouse.setup_datasets(check_esgf=False)
+        datasm.setup_datasets(check_esgf=False)
 
-        for dataset_id, dataset in warehouse.datasets.items():
+        for dataset_id, dataset in datasm.datasets.items():
             if data_path:
                 dataset.warehouse_path = Path(data_path)
 
             if DatasetStatusMessage.VALIDATION_READY.value not in dataset.status:
                 dataset.status = DatasetStatusMessage.VALIDATION_READY.value
 
-        warehouse.start_listener()
+        datasm.start_listener()
 
-        for dataset_id, dataset in warehouse.datasets.items():
+        for dataset_id, dataset in datasm.datasets.items():
             log_message('info',f'starting job {self.name} for {dataset_id}')
-            warehouse.start_datasets({dataset_id: dataset})
+            datasm.start_datasets({dataset_id: dataset})
 
-        while not warehouse.should_exit:
+        while not datasm.should_exit:
             sleep(2)
 
-        for dataset_id, dataset in warehouse.datasets.items():
+        for dataset_id, dataset in datasm.datasets.items():
             mtype = "info" if "Pass" in dataset.status else "error"
             log_message(mtype,f"Validation complete, dataset {dataset_id} is in state {dataset.status}")
 

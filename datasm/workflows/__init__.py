@@ -15,16 +15,16 @@ from datasm.util import setup_logging, log_message
 
 resource_path, _ = os.path.split(resources.__file__)
 DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
-DEFAULT_CONF_PATH = os.path.join(resource_path, 'warehouse_config.yaml')
+DEFAULT_CONF_PATH = os.path.join(resource_path, 'datasm_config.yaml')
 
 with open(DEFAULT_CONF_PATH, 'r') as instream:
-    warehouse_conf = yaml.load(instream, Loader=yaml.SafeLoader)
-DEFAULT_WAREHOUSE_PATH = warehouse_conf['DEFAULT_WAREHOUSE_PATH']
-DEFAULT_PUBLICATION_PATH = warehouse_conf['DEFAULT_PUBLICATION_PATH']
-DEFAULT_ARCHIVE_PATH = warehouse_conf['DEFAULT_ARCHIVE_PATH']
-DEFAULT_STATUS_PATH = warehouse_conf['DEFAULT_STATUS_PATH']
+    datasm_conf = yaml.load(instream, Loader=yaml.SafeLoader)
+DEFAULT_WAREHOUSE_PATH = datasm_conf['DEFAULT_WAREHOUSE_PATH']
+DEFAULT_PUBLICATION_PATH = datasm_conf['DEFAULT_PUBLICATION_PATH']
+DEFAULT_ARCHIVE_PATH = datasm_conf['DEFAULT_ARCHIVE_PATH']
+DEFAULT_STATUS_PATH = datasm_conf['DEFAULT_STATUS_PATH']
 
-NAME = 'Warehouse'
+NAME = 'DataSM'
 
 
 class Workflow(object):
@@ -39,13 +39,13 @@ class Workflow(object):
         self.params = kwargs
         self.job_workers = kwargs.get('job_workers')
         self.debug = kwargs.get('debug')
-        setup_logging('info', 'Warehouse.log')
+        setup_logging('info', 'DataSM.log')
         log_message("info", f"Workflow {self.name} initialized")
 
     def load_jobs(self):
         """
         get the path to the jobs directory which should be a sibling
-        of the warehouse.py file
+        of the datasm.py file
         """
         modules = {}
         jobs_path = Path(jobs.__file__).parent.absolute()

@@ -26,7 +26,7 @@ class Publication(Workflow):
         log_message('info', f'WF_pub_init Publication_init: initializing workflow {self.name}')
 
     def __call__(self, *args, **kwargs):
-        from datasm.warehouse import AutoWarehouse
+        from datasm.datasm import AutoDataSM
 
         dataset_id = self.params['dataset_id']
         tmpdir = self.params['tmp']
@@ -50,9 +50,9 @@ class Publication(Workflow):
             w_path=data_path
         else:
             w_path=self.params['warehouse_path']
-            log_message("info", f"WF_pub_init Publication_call: AutoWarehouse(workflow={self},dataset_id={dataset_id},warehouse_path={w_path},publication_path={self.pub_path},serial=True,job_workers={self.job_workers},status_path={status_path}")
+            log_message("info", f"WF_pub_init Publication_call: AutoDataSM(workflow={self},dataset_id={dataset_id},warehouse_path={w_path},publication_path={self.pub_path},serial=True,job_workers={self.job_workers},status_path={status_path}")
 
-        warehouse = AutoWarehouse(
+        datasm = AutoDataSM(
             workflow=self,
             dataset_id=dataset_id,
             warehouse_path=w_path,
@@ -63,10 +63,10 @@ class Publication(Workflow):
             debug=self.debug,
             tmpdir=tmpdir)
 
-        log_message('info', f'WF_pub_init Publication_call: issuing warehouse.setup_datasets()')
-        warehouse.setup_datasets(check_esgf=False)
+        log_message('info', f'WF_pub_init Publication_call: issuing datasm.setup_datasets()')
+        datasm.setup_datasets(check_esgf=False)
 
-        for dataset_id, dataset in warehouse.datasets.items():
+        for dataset_id, dataset in datasm.datasets.items():
             dataset.warehouse_base = Path(self.params['warehouse_path'])
             if data_path:
                 dataset.warehouse_path = Path(data_path)
@@ -74,17 +74,17 @@ class Publication(Workflow):
             if DatasetStatusMessage.PUBLICATION_READY.value not in dataset.status:
                 dataset.status = DatasetStatusMessage.PUBLICATION_READY.value
 
-        log_message('info', f'WF_pub_init Publication_call: issuing warehouse.start_listener()')
-        warehouse.start_listener()
+        log_message('info', f'WF_pub_init Publication_call: issuing datasm.start_listener()')
+        datasm.start_listener()
 
-        for dataset_id, dataset in warehouse.datasets.items():
-            log_message('info', f'WF_pub_init Publication_call: calling warehouse.start_datasets() starting job {self.name} for {dataset_id}')
-            warehouse.start_datasets({dataset_id: dataset})
+        for dataset_id, dataset in datasm.datasets.items():
+            log_message('info', f'WF_pub_init Publication_call: calling datasm.start_datasets() starting job {self.name} for {dataset_id}')
+            datasm.start_datasets({dataset_id: dataset})
 
-        while not warehouse.should_exit:
+        while not datasm.should_exit:
             sleep(2)
 
-        for dataset_id, dataset in warehouse.datasets.items():
+        for dataset_id, dataset in datasm.datasets.items():
             mtype = "info" if "Pass" in dataset.status else "error"
             log_message(mtype, f"WF_pub_init Publication_call: Publication complete, dataset {dataset_id} is in state {dataset.status}")
 

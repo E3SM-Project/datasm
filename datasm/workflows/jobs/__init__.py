@@ -52,7 +52,7 @@ class WorkflowJob(object):
         if self.resolve_cmd() == 1:
             log_message('error', f"bad resolve_cmd for {self.name}:{self.dataset.dataset_id}")
             info_fail = 1
-            # return None [It appears that ANY return other than a valid job_id causes the warehouse to hang.]
+            # return None [It appears that ANY return other than a valid job_id causes the datasm to hang.]
 
         working_dir = self.dataset.latest_warehouse_dir
         if self.dataset.is_locked(working_dir):
