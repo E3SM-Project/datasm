@@ -76,10 +76,12 @@ class GenerateAtmMonCMIP(WorkflowJob):
             parameters['plev_cmor_list'] = plev_cmor_list
             parameters['vrt_map_path'] = self.config['vrt_map_path']
             cwl_workflow = "atm-mon-plev/atm-plev.cwl"
+            log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
         elif not plev and mlev:
             parameters['std_var_list'] = std_var_list
             parameters['std_cmor_list'] = std_cmor_list
             cwl_workflow = "atm-mon-model-lev/atm-std.cwl"
+            log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
         elif plev and mlev:
             parameters['plev_var_list'] = plev_var_list
             parameters['plev_cmor_list'] = plev_cmor_list
@@ -89,6 +91,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
 
             parameters['vrt_map_path'] = self.config['vrt_map_path']
             cwl_workflow = "atm-unified/atm-unified.cwl"
+            log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
         else:
             log_message("error", "Unable to determine the correct CWL workflow: no variable info returned from e2c")
             return 1

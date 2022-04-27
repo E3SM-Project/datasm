@@ -100,7 +100,8 @@ class Workflow(object):
         log_message("debug", f"WF_init next_state: self.children.keys = {self.children.keys()}")
 
         if test_state in self.transitions.keys():
-            log_message("info", f"WF_init next_state: test_state {test_state} FOUND in self.transition.keys: leads to {self.transitions[test_state]}")
+            log_message("info", f"WF_init next_state: test_state {test_state} FOUND in self.transition.keys.")
+            log_message("debug", f"WF_init next_state: test_state {test_state} FOUND in self.transition.keys: leads to selection from {self.transitions[test_state]}")
             dataset.realm = dataset.realm.replace("-", "") #ALWAYS
             if dataset.grid == "native":
                 target_data_type = f'{dataset.realm}-native-{dataset.freq}'
