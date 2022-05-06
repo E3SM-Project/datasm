@@ -207,18 +207,19 @@ time-series:
         # - LANDFRAC
         # - OCNFRAC
     land:
-        - SOILWATER_10CM
-        - SOILICE
-        - SOILLIQ
-        - QOVER
-        - QRUNOFF
-        - QINTR
-        - QVEGE
-        - QSOIL
-        - QVEGT
-        - TSOI
         - LAISHA
         - LAISUN
+        - QINTR
+        - QOVER
+        - QRUNOFF
+        - QSOIL
+        - QVEGE
+        - QVEGT
+        - SOILICE
+        - SOILLIQ
+        - SOILWATER_10CM
+        - TSA
+        - TSOI
 
 project:
 
