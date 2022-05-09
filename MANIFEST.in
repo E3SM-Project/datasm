@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+
+recursive-include datasm/resources *
+recursive-include datasm/workflows *

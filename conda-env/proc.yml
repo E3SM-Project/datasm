@@ -1,0 +1,37 @@
+# Conda processing environment
+# This environment is for testing local source code changes to the `datasm` modules related to the data processing operations `extract`, `validate`, and `postprocess` before merging them to production (the `master` branch).
+name: datasm_proc
+channels:
+  - conda-forge
+  - e3sm
+  - defaults
+dependencies:
+  # Base
+  # ==================
+  - python=3.9.10
+  - pip=22.0.3
+  - pyyaml=6.0
+  - cmor=3.6.1
+  - netcdf4=1.5.8
+  - numpy=1.22.1
+  - xarray=0.21.1
+  - matplotlib=3.5.1
+  - distributed=2021.8.0
+  - tqdm=4.62.3
+  - termcolor=1.1.0
+  - watchdog=2.1.6
+  - ipdb=0.13.9
+  # Required for CWL workflows.
+  - cwltool=3.1.20220202173120
+  - nodejs=17.4.0
+  # Used in modules for `extract`, `validate`, and `postprocess` operations.
+  - nco=5.0.6
+  - e3sm_to_cmip=1.8.1
+  - zstash=1.2.0
+  # Testing
+  # ==================
+  - pytest=7.0.0
+  # Quality Assurance
+  # ==================
+  - black=22.1.0
+prefix: /opt/miniconda3/envs/datasm_proc

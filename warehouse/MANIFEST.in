@@ -1,5 +1,0 @@
-include README.md
-include LICENSE
-
-recursive-include warehouse/resources *
-recursive-include warehouse/workflows *

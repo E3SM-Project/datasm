@@ -1,9 +1,10 @@
-# Conda publishing environment for the `warehouse` publishing operation to ESGF (`publish`).
-# This environment contains `esgf-forge` dependencies required for publishing.
+# Conda publishing environment
+# This environment is for testing local source code changes to the `datasm` modules related to the data publishing operation `publish` before merging to `master`.
+# It includes the latest stable releases of `esgf-forge` dependencies.
 # Notes:
 # - `autocurator=0.1` is only available for Linux and does not support `python>3.8` (constraint is python[version='>=3.7,<3.8.0a0|>=3.8,<3.9.0a0'])
 # - `autocurator=0.1` requires `libnetcdf >=4.7.4,<4.7.5.0a0`, which conflicts with `nco>=5`
-name: warehouse_pub
+name: datasm_pub
 channels:
   - conda-forge
   - esgf-forge
@@ -28,4 +29,4 @@ dependencies:
   - autocurator=0.1
   - esgconfigparser=1.0.0a1
   - esgcet=5.1.0b8
-prefix: /opt/miniconda3/envs/warehouse_pub
+prefix: /opt/miniconda3/envs/datasm_pub

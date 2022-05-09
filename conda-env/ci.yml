@@ -1,6 +1,6 @@
 # Conda continuous integration/continuous deployment (CI/CD) for running the repository's GitHub Actions CI/CD workflows.
 # End-users are not expected to use this environment.
-name: warehouse_ci
+name: datasm_ci
 channels:
   - conda-forge
   - e3sm
@@ -29,4 +29,4 @@ dependencies:
   # Testing
   # ==================
   - pytest
-prefix: /opt/miniconda3/envs/warehouse_ci
+prefix: /opt/miniconda3/envs/datasm_ci
