@@ -26,7 +26,7 @@ dependencies:
   - nodejs=17.4.0
   # Used in modules for `extract`, `validate`, and `postprocess` operations.
   - nco=5.0.6
-  - e3sm_to_cmip=1.8.2
+  - e3sm_to_cmip=1.8.1
   - zstash=1.2.0
   # Testing
   # ==================
