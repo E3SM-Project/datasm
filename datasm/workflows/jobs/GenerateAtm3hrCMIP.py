@@ -4,7 +4,7 @@ from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
 
 import yaml
-from datasm.util import log_message, getUTC_YMD, set_version_in_user_metadata
+from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata
 from datasm.workflows.jobs import WorkflowJob
 from termcolor import cprint
 
