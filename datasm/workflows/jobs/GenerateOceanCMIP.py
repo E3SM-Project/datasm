@@ -4,7 +4,10 @@ from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
 
 import yaml
+
 from datasm.util import log_message
+from datasm.util import get_UTC_YMD
+from datasm.util import set_version_in_user_metadata
 from datasm.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateOceanCMIP'
@@ -113,15 +116,17 @@ class GenerateOceanCMIP(WorkflowJob):
             parameters['cmor_var_list'] = cmip_var
             cwl_workflow_main = "mpaso/mpaso.cwl"
 
-        cwl_workflow = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
-
         parameters['tables_path'] = self.config['cmip_tables_path']
+        cwl_workflow = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
+        metadata_path = os.path.join(self.config['cmip_metadata_path'],model_version,f"{experiment}_{variant}.json")
+
+        # force dataset output version here
+        ds_version = "v" + get_UTC_YMD()
+        set_version_in_user_metadata(metadata_path, ds_version)
+        
         parameters['metadata'] = {
             'class': 'File',
-            'path': os.path.join(
-                self.config['cmip_metadata_path'],
-                model_version,
-                f"{experiment}_{variant}.json")
+            'path': metadata_path
             }
 
         if is_oa_var:
