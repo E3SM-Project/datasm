@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
-from datasm.util import log_message
+from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata
 from datasm.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateLndMonCMIP'
@@ -92,11 +92,13 @@ class GenerateLndMonCMIP(WorkflowJob):
             os.listdir(parameters['lnd_data_path']).pop())
         cwl_workflow = "lnd-n2n/lnd.cwl"
 
-
         parameters['tables_path'] = self.config['cmip_tables_path']
-        parameters['metadata_path'] = os.path.join(
-            self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
+        parameters['metadata_path'] = os.path.join( self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
         parameters['hrz_atm_map_path'] = self.config['grids']['ne30_to_180x360']
+
+        # force dataset output version here
+        ds_version = "v" + get_UTC_YMD()
+        set_version_in_user_metadata(metadata_path, ds_version)
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else cmip_var[0]

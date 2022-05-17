@@ -1,8 +1,6 @@
-from datetime import datetime
 from pathlib import Path
-
+from datasm.util import get_UTC_YMD
 from datasm.workflows.jobs import WorkflowJob
-from pytz import UTC
 
 NAME = 'MoveToPublication'
 
@@ -13,7 +11,7 @@ class MoveToPublication(WorkflowJob):
         super().__init__(*args, **kwargs)
         self.name = NAME
 
-        dst_version = UTC.localize(datetime.utcnow()).strftime("%Y%m%d")
+        dst_version = get_UTC_YMD()
 
         self._cmd = f"""
 cd {self.scripts_path}

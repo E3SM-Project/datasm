@@ -17,7 +17,7 @@ output fields of the report:
 
 For each of these 5 sources of dataset_IDs:
 
-    {dataset_spec, archive_map, warehouse_dirs, publication_dirs, sproket_esgf_search}
+    {dataset_spec, archive_map, warehouse_dirs, publication_dirs, search_esgf}
 
 construct a list of all obtainable dataset_IDs. For each dataset_ID in the list, seek that entry in the
 ds_struct. Update the entry (adding new if not found) with data appropriate to the section being processed.
@@ -53,8 +53,6 @@ esgf_pr   = ''
 
 # output_mode
 gv_csv = True
-
-# esgf_pr   = '/p/user_pub/e3sm/bartoletti1/Pub_Status/sproket/ESGF_publication_report-20200915.144250'
 
 def ts():
     return pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")

@@ -14,6 +14,13 @@ from pytz import UTC
 from termcolor import colored, cprint
 
 
+def get_UTC_TS():
+    return UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+
+def get_UTC_YMD():
+   return UTC.localize(datetime.utcnow()).strftime("%Y%m%d")
+
+
 def load_file_lines(file_path):
     if not file_path:
         return list()
@@ -133,7 +140,7 @@ def print_debug(e):
 
 
 def setup_logging(loglevel, logpath):
-    logname = logpath + "-" + UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+    logname = logpath + "-" + get_UTC_TS()
     if loglevel == "debug":
         level = logging.DEBUG
     elif loglevel == "error":
@@ -172,7 +179,7 @@ def con_message(level, message):  # message ONLY to console (in color)
     level = level.upper()
     colors = {"INFO": "white", "WARNING": "yellow", "ERROR": "red", "DEBUG": "cyan"}
     color = colors[level]
-    tstamp = UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")  # for console output
+    tstamp = get_UTC_TS()
     # to the console
     msg = f"{tstamp}:{level}:{message}"
     cprint(msg, color)
@@ -194,7 +201,7 @@ def log_message(level, message, user_level='INFO'):  # message BOTH to log file 
     level = level.upper()
     colors = {"INFO": "white", "WARNING": "yellow", "ERROR": "red", "DEBUG": "cyan"}
     color = colors.get(level, 'red')
-    tstamp = UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")  # for console output
+    tstamp = get_UTC_TS()
     # first, print to logfile
     if level == "DEBUG":
         logging.debug(message)
@@ -217,36 +224,20 @@ def log_message(level, message, user_level='INFO'):  # message BOTH to log file 
 
 # -----------------------------------------------
 
+def json_readfile(filename):
+    with open(filename, "r") as file_content:
+        json_in = json.load(file_content)
+    return json_in
 
-def sproket_with_id(dataset_id, sproket_path="sproket", **kwargs):
+def json_writefile(indata, filename):
+    with open(filename, "w") as file_out:
+            json.dump( indata, file_out )
 
-    # create the path to the config, write it out
-    tempfile = NamedTemporaryFile(suffix=".json")
-    with open(tempfile.name, mode="w") as tmp:
-        config_string = json.dumps(
-            {
-                "search_api": "https://esgf-node.llnl.gov/esg-search/search/",
-                "data_node_priority": [
-                    "esgf-data2.llnl.gov",
-                    "aims3.llnl.gov",
-                    "esgf-data1.llnl.gov",
-                ],
-                "fields": {"dataset_id": dataset_id, "latest": "true"},
-            }
-        )
+def set_version_in_user_metadata(metadata_path, dsversion):     # set version "vYYYYMMDD" in user metadata
 
-        tmp.write(config_string)
-        tmp.seek(0)
-
-        cmd = [sproket_path, "-config", tempfile.name, "-y", "-urls.only"]
-        proc = Popen(cmd, shell=False, stdout=PIPE, stderr=PIPE)
-        out, err = proc.communicate()
-    if err:
-        print(err.decode("utf-8"))
-        return dataset_id, None
-
-    files = sorted([i.decode("utf-8") for i in out.split()])
-    return dataset_id, files
+    in_data = json_readfile(metadata_path)
+    in_data["version"] = dsversion
+    json_writefile(in_data,metadata_path)
 
 
 # -----------------------------------------------
