@@ -98,7 +98,7 @@ class GenerateLndMonCMIP(WorkflowJob):
 
         # force dataset output version here
         ds_version = "v" + get_UTC_YMD()
-        set_version_in_user_metadata(metadata_path, ds_version)
+        set_version_in_user_metadata(parameters['metadata_path'], ds_version)
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else cmip_var[0]

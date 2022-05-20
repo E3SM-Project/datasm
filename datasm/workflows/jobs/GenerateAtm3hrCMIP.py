@@ -6,7 +6,6 @@ from tempfile import NamedTemporaryFile
 import yaml
 from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata
 from datasm.workflows.jobs import WorkflowJob
-from termcolor import cprint
 
 NAME = 'GenerateAtm3hrCMIP'
 
@@ -18,6 +17,7 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         self.name = NAME
         self._requires = {'atmos-native-3hr': None}
         self._cmd = ''
+        self._cmip_var = ''
 
     def resolve_cmd(self):
 
@@ -40,27 +40,22 @@ class GenerateAtm3hrCMIP(WorkflowJob):
             in_cmip_vars = [cmip_var]
 
         info_file = NamedTemporaryFile(delete=False)
+        log_message("info", f"Obtained temp info file name: {info_file.name}")
         cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq 3hr -v {', '.join(in_cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
-        # log_message("debug", f"resolve_cmd: Using e3sm_to_cmip to check for available variables: {cmd}")
+        log_message("info", f"resolve_cmd: issuing variable info cmd: {cmd}")
+
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
-            log_message("debug", f"Error checking variables")
-            cprint(err.decode('utf-8'), 'red')
-            return None
-        # else:
-        #     log_message("debug", "e3sm_to_cmip returned variable info")
+            log_message("info", f"Error checking variables: {err}")
+            # return None # apparently not a serious error, merely data written to stderr.
 
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
 
-        # the high freq variable handler may have a different
-        # name then the actual CMIP6 variable, for example
-        # the daily pr handler is named pr_highfreq
         e3sm_vars = []
         cmip_vars = []
         for item in variable_info:
-            log_message("info", f"resolve_cmd: variable_info item = {item}")
             if isinstance(item['E3SM Variables'], list):
                 e3sm_vars.extend([v for v in item['E3SM Variables']])
             else:
@@ -69,7 +64,12 @@ class GenerateAtm3hrCMIP(WorkflowJob):
             vname = item['CMIP6 Name']
             cmip_vars.append(vname)
 
-        # import ipdb; ipdb.set_trace()
+        if len(e3sm_vars) == 0:
+            log_message("info", "warning: no e3sm_vars identified")
+        if len(cmip_vars) == 0:
+            log_message("info", "error: no cmip_vars identified")
+            return None
+
         log_message("info", f"Obtained e3sm_vars: {', '.join(e3sm_vars)}")
         log_message("info", f"Obtained cmip_vars: {', '.join(cmip_vars)}")
 
@@ -83,7 +83,8 @@ class GenerateAtm3hrCMIP(WorkflowJob):
 
         # force dataset output version here
         ds_version = "v" + get_UTC_YMD()
-        set_version_in_user_metadata(metadata_path, ds_version)
+        set_version_in_user_metadata(parameters['metadata_path'], ds_version)
+        log_message("info", f"Set dataset version in {parameters['metadata_path']} to {ds_version}")
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else in_cmip_vars[0]
