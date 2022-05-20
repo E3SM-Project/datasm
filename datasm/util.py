@@ -230,8 +230,9 @@ def json_readfile(filename):
     return json_in
 
 def json_writefile(indata, filename):
+    exdata = json.dumps( indata, indent=2, separators=(',\n', ': ') )
     with open(filename, "w") as file_out:
-            json.dump( indata, file_out )
+        file_out.write( exdata )
 
 def set_version_in_user_metadata(metadata_path, dsversion):     # set version "vYYYYMMDD" in user metadata
 
