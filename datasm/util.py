@@ -5,6 +5,7 @@ import inspect
 import logging
 import requests
 import time
+import xarray as xr
 
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
@@ -234,11 +235,45 @@ def json_writefile(indata, filename):
     with open(filename, "w") as file_out:
         file_out.write( exdata )
 
+def get_first_nc_file(ds_ver_path):
+    dsPath = Path(ds_ver_path)
+    for anyfile in dsPath.glob("*.nc"):
+        return Path(dsPath, anyfile)
+
+def latest_dspath_version(dspath):
+    latest_version = sorted(
+        [
+            str(x.name)
+            for x in dspath.iterdir()
+            if x.is_dir() and any(x.iterdir()) and "tmp" not in x.name
+        ]
+    ).pop()
+    return latest_version
+
 def set_version_in_user_metadata(metadata_path, dsversion):     # set version "vYYYYMMDD" in user metadata
 
     in_data = json_readfile(metadata_path)
     in_data["version"] = dsversion
     json_writefile(in_data,metadata_path)
+
+def get_dataset_version_from_file_metadata(ds_path):
+    ds_path = Path(ds_path)
+    if not ds_path.exists():
+        return 'NONE'
+    latest_dir = latest_dspath_version(ds_path)
+    first_file_path = ds_path / latest_dir
+    first_file = get_first_nc_file(first_file_path)
+    if first_file == None:
+        return 'NONE'
+
+    ds = xr.open_dataset(first_file)
+    if 'version' in ds.attrs.keys():
+        ds_version = ds.attrs['version']
+    else:
+        ds_version = 'NONE'
+    return ds_version
+
+
 
 
 # -----------------------------------------------
