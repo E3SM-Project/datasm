@@ -241,14 +241,17 @@ def get_first_nc_file(ds_ver_path):
         return Path(dsPath, anyfile)
 
 def latest_dspath_version(dspath):
-    latest_version = sorted(
+    versions = sorted(
         [
             str(x.name)
             for x in dspath.iterdir()
             if x.is_dir() and any(x.iterdir()) and "tmp" not in x.name
         ]
-    ).pop()
-    return latest_version
+    )
+    if len(versions):
+        latest_version = versions.pop()
+        return latest_version
+    return None
 
 def set_version_in_user_metadata(metadata_path, dsversion):     # set version "vYYYYMMDD" in user metadata
 
@@ -261,6 +264,8 @@ def get_dataset_version_from_file_metadata(ds_path):
     if not ds_path.exists():
         return 'NONE'
     latest_dir = latest_dspath_version(ds_path)
+    if latest_dir == None:
+        return 'NONE'
     first_file_path = ds_path / latest_dir
     first_file = get_first_nc_file(first_file_path)
     if first_file == None:
