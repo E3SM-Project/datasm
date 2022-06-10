@@ -57,6 +57,6 @@ cmip_ocn_mon:
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: 36000
+  timeout: 43200
   slurm_timeout: "12:00:00"
   mpas_region_path: /p/user_pub/e3sm/staging/resource/grids/oEC60to30v3_Atlantic_region_and_southern_transect.nc
