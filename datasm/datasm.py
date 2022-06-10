@@ -496,10 +496,14 @@ class AutoDataSM:
                     log_message("info", f"start_datasets: Found job {matching_job.name} for dataset {dataset_id} in state {state}, calling setup_requisites for new job {newjob.name} and dataset {newjob.dataset.dataset_id}")
                     matching_job.setup_requisites(newjob.dataset)
 
+        zpasses = 0
         # start the jobs in the job_pool if they're ready
         for job in new_jobs:
+            zpasses = zpasses + 1
+            log_message("info", f"job type = {type(job)}")
             job_name = f"{job}".split(':')[0]
-            log_message("info", f"start_datasets: starting job: {job_name}")
+            job_name2 = f"{job}".split(':')[1]
+            log_message("info", f"start_datasets: starting job: {job_name}:{job_name2}")
             # import ipdb; ipdb.set_trace()
             job_reqs_met = job.meets_requirements()
             log_message("info", f"start_datasets: job_reqs_met={job_reqs_met}, project={job.dataset.project}, job_name={job_name}")
@@ -515,16 +519,19 @@ class AutoDataSM:
                 log_message("info", f"start_datasets: calling setup_requisites : {source_dataset.dataset_id}")
                 job.setup_requisites(source_dataset)
                 job_reqs_met = job.meets_requirements()
-                log_message("info", f"start_datasets: job_reqs_met={job_reqs_met}")
+                log_message("info", f"start_datasets: job_reqs_met={job_reqs_met}") # True/False
             if job.job_id is None and job_reqs_met:
-                log_message("info", f"start_datasets: Job {job_name} meets its input dataset requirements")
-                job_id = job(self.slurm)
+                log_message("info", f"start_datasets: (job.job_id={job.job_id}) Job {job_name} meets its input dataset requirements, calling job(self.slurm)")
+                job_id = job(self.slurm)        # WARNING:  If job script exits prematurely, this call never returns and datasm hangs.
                 log_message("info", f"start_datasets: DGB: got job_id {job_id} from job(self.slurm)")
                 if job_id is not None:
+                    log_message("info",f"Adding job with job_id {job_id} to self.job_pool")
                     job.job_id = job_id
                     self.job_pool.append(job)
                 else:
+                    log_message("info", f"Error starting up job {job}")
                     log_message("error", f"Error starting up job {job}")
+                    continue
             else:
                 log_message("error", "DGB: job NOT added to pool")
                 log_message("info", f"start_datasets: DGB: job.job_id = {job.job_id}, job_reqs_met = {job_reqs_met}")
@@ -532,8 +539,11 @@ class AutoDataSM:
                 for attr in attributes:
                     print(f"{attr} = {getattr(job,attr)}")
             log_message("info", f"start_datasets: (bottom loop: for job in new_jobs)")
-        log_message("info", f"start_datasets: Return")
-        log_message("info", f"start_datasets: (hangs here until slurmed workflows complete)")
+        job_pool_size = len(self.job_pool)
+        if len(self.job_pool) == 0:
+            log_message("info", f"Job Pool contains No jobs, pass={zpasses}:  datasm NOT exiting.")
+            # sys.exit(0)
+        log_message("info", f"start_datasets: Return: Job Pool contains {job_pool_size} jobs, pass={zpasses}") # try to exit if no jobs
         return
 
     def start_listener(self):

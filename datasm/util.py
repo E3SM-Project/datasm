@@ -241,6 +241,7 @@ def get_first_nc_file(ds_ver_path):
         return Path(dsPath, anyfile)
 
 def latest_dspath_version(dspath):
+    log_message("info", f"Seeking latest vdir in path: {dspath}")
     versions = sorted(
         [
             str(x.name)
@@ -259,22 +260,22 @@ def set_version_in_user_metadata(metadata_path, dsversion):     # set version "v
     in_data["version"] = dsversion
     json_writefile(in_data,metadata_path)
 
-def get_dataset_version_from_file_metadata(ds_path):
-    ds_path = Path(ds_path)
+def get_dataset_version_from_file_metadata(latest_dir):  # input latest_dir already includes version leaf directory
+    ds_path = Path(latest_dir)
     if not ds_path.exists():
+        log_message("info", f"No version: no path {latest_dir}")
         return 'NONE'
-    latest_dir = latest_dspath_version(ds_path)
-    if latest_dir == None:
-        return 'NONE'
-    first_file_path = ds_path / latest_dir
-    first_file = get_first_nc_file(first_file_path)
+    
+    first_file = get_first_nc_file(latest_dir)
     if first_file == None:
+        log_message("info", f"No first_file")
         return 'NONE'
 
     ds = xr.open_dataset(first_file)
     if 'version' in ds.attrs.keys():
         ds_version = ds.attrs['version']
     else:
+        log_message("info", f"No version in ds.attrs.keys()")
         ds_version = 'NONE'
     return ds_version
 

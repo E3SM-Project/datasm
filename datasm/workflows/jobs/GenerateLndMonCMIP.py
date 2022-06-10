@@ -60,14 +60,14 @@ class GenerateLndMonCMIP(WorkflowJob):
         std_var_list = []
         std_cmor_list = []
         info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip -i {parameters['lnd_data_path']} --info --realm lnd -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmd = f"e3sm_to_cmip -i {parameters['lnd_data_path']} --info --map none --realm lnd -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        log_message("info", f"resolve_cmd: E2C --info call cmd = {cmd}")
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
-            log_message("error", f"resolve_cmd failed to obtain e3sm_to_cmip info {info_file.name}")
-            log_message("error", f"  cmd = {cmd}")
-            log_message("error", f"  err = {err}")
-            return 1    # was return None
+            log_message("info", f"resolve_cmd: e3sm_to_cmip info {info_file.name} returned stderr data")
+            log_message("info", f"  err = {err}")
+            # return 1    # was return None
 
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
