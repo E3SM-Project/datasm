@@ -198,6 +198,8 @@ time-series:
         - TGCLDIWP
         - TMQ
         - TREFHT
+        - TREFMNAV
+        - TREFMXAV
         - TS
         - U
         - U10
