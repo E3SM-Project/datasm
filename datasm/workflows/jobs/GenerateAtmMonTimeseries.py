@@ -1,4 +1,5 @@
 from datasm.workflows.jobs import WorkflowJob
+from datasm.util import log_message
 
 
 NAME = 'GenerateAtmMonTimeseries'
@@ -31,10 +32,12 @@ class GenerateAtmMonTimeseries(WorkflowJob):
             # or else maybe "ne120np4_to_cmip6_180x360"
 
         map_path = self.config['grids'][mapkey]
+        out_path = self.find_outpath()
 
         self._cmd = f"""
-            ncclimo --ypf=50 -v {','.join(variables)} -j {self._job_workers} -s {start} -e {end} -i {raw_dataset.latest_warehouse_dir} -o {native_out}  -O {self.find_outpath()} --map={map_path}
+            ncclimo --ypf=50 -v {','.join(variables)} -j {self._job_workers} -s {start} -e {end} -i {raw_dataset.latest_warehouse_dir} -o {native_out}  -O {out_path} --map={map_path}
         """
+        log_message("info", f"resolve_cmd: cmd = {self._cmd}")
 
     def render_cleanup(self):
         native_out = f"{self.dataset.latest_warehouse_dir}-tmp/"

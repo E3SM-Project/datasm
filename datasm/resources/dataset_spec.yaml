@@ -565,8 +565,10 @@ project:
                 ens:
                     - ens1
                 except:
-                - PRECSCS
-                - PRECSCL
+                    - PRECSCS
+                    - PRECSCL
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.piControl
@@ -622,6 +624,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 resolution:
                     1deg_atm_60-30km_ocean:
@@ -672,6 +677,9 @@ project:
                 end: 55
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 resolution:
                     0_25deg_atm_18-6km_ocean:
@@ -774,6 +782,9 @@ project:
                 end: 136
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 resolution:
                     0_25deg_atm_18-6km_ocean:
@@ -834,6 +845,9 @@ project:
                 end: 150
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 resolution:
                     0_25deg_atm_18-6km_ocean:
@@ -897,6 +911,8 @@ project:
                 except:
                     - PRECSCS
                     - PRECSCL
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.1pctCO2
@@ -950,6 +966,8 @@ project:
                 except:
                     - PRECSCS
                     - PRECSCL
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.abrupt-4xCO2
@@ -1003,6 +1021,8 @@ project:
                 except:
                     - PRECSCS
                     - PRECSCL
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1054,6 +1074,9 @@ project:
                     - ens1
                     - ens2
                     - ens3
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.amip
@@ -1090,6 +1113,9 @@ project:
                     - ens1
                     - ens2
                     - ens3
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1125,6 +1151,9 @@ project:
                     - ens1
                     - ens2
                     - ens3
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1160,6 +1189,9 @@ project:
                     - ens1
                     - ens2
                     - ens3
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.DAMIP.E3SM-Project.E3SM-1-0.hist-GHG
@@ -1212,6 +1244,9 @@ project:
                     - ens1
                     - ens2
                     - ens3
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1265,6 +1300,9 @@ project:
                     - ens3
                     - ens4
                     - ens5
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.ScenarioMIP.E3SM-Project.E3SM-1-0.ssp585
@@ -1316,6 +1354,9 @@ project:
                 end: 76
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1367,6 +1408,9 @@ project:
                 end: 5
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1396,6 +1440,9 @@ project:
                 end: 2010
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1425,6 +1472,9 @@ project:
                 end: 2010
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1454,6 +1504,9 @@ project:
                 end: 5
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1487,6 +1540,9 @@ project:
                     - ens3
                     - ens4
                     - ens5
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.historical
@@ -1538,6 +1594,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1.piControl
@@ -1588,6 +1647,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1.piControl-ext85yr
@@ -1638,6 +1700,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1.historical
@@ -1688,6 +1753,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.C4MIP.E3SM-Project.E3SM-1-1.hist-bgc
@@ -1738,6 +1806,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -1787,6 +1858,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -1836,6 +1910,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.ScenarioMIP.E3SM-Project.E3SM-1-1.ssp585
@@ -1886,6 +1963,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.C4MIP.E3SM-Project.E3SM-1-1.ssp585-bgc
@@ -1936,6 +2016,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -1985,6 +2068,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -2035,6 +2121,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1-ECA.piControl
@@ -2085,6 +2174,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1-ECA.piControl-ext85yr
@@ -2135,6 +2227,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1-ECA.historical
@@ -2185,6 +2280,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.C4MIP.E3SM-Project.E3SM-1-1-ECA.hist-bgc
@@ -2235,6 +2333,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -2284,6 +2385,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -2333,6 +2437,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.ScenarioMIP.E3SM-Project.E3SM-1-1-ECA.ssp585
@@ -2383,6 +2490,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.C4MIP.E3SM-Project.E3SM-1-1-ECA.ssp585-bgc
@@ -2433,6 +2543,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -2482,6 +2595,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -2532,6 +2648,9 @@ project:
                 end: 100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: Cryosphere-v1
                 science_driver: Cryosphere
                 resolution:
@@ -2552,6 +2671,9 @@ project:
                 end: 100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: Cryosphere-v1
                 science_driver: Cryosphere
                 resolution:
@@ -2596,6 +2718,9 @@ project:
                 end: 200
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: Cryosphere-v1
                 science_driver: Cryosphere
                 resolution:
@@ -2640,6 +2765,9 @@ project:
                 end: 174
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: Cryosphere-v1
                 science_driver: Cryosphere
                 resolution:
@@ -2661,6 +2789,9 @@ project:
                 end: 200
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: Cryosphere-v1
                 science_driver: Cryosphere
                 resolution:
@@ -2706,6 +2837,9 @@ project:
                 end: 187
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: Cryosphere-v1
                 science_driver: Cryosphere
                 resolution:
