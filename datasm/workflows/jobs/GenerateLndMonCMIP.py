@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
-from datasm.util import log_message
+from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata
 from datasm.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateLndMonCMIP'
@@ -60,14 +60,14 @@ class GenerateLndMonCMIP(WorkflowJob):
         std_var_list = []
         std_cmor_list = []
         info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip -i {parameters['lnd_data_path']} --info --realm lnd -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmd = f"e3sm_to_cmip -i {parameters['lnd_data_path']} --info --map none --realm lnd -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        log_message("info", f"resolve_cmd: E2C --info call cmd = {cmd}")
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
-            log_message("error", f"resolve_cmd failed to obtain e3sm_to_cmip info {info_file.name}")
-            log_message("error", f"  cmd = {cmd}")
-            log_message("error", f"  err = {err}")
-            return 1    # was return None
+            log_message("info", f"resolve_cmd: e3sm_to_cmip info {info_file.name} returned stderr data")
+            log_message("info", f"  err = {err}")
+            # return 1    # was return None
 
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
@@ -92,11 +92,13 @@ class GenerateLndMonCMIP(WorkflowJob):
             os.listdir(parameters['lnd_data_path']).pop())
         cwl_workflow = "lnd-n2n/lnd.cwl"
 
-
         parameters['tables_path'] = self.config['cmip_tables_path']
-        parameters['metadata_path'] = os.path.join(
-            self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
+        parameters['metadata_path'] = os.path.join( self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
         parameters['hrz_atm_map_path'] = self.config['grids']['ne30_to_180x360']
+
+        # force dataset output version here
+        ds_version = "v" + get_UTC_YMD()
+        set_version_in_user_metadata(parameters['metadata_path'], ds_version)
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else cmip_var[0]

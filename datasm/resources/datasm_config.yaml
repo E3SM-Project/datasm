@@ -23,14 +23,14 @@ cmip_atm_mon:
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: 36000
+  timeout: '36000'
 
 cmip_atm_day:
   frequency: 10
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: 36000
+  timeout: '36000'
   sample_freq: day
   time_steps_per_day: "1"
 
@@ -39,7 +39,7 @@ cmip_atm_3hr:
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: 36000
+  timeout: '36000'
   sample_freq: 3hr
   time_steps_per_day: "8"
 
@@ -48,7 +48,7 @@ cmip_lnd_mon:
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: 36000
+  timeout: '36000'
   lnd_source_grid: /p/user_pub/e3sm/staging/resource/grids/ne30np4_pentagons.091226.nc
   lnd_destination_grid: /p/user_pub/e3sm/staging/resource/grids/cmip6_180x360_scrip.20181001.nc
 
@@ -57,6 +57,6 @@ cmip_ocn_mon:
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: 36000
+  timeout: 43200
   slurm_timeout: "12:00:00"
   mpas_region_path: /p/user_pub/e3sm/staging/resource/grids/oEC60to30v3_Atlantic_region_and_southern_transect.nc

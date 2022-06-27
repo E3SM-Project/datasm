@@ -1,4 +1,5 @@
 from pathlib import Path
+from datasm.util import log_message
 from datasm.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateLndTimeseries'
@@ -40,6 +41,7 @@ class GenerateLndTimeseries(WorkflowJob):
         self._cmd = f"""
             ncclimo {flags} -v {','.join(variables)} -s {start} -e {end} -o {native_out} --map={map_path}  -O {self.dataset.latest_warehouse_dir} --ypf={ypf} -i {raw_dataset.latest_warehouse_dir} --sgs_frc={Path(raw_dataset.latest_warehouse_dir).glob('*.nc').__next__()}/landfrac
         """
+        log_message("info", f"resolve_cmd: created self._cmd = {self._cmd}")
 
     def render_cleanup(self):
         native_out = f"{self.dataset.latest_warehouse_dir}-tmp/"

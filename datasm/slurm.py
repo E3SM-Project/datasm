@@ -6,7 +6,7 @@ from time import sleep
 import json
 import os
 import stat
-from datasm.util import print_debug
+from datasm.util import print_debug, log_message
 
 
 class Slurm(object):

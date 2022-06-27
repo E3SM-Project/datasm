@@ -1,8 +1,6 @@
-from datetime import datetime
 from pathlib import Path
-
+from datasm.util import get_UTC_YMD, get_dataset_version_from_file_metadata, log_message
 from datasm.workflows.jobs import WorkflowJob
-from pytz import UTC
 
 NAME = 'MoveToPublication'
 
@@ -13,9 +11,14 @@ class MoveToPublication(WorkflowJob):
         super().__init__(*args, **kwargs)
         self.name = NAME
 
-        dst_version = UTC.localize(datetime.utcnow()).strftime("%Y%m%d")
+        dst_version = get_dataset_version_from_file_metadata(self.dataset.latest_warehouse_dir)
+        if dst_version == 'NONE':
+            log_message("info", "Obtaining dataset version from current date - not from metadata")
+            dst_version = 'v' + get_UTC_YMD()
+        else:
+            log_message("info", f"Obtaining dataset version from metadata ({dst_version})")
 
         self._cmd = f"""
 cd {self.scripts_path}
-python move_to_publication.py --src-path {self.dataset.latest_warehouse_dir} --dst-path {Path(self.dataset.publication_path, 'v' + str(dst_version))}
+python move_to_publication.py --src-path {self.dataset.latest_warehouse_dir} --dst-path {Path(self.dataset.publication_path, str(dst_version))}
 """

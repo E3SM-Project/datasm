@@ -198,6 +198,8 @@ time-series:
         - TGCLDIWP
         - TMQ
         - TREFHT
+        - TREFMNAV
+        - TREFMXAV
         - TS
         - U
         - U10
@@ -563,8 +565,8 @@ project:
                 ens:
                     - ens1
                 except:
-                - PRECSCS
-                - PRECSCL
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.piControl
@@ -620,6 +622,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 resolution:
                     1deg_atm_60-30km_ocean:
@@ -670,6 +675,9 @@ project:
                 end: 55
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 resolution:
                     0_25deg_atm_18-6km_ocean:
@@ -772,6 +780,9 @@ project:
                 end: 136
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 resolution:
                     0_25deg_atm_18-6km_ocean:
@@ -832,6 +843,9 @@ project:
                 end: 150
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 resolution:
                     0_25deg_atm_18-6km_ocean:
@@ -893,8 +907,8 @@ project:
                 ens:
                     - ens1
                 except:
-                    - PRECSCS
-                    - PRECSCL
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.1pctCO2
@@ -946,8 +960,8 @@ project:
                 ens:
                     - ens1
                 except:
-                    - PRECSCS
-                    - PRECSCL
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.abrupt-4xCO2
@@ -999,8 +1013,8 @@ project:
                 ens:
                     - ens1
                 except:
-                    - PRECSCS
-                    - PRECSCL
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1052,6 +1066,9 @@ project:
                     - ens1
                     - ens2
                     - ens3
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.amip
@@ -1088,6 +1105,9 @@ project:
                     - ens1
                     - ens2
                     - ens3
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1123,6 +1143,9 @@ project:
                     - ens1
                     - ens2
                     - ens3
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1158,6 +1181,9 @@ project:
                     - ens1
                     - ens2
                     - ens3
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.DAMIP.E3SM-Project.E3SM-1-0.hist-GHG
@@ -1210,6 +1236,9 @@ project:
                     - ens1
                     - ens2
                     - ens3
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1263,6 +1292,9 @@ project:
                     - ens3
                     - ens4
                     - ens5
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.ScenarioMIP.E3SM-Project.E3SM-1-0.ssp585
@@ -1314,6 +1346,9 @@ project:
                 end: 76
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1365,6 +1400,9 @@ project:
                 end: 5
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1394,6 +1432,9 @@ project:
                 end: 2010
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1423,6 +1464,9 @@ project:
                 end: 2010
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1452,6 +1496,9 @@ project:
                 end: 5
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: HighResMIP-v1
                 science_driver: Water Cycle
                 resolution:
@@ -1485,6 +1532,9 @@ project:
                     - ens3
                     - ens4
                     - ens5
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: DECK-v1
                 science_driver: Water Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-0.historical
@@ -1536,6 +1586,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1.piControl
@@ -1586,6 +1639,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1.piControl-ext85yr
@@ -1636,6 +1692,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1.historical
@@ -1686,6 +1745,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.C4MIP.E3SM-Project.E3SM-1-1.hist-bgc
@@ -1736,6 +1798,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -1785,6 +1850,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -1834,6 +1902,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.ScenarioMIP.E3SM-Project.E3SM-1-1.ssp585
@@ -1884,6 +1955,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.C4MIP.E3SM-Project.E3SM-1-1.ssp585-bgc
@@ -1934,6 +2008,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -1983,6 +2060,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -2033,6 +2113,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1-ECA.piControl
@@ -2083,6 +2166,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1-ECA.piControl-ext85yr
@@ -2133,6 +2219,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-1-1-ECA.historical
@@ -2183,6 +2272,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.C4MIP.E3SM-Project.E3SM-1-1-ECA.hist-bgc
@@ -2233,6 +2325,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -2282,6 +2377,9 @@ project:
                 end: 2014
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -2331,6 +2429,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.ScenarioMIP.E3SM-Project.E3SM-1-1-ECA.ssp585
@@ -2381,6 +2482,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 cmip_case: CMIP6.C4MIP.E3SM-Project.E3SM-1-1-ECA.ssp585-bgc
@@ -2431,6 +2535,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -2480,6 +2587,9 @@ project:
                 end: 2100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: BGC-v1
                 science_driver: Biogeochemical Cycle
                 resolution:
@@ -2530,6 +2640,9 @@ project:
                 end: 100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: Cryosphere-v1
                 science_driver: Cryosphere
                 resolution:
@@ -2550,6 +2663,9 @@ project:
                 end: 100
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: Cryosphere-v1
                 science_driver: Cryosphere
                 resolution:
@@ -2594,6 +2710,9 @@ project:
                 end: 200
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: Cryosphere-v1
                 science_driver: Cryosphere
                 resolution:
@@ -2638,6 +2757,9 @@ project:
                 end: 174
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: Cryosphere-v1
                 science_driver: Cryosphere
                 resolution:
@@ -2659,6 +2781,9 @@ project:
                 end: 200
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: Cryosphere-v1
                 science_driver: Cryosphere
                 resolution:
@@ -2704,6 +2829,9 @@ project:
                 end: 187
                 ens:
                     - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
                 campaign: Cryosphere-v1
                 science_driver: Cryosphere
                 resolution:
@@ -2715,6 +2843,543 @@ project:
                                     - model-output.mon
                                     - model-output.5day_snap
                         sea-ice:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+        '2_0':
+            piControl:
+                start: 1
+                end: 500
+                ens:
+                    - ens1
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.piControl
+                resolution:
+                    LR:
+                        atmos:
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+                                    - model-output.day_cosp
+                                    - model-output.6hr_snap
+                                    - model-output.3hr
+                                    - model-output.6hr
+                        land:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.5day_snap
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                        sea-ice:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+            1pctCO2:
+                start: 1
+                end: 150
+                ens:
+                    - ens1
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.1pctCO2
+                resolution:
+                    LR:
+                        atmos:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.6hr_snap
+                                    - model-output.3hr
+                                    - model-output.6hr
+                        land:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.5day_snap
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                        sea-ice:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+            abrupt-4xCO2:
+                start: 1
+                end: 150
+                ens:
+                    - ens1
+                    - ens2
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.abrupt-4xCO2
+                resolution:
+                    LR:
+                        atmos:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.6hr_snap
+                                    - model-output.3hr
+                                    - model-output.6hr
+                        land:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.5day_snap
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                        sea-ice:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+            amip:
+                start: 1870
+                end: 2014
+                ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.amip
+                resolution:
+                    LR:
+                        atmos:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.6hr_snap
+                                    - model-output.3hr
+                                    - model-output.6hr
+                        land:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+            hist-aer:
+                start: 1850
+                end: 2014
+                ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                    - ens4
+                    - ens5
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.hist-aer
+                resolution:
+                    LR:
+                        atmos:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.6hr_snap
+                                    - model-output.3hr
+                                    - model-output.6hr
+                        land:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.5day_snap
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                        sea-ice:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+            hist-all-xGHG-xaer:
+                start: 1850
+                end: 2014
+                ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                    - ens4
+                    - ens5
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.hist-all-xGHG-xaer
+                resolution:
+                    LR:
+                        atmos:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.6hr_snap
+                                    - model-output.3hr
+                                    - model-output.6hr
+                        land:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.5day_snap
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                        sea-ice:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+            hist-GHG:
+                start: 1850
+                end: 2014
+                ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                    - ens4
+                    - ens5
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.hist-GHG
+                resolution:
+                    LR:
+                        atmos:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.6hr_snap
+                                    - model-output.3hr
+                                    - model-output.6hr
+                        land:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.5day_snap
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                        sea-ice:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+            historical:
+                start: 1850
+                end: 2014
+                ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                    - ens4
+                    - ens5
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.historical
+                resolution:
+                    LR:
+                        atmos:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.6hr_snap
+                                    - model-output.3hr
+                                    - model-output.6hr
+                        land:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.5day_snap
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                        sea-ice:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+            piClim-control:
+                start: 1
+                end: 50
+                ens:
+                    - ens1
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.piClim-control
+                resolution:
+                    LR:
+                        atmos:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.6hr_snap
+                                    - model-output.3hr
+                                    - model-output.6hr
+                        land:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+            piClim-histaer:
+                start: 1850
+                end: 2014
+                ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.piClim-histaer
+                resolution:
+                    LR:
+                        atmos:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.6hr_snap
+                                    - model-output.3hr
+                                    - model-output.6hr
+                        land:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+            piClim-histall:
+                start: 1850
+                end: 2014
+                ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.piClim-histall
+                resolution:
+                    LR:
+                        atmos:
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.6hr_snap
+                                    - model-output.3hr
+                                    - model-output.6hr
+                        land:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        river:
                             -
                                 grid: native
                                 data_types:

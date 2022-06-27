@@ -4,7 +4,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
 from datasm.workflows.jobs import WorkflowJob
-from datasm.util import log_message
+from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata
 
 NAME = 'GenerateSeaIceCMIP'
 
@@ -87,13 +87,16 @@ class GenerateSeaIceCMIP(WorkflowJob):
         cwl_workflow_main = "mpassi/mpassi.cwl"
         cwl_workflow = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
 
+        metadata_path = os.path.join(self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
+
+        # force dataset output version here
+        ds_version = "v" + get_UTC_YMD()
+        set_version_in_user_metadata(metadata_path, ds_version)
+
         parameters['tables_path'] = self.config['cmip_tables_path']
         parameters['metadata'] = {
             'class': 'File',
-            'path': os.path.join(
-                self.config['cmip_metadata_path'], 
-                model_version, 
-                f"{experiment}_{variant}.json")
+            'path': metadata_path
             }
         parameters['region_path'] = parameters['mpas_region_path']
         mapfile="/p/user_pub/e3sm/staging/resource/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc"   # WARNING HARDCODED

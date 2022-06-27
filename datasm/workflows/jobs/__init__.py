@@ -1,4 +1,4 @@
-import os
+import sys, os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -52,6 +52,7 @@ class WorkflowJob(object):
         if self.resolve_cmd() == 1:
             log_message('error', f"bad resolve_cmd for {self.name}:{self.dataset.dataset_id}")
             info_fail = 1
+            return None
             # return None [It appears that ANY return other than a valid job_id causes the datasm to hang.]
 
         working_dir = self.dataset.latest_warehouse_dir
