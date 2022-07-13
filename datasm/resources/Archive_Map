@@ -630,7 +630,7 @@ DECK-v2,2_0,abrupt-4xCO2,LR,ens2,atm_nat_6hr,/p/user_pub/e3sm/archive/2_0/DECK-v
 DECK-v2,2_0,abrupt-4xCO2,LR,ens2,atm_nat_6hr_snap,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301,archive/atm/hist/v2.LR.abrupt-4xCO2_0301.eam.h2.*.nc
 DECK-v2,2_0,abrupt-4xCO2,LR,ens2,atm_nat_day_cosp,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301,archive/atm/hist/v2.LR.abrupt-4xCO2_0301.eam.h5.*.nc
 DECK-v2,2_0,abrupt-4xCO2,LR,ens2,atm_nat_day,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301,archive/atm/hist/v2.LR.abrupt-4xCO2_0301.eam.h1.*.nc
-DECK-v2,2_0,abrupt-4xCO2,LR,ens2,atm_nat_mon,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301F,archive/atm/hist/v2.LR.abrupt-4xCO2_0301.eam.h0.*.nc
+DECK-v2,2_0,abrupt-4xCO2,LR,ens2,atm_nat_mon,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301,archive/atm/hist/v2.LR.abrupt-4xCO2_0301.eam.h0.*.nc
 DECK-v2,2_0,abrupt-4xCO2,LR,ens2,lnd_nat_mon,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301,archive/lnd/hist/v2.LR.abrupt-4xCO2_0301.elm.h0.*.nc
 DECK-v2,2_0,abrupt-4xCO2,LR,ens2,ocn_namefile_fixed,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301,run/mpaso_in
 DECK-v2,2_0,abrupt-4xCO2,LR,ens2,ocn_nat_5day_snap,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301,archive/ocn/hist/v2.LR.abrupt-4xCO2_0301.mpaso.hist.am.highFrequencyOutput.*.nc

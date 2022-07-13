@@ -6,7 +6,7 @@ from tqdm import tqdm
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import operator
-from datasm.util import con_message
+from datasm.util import con_message, log_message
 
 from dataclasses import dataclass
 
@@ -64,6 +64,7 @@ def main():
         ],
         key=operator.attrgetter("path"),
     )
+    log_message("info", f"pre-ProcessPoolExecutor, found {len(files)} file items.")
 
     # setup a process pool, then iterate of all the files
     # for each file submit a job, and get a future, for its units
@@ -82,6 +83,8 @@ def main():
             idx, units = future.result()
             files[idx].units = units
         pbar.close()
+
+    log_message("info", f"post-ProcessPoolExecutor, found {len(files)} file items.")
 
     # walk through the files in order
     # the first file we find that doesnt match the expected units

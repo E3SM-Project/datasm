@@ -15,7 +15,7 @@ WAREHOUSE:Ready:
         - POSTPROCESS:Ready
     ocn-cmip-mon:
         - POSTPROCESS:Ready
-    sea-ice-cmip-mon:
+    seaice-cmip-mon:
         - POSTPROCESS:Ready
     default:
         - EXTRACTION:Ready
