@@ -685,7 +685,7 @@ project:
                         - rh
                         - ra
                 amip:
-                    start: 1979
+                    start: 1870
                     end: 2014
                     ens: 
                         - r1i1p1f1

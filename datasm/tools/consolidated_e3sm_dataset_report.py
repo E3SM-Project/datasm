@@ -17,7 +17,7 @@ output fields of the report:
 
 For each of these 5 sources of dataset_IDs:
 
-    {dataset_spec, archive_map, warehouse_dirs, publication_dirs, sproket_esgf_search}
+    {dataset_spec, archive_map, warehouse_dirs, publication_dirs, search_esgf}
 
 construct a list of all obtainable dataset_IDs. For each dataset_ID in the list, seek that entry in the
 ds_struct. Update the entry (adding new if not found) with data appropriate to the section being processed.
@@ -49,12 +49,9 @@ DS_SPEC = '/p/user_pub/e3sm/staging/resource/dataset_spec.yaml'
 DS_STAT = '/p/user_pub/e3sm/staging/status'
 
 ARCH_MAP  = '/p/user_pub/e3sm/archive/.cfg/Archive_Map'
-esgf_pr   = ''
 
 # output_mode
 gv_csv = True
-
-# esgf_pr   = '/p/user_pub/e3sm/bartoletti1/Pub_Status/sproket/ESGF_publication_report-20200915.144250'
 
 def ts():
     return pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
@@ -700,7 +697,7 @@ def main():
     ds_count = len(ds_struct)
     print(f"{ts()}:DEBUG: Completed Stage 3: publication: len(ds_struct) = {ds_count}", flush=True)
 
-    ''' STAGE 4: Process the supplied (latest) sproket-generated ESGF_publication_report.  Collect max version, and filecount of max version. '''
+    ''' STAGE 4: Process the esgf-search supplied dataset results.  Collect max version, and filecount of max version. '''
 
     facets = { "project": "e3sm" }
     esgf_report = collect_esgf_search_datasets(facets)
