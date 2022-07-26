@@ -31,7 +31,9 @@ CheckFileIntegrity:Pass:
         - Pass
     ocean-native-5day_snap:
         - Pass
-    sea-ice-native-mon:
+    seaice-native-mon:
+        - Pass
+    seaice-native-day:
         - Pass
 
 CheckFileIntegrity:Fail:

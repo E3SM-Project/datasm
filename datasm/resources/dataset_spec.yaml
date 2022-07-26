@@ -1,3 +1,5 @@
+# reference: https://wcrp-cmip.github.io/CMIP6_CVs/docs/CMIP6_experiment_id.html
+#
 tables:
     Amon:
         - tas
@@ -286,6 +288,76 @@ project:
                         - siu
                         - siv
                         - clcalipso
+        RFMIP:
+            E3SM-2-0:
+                piClim-control:
+                    start: 1
+                    end: 50
+                    ens:
+                        - r1i1p1f1
+                    except:
+                        - Omon
+                        - Ofx
+                        - SImon
+                        - cLitter 
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
+                piClim-histaer:
+                    start: 1850
+                    end: 2014
+                    ens:
+                        - r1i1p1f1
+                        - r2i1p1f1
+                        - r3i1p1f1
+                    except:
+                        - Omon
+                        - Ofx
+                        - SImon
+                        - cLitter 
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
+                piClim-histall:
+                    start: 1850
+                    end: 2014
+                    ens:
+                        - r1i1p1f1
+                        - r2i1p1f1
+                        - r3i1p1f1
+                    except:
+                        - Omon
+                        - Ofx
+                        - SImon
+                        - cLitter 
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
+
         ScenarioMIP:
             E3SM-1-0:
                 ssp585:
@@ -352,6 +424,52 @@ project:
                         - gpp
                         - rh
                         - ra
+            E3SM-2-0:
+                hist-aer:
+                    start: 1850
+                    end: 2014
+                    ens:
+                        - r1i1p1f1
+                        - r2i1p1f1
+                        - r3i1p1f1
+                        - r4i1p1f1
+                        - r5i1p1f1
+                    except:
+                        - cLitter
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
+                hist-GHG:
+                    start: 1850
+                    end: 2014
+                    ens:
+                        - r1i1p1f1
+                        - r2i1p1f1
+                        - r3i1p1f1
+                        - r4i1p1f1
+                        - r5i1p1f1
+                    except:
+                        - cLitter
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
+
         CMIP:
             E3SM-1-0:
                 piControl:
@@ -510,6 +628,107 @@ project:
                         - siu
                         - siv
                         - clcalipso
+            E3SM-2-0:
+                piControl:
+                    start: 1
+                    end: 500
+                    ens:
+                        - r1i1p1f1
+                    except:
+                        - cLitter 
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
+                1pctCO2:
+                    start: 1
+                    end: 150
+                    ens:
+                        - r1i1p1f1
+                    except:
+                        - cLitter 
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
+                abrupt-4xCO2:
+                    start: 1
+                    end: 150
+                    ens:
+                        - r1i1p1f1
+                        - r2i1p1f1
+                    except:
+                        - cLitter 
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
+                amip:
+                    start: 1870
+                    end: 2014
+                    ens: 
+                        - r1i1p1f1
+                        - r2i1p1f1
+                        - r3i1p1f1
+                    except:
+                        - Omon
+                        - Ofx
+                        - SImon
+                        - cLitter 
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
+                historical:
+                    start: 1850
+                    end: 2014
+                    ens: 
+                        - r1i1p1f1
+                        - r2i1p1f1
+                        - r3i1p1f1
+                        - r4i1p1f1
+                        - r5i1p1f1
+                    except:
+                        - cLitter 
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
 
 
     E3SM:
@@ -3054,7 +3273,7 @@ project:
                     - ens5
                 campaign: DECK-v2
                 science_driver: Water Cycle
-                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.hist-aer
+                cmip_case: CMIP6.DAMIP.E3SM-Project.E3SM-2-0.hist-aer
                 resolution:
                     LR:
                         atmos:
@@ -3109,7 +3328,7 @@ project:
                     - ens5
                 campaign: DECK-v2
                 science_driver: Water Cycle
-                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.hist-all-xGHG-xaer
+                # no cmip_case for this experiment
                 resolution:
                     LR:
                         atmos:
@@ -3164,7 +3383,7 @@ project:
                     - ens5
                 campaign: DECK-v2
                 science_driver: Water Cycle
-                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.hist-GHG
+                cmip_case: CMIP6.DAMIP.E3SM-Project.E3SM-2-0.hist-GHG
                 resolution:
                     LR:
                         atmos:
@@ -3270,7 +3489,7 @@ project:
                     - ens1
                 campaign: DECK-v2
                 science_driver: Water Cycle
-                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.piClim-control
+                cmip_case: CMIP6.RFMIP.E3SM-Project.E3SM-2-0.piClim-control
                 resolution:
                     LR:
                         atmos:
@@ -3311,7 +3530,7 @@ project:
                     - ens3
                 campaign: DECK-v2
                 science_driver: Water Cycle
-                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.piClim-histaer
+                cmip_case: CMIP6.RFMIP.E3SM-Project.E3SM-2-0.piClim-histaer
                 resolution:
                     LR:
                         atmos:
@@ -3352,7 +3571,7 @@ project:
                     - ens3
                 campaign: DECK-v2
                 science_driver: Water Cycle
-                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.piClim-histall
+                cmip_case: CMIP6.RFMIP.E3SM-Project.E3SM-2-0.piClim-histall
                 resolution:
                     LR:
                         atmos:

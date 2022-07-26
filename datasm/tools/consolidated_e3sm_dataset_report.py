@@ -49,7 +49,6 @@ DS_SPEC = '/p/user_pub/e3sm/staging/resource/dataset_spec.yaml'
 DS_STAT = '/p/user_pub/e3sm/staging/status'
 
 ARCH_MAP  = '/p/user_pub/e3sm/archive/.cfg/Archive_Map'
-esgf_pr   = ''
 
 # output_mode
 gv_csv = True
@@ -383,6 +382,8 @@ def campaign_via_model_experiment(model,experiment):
         return 'BGC-v1'
     elif model in ['1_2','1_2_1','1_3']:
         return 'CRYO'
+    elif model in ['2_0']:
+        return 'DECK-v2'
     else:
         return "UNKNOWN_CAMPAIGN"
 
@@ -696,7 +697,7 @@ def main():
     ds_count = len(ds_struct)
     print(f"{ts()}:DEBUG: Completed Stage 3: publication: len(ds_struct) = {ds_count}", flush=True)
 
-    ''' STAGE 4: Process the esgf-search supplied dataset results. Collect max version, and filecount of max version. '''
+    ''' STAGE 4: Process the esgf-search supplied dataset results.  Collect max version, and filecount of max version. '''
 
     facets = { "project": "e3sm" }
     esgf_report = collect_esgf_search_datasets(facets)

@@ -25,6 +25,7 @@ class GenerateAtmMonClimo(WorkflowJob):
         outpath =  self.dataset.latest_warehouse_dir
 
         dsid = f"{self.dataset.dataset_id}"
+        model = dsid.split(".")[1][0]
         native_resolution = dsid.split(".")[3]
         # NOTE: available grids are defined in resources/datasm_config.yaml
         mapkey = "ne30_to_180x360"
@@ -35,7 +36,10 @@ class GenerateAtmMonClimo(WorkflowJob):
         map_path = self.config['grids'][mapkey]
 
         filename = Path(inpath).glob('*.nc').__next__()
-        idx = re.search('\.cam\.h\d\.', filename.name)
+        if model == "1":
+            idx = re.search('\.cam\.h\d\.', filename.name)
+        else:
+            idx = re.search('\.eam\.h\d\.', filename.name)
         casename = filename.name[:idx.start()]
 
         native_out = f"{os.environ.get('TMPDIR', '/tmp')}{os.sep}{self.dataset.dataset_id}/climo/"

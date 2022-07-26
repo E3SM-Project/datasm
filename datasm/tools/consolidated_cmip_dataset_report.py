@@ -49,7 +49,6 @@ DS_SPEC = '/p/user_pub/e3sm/staging/resource/dataset_spec.yaml'
 DS_STAT = '/p/user_pub/e3sm/staging/status'
 
 ARCH_MAP  = '/p/user_pub/e3sm/archive/.cfg/Archive_Map'
-esgf_pr   = ''
 
 # output_mode
 gv_csv = True
@@ -382,6 +381,8 @@ def campaign_via_model_experiment(model,experiment):
         return 'BGC-v1'
     elif model in ['1_2','1_2_1','1_3']:
         return 'CRYO'
+    elif model in ['2_0']:
+        return 'DECK-v2'
     else:
         return "UNKNOWN_CAMPAIGN"
 
@@ -705,6 +706,7 @@ def main():
     skipcount = 0
 
     for dsid_key in esgf_report:
+        print(f"DEBUG: stage 4: dsid_key = {dsid_key}", file=sys.stderr, flush=True)
         dsid = esgf_report[dsid_key]["title"]
         vers = esgf_report[dsid_key]["version"]
         filecount = esgf_report[dsid_key]["file_count"]
@@ -740,8 +742,9 @@ def main():
             ds['Status'] = ':'.join(stat_parts[1:])    # stat from last status value
         ds['DAWPS'] = ds['D']+ds['A']+ds['W']+ds['P']+ds['S']
 
-    report_ds_struct(ds_struct)
-    sys.exit(0)
+    if unrestricted:
+        report_ds_struct(ds_struct)
+        sys.exit(0)
 
     # first file and last file of highest version in esgf_search, else in pub, else in warehouse
 

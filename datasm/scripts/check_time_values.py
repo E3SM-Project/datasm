@@ -138,7 +138,7 @@ def main():
                 con_message("error", f"Unsupported calendar type {calendar}")
                 sys.exit(1)
         elif freq is None:
-            if ds.attrs.get("title") == "CLM History file information":
+            if ds.attrs.get("title") == "CLM History file information" or ds.attrs.get("title") == "ELM History file information":      # this is obscure
                 monthly = True
             calendar = ds[time_name].attrs["calendar"]
             if calendar not in calendars:

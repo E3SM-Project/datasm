@@ -275,7 +275,7 @@ def main():
     zstashversion = check_output(['zstash', 'version']).decode('utf-8').strip()
     # print(f'zstash version: {zstashversion}')
 
-    if not (zstashversion == 'v0.4.1' or zstashversion == 'v0.4.2' or zstashversion == 'v1.0.0' or zstashversion == 'v1.1.0' ):
+    if not (zstashversion == 'v0.4.1' or zstashversion == 'v0.4.2' or zstashversion == 'v1.0.0' or zstashversion == 'v1.1.0' or zstashversion == 'v1.2.0' ):
         logMessage('ERROR',f'ARCHIVE_EXTRACTION_SERVICE: zstash version ({zstashversion})is not 0.4.1 or greater, or is unavailable')
         sys.exit(1)
 
@@ -363,6 +363,7 @@ def main():
             if not proc.returncode == 0:
                 logMessage('ERROR',f'zstash returned exitcode {proc.returncode}')
                 setStatus(statfile,'EXTRACTION',f'ZSTASH:Fail:exitcode={proc.returncode}')
+                setStatus(statfile,'DATASM',f'EXTRACTION:Fail')
                 os.chdir(parentdir)
                 shutil.rmtree(holodeck,ignore_errors=True)
                 time.sleep(5)
@@ -370,6 +371,7 @@ def main():
                 
             logMessage('INFO','ARCHIVE_EXTRACTION_SERVICE:zstash completed.')
             setStatus(statfile,'EXTRACTION','ZSTASH:Pass')
+            setStatus(statfile,'DATASM',f'EXTRACTION:Pass')
 
             proc_out = proc_out.decode('utf-8')
             proc_err = proc_err.decode('utf-8')
@@ -383,6 +385,7 @@ def main():
             if len(extracted_files) == 0:
                 logMessage("ERROR",f"Failure to extract files: {dsid}")
                 setStatus(statfile,'EXTRACTION','ZSTASH:Fail')
+                setStatus(statfile,'DATASM',f'EXTRACTION:Fail')
                 continue
 
             # BECOME TRANSFER:  move Holodeck files to warehouse destination path:
@@ -418,6 +421,7 @@ def main():
             tm_final = time.time()
             ET = tm_final - tm_start
             logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Completed file transfer to warehouse: filecount = {fcount}, ET = {ET}')
+            logMessage('INFO', ' ');
             setStatus(statfile,'EXTRACTION',f'TRANSFER:Pass:dstdir=v0,filecount={fcount}')
             os.chdir(parentdir)
             shutil.rmtree(holodeck,ignore_errors=True)
