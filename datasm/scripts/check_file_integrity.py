@@ -33,7 +33,7 @@ def check_file(path):
 
     if not out or "NetCDF: HDF error" in err:
         con_message("error", f"Error loading {path}")
-        log_message("info", f"DEBUG: Error loading {path}")
+        log_message("error", f"DEBUG: Error loading {path}")
         return 1
     return 0
 
@@ -45,7 +45,7 @@ def main():
 
     if not input_path.exists() or not input_path.is_dir():
         con_message("error", f"Input directory does not exist or is not a directory")
-        log_message("info", f"DEBUG: Input directory does not exist or is not a directory")
+        log_message("error", f"DEBUG: Input directory does not exist or is not a directory")
         return 1
     futures = []
     pool = ProcessPoolExecutor(max_workers=parsed_args.processes)
