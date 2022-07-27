@@ -25,7 +25,7 @@ dependencies:
   - cwltool=3.1.20220202173120
   - nodejs=17.4.0
   # Used in modules for `extract`, `validate`, and `postprocess` operations.
-  - nco=5.10.0
+  - nco=5.1.0
   - e3sm_to_cmip=1.8.2
   - zstash=1.2.0
   # Testing
