@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from subprocess import Popen
 from tempfile import TemporaryDirectory
-from datasm.util import con_message
+from datasm.util import con_message, log_message
 from datasm.util import search_esgf
 
 
@@ -95,6 +95,10 @@ def publish_dataset(args):
                 with open(project_metadata_path, "w") as outstream:
                     json.dump(optional_facets, outstream)
                 cmd += f" --json {project_metadata_path}"
+                extra_metadata_path = os.path.join(log_path, f"{dataset_id}.json")
+                con_message("info", f"dup json to {extra_metadata_path}")
+                with open(extra_metadata_path, "w") as outstream:
+                    json.dump(optional_facets, outstream)
 
         con_message("info", f"Running: {cmd}")
         log = Path(log_path, f"{dataset_id}.log")

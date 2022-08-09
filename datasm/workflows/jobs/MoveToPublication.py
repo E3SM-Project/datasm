@@ -11,6 +11,7 @@ class MoveToPublication(WorkflowJob):
         super().__init__(*args, **kwargs)
         self.name = NAME
 
+        log_message("info", f"applying publication path: {self.dataset.publication_path}")
         dst_version = get_dataset_version_from_file_metadata(self.dataset.latest_warehouse_dir)
         if dst_version == 'NONE':
             log_message("info", "Obtaining dataset version from current date - not from metadata")

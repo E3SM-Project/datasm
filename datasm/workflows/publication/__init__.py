@@ -34,7 +34,7 @@ class Publication(Workflow):
         log_message('info', f'WF_pub_init Publication_call: starting workflow {self.name} for datasets {dataset_id}')
 
         if (pub_base := self.params.get('publication_path')):
-            self.pub_path = Path(pub_base)
+            self.pub_path = Path(pub_base)      # only the pub_root here
             if not self.pub_path.exists():
                 log_message("info",f"WF_pub_init Publication_call: create pub dir {self.pub_path.resolve()}")
                 os.makedirs(self.pub_path.resolve())
