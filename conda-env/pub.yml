@@ -28,5 +28,5 @@ dependencies:
   # Used in modules for `publish` operation.
   - autocurator=0.1
   - esgconfigparser=1.0.0a1
-  - esgcet=5.1.0b8
+  - esgcet=5.1.0b11
 prefix: /opt/miniconda3/envs/datasm_pub
