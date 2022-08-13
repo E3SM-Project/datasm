@@ -97,6 +97,7 @@ class Dataset(object):
 
         self.versions = versions
 
+        log_message("info", f"init: splitting to obtain facets: dsid = {self.dataset_id}")
         facets = self.dataset_id.split(".")
 
         if facets[0] == "CMIP6":
@@ -172,6 +173,8 @@ class Dataset(object):
                 )
         if not kwargs.get('no_status_file'):
             self.initialize_status_file()
+
+        log_message("info", f"init: self.realm = {self.realm}")
 
     def initialize_status_file(self):
         if not self.status_path.exists():
@@ -384,6 +387,8 @@ class Dataset(object):
                     self.ensemble,
                 )
             self._publication_path = pubpath
+            log_message("info", f"publication_path (property): pubpath = {pubpath}")
+            log_message("info", f"publication_path (property): self.realm = {self.realm}")
 
         return self._publication_path
 

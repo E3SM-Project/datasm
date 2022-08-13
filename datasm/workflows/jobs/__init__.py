@@ -81,10 +81,10 @@ class WorkflowJob(object):
             self._cmd = f"export message_file={message_file.name}\n" + self._cmd
 
         self.add_cmd_suffix()
-        log_message("info", f"WF_jobs_init:render_script: self,cmd={self.cmd}, script_path={str(script_path)}")
+        log_message("info", f"init:render_script: self,cmd={self.cmd}, script_path={str(script_path)}")
         slurm.render_script(self.cmd, str(script_path), self._slurm_opts)
         self._job_id = slurm.sbatch(str(script_path))
-        log_message("info", f"WF_jobs_init: _call_: setting status to {self._parent}:{self.name}:Engaged: for {self.dataset.dataset_id}")
+        log_message("info", f"init: _call_: setting status to {self._parent}:{self.name}:Engaged: for {self.dataset.dataset_id}")
         self.dataset.status = (f"{self._parent}:{self.name}:Engaged:",
                                {"slurm_id": self.job_id})
         return self._job_id
@@ -119,29 +119,29 @@ fi
         # ipdb.set_trace()
 
         for req, _ in self._requires.items():
-            log_message("info", f"WF_jobs_init: setup_requisites: DBG_REQ: self {self.name} has req {req}")
+            log_message("info", f"init: setup_requisites: DBG_REQ: self {self.name} has req {req}")
 
         if input_datasets == None:
-            log_message("info", "WF_jobs_init: setup_requisites: no input datasets")
+            log_message("info", "init: setup_requisites: no input datasets")
         else:
-            log_message("info", f"WF_jobs_init: setup_requisites: got input datasets")
+            log_message("info", f"init: setup_requisites: got input datasets")
 
         datasets = [self.dataset]
         if input_datasets:
             if not isinstance(input_datasets, list):
                 input_datasets = [input_datasets]       # turn singleton into a list
             datasets.extend(input_datasets)
-            log_message("info", f"WF_jobs_init: setup_requisites: incoming datasets: {[x.dataset_id for x in input_datasets]}");
+            log_message("info", f"init: setup_requisites: incoming datasets: {[x.dataset_id for x in input_datasets]}");
 
         # Now includes BOTH self.dataset and any input_datasets
         # Will fail on self.dataset if self is a derivative to be generated.
         for dataset in datasets:        # now includes BOTH self.dataset and any input_datasets
-            log_message("info", f"WF_jobs_init: setup_requisites: checking if {dataset.dataset_id} is a good match for {self.name}");
+            log_message("info", f"init: setup_requisites: checking if {dataset.dataset_id} is a good match for {self.name}");
             if (req := self.requires_dataset(dataset)) is not None:
-                log_message("info", f"WF_jobs_init: setup_requisites: Yes: self.requires_dataset(dataset) returns req = {req}");
+                log_message("info", f"init: setup_requisites: Yes: self.requires_dataset(dataset) returns req = {req}");
                 self._requires[req] = dataset
             else:
-                log_message("info", f"WF_jobs_init: setup_requisites: ERR: {dataset.dataset_id} does not match for {self.name} requires {self.requires}");
+                log_message("info", f"init: setup_requisites: ERR: {dataset.dataset_id} does not match for {self.name} requires {self.requires}");
 
 
     # dataset: has dataset_id, status_path, pub_base, warehouse_base, archive_base, no_status_file=True from caller, else from class
@@ -160,7 +160,7 @@ fi
         for req, _ in self._requires.items():
             log_message("debug", f"requires_dataset: DBG_REQ: self {self.name} has req {req}")
 
-        log_message("debug", f"WF_jobs_init: requires_dataset(): trying dataset.experiment={dataset.experiment}, self.dataset.experiment={self.dataset.experiment}")
+        log_message("debug", f"init: requires_dataset(): trying dataset.experiment={dataset.experiment}, self.dataset.experiment={self.dataset.experiment}")
 
         # for project E3SM jobs, the "sought" dataset must match the job's (self.)dataset.
         if self.dataset.project == 'E3SM':
@@ -180,7 +180,7 @@ fi
                 if not my_case_attrs == e3sm_cmip_case:
                     return None
 
-        log_message("debug", f"WF_jobs_init: requires_dataset(): Experiment ({dataset.experiment}) Aligns");
+        log_message("debug", f"init: requires_dataset(): Experiment ({dataset.experiment}) Aligns");
 
         dataset_model = dataset.model_version
         my_dataset_model = self.dataset.model_version
@@ -192,7 +192,7 @@ fi
             # reject if (translated) model does not match
             return None
 
-        log_message("debug", f"WF_jobs_init: requires_dataset(): Model_version ({dataset_model}) Aligns");
+        log_message("debug", f"init: requires_dataset(): Model_version ({dataset_model}) Aligns");
 
         dataset_ensemble = dataset.ensemble
         my_dataset_ensemble = self.dataset.ensemble
@@ -204,31 +204,34 @@ fi
             # reject if N in E3SM "ensN" does not match the N in the job's "rNi1p1f1"
             return None
 
-        log_message("debug", f"WF_jobs_init: requires_dataset(): Ensemble ({dataset_ensemble}) Aligns");
+        log_message("debug", f"init: requires_dataset(): Ensemble ({dataset_ensemble}) Aligns");
 
-        log_message("info", f"WF_jobs_init: requires_dataset(): === ")
-        log_message("info", f"WF_jobs_init: requires_dataset(): Trying all self._requires.items() for dataset_id {self.dataset.dataset_id}")
+        log_message("info", f"init: requires_dataset(): === ")
+        log_message("info", f"init: requires_dataset(): Trying all self._requires.items() for dataset_id {self.dataset.dataset_id}")
 
         for req, ds in self._requires.items():
             if ds:
-                log_message("info", f"WF_jobs_init: requires_dataset(): already satisfied (req: ds) = {req}:{ds.dataset_id}")
+                log_message("info", f"init: requires_dataset(): already satisfied (req: ds) = {req}:{ds.dataset_id}")
                 continue
             else:
-                log_message("info", f"WF_jobs_init: requires_dataset(): unsatisfied (req) = {req}")
+                log_message("info", f"init: requires_dataset(): unsatisfied (req) = {req}")
 
             req_attrs = req.split('-')  # breakout realm, grid, freq
+
+            log_message("info", f"init: requires_dataset(): Testing req_attrs = {req_attrs}")
 
             if len(req_attrs) > 3 and req_attrs[0] == 'sea':    # adjust for hyphennated sea-ice
                 req_attrs[0] = req_attrs[0] + req_attrs[1]
                 req_attrs[1] = req_attrs[2]
                 req_attrs[2] = req_attrs[3]
+                log_message("info", f"requires_dataset: created req_attrs[0,1,2] = {req_attrs[0]}-{req_attrs[1]}-{req_attrs[2]}")
 
             req = '-'.join([req_attrs[0], req_attrs[1], req_attrs[2]])
 
             rcode = dataset.realm.replace('-','')
             gcode = dataset.grid.replace('-','')
             fcode = dataset.freq.replace('-','')
-            log_message("info", f"WF_jobs_init: requires_dataset(): Testing this dataset {rcode}-{gcode}-{fcode} against job req {req}")
+            log_message("info", f"init: requires_dataset(): Testing this dataset {rcode}-{gcode}-{fcode} against job req {req}")
 
             # skip dataset if any non-* item does not match
             if rcode != req_attrs[0] and req_attrs[0] != '*':
@@ -238,10 +241,10 @@ fi
             if fcode != req_attrs[2] and req_attrs[2] != '*':
                 continue
 
-            log_message("info", f"WF_jobs_init: returning job requirement req={req} for dataset {dataset.dataset_id}")
+            log_message("info", f"init: returning job requirement req={req} for dataset {dataset.dataset_id}")
             return req
 
-        log_message("info", f"WF_jobs_init: returning requirement None for dataset {dataset.dataset_id}")
+        log_message("info", f"init: returning requirement None for dataset {dataset.dataset_id}")
         return None
 
     def meets_requirements(self):
@@ -250,15 +253,15 @@ fi
         """
         retval = True
         for req in self._requires:
-            log_message("info", f"WF_jobs_init: job.meets_requirements(): checking req {req}")
+            log_message("info", f"init: job.meets_requirements(): checking req {req}")
             obtained = self._requires.get(req)
             if not obtained:
-                log_message("info", f"WF_jobs_init: job.meets_requirements(): self._requires.get(req) yields None")
+                log_message("info", f"init: job.meets_requirements(): self._requires.get(req) yields None")
                 retval = False
             else:
-                log_message("info", f"WF_jobs_init: job.meets_requirements(): self._requires.get(req) yields {obtained.dataset_id}")
+                log_message("info", f"init: job.meets_requirements(): self._requires.get(req) yields {obtained.dataset_id}")
 
-        log_message("info", f"WF_jobs_init: job.meets_requirements(): returning {retval}")
+        log_message("info", f"init: job.meets_requirements(): returning {retval}")
         return retval
 
     def find_outpath(self):
