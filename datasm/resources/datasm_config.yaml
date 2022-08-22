@@ -5,7 +5,8 @@ DEFAULT_STATUS_PATH: /p/user_pub/e3sm/staging/status/
 DEFAULT_PLOT_PATH: /var/www/acme/acme-diags/baldwin32/cmip_verification
 
 grids:
-  ne30_to_180x360: /p/user_pub/e3sm/staging/resource/maps/map_ne30np4_to_cmip6_180x360_aave.20181001.nc
+  v1_ne30_to_180x360: /p/user_pub/e3sm/staging/resource/maps/map_ne30np4_to_cmip6_180x360_aave.20181001.nc
+  v2_ne30_to_180x360: /p/user_pub/e3sm/staging/resource/maps/map_ne30pg2_to_cmip6_180x360_aave.20200201.nc
   oEC60to30_to_180x360: /p/user_pub/e3sm/staging/resource/maps/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc
   ne120np4_to_cmip6_180x360: /p/user_pub/e3sm/staging/resource/maps/map_ne120np4_to_cmip6_180x360_aave.20181001.nc
   ne120np4_to_cmip6_720x1440: /p/user_pub/e3sm/staging/resource/maps/map_ne120np4_to_cmip6_720x1440_aave.20181001.nc
