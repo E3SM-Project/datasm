@@ -78,7 +78,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
 
         parameters['vrt_map_path'] = self.config['vrt_map_path']
 
-        if model_version == "E3SM-2-0": then
+        if model_version == "E3SM-2-0":
             parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
             cwl_workflow = "atm-unified-eam/atm-unified.cwl"
         else:
