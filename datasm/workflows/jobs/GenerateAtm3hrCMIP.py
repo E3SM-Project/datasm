@@ -47,7 +47,7 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
-            log_message("info", f"Error checking variables: {err}")
+            log_message("info", f"(stderr) checking variables: {err}")
             # return None # apparently not a serious error, merely data written to stderr.
 
         with open(info_file.name, 'r') as instream:

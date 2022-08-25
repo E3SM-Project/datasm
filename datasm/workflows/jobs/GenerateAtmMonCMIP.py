@@ -41,19 +41,19 @@ class GenerateAtmMonCMIP(WorkflowJob):
 
         std_var_list = []
         std_cmor_list = []
-        plev_cmor_list = []
         plev_var_list = []
+        plev_cmor_list = []
 
         info_file = NamedTemporaryFile(delete=False)
         cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq mon -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
-            log_message("error", f"resolve_cmd failed to obtain e3sm_to_cmip info {info_file.name}")
-            log_message("error", f"  cmd = {cmd}")
-            log_message("error", f"  err = {err}")
-            return 1    # was return None
+            log_message("info", f"(stderr) checking variables: {err}")
+            # return None # apparently not a serious error, merely data written to stderr.
 
+        plev = False
+        mlev = False
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
         for item in variable_info:
@@ -63,28 +63,37 @@ class GenerateAtmMonCMIP(WorkflowJob):
                 e3sm_var = [item['E3SM Variables']]
 
             if 'Levels' in item.keys() and item['Levels']['name'] == 'plev19':
+                plev = True
                 plev_var_list.extend(e3sm_var)
                 plev_cmor_list.append(item['CMIP6 Name'])
             else:
+                mlev = True
                 std_var_list.extend(e3sm_var)
                 std_cmor_list.append(item['CMIP6 Name'])
 
-        # assume plev and mlev for generality/simplicity:
-        parameters['plev_var_list'] = plev_var_list
-        parameters['plev_cmor_list'] = plev_cmor_list
-
-        parameters['std_var_list'] = std_var_list
-        parameters['std_cmor_list'] = std_cmor_list
-
-        parameters['vrt_map_path'] = self.config['vrt_map_path']
+        parameters['vrt_map_path'] = self.config['vrt_map_path']        # not needed for mlev-only but no harm
+        parameters['std_var_list'] = std_var_list                       # for mlev, else no harm if empty
+        parameters['std_cmor_list'] = std_cmor_list                     # for mlev, else no harm if empty
+        parameters['plev_var_list'] = plev_var_list                     # for plev, else no harm if empty
+        parameters['plev_cmor_list'] = plev_cmor_list                   # for plev, else no harm if empty
 
         if model_version == "E3SM-2-0":
             parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
-            cwl_workflow = "atm-unified-eam/atm-unified.cwl"
+            if plev and not mlev:
+                cwl_workflow = "atm-mon-plev-eam/atm-plev.cwl"
+            elif not plev and mlev:
+                cwl_workflow = "atm-mon-model-lev-eam/atm-std.cwl"
+            elif plev and mlev:
+                cwl_workflow = "atm-unified-eam/atm-unified.cwl"
         else:
             parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
-            cwl_workflow = "atm-unified/atm-unified.cwl"
-            
+            if plev and not mlev:
+                cwl_workflow = "atm-mon-plev/atm-plev.cwl"
+            elif not plev and mlev:
+                cwl_workflow = "atm-mon-model-lev/atm-std.cwl"
+            elif plev and mlev:
+                cwl_workflow = "atm-unified/atm-unified.cwl"
+
         log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
 
         parameters['tables_path'] = self.config['cmip_tables_path']
