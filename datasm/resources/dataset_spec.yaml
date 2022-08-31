@@ -2,156 +2,156 @@
 #
 tables:
     Amon:
-        - tas
-        - ts
-        - psl
-        - ps
-        - sfcWind
-        - huss
-        - pr
-        - prc
-        - prsn
-        - evspsbl
-        - tauu
-        - tauv
-        - hfls
-        - clt
-        - rlds
-        - rlus
-        - rsds
-        - rsus
-        - hfss
+        - all
         - cl
         - cli
         - clivi
+        - clt
         - clw
         - clwvi
+        - evspsbl
+        - hfls
+        - hfss
         - hur
         - hus
+        - huss
         - o3
         - pfull
         - phalf
+        - pr
+        - prc
+        - prsn
         - prw
+        - ps
+        - psl
+        - rlds
         - rldscs
+        - rlus
         - rlut
         - rlutcs
+        - rsds
         - rsdscs
         - rsdt
-        - rsuscs 
+        - rsus
+        - rsuscs
         - rsut
         - rsutcs
         - rtmt
+        - sfcWind
         - ta
+        - tas
+        - tauu
+        - tauv
+        - ts
         - ua
         - va
         - wap
         - zg
-        - all
     AERmon:
         - abs550aer
-        - od550aer
         - all
+        - od550aer
     CFmon:
-        - clisccp
-        - cltisccp
         - albisccp
-        - pctisccp
+        - all
         - clcalipso
-        - cltcalipso
+        - clhcalipso
+        - clisccp
         - cllcalipso
         - clmcalipso
-        - clhcalipso
-        - all
+        - cltcalipso
+        - cltisccp
+        - pctisccp
     day:
-        - pr
-        - tas
+        - all
         - huss
-        - tasmin
-        - tasmax
-        - rlut
-        - all
-    3hr:
         - pr
+        - rlut
+        - tas
+        - tasmax
+        - tasmin
+    3hr:
         - all
+        - pr
     Lmon:
-        - mrsos
-        - mrso
-        - mrfso
-        - mrros
-        - mrro
-        - prveg
-        - evspsblveg
-        - evspsblsoi
-        - tran
-        - tsl
-        - lai
-        - cLitter 
+        - all
+        - cLitter
         - cProduct
         - cSoilFast
         - cSoilMedium
         - cSoilSlow
+        - cVeg
+        - evspsblsoi
+        - evspsblveg
         - fFire
         - fHarvest
-        - cVeg
-        - nbp
         - gpp
-        - rh
+        - lai
+        - mrfso
+        - mrro
+        - mrros
+        - mrso
+        - mrsos
+        - nbp
+        - prveg
         - ra
-        - all
+        - rh
+        - tran
+        - tsl
     LImon:
         - snw
     Omon:
+        - all
+        - fsitherm
+        - hfds
+        - hfsifrazil
+        - masscello
         - masso
+        - mlotst
+        # - msftmz
         - pbo
         - pso
-        - volo
-        - zos
-        - masscello
-        - thetao
-        - thetaoga
-        - tos
-        - tob
-        - tosga
+        - sfdsi
         - so
+        - sob
         - soga
         - sos
-        - sob
         - sosga
-        - mlotst
-        - uo
-        - vo
-        - wo
-        # - msftmz
-        - fsitherm
-        - wfo
-        - sfdsi
-        - hfsifrazil
-        - hfds
         - tauuo
         - tauvo
-        - zhalfo
-        - volcello
+        - thetao
+        - thetaoga
         - thkcello
-        - all
+        - tob
+        - tos
+        - tosga
+        - uo
+        - vo
+        - volcello
+        - volo
+        - wfo
+        - wo
+        - zhalfo
+        - zos
     Ofx:
-        - areacello
         - all
+        - areacello
     SImon:
-        - sitimefrac
+        - all
         - siconc
         - simass
-        - sithick
         - sisnmass
         - sisnthick
         - sitemptop
+        - sithick
+        - sitimefrac
         - siu
         - siv
-        - all
     fx:
-        - areacella
-        - sftlf
-        - orog
         - all
+        - areacella
+        - orog
+        - sftlf
 
 time-series:
     atmos:
@@ -749,15 +749,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.6hr
                                     - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
-                                    - time-series.mon
                                     - climo.mon
+                                    - time-series.mon
                         land:
                             - 
                                 grid: native
@@ -814,18 +814,18 @@ project:
                             - 
                                 grid: native
                                 data_types:
-                                    - model-output.day
-                                    - model-output.mon
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         ocean:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -856,12 +856,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -875,13 +875,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    # - model-output.day
                                     - model-output.mon
                         river:
                             -
@@ -939,8 +938,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -1044,8 +1043,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -1107,8 +1106,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -1142,12 +1141,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -1161,8 +1160,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -1195,12 +1194,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -1214,8 +1213,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -1247,12 +1246,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -1271,8 +1270,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -1302,12 +1301,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -1340,12 +1339,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -1378,12 +1377,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -1417,12 +1416,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -1441,8 +1440,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -1471,12 +1470,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -1495,8 +1494,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -1528,12 +1527,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -1552,8 +1551,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -1581,12 +1580,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -1605,8 +1604,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -1768,12 +1767,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -1787,8 +1786,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -1817,10 +1816,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -1839,15 +1838,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -1870,10 +1869,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -1892,15 +1891,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -1923,10 +1922,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -1945,15 +1944,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -1976,10 +1975,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -1998,15 +1997,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2028,10 +2027,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2050,15 +2049,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2080,10 +2079,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2102,15 +2101,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2133,10 +2132,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2155,15 +2154,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2186,10 +2185,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2208,15 +2207,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2238,10 +2237,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2260,15 +2259,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2290,10 +2289,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2312,15 +2311,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2344,10 +2343,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2366,15 +2365,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2397,10 +2396,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2419,15 +2418,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2450,10 +2449,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2472,15 +2471,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2503,10 +2502,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2525,15 +2524,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2555,10 +2554,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2577,15 +2576,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2607,10 +2606,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2629,15 +2628,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2660,10 +2659,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2682,15 +2681,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2713,10 +2712,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2735,15 +2734,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2765,10 +2764,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2787,15 +2786,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2817,10 +2816,10 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.3hr_snap
                                     - model-output.3hr
+                                    - model-output.3hr_snap
+                                    - model-output.day
+                                    - model-output.mon
                             - 
                                 grid: 180x360
                                 data_types:
@@ -2839,15 +2838,15 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
                                     - model-output.fixed
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.fixed
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -2870,8 +2869,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -2917,8 +2916,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -2964,8 +2963,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -2987,8 +2986,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -3035,8 +3034,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -3059,8 +3058,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         sea-ice:
                             -
                                 grid: native
@@ -3086,12 +3085,12 @@ project:
                             - 
                                 grid: native
                                 data_types:
-                                    - model-output.day
-                                    - model-output.mon
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             - 
                                 grid: native
@@ -3105,8 +3104,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         river:
                             - 
                                 grid: native
@@ -3116,8 +3115,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.day
                                     - model-output.mon
+                                    - model-output.day
             1pctCO2:
                 start: 1
                 end: 150
@@ -3137,12 +3136,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -3156,8 +3155,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -3189,12 +3188,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -3208,8 +3207,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -3242,12 +3241,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -3285,12 +3284,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -3304,8 +3303,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -3340,12 +3339,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -3359,8 +3358,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -3395,12 +3394,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -3414,8 +3413,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -3450,12 +3449,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -3469,8 +3468,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.5day_snap
+                                    - model-output.mon
                         river:
                             -
                                 grid: native
@@ -3501,12 +3500,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -3542,12 +3541,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
@@ -3583,12 +3582,12 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
-                                    - model-output.day
-                                    - model-output.day_cosp
-                                    - model-output.6hr_snap
                                     - model-output.3hr
                                     - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
                         land:
                             -
                                 grid: native
