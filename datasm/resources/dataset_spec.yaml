@@ -807,11 +807,6 @@ project:
                                     - model-output.mon
                         atmos:
                             - 
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -820,6 +815,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         ocean:
                             -
                                 grid: native
@@ -849,11 +849,6 @@ project:
                     1deg_atm_60-30km_ocean:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -862,6 +857,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -901,6 +901,14 @@ project:
                     0_25deg_atm_18-6km_ocean:
                         atmos:
                             -
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                            -
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
@@ -909,14 +917,6 @@ project:
                                 data_types:
                                     - model-output.3hr
                                     - model-output.6hr_ave
-                                    - model-output.6hr_snap
-                                    - model-output.day
-                                    - model-output.mon
-                            -
-                                grid: native
-                                data_types:
-                                    - model-output.3hr
-                                    - model-output.6hr
                                     - model-output.6hr_snap
                                     - model-output.day
                                     - model-output.mon
@@ -1006,6 +1006,14 @@ project:
                     0_25deg_atm_18-6km_ocean:
                         atmos:
                             -
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                            -
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
@@ -1014,14 +1022,6 @@ project:
                                 data_types:
                                     - model-output.3hr
                                     - model-output.6hr_ave
-                                    - model-output.6hr_snap
-                                    - model-output.day
-                                    - model-output.mon
-                            -
-                                grid: native
-                                data_types:
-                                    - model-output.3hr
-                                    - model-output.6hr
                                     - model-output.6hr_snap
                                     - model-output.day
                                     - model-output.mon
@@ -1069,6 +1069,14 @@ project:
                     0_25deg_atm_18-6km_ocean:
                         atmos:
                             -
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                            -
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
@@ -1077,14 +1085,6 @@ project:
                                 data_types:
                                     - model-output.3hr
                                     - model-output.6hr_ave
-                                    - model-output.6hr_snap
-                                    - model-output.day
-                                    - model-output.mon
-                            -
-                                grid: native
-                                data_types:
-                                    - model-output.3hr
-                                    - model-output.6hr
                                     - model-output.6hr_snap
                                     - model-output.day
                                     - model-output.mon
@@ -1134,11 +1134,6 @@ project:
                     1deg_atm_60-30km_ocean:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1147,6 +1142,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -1187,11 +1187,6 @@ project:
                     1deg_atm_60-30km_ocean:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1200,6 +1195,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -1239,11 +1239,6 @@ project:
                     1deg_atm_60-30km_ocean:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1252,6 +1247,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -1294,11 +1294,6 @@ project:
                     1deg_atm_60-30km_ocean:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1307,6 +1302,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -1332,11 +1332,6 @@ project:
                     1deg_atm_60-30km_ocean:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1345,6 +1340,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -1370,11 +1370,6 @@ project:
                     1deg_atm_60-30km_ocean:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1383,6 +1378,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -1409,11 +1409,6 @@ project:
                     1deg_atm_60-30km_ocean:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1422,6 +1417,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -1463,11 +1463,6 @@ project:
                     1deg_atm_60-30km_ocean:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1476,6 +1471,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -1520,11 +1520,6 @@ project:
                     1deg_atm_60-30km_ocean:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1533,6 +1528,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -1573,11 +1573,6 @@ project:
                     0_25deg_atm_18-6km_ocean:
                         atmos:
                             -
-                                grid: 720x1440
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1586,6 +1581,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 720x1440
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -1759,11 +1759,6 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            - 
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
                             -
                                 grid: native
                                 data_types:
@@ -1773,6 +1768,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -3078,11 +3078,6 @@ project:
                     LR:
                         atmos:
                             - 
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3091,6 +3086,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             - 
                                 grid: native
@@ -3115,8 +3115,8 @@ project:
                             -
                                 grid: native
                                 data_types:
-                                    - model-output.mon
                                     - model-output.day
+                                    - model-output.mon
             1pctCO2:
                 start: 1
                 end: 150
@@ -3129,11 +3129,6 @@ project:
                     LR:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3142,6 +3137,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -3181,11 +3181,6 @@ project:
                     LR:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3194,6 +3189,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -3234,11 +3234,6 @@ project:
                     LR:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3247,6 +3242,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -3277,11 +3277,6 @@ project:
                     LR:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3290,6 +3285,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -3332,11 +3332,6 @@ project:
                     LR:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3345,6 +3340,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -3387,11 +3387,6 @@ project:
                     LR:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3400,6 +3395,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -3442,11 +3442,6 @@ project:
                     LR:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3455,6 +3450,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -3493,11 +3493,6 @@ project:
                     LR:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3506,6 +3501,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -3534,11 +3534,6 @@ project:
                     LR:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3547,6 +3542,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
@@ -3575,11 +3575,6 @@ project:
                     LR:
                         atmos:
                             -
-                                grid: 180x360
-                                data_types:
-                                    - climo.mon
-                                    - time-series.mon
-                            -
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3588,6 +3583,11 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                            -
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
                         land:
                             -
                                 grid: native
