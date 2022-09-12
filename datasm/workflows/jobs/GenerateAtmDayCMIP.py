@@ -79,7 +79,10 @@ class GenerateAtmDayCMIP(WorkflowJob):
         cwl_workflow = "atm-highfreq/atm-highfreq.cwl"
         parameters['tables_path'] = self.config['cmip_tables_path']
         parameters['metadata_path'] = os.path.join(self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
-        parameters['hrz_atm_map_path'] = self.config['grids']['ne30_to_180x360']
+        if model_version == "E3SM-2-0":
+            parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
+        else:
+            parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
 
         # force dataset output version here
         ds_version = "v" + get_UTC_YMD()
