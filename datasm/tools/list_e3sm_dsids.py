@@ -20,7 +20,6 @@ def assess_args():
 
 
 resource_path = '/p/user_pub/e3sm/staging/resource/'
-
 DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
 
 def loadFileLines(afile):
@@ -39,18 +38,10 @@ def putFileLines(afile,lines):
         for aline in lines:
             f.write(f'{aline}\n')
 
-
-def collect_cmip_datasets(dataset_spec):
-    for activity_name, activity_val in dataset_spec['project']['CMIP6'].items():
-        for version_name, version_value in activity_val.items():
-            for experimentname, experimentvalue in version_value.items():
-                for ensemble in experimentvalue['ens']:
-                    for table_name, table_value in dataset_spec['tables'].items():
-                        for variable in table_value:
-                            if variable in experimentvalue['except'] or table_name in experimentvalue['except']:
-                                continue
-                            dataset_id = f"CMIP6.{activity_name}.E3SM-Project.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr"
-                            yield dataset_id
+def load_yaml(inpath):
+    with open(inpath, 'r') as instream:
+        in_yaml = yaml.load(instream, Loader=yaml.SafeLoader)
+    return in_yaml
 
 
 # spec hierarchy:  project, model_version, experiment, [ens, (resolution (realm) ), cmip_case, ...]
@@ -68,26 +59,34 @@ def collect_e3sm_datasets(dataset_spec):
                                 yield dataset_id
 
 
-def dsids_from_dataset_spec(dataset_spec_path):
-    with open(dataset_spec_path, 'r') as instream:
-        dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
-        # cmip6_ids = [x for x in collect_cmip_datasets(dataset_spec)]
-        e3sm_ids = [x for x in collect_e3sm_datasets(dataset_spec)]
-        # dataset_ids = cmip6_ids + e3sm_ids
-
+def dsids_from_dataset_spec(dataset_spec):
+    e3sm_ids = [x for x in collect_e3sm_datasets(dataset_spec)]
     return e3sm_ids
-    # return dataset_ids
 
-all_e3sm_dsids = dsids_from_dataset_spec(DEFAULT_SPEC_PATH)
+def expand_dataset_spec(dataset_spec):
+    global gv_outfile
 
-all_e3sm_dsids.sort()
+    Extn_Table = dataset_spec['CASE_EXTENSIONS']
+
+    for model_version in dataset_spec['project']['E3SM']:
+        for experiment, experimentinfo in dataset_spec['project']['E3SM'][model_version].items():
+            extn_id = experimentinfo['resolution']
+            if not extn_id in Extn_Table:
+                print(f"ERROR: extension ID {extn_id} not found in extension table for {model_version} {experiment}")
+                sys.exit(1)
+            experimentinfo['resolution'] = Extn_Table[extn_id]
 
 
 def main():
 
     assess_args()
 
-    all_e3sm_dsids = dsids_from_dataset_spec(DEFAULT_SPEC_PATH)
+    ds_spec = load_yaml(DEFAULT_SPEC_PATH)
+
+    if 'CASE_EXTENSIONS' in ds_spec.keys():
+        expand_dataset_spec(ds_spec)
+
+    all_e3sm_dsids = dsids_from_dataset_spec(ds_spec)
 
     all_e3sm_dsids.sort()
 
