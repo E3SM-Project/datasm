@@ -10,6 +10,7 @@ POSTPROCESS:Ready:
   atmos-cmip-3hr:
     - GenerateAtm3hrCMIP:Ready
   atmos-cmip-fixed:
+  fixed-cmip-fixed:
     - GenerateAtmFixedCMIP:Ready
   land-timeseries-mon:
     - GenerateLndTimeseries:Ready
@@ -75,6 +76,16 @@ GenerateAtm3hrCMIP:Pass:
   default:
     - Pass
 GenerateAtm3hrCMIP:Fail:
+  default:
+    - Fail
+
+GenerateAtmFixedCMIP:Ready:
+  default:
+    - GenerateAtmFixedCMIP:Engaged
+GenerateAtmFixedCMIP:Pass:
+  default:
+    - Pass
+GenerateAtmFixedCMIP:Fail:
   default:
     - Fail
 
