@@ -20,7 +20,7 @@ def parse_args():
     parser.add_argument(
         "--optional-facets",
         nargs="*",
-        help="Optional facets to be added to the dataset (E3SM project only)",
+        help="Optional facets to be added to the dataset (E3SM project only), specified by \"name=value\" \"name=value\" ...",
     )
     default_log_path = Path(os.environ["PWD"], "publication_logs")
     parser.add_argument(

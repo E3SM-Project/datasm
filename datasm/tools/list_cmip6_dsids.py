@@ -40,6 +40,12 @@ def putFileLines(afile,lines):
             f.write(f'{aline}\n')
 
 
+def load_yaml(inpath):
+    with open(inpath, 'r') as instream:
+        in_yaml = yaml.load(instream, Loader=yaml.SafeLoader)
+    return in_yaml
+
+
 def collect_cmip_datasets(dataset_spec):
     for activity_name, activity_val in dataset_spec['project']['CMIP6'].items():
         if activity_name == "test":
@@ -70,21 +76,17 @@ def collect_e3sm_datasets(dataset_spec):
                                 yield dataset_id
 
 
-def dsids_from_dataset_spec(dataset_spec_path):
-    with open(dataset_spec_path, 'r') as instream:
-        dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
-        cmip6_ids = [x for x in collect_cmip_datasets(dataset_spec)]
-        # e3sm_ids = [x for x in collect_e3sm_datasets(dataset_spec)]
-        # dataset_ids = cmip6_ids + e3sm_ids
-
+def dsids_from_dataset_spec(dataset_spec):
+    cmip6_ids = [x for x in collect_cmip_datasets(dataset_spec)]
     return cmip6_ids
-    # return dataset_ids
 
 def main():
 
     assess_args()
 
-    all_cmip6_dsids = dsids_from_dataset_spec(DEFAULT_SPEC_PATH)
+    in_yaml = load_yaml(DEFAULT_SPEC_PATH)
+
+    all_cmip6_dsids = dsids_from_dataset_spec(in_yaml)
 
     all_cmip6_dsids.sort()
 

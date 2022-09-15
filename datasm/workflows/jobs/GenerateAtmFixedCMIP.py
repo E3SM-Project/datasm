@@ -4,29 +4,34 @@ from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
 
 import yaml
-from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata
+from datasm.util import log_message, get_UTC_YMD, get_first_nc_file, set_version_in_user_metadata
 from datasm.workflows.jobs import WorkflowJob
 
-NAME = 'GenerateAtmDayCMIP'
+NAME = 'GenerateAtmFixedCMIP'
 
 
-class GenerateAtmDayCMIP(WorkflowJob):
+class GenerateAtmFixedCMIP(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        self._requires = {'atmos-native-day': None}
+        self._requires = {'atmos-native-mon': None}
         self._cmd = ''
         self._cmip_var = ''
 
     def resolve_cmd(self):
 
-        raw_dataset = self.requires['atmos-native-day']
-        cwl_config = self.config['cmip_atm_day']
+        raw_dataset = self.requires['atmos-native-mon']
+        cwl_config = self.config['cmip_atm_mon']
 
         # log_message("debug", f"Using raw input from {raw_dataset.latest_warehouse_dir}")
-        parameters = {'data_path': raw_dataset.latest_warehouse_dir}
-        parameters.update(cwl_config)
+        data_path = raw_dataset.latest_warehouse_dir
+        anyfile = get_first_nc_file(data_path)
+        anypath = os.path.join(data_path, anyfile)
+        data_path_dict = { 'class': 'File', 'path': anypath }
+        parameters = {'atm_data_path': data_path_dict }
+
+        parameters.update(cwl_config)   # picks up frequency, num_workers, account, partition, and timeout.
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
@@ -41,7 +46,7 @@ class GenerateAtmDayCMIP(WorkflowJob):
 
         info_file = NamedTemporaryFile(delete=False)
         log_message("info", f"Obtained temp info file name: {info_file.name}")
-        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq day -v {', '.join(in_cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmd = f"e3sm_to_cmip --info -i {data_path} --freq mon -v {', '.join(in_cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         log_message("info", f"resolve_cmd: issuing variable info cmd: {cmd}")
 
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
@@ -71,18 +76,19 @@ class GenerateAtmDayCMIP(WorkflowJob):
             return None
 
         parameters['std_var_list'] = e3sm_vars
-        parameters['std_cmor_list'] = cmip_vars
+        parameters['cmor_var_list'] = cmip_vars
 
         log_message("info", f"Obtained e3sm_vars: {', '.join(e3sm_vars)}")
         log_message("info", f"Obtained cmip_vars: {', '.join(cmip_vars)}")
 
-        cwl_workflow = "atm-highfreq/atm-highfreq.cwl"
+        cwl_workflow = "fx/fx.cwl"
         parameters['tables_path'] = self.config['cmip_tables_path']
         parameters['metadata_path'] = os.path.join(self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
         if model_version == "E3SM-2-0":
-            parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
+            parameters['map_path'] = self.config['grids']['v2_ne30_to_180x360']
         else:
-            parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
+            parameters['map_path'] = self.config['grids']['v1_ne30_to_180x360']
+
 
         # force dataset output version here
         ds_version = "v" + get_UTC_YMD()
@@ -99,9 +105,10 @@ class GenerateAtmDayCMIP(WorkflowJob):
         # step three, render out the CWL run command
         # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
         outpath = '/p/user_pub/e3sm/warehouse'  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
-
+        cwl_workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow)
+        
         if not self.serial:
             parallel = "--parallel"
         else:
             parallel = ''
-        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameter_path}"

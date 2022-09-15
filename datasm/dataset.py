@@ -97,7 +97,7 @@ class Dataset(object):
 
         self.versions = versions
 
-        log_message("info", f"init: splitting to obtain facets: dsid = {self.dataset_id}")
+        log_message("debug", f"init: splitting to obtain facets: dsid = {self.dataset_id}")
         facets = self.dataset_id.split(".")
 
         if facets[0] == "CMIP6":
@@ -174,7 +174,7 @@ class Dataset(object):
         if not kwargs.get('no_status_file'):
             self.initialize_status_file()
 
-        log_message("info", f"init: self.realm = {self.realm}")
+        log_message("debug", f"init: self.realm = {self.realm}")
 
     def initialize_status_file(self):
         if not self.status_path.exists():
