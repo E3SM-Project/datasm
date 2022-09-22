@@ -92,6 +92,7 @@ class GenerateSeaIceCMIP(WorkflowJob):
         # force dataset output version here
         ds_version = "v" + get_UTC_YMD()
         set_version_in_user_metadata(metadata_path, ds_version)
+        log_message("info", f"Set dataset version in {metadata_path} to {ds_version}")
 
         parameters['tables_path'] = self.config['cmip_tables_path']
         parameters['metadata'] = {

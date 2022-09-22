@@ -4,7 +4,7 @@ import os
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 from datasm.workflows.jobs import WorkflowJob
-from datasm.util import log_message
+from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata
 
 NAME = 'GenerateAtmMonCMIP'
 
@@ -99,6 +99,11 @@ class GenerateAtmMonCMIP(WorkflowJob):
         parameters['tables_path'] = self.config['cmip_tables_path']
         parameters['metadata_path'] = os.path.join(
             self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")   # model_version = CMIP6 "Source"
+
+        # force dataset output version here
+        ds_version = "v" + get_UTC_YMD()
+        set_version_in_user_metadata(parameters['metadata_path'], ds_version)
+        log_message("info", f"Set dataset version in {parameters['metadata_path']} to {ds_version}")
 
         # step two, write out the parameter file and setup the temp directory
         self._cmip_var = 'all' if is_all else cmip_var[0]
