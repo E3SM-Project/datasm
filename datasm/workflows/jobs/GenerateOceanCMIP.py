@@ -121,6 +121,7 @@ class GenerateOceanCMIP(WorkflowJob):
         # force dataset output version here
         ds_version = "v" + get_UTC_YMD()
         set_version_in_user_metadata(metadata_path, ds_version)
+        log_message("info", f"Set dataset version in {metadata_path} to {ds_version}")
         
         parameters['metadata'] = {
             'class': 'File',
