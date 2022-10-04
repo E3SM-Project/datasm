@@ -1,4 +1,3 @@
-
 BGC-v1,1_1_ECA,hist-BCRC,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/BCRC_CNPECACNT_20TR.ne30_oECv3.cori-knl
 BGC-v1,1_1_ECA,hist-BCRC,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/BCRC_CNPECACNT_20TR.ne30_oECv3.edison
 BGC-v1,1_1_ECA,hist-BCRD,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/BCRD_CNPECACNT_20TR.ne30_oECv3.cori-knl
@@ -6,6 +5,7 @@ BGC-v1,1_1_ECA,hist-BCRD,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_
 BGC-v1,1_1_ECA,hist-BDRC,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/20190308.BDRC.1850-2014
 BGC-v1,1_1_ECA,hist-BDRD,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/20190308.BDRD.1850-2014
 BGC-v1,1_1_ECA,piControl,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/20190308.CNTL.1850-2014
+BGC-v1,1_1_ECA,piControl,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/CNTL_CNPECACNT_SSP85.ne30_oECv3.cori-knl
 BGC-v1,1_1_ECA,piControl-ext85yr,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/CNTL_CNPECACNT_SSP85.ne30_oECv3.cori-knl
 BGC-v1,1_1_ECA,ssp585-BCRC,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/BCRC_CNPECACNT_SSP85.ne30_oECv3.cori-knl
 BGC-v1,1_1_ECA,ssp585-BCRD,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_1_ECA/BGC-v1/BCRD_CNPECACNT_SSP85.ne30_oECv3.cori-knl
@@ -55,9 +55,9 @@ DECK-v1,1_0,ssp585,1deg_atm_60-30km_ocean,ens2,/p/user_pub/e3sm/archive/1_0/DECK
 DECK-v1,1_0,ssp585,1deg_atm_60-30km_ocean,ens3,/p/user_pub/e3sm/archive/1_0/DECK-v1/20190821.DECKv1b_P3_SSP5-8.5.ne30_oEC.cori-knl
 DECK-v1,1_0,ssp585,1deg_atm_60-30km_ocean,ens4,/p/user_pub/e3sm/archive/1_0/DECK-v1/20190821.DECKv1b_P4_SSP5-8.5.ne30_oEC.cori-knl
 DECK-v1,1_0,ssp585,1deg_atm_60-30km_ocean,ens5,/p/user_pub/e3sm/archive/1_0/DECK-v1/20190821.DECKv1b_P5_SSP5-8.5.ne30_oEC.cori-knl
-DECK-v1,1_0,SSP585-GHG,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/DECK-v1/20191019.DECKv1b_P1_SSP5-8.5-GHG.ne30_oEC.cori-knl
-DECK-v1,1_0,SSP585-GHG,1deg_atm_60-30km_ocean,ens2,/p/user_pub/e3sm/archive/1_0/DECK-v1/20191019.DECKv1b_P2_SSP5-8.5-GHG.ne30_oEC.cori-knl
-DECK-v1,1_0,SSP585-GHG,1deg_atm_60-30km_ocean,ens3,/p/user_pub/e3sm/archive/1_0/DECK-v1/20191019.DECKv1b_P3_SSP5-8.5-GHG.ne30_oEC.cori-knl
+DECK-v1,1_0,ssp585-GHG,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/DECK-v1/20191019.DECKv1b_P1_SSP5-8.5-GHG.ne30_oEC.cori-knl
+DECK-v1,1_0,ssp585-GHG,1deg_atm_60-30km_ocean,ens2,/p/user_pub/e3sm/archive/1_0/DECK-v1/20191019.DECKv1b_P2_SSP5-8.5-GHG.ne30_oEC.cori-knl
+DECK-v1,1_0,ssp585-GHG,1deg_atm_60-30km_ocean,ens3,/p/user_pub/e3sm/archive/1_0/DECK-v1/20191019.DECKv1b_P3_SSP5-8.5-GHG.ne30_oEC.cori-knl
 DECK-v2,2_0,1pctCO2,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.1pctCO2_0101
 DECK-v2,2_0,abrupt-4xCO2,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0101
 DECK-v2,2_0,abrupt-4xCO2,LR,ens2,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301
