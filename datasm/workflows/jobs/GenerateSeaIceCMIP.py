@@ -99,9 +99,16 @@ class GenerateSeaIceCMIP(WorkflowJob):
             'class': 'File',
             'path': metadata_path
             }
-        parameters['region_path'] = parameters['mpas_region_path']
-        mapfile="/p/user_pub/e3sm/staging/resource/map_oEC60to30v3_to_cmip6_180x360_aave.20181001.nc"   # WARNING HARDCODED
-        parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['oEC60to30_to_180x360'] }
+
+        if model_version == "E3SM-2-0":
+            parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
+            parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['v2_oEC60to30_to_180x360'] }
+            parameters['region_path'] = parameters['v2_mpas_region_path']
+        else:
+            parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
+            parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['v1_oEC60to30_to_180x360'] }
+            parameters['region_path'] = parameters['v1_mpas_region_path']
+
         log_message("info", f"Applying to parameters[mapfile]: type = {type(parameters['mapfile'])}")
 
         raw_model_version = raw_seaice_dataset.model_version

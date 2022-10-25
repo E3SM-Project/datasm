@@ -131,12 +131,14 @@ class GenerateOceanCMIP(WorkflowJob):
         if is_oa_var:
             parameters['metadata_path'] = parameters['metadata']
 
-        parameters['region_path'] = parameters['mpas_region_path']
-        parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['oEC60to30_to_180x360'] }
         if model_version == "E3SM-2-0":
             parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
+            parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['v2_oEC60to30_to_180x360'] }
+            parameters['region_path'] = parameters['v2_mpas_region_path']
         else:
             parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
+            parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['v1_oEC60to30_to_180x360'] }
+            parameters['region_path'] = parameters['v1_mpas_region_path']
 
 
         if is_oa_var:

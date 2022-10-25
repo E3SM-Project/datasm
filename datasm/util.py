@@ -256,6 +256,7 @@ def latest_dspath_version(dspath):
 
 def set_version_in_user_metadata(metadata_path, dsversion):     # set version "vYYYYMMDD" in user metadata
 
+    log_message("info", f"set_version_in_user_metadata: path={metadata_path}")
     in_data = json_readfile(metadata_path)
     in_data["version"] = dsversion
     json_writefile(in_data,metadata_path)

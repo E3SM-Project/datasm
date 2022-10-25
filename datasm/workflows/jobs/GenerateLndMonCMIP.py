@@ -90,15 +90,17 @@ class GenerateLndMonCMIP(WorkflowJob):
         parameters['one_land_file'] = os.path.join(
             parameters['lnd_data_path'],
             os.listdir(parameters['lnd_data_path']).pop())
-        cwl_workflow = "lnd-n2n/lnd.cwl"
 
         parameters['tables_path'] = self.config['cmip_tables_path']
         parameters['metadata_path'] = os.path.join( self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
         if model_version == "E3SM-2-0":
             parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
+            cwl_workflow = "lnd-elm/lnd.cwl"
         else:
             parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
+            cwl_workflow = "lnd-n2n/lnd.cwl"
 
+        cwl_workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow)
 
         # force dataset output version here
         ds_version = "v" + get_UTC_YMD()
@@ -115,6 +117,6 @@ class GenerateLndMonCMIP(WorkflowJob):
         # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
         outpath = '/p/user_pub/e3sm/warehouse'  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
 
-        log_message("info", f"DEBUG-001: render out the CWL run command: cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}")
-        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+        log_message("info", f"DEBUG-001: render out the CWL run command: cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameter_path}")
+        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameter_path}"
 

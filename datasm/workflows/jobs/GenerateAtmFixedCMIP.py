@@ -22,15 +22,14 @@ class GenerateAtmFixedCMIP(WorkflowJob):
     def resolve_cmd(self):
 
         raw_dataset = self.requires['atmos-native-mon']
-        cwl_config = self.config['cmip_atm_mon']
 
-        # log_message("debug", f"Using raw input from {raw_dataset.latest_warehouse_dir}")
         data_path = raw_dataset.latest_warehouse_dir
         anyfile = get_first_nc_file(data_path)
         anypath = os.path.join(data_path, anyfile)
         data_path_dict = { 'class': 'File', 'path': anypath }
-        parameters = {'atm_data_path': data_path_dict }
 
+        parameters = {'atm_data_path': data_path_dict }
+        cwl_config = self.config['cmip_atm_mon']
         parameters.update(cwl_config)   # picks up frequency, num_workers, account, partition, and timeout.
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
@@ -81,14 +80,17 @@ class GenerateAtmFixedCMIP(WorkflowJob):
         log_message("info", f"Obtained e3sm_vars: {', '.join(e3sm_vars)}")
         log_message("info", f"Obtained cmip_vars: {', '.join(cmip_vars)}")
 
-        cwl_workflow = "fx/fx.cwl"
-        parameters['tables_path'] = self.config['cmip_tables_path']
-        parameters['metadata_path'] = os.path.join(self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
         if model_version == "E3SM-2-0":
             parameters['map_path'] = self.config['grids']['v2_ne30_to_180x360']
         else:
             parameters['map_path'] = self.config['grids']['v1_ne30_to_180x360']
 
+        cwl_workflow = "fx/fx.cwl"
+
+        log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
+
+        parameters['tables_path'] = self.config['cmip_tables_path']
+        parameters['metadata_path'] = os.path.join(self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")  # model_version = CMIP6 "Source"
 
         # force dataset output version here
         ds_version = "v" + get_UTC_YMD()
@@ -98,7 +100,7 @@ class GenerateAtmFixedCMIP(WorkflowJob):
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else in_cmip_vars[0]
         parameter_path = os.path.join(
-            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-day-{var_id}.yaml")
+            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-mon-{var_id}.yaml")
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 
