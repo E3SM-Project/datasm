@@ -17,7 +17,7 @@ output fields of the report:
 
 For each of these 5 sources of dataset_IDs:
 
-    {dataset_spec, archive_map, warehouse_dirs, publication_dirs, search_esgf}
+    {dataset_spec, archive_map, warehouse_dirs, publication_dirs, sproket_esgf_search}
 
 construct a list of all obtainable dataset_IDs. For each dataset_ID in the list, seek that entry in the
 ds_struct. Update the entry (adding new if not found) with data appropriate to the section being processed.
@@ -49,9 +49,12 @@ DS_SPEC = '/p/user_pub/e3sm/staging/resource/dataset_spec.yaml'
 DS_STAT = '/p/user_pub/e3sm/staging/status'
 
 ARCH_MAP  = '/p/user_pub/e3sm/archive/.cfg/Archive_Map'
+esgf_pr   = ''
 
 # output_mode
 gv_csv = True
+
+# esgf_pr   = '/p/user_pub/e3sm/bartoletti1/Pub_Status/sproket/ESGF_publication_report-20200915.144250'
 
 def ts():
     return pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
@@ -344,31 +347,6 @@ def new_ds_record():
     return { 'project':'', 'campaign':'', 'model':'', 'experiment':'', 'ensemble':'', 'output_type':'', 'datasettype':'', 'realm':'', 'grid':'', 'frequency':'', 'DAWPS':'', 'D':'_', 'A':'_', 'W':'_', 'P':'_', 'S':'_', 'StatDate':'', 'Status':'', \
         'W_Version':'', 'W_Count':0, 'P_Version':'', 'P_Count':0, 'S_Version':'', 'S_Count':0, 'W_Path':'', 'P_Path':'', 'FirstFile':'', 'LastFile':'' }
 
-def realm_grid_freq_from_dstype(dstype):
-    dstlist = dstype.split('_')
-    rcode = dstlist[0]
-    gcode = dstlist[1]
-    if len(dstlist) == 3:
-        freq = dstlist[2]
-    else:
-        freq = '_'.join([dstlist[2], dstlist[3]])
-
-    if rcode == 'atm':
-        realm = 'atmos'
-    elif rcode == 'lnd':
-        realm = 'land'
-    elif rcode == 'ocn':
-        realm = 'ocean'
-    else:
-        realm = rcode
-
-    if gcode == 'nat':
-        grid = 'native'
-    else:
-        grid = gcode
-
-    return realm, grid, freq
-
 def campaign_via_model_experiment(model,experiment):
     if model in ['1_0']:
         if experiment in ['1950-Control-HR','1950-Control-LR','1950-Control-LRtunedHR','1950-Control-21yrContHiVol-HR',\
@@ -473,30 +451,70 @@ def dsids_from_dataset_spec(dataset_spec_path):
     # return dataset_ids
 
 
+def realm_grid_freq_from_dstype(dstype):
+    dstlist = dstype.split('_')
+    rcode = dstlist[0]
+    gcode = dstlist[1]
+    if len(dstlist) == 3:
+        freq = dstlist[2]
+    else:
+        freq = '_'.join([dstlist[2], dstlist[3]])
+
+    if rcode == 'atm':
+        realm = 'atmos'
+    elif rcode == 'lnd':
+        realm = 'land'
+    elif rcode == 'ocn':
+        realm = 'ocean'
+    else:
+        realm = rcode
+
+    if gcode == 'nat':
+        grid = 'native'
+    else:
+        grid = gcode
+
+    return realm, grid, freq
+
+def get_archspec(archline):
+    #   Campaign,Model,Experiment,Resolution,Ensemble,DatasetType,OutputType,ArchivePath,DatatypeTarExtractionPattern,Notes
+    archvals = archline.split(',')
+    archspec = {}
+    archspec['campa'] = archvals[0]
+    archspec['model'] = archvals[1]
+    archspec['exper'] = archvals[2]
+    archspec['resol'] = archvals[3]
+    archspec['ensem'] = archvals[4]
+    archspec['dstyp'] = archvals[5]
+    archspec['otype'] = archvals[6]
+    archspec['apath'] = archvals[7]
+    archspec['apatt'] = archvals[8]
+    return archspec
+
 
 # DSID = PROJ.Model.Exper.Resol.[tuning.]Realm.Grid.OutType.Freq.Ens
 
 def dsid_from_archive_map(amline):
-    #   Campaign,Model,Experiment,Resolution,Ensemble,DatasetType,ArchivePath,DatatypeTarExtractionPattern,Notes
-    amap_items = amline.split(',')
-    realm, grid, freq = realm_grid_freq_from_dstype(amap_items[5])
+    archspec = get_archspec(amline)
+    realm, grid, freq = realm_grid_freq_from_dstype(archspec[dstype])
     tuning = 0
-    if amap_items[2][0:5] == 'F2010':
+    if archspec['exper'][0:5] == 'F2010':
         tuning = 1
-    if amap_items[2][0:12] == '1950-Control' and not amap_items[2] == '1950-Control-21yrContHiVol-HR':
-        amap_items[2] = '1950-Control'
+    # '1950-Control'* is overloaded
+    if amap_items['exper'][0:12] == '1950-Control' and not amap_items['exper'] == '1950-Control-21yrContHiVol-HR':
+        amap_items['exper'] = '1950-Control'
     dsid_items = list()
     dsid_items.append('E3SM')
-    dsid_items.append(amap_items[1]) # model
-    dsid_items.append(amap_items[2]) # exper
-    dsid_items.append(amap_items[3]) # resol
+    dsid_items.append(archspec['model'])
+    dsid_items.append(archspec['exper'])
+    dsid_items.append(archspec['resol'])
     if tuning:
         dsid_items.append('tuning')     # should not happen from archive_map
     dsid_items.append(realm)
     dsid_items.append(grid)
-    dsid_items.append('model-output')
+    dsid_items.append(archspec['otype'])
     dsid_items.append(freq)
-    dsid_items.append(amap_items[4]) # ensem
+    dsid_items.append(archspec['ensem'])
         
     dsid = '.'.join(dsid_items)
     return dsid
@@ -632,7 +650,8 @@ def main():
     ''' STAGE 1:  Update ds_struct with datasets found in the archive_map. '''
 
     # split the Archive_Map into a list of records, each record a list of fields
-    #   Campaign,Model,Experiment,Resolution,Ensemble,DatasetType,ArchivePath,DatatypeTarExtractionPattern,Notes
+    #   (was) Campaign,Model,Experiment,Resolution,Ensemble,DatasetType,ArchivePath,DatatypeTarExtractionPattern,Notes
+    #   (now) Campaign,Model,Experiment,Resolution,Ensemble,DatasetType,OutputType,,ArchivePath,DatatypeTarExtractionPattern,Notes
     am_lines = loadFileLines(ARCH_MAP)
     for amline in am_lines:
         dsid = dsid_from_archive_map(amline)
@@ -641,7 +660,7 @@ def main():
                 ds_struct[dsid] = new_ds_record()
                 init_ds_record_from_dsid(ds_struct[dsid],dsid)
             else:
-                print(f"DBG: tossing A-entry not in D: {dsid}")
+                # print(f"DBG: tossing A-entry not in D: {dsid}")
                 continue
         ds = ds_struct[dsid]
         ds['A'] = 'A'
@@ -697,7 +716,7 @@ def main():
     ds_count = len(ds_struct)
     print(f"{ts()}:DEBUG: Completed Stage 3: publication: len(ds_struct) = {ds_count}", flush=True)
 
-    ''' STAGE 4: Process the esgf-search supplied dataset results.  Collect max version, and filecount of max version. '''
+    ''' STAGE 4: Process the supplied (latest) sproket-generated ESGF_publication_report.  Collect max version, and filecount of max version. '''
 
     facets = { "project": "e3sm" }
     esgf_report = collect_esgf_search_datasets(facets)

@@ -285,14 +285,6 @@ def set_last_status_value(statfile,status_str):
     else:
         log_message("warning", f"No permission to write {statfile}")
 
-'''
-
-def set_last_status_value(statfile,status_str):
-    with open(statfile, "a") as outstream:
-        tstamp =  UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
-        msg = f'STAT:{tstamp}:{status_str}'
-        outstream.write(msg + "\n")
-'''
 
 # -----------------------------------------------
 
@@ -312,9 +304,6 @@ def main():
         stat_root = Path(gv_stat_root)      # must do this per dsid - may encounter both internal and external dataset_ids
         if is_dsid_external(dsid):
             stat_root = Path(gv_stat_root_ext)
-
-        # print(f"DEBUG STATPATH: stat_root = {stat_root} for dsid {dsid}")
-        # continue
 
         # establish project
         project = dsid.split(".")[0]
@@ -338,7 +327,6 @@ def main():
             last_stats = get_last_status_value(statents)
             if len(last_stats):
                 got_stats = True
-                # print(f"Last Stat = {last_stats}")
 
             log_message("info", f"Processing:{dsid}: statfile={got_sfile},stat_ents={got_stats}")
 
