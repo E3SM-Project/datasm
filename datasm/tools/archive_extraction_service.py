@@ -124,8 +124,9 @@ def get_archspec(archline):
     archspec['resol'] = archvals[3]
     archspec['ensem'] = archvals[4]
     archspec['dstyp'] = archvals[5]
-    archspec['apath'] = archvals[6]
-    archspec['apatt'] = archvals[7]
+    archspec['otype'] = archvals[6]
+    archspec['apath'] = archvals[7]
+    archspec['apatt'] = archvals[8]
 
     return archspec
 
@@ -150,7 +151,7 @@ def get_dsid_via_archline(archline):
                     archspec['resol'], \
                     realm, \
                     grid, \
-                    'model-output', \
+                    archspec['otype'], \
                     freq, \
                     archspec['ensem']])
 
@@ -275,11 +276,12 @@ def main():
     zstashversion = check_output(['zstash', 'version']).decode('utf-8').strip()
     # print(f'zstash version: {zstashversion}')
 
-    if not (zstashversion == 'v0.4.1' or zstashversion == 'v0.4.2' or zstashversion == 'v1.0.0' or zstashversion == 'v1.1.0' or zstashversion == 'v1.2.0' ):
-        logMessage('ERROR',f'ARCHIVE_EXTRACTION_SERVICE: zstash version ({zstashversion})is not 0.4.1 or greater, or is unavailable')
+    zstash_main_version = zstashversion[0:2]
+    if zstash_main_version == 'v0':
+        logMessage("ERROR",f"ARCHIVE_EXTRACTION_SERVICE: zstash version ({zstashversion}) must be 1.0.0 or greater, or is unavailable")
         sys.exit(1)
 
-    logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Startup:zstash version = {zstashversion}')
+    logMessage("INFO",f"ARCHIVE_EXTRACTION_SERVICE:Startup:zstash version = {zstashversion}")
 
     # The outer request loop:
     while True:
@@ -306,7 +308,7 @@ def main():
         newstat = False
         for am_spec_line in dataset_spec:
 
-            # BECOME SETUP:  Ensure dsidi, paths and status file are ready:
+            # BECOME SETUP:  Ensure dsid, paths and status file are ready:
 
             logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Conducting Setup for extraction request:{am_spec_line}')
             arch_spec = get_archspec(am_spec_line)
@@ -339,6 +341,10 @@ def main():
             arch_patt = arch_spec['apatt']
             holodeck = os.path.join(gv_holospace,"holodeck-" + ts('') )
             holozst = os.path.join(holodeck,'zstash')
+
+            if not os.path.exists(arch_path):
+                logMessage('ERROR',f'ARCHIVE_EXTRACTION_SERVICE: no path {arch_path} found for am_spec_line {am_spec_line}')
+                continue
 
             # logMessage('DEBUG',f'Preparing zstash holodeck: {holodeck}')
 

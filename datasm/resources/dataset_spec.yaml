@@ -1,3 +1,4 @@
+
 # reference: https://wcrp-cmip.github.io/CMIP6_CVs/docs/CMIP6_experiment_id.html
 #
 tables:
@@ -152,7 +153,6 @@ tables:
         - sitimefrac
         - siu
         - siv
-
 time-series:
     atmos:
         - CLDHGH
@@ -224,9 +224,7 @@ time-series:
         - SOILWATER_10CM
         - TSA
         - TSOI
-
 project:
-
     CMIP6:
         test:
             test:
@@ -237,7 +235,7 @@ project:
                         - r1i1p1f1
                     # the test case uses the piControl data
                     except:
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -299,7 +297,7 @@ project:
                         - Omon
                         - Ofx
                         - SImon
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -322,7 +320,7 @@ project:
                         - Omon
                         - Ofx
                         - SImon
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -345,7 +343,7 @@ project:
                         - Omon
                         - Ofx
                         - SImon
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -357,7 +355,6 @@ project:
                         - gpp
                         - rh
                         - ra
-
         ScenarioMIP:
             E3SM-1-0:
                 ssp585:
@@ -469,7 +466,6 @@ project:
                         - gpp
                         - rh
                         - ra
-
         CMIP:
             E3SM-1-0:
                 piControl:
@@ -478,7 +474,7 @@ project:
                     ens:
                         - r1i1p1f1
                     except:
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -496,7 +492,7 @@ project:
                     ens:
                         - r1i1p1f1
                     except:
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -514,7 +510,7 @@ project:
                     ens:
                         - r1i1p1f1
                     except:
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -529,7 +525,7 @@ project:
                 amip:
                     start: 1870
                     end: 2014
-                    ens: 
+                    ens:
                         - r1i1p1f1
                         - r2i1p1f1
                         - r3i1p1f1
@@ -537,7 +533,7 @@ project:
                         - Omon
                         - Ofx
                         - SImon
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -552,14 +548,14 @@ project:
                 historical:
                     start: 1850
                     end: 2014
-                    ens: 
+                    ens:
                         - r1i1p1f1
                         - r2i1p1f1
                         - r3i1p1f1
                         - r4i1p1f1
                         - r5i1p1f1
                     except:
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -571,7 +567,6 @@ project:
                         - gpp
                         - rh
                         - ra
-                        
             E3SM-1-1:
                 piControl:
                     start: 1850
@@ -635,7 +630,7 @@ project:
                     ens:
                         - r1i1p1f1
                     except:
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -653,7 +648,7 @@ project:
                     ens:
                         - r1i1p1f1
                     except:
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -672,7 +667,7 @@ project:
                         - r1i1p1f1
                         - r2i1p1f1
                     except:
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -687,7 +682,7 @@ project:
                 amip:
                     start: 1870
                     end: 2014
-                    ens: 
+                    ens:
                         - r1i1p1f1
                         - r2i1p1f1
                         - r3i1p1f1
@@ -695,7 +690,7 @@ project:
                         - Omon
                         - Ofx
                         - SImon
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -710,14 +705,14 @@ project:
                 historical:
                     start: 1850
                     end: 2014
-                    ens: 
+                    ens:
                         - r1i1p1f1
                         - r2i1p1f1
                         - r3i1p1f1
                         - r4i1p1f1
                         - r5i1p1f1
                     except:
-                        - cLitter 
+                        - cLitter
                         - cProduct
                         - cSoilFast
                         - cSoilMedium
@@ -729,8 +724,6 @@ project:
                         - gpp
                         - rh
                         - ra
-
-
     E3SM:
         '1_0':
             piControl:
@@ -756,6 +749,8 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
@@ -766,31 +761,36 @@ project:
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
-                        misc:
-                            -
-                                grid: native
-                                data_types:
-                                    - mapping.fixed
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
                             - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             1950-Transient-LRtunedHR:
                 start: 1950
                 end: 2014
@@ -803,7 +803,7 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -812,36 +812,48 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             1950-Control:
                 start: 26
                 end: 55
@@ -854,7 +866,7 @@ project:
                 resolution:
                     0_25deg_atm_18-6km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -862,11 +874,13 @@ project:
                                     - model-output.6hr_snap
                                     - model-output.day
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
-                            -
+                            - 
                                 grid: 720x1440
                                 data_types:
                                     - model-output.3hr
@@ -875,40 +889,41 @@ project:
                                     - model-output.day
                                     - model-output.mon
                         land:
-                            -
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
-                            -
+                            - 
                                 grid: 720x1440
                                 data_types:
                                     - model-output.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
-                        river:
-                            -
-                                grid: native
-                                data_types:
-                                    - model-output.mon
-                        sea-ice:
-                            -
-                                grid: native
-                                data_types:
-                                    - model-output.mon
-                        misc:
-                            -
-                                grid: native
-                                data_types:
-                                    - mapping.fixed
+                                    - namefile.fixed
                                     - restart.fixed
-                        
+                                    - streams.fixed
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        sea-ice:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
@@ -918,34 +933,37 @@ project:
                                     - model-output.day
                                     - model-output.mon
                         land:
-                            -
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
-                        misc:
-                            -
-                                grid: native
-                                data_types:
-                                    - mapping.fixed
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
                             - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 360x720
                                 data_types:
                                     - model-output.mon
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             1950-Control-HR-56-136:
                 start: 56
                 end: 136
@@ -958,7 +976,7 @@ project:
                 resolution:
                     0_25deg_atm_18-6km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -966,11 +984,13 @@ project:
                                     - model-output.6hr_snap
                                     - model-output.day
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
-                            -
+                            - 
                                 grid: 720x1440
                                 data_types:
                                     - model-output.3hr
@@ -979,36 +999,38 @@ project:
                                     - model-output.day
                                     - model-output.mon
                         land:
-                            -
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
-                            -
+                            - 
                                 grid: 720x1440
                                 data_types:
                                     - model-output.mon
-                        misc:
-                            -
-                                grid: native
-                                data_types:
-                                    - mapping.fixed
-                                    - restart.fixed
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             1950-Control-HR-136-150:
                 start: 136
                 end: 150
@@ -1021,7 +1043,7 @@ project:
                 resolution:
                     0_25deg_atm_18-6km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1029,11 +1051,13 @@ project:
                                     - model-output.6hr_snap
                                     - model-output.day
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
-                            -
+                            - 
                                 grid: 720x1440
                                 data_types:
                                     - model-output.3hr
@@ -1042,36 +1066,38 @@ project:
                                     - model-output.day
                                     - model-output.mon
                         land:
-                            -
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
-                            -
+                            - 
                                 grid: 720x1440
                                 data_types:
                                     - model-output.mon
-                        misc:
-                            -
-                                grid: native
-                                data_types:
-                                    - mapping.fixed
-                                    - restart.fixed
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             1pctCO2:
                 start: 1
                 end: 150
@@ -1086,7 +1112,7 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1095,36 +1121,48 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             abrupt-4xCO2:
                 start: 1
                 end: 150
@@ -1139,7 +1177,7 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1148,36 +1186,48 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             abrupt-4xCO2-ext300yrs:
                 start: 140
                 end: 300
@@ -1191,7 +1241,7 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1200,36 +1250,48 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             amip:
                 start: 1870
                 end: 2014
@@ -1246,7 +1308,7 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1255,16 +1317,20 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
@@ -1284,7 +1350,7 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1293,16 +1359,20 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
@@ -1322,7 +1392,7 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1331,16 +1401,20 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
@@ -1361,7 +1435,7 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1370,36 +1444,48 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             ssp585-GHG:
                 start: 2015
                 end: 2099
@@ -1415,7 +1501,7 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1424,36 +1510,48 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             ssp585:
                 start: 2015
                 end: 2099
@@ -1472,7 +1570,7 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1481,37 +1579,48 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
-
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             1950-Control-21yrContHiVol-HR:
                 start: 56
                 end: 76
@@ -1525,7 +1634,7 @@ project:
                 resolution:
                     0_25deg_atm_18-6km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1534,38 +1643,49 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 720x1440
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 720x1440
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
                                     - model-output.day
-
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             F2010:
                 start: 1
                 end: 5
@@ -1583,7 +1703,7 @@ project:
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
-                            -
+                            - 
                                 grid: 720x1440
                                 data_types:
                                     - model-output.mon
@@ -1615,18 +1735,18 @@ project:
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
-                            -
+                            - 
                                 grid: 720x1440
                                 data_types:
                                     - model-output.mon
                     1deg_atm_60-30km_ocean:
-                        lowres.atmos:
+                        highres.atmos:
                             - 
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
-                        highres.atmos:
-                            -
+                        lowres.atmos:
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
@@ -1647,7 +1767,7 @@ project:
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
-                            -
+                            - 
                                 grid: 720x1440
                                 data_types:
                                     - model-output.mon
@@ -1679,7 +1799,7 @@ project:
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
-                            -
+                            - 
                                 grid: 720x1440
                                 data_types:
                                     - model-output.mon
@@ -1712,7 +1832,7 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -1721,36 +1841,48 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
                             - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
         '1_1':
             piControl:
                 start: 1850
@@ -1766,45 +1898,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             piControl-ext85yr:
                 start: 2015
                 end: 2100
@@ -1819,45 +1963,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             hist-BDRD:
                 start: 1850
                 end: 2014
@@ -1872,45 +2028,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             hist-BDRC:
                 start: 1850
                 end: 2014
@@ -1925,45 +2093,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             hist-BCRD:
                 start: 1850
                 end: 2014
@@ -1977,45 +2157,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             hist-BCRC:
                 start: 1850
                 end: 2014
@@ -2029,45 +2221,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             ssp585-BDRD:
                 start: 2015
                 end: 2100
@@ -2082,45 +2286,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             ssp585-BDRC:
                 start: 2015
                 end: 2100
@@ -2135,45 +2351,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             ssp585-BCRD:
                 start: 2015
                 end: 2100
@@ -2187,45 +2415,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             ssp585-BCRC:
                 start: 2015
                 end: 2100
@@ -2239,45 +2479,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
         '1_1_ECA':
             piControl:
                 start: 1850
@@ -2293,45 +2545,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             piControl-ext85yr:
                 start: 2015
                 end: 2100
@@ -2346,45 +2610,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             hist-BDRD:
                 start: 1850
                 end: 2014
@@ -2399,45 +2675,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             hist-BDRC:
                 start: 1850
                 end: 2014
@@ -2452,45 +2740,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             hist-BCRD:
                 start: 1850
                 end: 2014
@@ -2504,45 +2804,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             hist-BCRC:
                 start: 1850
                 end: 2014
@@ -2556,45 +2868,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             ssp585-BDRD:
                 start: 2015
                 end: 2100
@@ -2609,45 +2933,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             ssp585-BDRC:
                 start: 2015
                 end: 2100
@@ -2662,45 +2998,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             ssp585-BCRD:
                 start: 2015
                 end: 2100
@@ -2714,45 +3062,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             ssp585-BCRC:
                 start: 2015
                 end: 2100
@@ -2766,45 +3126,57 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.3hr_snap
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.fixed
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
         '1_2':
             G-IAF:
                 start: 1
@@ -2819,16 +3191,22 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             B-1850:
                 start: 1
                 end: 100
@@ -2842,40 +3220,52 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             B-1850-DIB-ISMF:
                 start: 1
                 end: 200
@@ -2889,40 +3279,52 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             G-IAF-DIB-ISMF:
                 start: 1
                 end: 174
@@ -2936,16 +3338,22 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
         '1_2_1':
             B-1850-DIB-ISMF-3dGM:
                 start: 1
@@ -2960,40 +3368,52 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
         '1_3':
             G-IAF-DIB-ISMF-3dGM:
                 start: 1
@@ -3008,16 +3428,22 @@ project:
                 resolution:
                     1deg_atm_60-30km_ocean:
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
         '2_0':
             1pctCO2:
                 start: 1
@@ -3030,7 +3456,7 @@ project:
                 resolution:
                     LR:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3039,39 +3465,49 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
             abrupt-4xCO2:
                 start: 1
                 end: 150
@@ -3084,7 +3520,7 @@ project:
                 resolution:
                     LR:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3093,39 +3529,49 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
             amip:
                 start: 1870
                 end: 2014
@@ -3139,7 +3585,7 @@ project:
                 resolution:
                     LR:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3148,25 +3594,31 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
             hist-aer:
                 start: 1850
                 end: 2014
@@ -3182,7 +3634,7 @@ project:
                 resolution:
                     LR:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3191,39 +3643,49 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
             hist-all-xGHG-xaer:
                 start: 1850
                 end: 2014
@@ -3239,7 +3701,7 @@ project:
                 resolution:
                     LR:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3248,39 +3710,49 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
             hist-GHG:
                 start: 1850
                 end: 2014
@@ -3296,7 +3768,7 @@ project:
                 resolution:
                     LR:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3305,39 +3777,49 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
             historical:
                 start: 1850
                 end: 2014
@@ -3353,7 +3835,7 @@ project:
                 resolution:
                     LR:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3362,39 +3844,49 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
             piClim-control:
                 start: 1
                 end: 50
@@ -3406,7 +3898,7 @@ project:
                 resolution:
                     LR:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3415,25 +3907,31 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
             piClim-histaer:
                 start: 1850
                 end: 2014
@@ -3447,7 +3945,7 @@ project:
                 resolution:
                     LR:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3456,25 +3954,31 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
             piClim-histall:
                 start: 1850
                 end: 2014
@@ -3488,7 +3992,7 @@ project:
                 resolution:
                     LR:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
@@ -3497,25 +4001,31 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
-                            -
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - climo.mon
                                     - time-series.mon
                         land:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         river:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
             piControl:
                 start: 1
                 end: 500
@@ -3536,6 +4046,8 @@ project:
                                     - model-output.day
                                     - model-output.day_cosp
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
@@ -3546,30 +4058,38 @@ project:
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
                                     - time-series.mon
                         ocean:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.5day_snap
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
+                                    - streams.fixed
                         river:
                             - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                         sea-ice:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
                                     - restart.fixed
-        'test':
+                                    - streams.fixed
+        test:
             test:
                 start: 1
                 end: 1
@@ -3583,13 +4103,15 @@ project:
                 resolution:
                     test:
                         atmos:
-                            -
+                            - 
                                 grid: native
                                 data_types:
                                     - model-output.3hr
                                     - model-output.6hr
                                     - model-output.day
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
@@ -3600,6 +4122,8 @@ project:
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
                             - 
                                 grid: 180x360
                                 data_types:
@@ -3609,8 +4133,14 @@ project:
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
                         sea-ice:
                             - 
                                 grid: native
                                 data_types:
                                     - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
