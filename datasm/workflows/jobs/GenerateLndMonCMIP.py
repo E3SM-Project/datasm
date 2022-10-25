@@ -95,9 +95,11 @@ class GenerateLndMonCMIP(WorkflowJob):
         parameters['metadata_path'] = os.path.join( self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
         if model_version == "E3SM-2-0":
             parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
+            parameters['find_pattern'] = ".elm.h0"
             cwl_workflow = "lnd-elm/lnd.cwl"
         else:
             parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
+            parameters['find_pattern'] = ".clm2.h0"
             cwl_workflow = "lnd-n2n/lnd.cwl"
 
         cwl_workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow)
