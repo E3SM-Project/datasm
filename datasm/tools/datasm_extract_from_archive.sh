@@ -81,12 +81,7 @@ done
 
 mv $workdir/tmp_requests/extraction_request-* $extr_reqs_pend
 
-is_running=`ps aux | grep "python archive_extraction_service" | grep -v grep | wc -l`
-
-if [ $is_running -eq 0 ]; then
-    /p/user_pub/e3sm/staging/tools/restart_services.sh extraction
-fi
-
+/p/user_pub/e3sm/staging/tools/restart_services.sh extraction
 
 exit 0
 
