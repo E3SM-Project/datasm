@@ -13,8 +13,8 @@ grids:
   v1_ne120np4_to_cmip6_720x1440: /p/user_pub/e3sm/staging/resource/maps/map_ne120np4_to_cmip6_720x1440_aave.20181001.nc
   v2_ne120pg2_to_cmip6_180x360: /p/user_pub/e3sm/staging/resource/maps/map_ne120pg2_to_cmip6_180x360_aave.20200201.nc
   v2_ne120pg2_to_cmip6_720x1440: /p/user_pub/e3sm/staging/resource/maps/map_ne120pg2_to_cmip6_720x1440_aave.20200201.nc
-  # v2_ne120np4_to_cmip6_180x360: /p/user_pub/e3sm/staging/resource/maps/map_ne120_to_cmip6_180x360_nco.20200901.nc (no v2_ne120np4 - Charlie)
-  # v2_ne120np4_to_cmip6_720x1440: /p/user_pub/e3sm/staging/resource/maps/map_ne120_to_cmip6_720x1440_nco.20200901.nc (no v2_ne120np4 - Charlie)
+  v2_ne120_to_cmip6_180x360: /p/user_pub/e3sm/staging/resource/maps/map_ne120_to_cmip6_180x360_aave.20200901.nc
+  v2_ne120_to_cmip6_720x1440: /p/user_pub/e3sm/staging/resource/maps/map_ne120_to_cmip6_720x1440_aave.20200901.nc
 
 e3sm_resource_path: /p/user_pub/e3sm/staging/resource/
 e3sm_namefile_path: /p/user_pub/e3sm/staging/resource/namefiles/
@@ -55,9 +55,6 @@ cmip_lnd_mon:
   account: e3sm
   partition: debug
   timeout: '36000'
-  # v1_lnd_source_grid: /p/user_pub/e3sm/staging/resource/grids/ne30np4_pentagons.091226.nc
-  # v2_lnd_source_grid: /p/user_pub/e3sm/staging/resource/grids/ne30pg2.nc
-  # lnd_destination_grid: /p/user_pub/e3sm/staging/resource/grids/cmip6_180x360_scrip.20181001.nc
 
 cmip_ocn_mon:
   frequency: 10
