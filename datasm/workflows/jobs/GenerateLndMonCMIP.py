@@ -1,5 +1,6 @@
 import yaml
 import os
+import shutil
 from pathlib import Path
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
@@ -29,23 +30,29 @@ class GenerateLndMonCMIP(WorkflowJob):
         print(f"self.dataset.wh_path:   {self.dataset.warehouse_path}")
         print("============================================================================================================================")
         print(" ", flush=True)
-        # all debugging
-        # self._cmd = f"ls -l"
-        # return
-        # all debugging
 
+        cwl_config = self.config['cmip_lnd_mon']
+
+        _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
         raw_dataset = self.requires['land-native-mon']
         if raw_dataset is None:
             log_message("error", f"Job {NAME} doesnt have its requirements filled: {self.requires}")
             raise ValueError(f"Job {NAME} doesnt have its requirements filled: {self.requires}")
-        cwl_config = self.config['cmip_lnd_mon']
 
         # Begin parameters collection
-        parameters = {'lnd_data_path': raw_dataset.latest_warehouse_dir}
-        parameters.update(cwl_config)
 
-        _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+        parameters = dict()
+
+        # Start with universal constants
+
+        parameters['tables_path'] = self.config['cmip_tables_path']
+
+        # Obtain latest data path
+
+        parameters['lnd_data_path'] = raw_dataset.latest_warehouse_dir
+
+        parameters.update(cwl_config)
 
         # if we want to run all the variables
         # we can pull them from the dataset spec
@@ -87,26 +94,33 @@ class GenerateLndMonCMIP(WorkflowJob):
         # Apply variable info to parameters collection
         parameters['lnd_var_list'] = std_var_list
         parameters['cmor_var_list'] = std_cmor_list
-        parameters['one_land_file'] = os.path.join(
-            parameters['lnd_data_path'],
-            os.listdir(parameters['lnd_data_path']).pop())
 
-        parameters['tables_path'] = self.config['cmip_tables_path']
-        parameters['metadata_path'] = os.path.join( self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
-        if model_version == "E3SM-2-0":
-            parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
-            parameters['find_pattern'] = ".elm.h0"
-            cwl_workflow = "lnd-elm/lnd.cwl"
-        else:
-            parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
-            parameters['find_pattern'] = ".clm2.h0"
-            cwl_workflow = "lnd-n2n/lnd.cwl"
+        # assign cwl workflow
 
-        cwl_workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow)
+        cwl_workflow = "lnd-elm/lnd.cwl"
+        workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow)
+        log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
 
+        # Obtain metadata file, move to self._slurm_out for current-date-based version edit
+
+        metadata_name = f"{experiment}_{variant}.json"
+        metadata_path_src = os.path.join(self.config['cmip_metadata_path'],model_version,f"{metadata_name}")
+        shutil.copy(metadata_path_src,self._slurm_out)
+        metadata_path =  os.path.realpath(os.path.join(self._slurm_out,metadata_name))
         # force dataset output version here
         ds_version = "v" + get_UTC_YMD()
-        set_version_in_user_metadata(parameters['metadata_path'], ds_version)
+        set_version_in_user_metadata(metadata_path, ds_version)
+        log_message("info", f"Set dataset version in {metadata_path} to {ds_version}")
+        parameters['metadata_path'] = metadata_path
+
+        # Obtain file match pattern and mapfile by model_version
+
+        if model_version == "E3SM-2-0":
+            parameters['find_pattern'] = ".elm.h0"
+            parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
+        else:
+            parameters['find_pattern'] = ".clm2.h0"
+            parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else cmip_var[0]
@@ -119,6 +133,6 @@ class GenerateLndMonCMIP(WorkflowJob):
         # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
         outpath = '/p/user_pub/e3sm/warehouse'  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
 
-        log_message("info", f"DEBUG-001: render out the CWL run command: cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameter_path}")
-        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameter_path}"
+        log_message("info", f"DEBUG-001: render out the CWL run command: cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {workflow_path} {parameter_path}")
+        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {workflow_path} {parameter_path}"
 

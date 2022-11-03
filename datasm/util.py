@@ -1,4 +1,4 @@
-import sys
+import sys, os
 import json
 import traceback
 import inspect
@@ -324,3 +324,165 @@ def search_esgf(
 
 
 # -----------------------------------------------
+
+def parent_native_dsid(cmip6_dsid):
+
+    project, activ, inst, source, cmip_exp, variant, cmip_realm, _, _ = cmip6_dsid.split('.')
+    if project != "CMIP6":
+        return "NONE"
+    if inst != "E3SM-Project":
+        return "NONE"
+    model = source[5:].replace('-', '_')
+    # only option of rnow
+    if model == "2_0":
+        resol = "LR"
+    else:
+        resol = "1deg_atm_60-30km_ocean"
+    grid = "native"
+    otype = "model-output"
+    rval = variant[1:2] # better not be > 9
+    ens = "ens" + rval
+
+    if cmip_realm == "SImon":
+        realm = "sea-ice"
+    elif cmip_realm in [ '3hr', 'AERmon', 'Amon', 'CFmon', 'day', 'fx' ]:
+        realm = "atmos"
+    elif cmip_realm in [ 'LImon', 'Lmon' ]:
+        realm = "land"
+    elif cmip_realm in [ 'Ofx', 'Omon' ]:
+        realm = "ocean"
+    else:
+        return "NONE"
+
+    if cmip_realm[-3:4] == "mon" or cmip_realm in [ 'fx', 'Ofx' ]:
+        freq = "mon"
+    else:
+        freq = cmip_realm
+
+    if model[0:3] == "1_1":
+        if cmip_exp == "hist-bgc":
+            experiment = "hist-BDRC"
+        elif cmip_exp == "historical":
+            experiment = "hist-BDRD"
+        elif cmip_exp == "ssp585-bgc":
+            experiment = "ssp585-BDRC"
+        elif cmip_exp == "ssp585":
+            experiment = "ssp585-BDRD"
+    else:
+        experiment = cmip_exp
+
+    native_dsid = ('.').join([ "E3SM", model, experiment, resol, realm, grid, otype, freq, ens ])
+
+    # print(f"DEBUG_TEST: parent_native_dsid returns {native_dsid}")
+
+    return native_dsid
+
+wh_root = "/p/user_pub/e3sm/warehouse"
+pb_root = "/p/user_pub/work"
+
+def latest_data_vdir(dsid):
+    corepath = dsid.replace('.', '/')
+    enspath1 = os.path.join( wh_root, corepath )
+    enspath2 = os.path.join( pb_root, corepath )
+
+    if os.path.exists(enspath1):
+        if os.path.exists(enspath2):
+            the_enspath = "BOTH"
+        else:
+            the_enspath = enspath1
+    elif os.path.exists(enspath2):
+        the_enspath = enspath2
+    else:
+        return "NONE"
+
+    # print(f"TEST_DEBUG: STAGE_1: the_enspath = {the_enspath}")
+
+    if the_enspath != "BOTH":
+        vdirs = [ f.path for f in os.scandir(the_enspath) if f.is_dir() ]
+        if len(vdirs) == 0:
+            return "NONE"
+        vdirs = sorted(vdirs)
+        latest_vdir = vdirs[-1]
+        # if populated, return.  Else NONE
+        vcount = len([item for item in os.listdir(latest_vdir) if os.path.isfile(os.path.join(latest_vdir, item))])
+        if vcount > 0:
+            return latest_vdir
+        return "NONE"
+
+    # both ens dirs exist
+
+    vdirs1 = [ f.path for f in os.scandir(enspath1) if f.is_dir() ]
+    vdirs2 = [ f.path for f in os.scandir(enspath2) if f.is_dir() ]
+    if len(vdirs1) == 0:
+        if len(vdirs2) == 0:
+            return "NONE"
+        the_vdirs = sorted(vdirs2)
+    elif len(vdirs2) == 0:
+        the_vdirs = sorted(vdirs1)
+    else:
+        the_vdirs = "BOTH"
+
+    # print(f"TEST_DEBUG: STAGE_2: the_vdirs = {the_vdirs}")
+
+    if the_vdirs != "BOTH":
+        latest_vdir = the_vdirs[-1]
+        # if populated, return.  Else NONE
+        vcount = len([item for item in os.listdir(latest_vdir) if os.path.isfile(os.path.join(latest_vdir, item))])
+        if vcount > 0:
+            return latest_vdir
+        return "NONE"
+
+    # shoot.  BOTH ensdirs have vdirs.  If only the latest of one is populated, use it
+    # otherwise, we select the vdir with latest (highest sorted) vdir tail name.
+    latest_vdir1 = vdirs1[-1]
+    latest_vdir2 = vdirs2[-1]
+
+    vcount1 = len([item for item in os.listdir(latest_vdir1) if os.path.isfile(os.path.join(latest_vdir1, item))])
+    vcount2 = len([item for item in os.listdir(latest_vdir2) if os.path.isfile(os.path.join(latest_vdir2, item))])
+
+    if vcount1 == 0:
+        if vcount2 == 0:
+            return "NONE"
+        return latest_vdir2
+    elif vcount2 == 0:
+        return latest_vdir1
+
+    # compare the tails
+    vtail1 = latest_vdir1.split('/')[-1]
+    vtail2 = latest_vdir2.split('/')[-1]
+
+    if vtail1 > vtail2:
+        return latest_vdir1
+    return latest_vdir2
+
+
+def latest_aux_data(in_dsid, atype, for_e2c):
+
+    project = in_dsid.split('.')[0]
+    if project == "CMIP6":
+        e3sm_dsid = parent_native_dsid(in_dsid)
+        if e3sm_dsid == "NONE":
+            return "NONE"
+    else:
+        e3sm_dsid = in_dsid
+
+    _, model, exper, resol, realm, grid, otype, freq, ens = e3sm_dsid.split('.')
+
+    if realm == "sea-ice" and atype == "restart" and for_e2c:
+        realm = "ocean"
+
+    target_dsid = ('.').join([ "E3SM", model, exper, resol, realm, grid, atype, "fixed", ens ])
+
+    # print(f"DEBUG_TEST: target_dsid = {target_dsid}")
+
+    latest_dir = latest_data_vdir(target_dsid)
+    if latest_dir == "NONE":
+        return "NONE"
+
+    # get full path to the first file from this directory
+    the_file = os.listdir(latest_dir)[0]
+
+    # print(f"THE FILE: {the_file}")
+    return os.path.join(latest_dir, the_file)
+
+

@@ -1,13 +1,13 @@
 import os
 import yaml
+import shutil
 from pathlib import Path
-from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
+from tempfile import NamedTemporaryFile
 from datasm.workflows.jobs import WorkflowJob
-from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata
+from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata, latest_aux_data
 
 NAME = 'GenerateSeaIceCMIP'
-
 
 class GenerateSeaIceCMIP(WorkflowJob):
 
@@ -21,17 +21,25 @@ class GenerateSeaIceCMIP(WorkflowJob):
 
         log_message("info", f"resolve_cmd: Start: dsid={self.dataset.dataset_id}")
 
-        raw_seaice_dataset = self.requires['seaice-native-mon']
-        # raw_atmos_dataset = self.requires['atmos-native-mon']
         cwl_config = self.config['cmip_ocn_mon']
-
-        # Begin parameters collection
-        parameters = { 'data_path': raw_seaice_dataset.latest_warehouse_dir, }
-        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout, mpas_region_path
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
-        # log_message("info", f"resolve_cmd: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
+        raw_seaice_dataset = self.requires['seaice-native-mon']
+
+        # Begin parameters collection
+
+        parameters = dict()
+
+        # Start with universal constants
+
+        parameters['tables_path'] = self.config['cmip_tables_path']
+
+        # Obtain latest data path
+
+        parameters['data_path'] = raw_seaice_dataset.latest_warehouse_dir
+
+        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout, mpas_region_path
 
         # if we want to run all the variables
         # we can pull them from the dataset spec
@@ -84,38 +92,41 @@ class GenerateSeaIceCMIP(WorkflowJob):
         # Apply variable info to parameters collection
         parameters['cmor_var_list'] = cmip_var
 
+        # assign cwl workflow
+
         cwl_workflow_main = "mpassi/mpassi.cwl"
         cwl_workflow = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
+        log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
 
-        metadata_path = os.path.join(self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
+        # Obtain metadata file, move to self._slurm_out for current-date-based version edit
 
+        metadata_name = f"{experiment}_{variant}.json"
+        metadata_path_src = os.path.join(self.config['cmip_metadata_path'],model_version,f"{metadata_name}")
+        shutil.copy(metadata_path_src,self._slurm_out)
+        metadata_path =  os.path.realpath(os.path.join(self._slurm_out,metadata_name))
         # force dataset output version here
         ds_version = "v" + get_UTC_YMD()
         set_version_in_user_metadata(metadata_path, ds_version)
         log_message("info", f"Set dataset version in {metadata_path} to {ds_version}")
+        parameters['metadata'] = { 'class': 'File', 'path': metadata_path }
 
-        parameters['tables_path'] = self.config['cmip_tables_path']
-        parameters['metadata'] = {
-            'class': 'File',
-            'path': metadata_path
-            }
+        # Obtain mapfile and region_path by model_version
 
         if model_version == "E3SM-2-0":
-            parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
             parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['v2_oEC60to30_to_180x360'] }
             parameters['region_path'] = parameters['v2_mpas_region_path']
         else:
-            parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
             parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['v1_oEC60to30_to_180x360'] }
-            parameters['region_path'] = parameters['v1_mpas_region_path']
+            parameters['region_path'] = parameters['v2_mpas_region_path']
 
-        log_message("info", f"Applying to parameters[mapfile]: type = {type(parameters['mapfile'])}")
+        namefile = latest_aux_data(self.dataset.dataset_id, "namefile", False)
+        restfile = latest_aux_data(self.dataset.dataset_id, "restart", True)
+        if namefile == "NONE" or restfile == "NONE":
+            log_message("error","Could not obtain namefile or restart file for job params")
 
-        raw_model_version = raw_seaice_dataset.model_version
-        raw_experiment = raw_seaice_dataset.experiment
+        parameters['namelist_path'] = namefile
+        parameters['restart_path'] = restfile
 
-        parameters['namelist_path'] = os.path.join(self.config['e3sm_namefile_path'],raw_model_version,raw_experiment,'mpassi_in')
-        parameters['restart_path'] = os.path.join(self.config['e3sm_restarts_path'],raw_model_version,raw_experiment,'mpaso.rst.1851-01-01_00000.nc')
         parameters['workflow_output'] = '/p/user_pub/e3sm/warehouse'
 
         # step two, write out the parameter file and setup the temp directory
