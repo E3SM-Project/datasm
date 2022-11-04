@@ -28,7 +28,7 @@ class GenerateAtmMonTimeseries(WorkflowJob):
         # NOTE: available grids are defined in resources/datasm_config.yaml
         mapkey = "ne30_to_180x360"
         if native_resolution == "0_25deg_atm_18-6km_ocean":
-            mapkey = "ne120np4_to_cmip6_720x1440"
+            mapkey = "ne120pg2_to_cmip6_720x1440"
             # or else maybe "ne120np4_to_cmip6_180x360"
 
         map_path = self.config['grids'][mapkey]

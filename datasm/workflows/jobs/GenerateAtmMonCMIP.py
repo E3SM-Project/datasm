@@ -78,6 +78,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
         parameters['plev_cmor_list'] = plev_cmor_list                   # for plev, else no harm if empty
 
         if model_version == "E3SM-2-0":
+            parameters['find_pattern'] = ".eam.h0"
             parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
             if plev and not mlev:
                 cwl_workflow = "atm-mon-plev-eam/atm-plev.cwl"
@@ -86,6 +87,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
             elif plev and mlev:
                 cwl_workflow = "atm-unified-eam/atm-unified.cwl"
         else:
+            parameters['find_pattern'] = ".cam.h0"
             parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
             if plev and not mlev:
                 cwl_workflow = "atm-mon-plev/atm-plev.cwl"
@@ -94,6 +96,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
             elif plev and mlev:
                 cwl_workflow = "atm-unified/atm-unified.cwl"
 
+        workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow)
         log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
 
         parameters['tables_path'] = self.config['cmip_tables_path']
@@ -120,4 +123,4 @@ class GenerateAtmMonCMIP(WorkflowJob):
             parallel = "--parallel"
         else:
             parallel = ''
-        self._cmd = f"cwltool --outdir {self.dataset.warehouse_base}  --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+        self._cmd = f"cwltool --outdir {self.dataset.warehouse_base}  --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {workflow_path} {parameter_path}"

@@ -1,12 +1,11 @@
 import os
+import yaml
+import shutil
 from pathlib import Path
 from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
-
-import yaml
-
-from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata
 from datasm.workflows.jobs import WorkflowJob
+from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata, latest_aux_data
 
 NAME = 'GenerateOceanCMIP'
 
@@ -37,19 +36,30 @@ class GenerateOceanCMIP(WorkflowJob):
         if cmip_var in oa_vars:
             is_oa_var = True
 
-        # Begin parameters collection:  use 'mpas_data_path' and 'atm_data_path' for mpaso-atm.
+        # Begin parameters collection
+
+        parameters = dict()
+
+        # start with universal constants
+
+        parameters['tables_path'] = self.config['cmip_tables_path']
+
+        # Obtain latest data path 
+
+        # use 'mpas_data_path' and 'atm_data_path' for mpaso-atm.
         # including atmos-native_mon as (pbo requires PSL, etc)
         if is_oa_var:
             raw_ocean_dataset = self.requires['ocean-native-mon']
             raw_atmos_dataset = self.requires['atmos-native-mon']
-            parameters = { 'mpas_data_path': raw_ocean_dataset.latest_warehouse_dir, 'atm_data_path': raw_atmos_dataset.latest_warehouse_dir }
+            parameters['mpas_data_path'] = raw_ocean_dataset.latest_warehouse_dir
+            parameters['atm_data_path'] = raw_atmos_dataset.latest_warehouse_dir
         else:
             raw_ocean_dataset = self.requires['ocean-native-mon']
-            parameters = { 'data_path': raw_ocean_dataset.latest_warehouse_dir, }
+            parameters['data_path'] = raw_ocean_dataset.latest_warehouse_dir
 
         parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout, mpas_region_path
 
-        # log_message("info", f"resolve_cmd: Obtained model_version {model_version}, experiment {experiment}, variant {variant}, table {table}, cmip_var {cmip_var}")
+        log_message("info", f"DBG: parameters['data_path'] = {parameters['data_path']}")
 
         # if we want to run all the variables
         # we can pull them from the dataset spec
@@ -114,39 +124,43 @@ class GenerateOceanCMIP(WorkflowJob):
             parameters['cmor_var_list'] = cmip_var
             cwl_workflow_main = "mpaso/mpaso.cwl"
 
-        parameters['tables_path'] = self.config['cmip_tables_path']
         cwl_workflow = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
-        metadata_path = os.path.join(self.config['cmip_metadata_path'],model_version,f"{experiment}_{variant}.json")
 
+        # Obtain metadata file, move to self._slurm_out for current-date-based version edit
+
+        metadata_name = f"{experiment}_{variant}.json"
+        metadata_path_src = os.path.join(self.config['cmip_metadata_path'],model_version,f"{metadata_name}")
+        shutil.copy(metadata_path_src,self._slurm_out)
+        metadata_path =  os.path.realpath(os.path.join(self._slurm_out,metadata_name))
         # force dataset output version here
         ds_version = "v" + get_UTC_YMD()
         set_version_in_user_metadata(metadata_path, ds_version)
         log_message("info", f"Set dataset version in {metadata_path} to {ds_version}")
-        
-        parameters['metadata'] = {
-            'class': 'File',
-            'path': metadata_path
-            }
+        parameters['metadata'] = { 'class': 'File', 'path': f"{metadata_path}" }
 
         if is_oa_var:
             parameters['metadata_path'] = parameters['metadata']
 
-        parameters['region_path'] = parameters['mpas_region_path']
-        parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['oEC60to30_to_180x360'] }
-        if model_version == "E3SM-2-0":
-            parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
-        else:
-            parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
+        # Obtain mapfile and region_path by model_version
 
+        if model_version == "E3SM-2-0":
+            parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['v2_oEC60to30_to_180x360'] }
+            parameters['region_path'] = parameters['v2_mpas_region_path']
+        else:
+            parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['v1_oEC60to30_to_180x360'] }
+            parameters['region_path'] = parameters['v2_mpas_region_path']
 
         if is_oa_var:
             parameters['mpas_map_path'] = self.config['grids']['oEC60to30_to_180x360']
 
-        raw_model_version = raw_ocean_dataset.model_version
-        raw_experiment = raw_ocean_dataset.experiment
+        namefile = latest_aux_data(self.dataset.dataset_id, "namefile", False)
+        restfile = latest_aux_data(self.dataset.dataset_id, "restart", True)
+        if namefile == "NONE" or restfile == "NONE":
+            log_message("error","Could not obtain namefile or restart file for job params")
+             
+        parameters['namelist_path'] = namefile
+        parameters['restart_path'] = restfile
 
-        parameters['namelist_path'] = os.path.join(self.config['e3sm_namefile_path'],raw_model_version,raw_experiment,'mpaso_in')
-        parameters['restart_path'] = os.path.join(self.config['e3sm_restarts_path'],raw_model_version,raw_experiment,'mpaso.rst.1851-01-01_00000.nc')
         parameters['workflow_output'] = '/p/user_pub/e3sm/warehouse'
 
         # step two, write out the parameter file and setup the temp directory

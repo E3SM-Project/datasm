@@ -27,20 +27,23 @@ class GenerateAtmMonClimo(WorkflowJob):
         dsid = f"{self.dataset.dataset_id}"
         model = dsid.split(".")[1][0]
         native_resolution = dsid.split(".")[3]
-        # NOTE: available grids are defined in resources/datasm_config.yaml
-        mapkey = "ne30_to_180x360"
-        if native_resolution == "0_25deg_atm_18-6km_ocean":
-            mapkey = "ne120np4_to_cmip6_720x1440"
-            # or else maybe "ne120np4_to_cmip6_180x360"
-
-        map_path = self.config['grids'][mapkey]
 
         filename = Path(inpath).glob('*.nc').__next__()
         if model == "1":
             idx = re.search('\.cam\.h\d\.', filename.name)
-        else:
+            if native_resolution == "1deg_atm_60-30km_ocean":
+                mapkey = "v1_ne30_to_180x360"
+            else: # assume
+                mapkey = "v1_ne120np4_to_cmip6_720x1440"
+        else: # assume v2
             idx = re.search('\.eam\.h\d\.', filename.name)
+            if native_resolution in [ "1deg_atm_60-30km_ocean", "LR" ]:
+                mapkey = "v2_ne30_to_180x360"
+            else: # assume
+                mapkey = "v2_ne120pg2_to_cmip6_720x1440"
         casename = filename.name[:idx.start()]
+        # NOTE: available grids are defined in resources/datasm_config.yaml
+        map_path = self.config['grids'][mapkey]
 
         native_out = f"{os.environ.get('TMPDIR', '/tmp')}{os.sep}{self.dataset.dataset_id}/climo/"
         self._cmd = f"""

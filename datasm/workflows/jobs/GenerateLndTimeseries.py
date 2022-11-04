@@ -20,10 +20,14 @@ class GenerateLndTimeseries(WorkflowJob):
         dsid = f"{self.dataset.dataset_id}"
         native_resolution = dsid.split(".")[3]
         # NOTE: available grids are defined in resources/datasm_config.yaml
-        mapkey = "ne30_to_180x360"
-        if native_resolution == "0_25deg_atm_18-6km_ocean":
-            mapkey = "ne120np4_to_cmip6_720x1440"
-            # or else maybe "ne120np4_to_cmip6_180x360"
+
+        mod_ver = self.dataset.model_version
+        if mod_ver == "2_0":
+            mapkey = "v2_ne30_to_180x360"
+        else:
+            mapkey = "v1_ne30_to_180x360"
+            if native_resolution == "0_25deg_atm_18-6km_ocean":
+                mapkey = "ne120pg2_to_cmip6_720x1440"
 
         map_path = self.config['grids'][mapkey]
 
@@ -37,7 +41,7 @@ class GenerateLndTimeseries(WorkflowJob):
         # see: /p/user_pub/e3sm/bartoletti1/Projects/Dynamic_YPF_Calculation
         ypf=50
 
-        flags = "-7 --dfl_lvl=1 --no_cell_measures "
+        flags = "-7 -P elm --dfl_lvl=1 --no_cell_measures "
         self._cmd = f"""
             ncclimo {flags} -v {','.join(variables)} -s {start} -e {end} -o {native_out} --map={map_path}  -O {self.dataset.latest_warehouse_dir} --ypf={ypf} -i {raw_dataset.latest_warehouse_dir} --sgs_frc={Path(raw_dataset.latest_warehouse_dir).glob('*.nc').__next__()}/landfrac
         """
