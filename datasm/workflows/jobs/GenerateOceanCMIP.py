@@ -58,6 +58,9 @@ class GenerateOceanCMIP(WorkflowJob):
             parameters['data_path'] = raw_ocean_dataset.latest_warehouse_dir
 
         parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout, mpas_region_path
+        # Override default 10 YPF for certain variables
+        if cmip_var in [ 'all', 'hfsifrazil', 'masscello', 'so', 'thetao', 'thkcello', 'uo', 'vo', 'volcello', 'wo', 'zhalfo' ]:
+            parameters['frequency'] = 5
 
         log_message("info", f"DBG: parameters['data_path'] = {parameters['data_path']}")
 
