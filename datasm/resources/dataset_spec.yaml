@@ -466,6 +466,28 @@ project:
                         - gpp
                         - rh
                         - ra
+                hist-nat:
+                    start: 1850
+                    end: 2014
+                    ens:
+                        - r1i1p1f1
+                        - r2i1p1f1
+                        - r3i1p1f1
+                        - r4i1p1f1
+                        - r5i1p1f1
+                    except:
+                        - cLitter
+                        - cProduct
+                        - cSoilFast
+                        - cSoilMedium
+                        - cSoilSlow
+                        - fFire
+                        - fHarvest
+                        - cVeg
+                        - nbp
+                        - gpp
+                        - rh
+                        - ra
         CMIP:
             E3SM-1-0:
                 piControl:
@@ -3686,7 +3708,7 @@ project:
                                     - namefile.fixed
                                     - restart.fixed
                                     - streams.fixed
-            hist-all-xGHG-xaer:
+            hist-nat:
                 start: 1850
                 end: 2014
                 ens:
@@ -3697,7 +3719,7 @@ project:
                     - ens5
                 campaign: DECK-v2
                 science_driver: Water Cycle
-                # no cmip_case for this experiment
+                cmip_case: CMIP6.DAMIP.E3SM-Project.E3SM-2-0.hist-nat
                 resolution:
                     LR:
                         atmos:

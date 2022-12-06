@@ -70,11 +70,11 @@ DECK-v2,2_0,hist-aer,LR,ens2,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-aer
 DECK-v2,2_0,hist-aer,LR,ens3,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-aer_0201
 DECK-v2,2_0,hist-aer,LR,ens4,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-aer_0251
 DECK-v2,2_0,hist-aer,LR,ens5,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-aer_0301
-DECK-v2,2_0,hist-all-xGHG-xaer,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-all-xGHG-xaer_0101
-DECK-v2,2_0,hist-all-xGHG-xaer,LR,ens2,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-all-xGHG-xaer_0151
-DECK-v2,2_0,hist-all-xGHG-xaer,LR,ens3,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-all-xGHG-xaer_0201
-DECK-v2,2_0,hist-all-xGHG-xaer,LR,ens4,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-all-xGHG-xaer_0251
-DECK-v2,2_0,hist-all-xGHG-xaer,LR,ens5,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-all-xGHG-xaer_0301
+DECK-v2,2_0,hist-nat,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-all-xGHG-xaer_0101
+DECK-v2,2_0,hist-nat,LR,ens2,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-all-xGHG-xaer_0151
+DECK-v2,2_0,hist-nat,LR,ens3,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-all-xGHG-xaer_0201
+DECK-v2,2_0,hist-nat,LR,ens4,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-all-xGHG-xaer_0251
+DECK-v2,2_0,hist-nat,LR,ens5,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-all-xGHG-xaer_0301
 DECK-v2,2_0,hist-GHG,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-GHG_0101
 DECK-v2,2_0,hist-GHG,LR,ens2,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-GHG_0151
 DECK-v2,2_0,hist-GHG,LR,ens3,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-GHG_0201
@@ -97,7 +97,7 @@ DECK-v2,2_0,piControl_land,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.pi
 DECK-v2,2_0,piControl,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.piControl
 DECK-v2,2_0,piControl,NARRM,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.NARRM.piControl
 HR-v1,1_0,1950-Control-21yrContHiVol-HR,0_25deg_atm_18-6km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/HR-v1/theta.20190910.branch_noCNT.n438b.unc03.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG
-HR-v1,1_0,1950-Control-HR,0_25deg_atm_18-6km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/HR-v1/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG
+HR-v1,1_0,1950-Control,0_25deg_atm_18-6km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/HR-v1/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG
 HR-v1,1_0,1950-Control-HR-136-150,0_25deg_atm_18-6km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/HR-v1/20210112.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG.unc06
 HR-v1,1_0,1950-Control-HR-56-136,0_25deg_atm_18-6km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/HR-v1/theta.20190910.branch_noCNT.n825def.unc06.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG
 HR-v1,1_0,1950-Control-LRtunedHR,1deg_atm_60-30km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/HR-v1/20190509.A_WCYCL1950S_CMIP6_LRtunedHR.ne30_oECv3_ICG.anvil
