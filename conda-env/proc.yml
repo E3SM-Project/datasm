@@ -2,7 +2,7 @@
 # This environment is for testing local source code changes to the `datasm` modules related to the data processing operations `extract`, `validate`, and `postprocess` before merging them to production (the `master` branch).
 name: datasm_proc
 channels:
-  - conda-forge/label/e3sm_dev
+  # - conda-forge/label/e3sm_dev
   - conda-forge
   - e3sm
   - defaults
