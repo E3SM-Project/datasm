@@ -22,7 +22,7 @@ ocn nat fixed,namefile,run/mpas-o_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-
 ocn nat fixed,namefile,run/mpaso_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 HR-v1 HR-v2,
 ocn nat 5day_snap,model-output,*mpaso.hist.am.highFrequencyOutput.*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 HR-v1 HR-v2,
 ocn nat mon,model-output,*mpaso.hist.am.timeSeriesStatsMonthly.*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 HR-v1 HR-v2,
-ocn nat fixed,restart,run/*mpaso.rst*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 HR-v1 HR-v2,
+ocn nat fixed,restart,*mpaso.rst*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 HR-v1 HR-v2,
 ocn nat fixed,streams,run/streams.ocean,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 HR-v1 HR-v2,
 river nat mon,model-output,*mosart.h0*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 HR-v1 HR-v2,
 river nat fixed,namefile,run/mosart_in,DECK-v1
@@ -33,6 +33,6 @@ sea-ice nat day,model-output,*mpascice.hist.am.timeSeriesStatsDaily.*.nc,BGC-v1 
 sea-ice nat day,model-output,*mpassi.hist.am.timeSeriesStatsDaily.*.nc,BGC-v2 CRYO-v2 DECK-v2 HR-v2,
 sea-ice nat mon,model-output,*mpascice.hist.am.timeSeriesStatsMonthly.*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
 sea-ice nat mon,model-output,*mpassi.hist.am.timeSeriesStatsMonthly.*.nc,BGC-v2 CRYO-v1 CRYO-v2 DECK-v2 HR-v2,
-sea-ice nat fixed,restart,run/*mpascice.rst*,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
-sea-ice nat fixed,restart,run/*mpassi.rst*,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 HR-v1 HR-v2,
+sea-ice nat fixed,restart,*mpascice.rst*,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
+sea-ice nat fixed,restart,*mpassi.rst*,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 HR-v1 HR-v2,
 sea-ice nat fixed,streams,run/streams.seaice,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 HR-v1 HR-v2,
