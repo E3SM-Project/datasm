@@ -83,7 +83,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
             if plev and not mlev:
                 cwl_workflow = "atm-mon-plev-eam/atm-plev.cwl"
             elif not plev and mlev:
-                cwl_workflow = "atm-mon-model-lev-eam/atm-std.cwl"
+                cwl_workflow = "atm-mon-model-lev/atm-std.cwl"
             elif plev and mlev:
                 cwl_workflow = "atm-unified-eam/atm-unified.cwl"
         else:

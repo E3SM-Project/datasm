@@ -63,7 +63,14 @@ def validate_mapfile(mapfile: str, srcdir: Path, quiet: bool):
     """
     con_message("info", f"checking mapfile {mapfile}")
 
-    dataset_files = sorted([x.name for x in srcdir.glob("*.nc")])
+    if "namefile" in str(srcdir):
+        glob_pattern = "*_in"
+    elif "streams" in str(srcdir):
+        glob_pattern = "streams.*"
+    else:
+        glob_pattern = "*.nc"
+
+    dataset_files = sorted([x.name for x in srcdir.glob(glob_pattern)])
     mapfile_lines = sorted(loadFileLines(mapfile))
 
     if not len(dataset_files) == len(mapfile_lines):

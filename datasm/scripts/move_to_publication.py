@@ -63,14 +63,18 @@ def conduct_move(args, move_method="none"):
 
     # NOW move the files
 
+    if "namefile" in str(src_path):
+        glob_pattern = "*_in"
+    elif "streams" in str(src_path):
+        glob_pattern = "streams.*"
+    else:
+        glob_pattern = "*.nc"
+    
     file_count = 0
-    for sfile in src_path.glob("*.nc"):  # all .nc files
+    for sfile in src_path.glob(glob_pattern):
         destination = dst_path / sfile.name
         if destination.exists():
-            con_message(
-                "error",
-                f"Trying to move file {sfile} to {destination}, but the destination already exists",
-            )
+            con_message( "error", f"Trying to move file {sfile} to {destination}, but the destination already exists",)
             sys.exit(1)
         if move_method == "move":
             tfile = sfile.resolve()
