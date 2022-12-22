@@ -49,7 +49,7 @@ srcpath="NONE"
 timeout="NONE"
 logdir="NONE"
 
-if [ $institute != "E3SM-Project" ]; then
+if [[ $institute != "E3SM-Project" && $institute != "UCSB" ]]; then
     echo "NONE: non-E3SM-Project not yet supported"
     exit 0
 fi
@@ -61,6 +61,12 @@ if [ $modelversion == "2_0" ]; then
 else
     resolution="1deg_atm_60-30km_ocean"
 fi
+
+# HACK for v1_Large_Ensemble (External)
+if [[ $modelversion == "1_0" && $institute == "UCSB" ]]; then
+    modelversion="1_0_LE"
+fi
+
 grid="native"
 out_type="model-output"
 ensn=`echo $variant | cut -f1 -di | cut -c2-`
