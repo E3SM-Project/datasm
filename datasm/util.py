@@ -1,4 +1,5 @@
 import sys, os
+import shutil
 import json
 import traceback
 import inspect
@@ -254,13 +255,6 @@ def latest_dspath_version(dspath):
         return latest_version
     return None
 
-def set_version_in_user_metadata(metadata_path, dsversion):     # set version "vYYYYMMDD" in user metadata
-
-    log_message("info", f"set_version_in_user_metadata: path={metadata_path}")
-    in_data = json_readfile(metadata_path)
-    in_data["version"] = dsversion
-    json_writefile(in_data,metadata_path)
-
 def get_dataset_version_from_file_metadata(latest_dir):  # input latest_dir already includes version leaf directory
     ds_path = Path(latest_dir)
     if not ds_path.exists():
@@ -279,6 +273,37 @@ def get_dataset_version_from_file_metadata(latest_dir):  # input latest_dir alre
         log_message("info", f"No version in ds.attrs.keys()")
         ds_version = 'NONE'
     return ds_version
+
+def set_version_in_user_metadata(metadata_path, dsversion):     # set version "vYYYYMMDD" in user metadata
+
+    log_message("info", f"set_version_in_user_metadata: path={metadata_path}")
+    in_data = json_readfile(metadata_path)
+    in_data["version"] = dsversion
+    json_writefile(in_data,metadata_path)
+
+def prepare_cmip_job_metadata(cmip_dsid, in_meta_path, slurm_out):
+
+    _, _, institution, model_version, experiment, variant, table, cmip_var, _ = cmip_dsid.split('.')
+
+    metadata_name = f"{experiment}_{variant}.json"
+
+    # more cruft to support v1_LE
+    metadata_version = model_version        # metadata_version = CMIP6 "Source" unless v1_LE
+    if institution == "UCSB":
+        metadata_version = "E3SM-1-0-LE"
+
+    # copy metadata file to slurm directory for edit
+    metadata_path_src = os.path.join(in_meta_path, metadata_version, f"{metadata_name}")
+    shutil.copy(metadata_path_src, slurm_out)
+    metadata_path =  os.path.realpath(os.path.join(slurm_out, metadata_name))
+
+    # force dataset output version here
+    ds_version = "v" + get_UTC_YMD()
+    set_version_in_user_metadata(metadata_path, ds_version)
+    log_message("info", f"Set dataset version in {metadata_path} to {ds_version}")
+
+    return metadata_path
+
 
 
 
@@ -325,14 +350,31 @@ def search_esgf(
 
 # -----------------------------------------------
 
-def parent_native_dsid(cmip6_dsid):
+def parent_native_dsid(target_dsid):
 
-    project, activ, inst, source, cmip_exp, variant, cmip_realm, _, _ = cmip6_dsid.split('.')
+    project = target_dsid.split('.')[0]
+
+    if project == "E3SM":       # for climo and timeseries, e.g. E3SM.2_0.amip.LR.atmos.180x360.climo.mon.ens1
+        project, model, resol, realm, grid, out_type, freq, ensem = target_dsid.split('.')
+        if out_type not in [ "climo", "time-series" ]:
+            return "None"
+
+        native_dsid = ('.').join([ project, model, resol, realm, "native", "model-output", freq, ensem ])
+        return native_dsid
+        
+    allowed_institutions = [ "E3SM-Project", "UCSB" ]
+
+    project, activ, inst, source, cmip_exp, variant, cmip_realm, _, _ = target_dsid.split('.')
     if project != "CMIP6":
         return "NONE"
-    if inst != "E3SM-Project":
+    if inst not in allowed_institutions:
         return "NONE"
     model = source[5:].replace('-', '_')
+
+    # HACK for v1_Large_Ensemble (External)
+    if model == "1_0" and inst == "UCSB":
+        model = "1_0_LE"
+
     # only option of rnow
     if model == "2_0":
         resol = "LR"
@@ -340,7 +382,8 @@ def parent_native_dsid(cmip6_dsid):
         resol = "1deg_atm_60-30km_ocean"
     grid = "native"
     otype = "model-output"
-    rval = variant[1:2] # better not be > 9
+    rvalpart = variant.split('i')[0]    # should be rN*
+    rval = rvalpart[1:] # should be N*
     ens = "ens" + rval
 
     if cmip_realm == "SImon":
@@ -354,7 +397,7 @@ def parent_native_dsid(cmip6_dsid):
     else:
         return "NONE"
 
-    if cmip_realm[-3:4] == "mon" or cmip_realm in [ 'fx', 'Ofx' ]:
+    if cmip_realm in [ 'AERmon', 'Amon', 'CFmon', 'LImon', 'Lmon', 'Omon', 'SImon', 'fx', 'Ofx' ]:
         freq = "mon"
     else:
         freq = cmip_realm
