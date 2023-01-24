@@ -20,7 +20,8 @@ def assess_args():
 
     return args
 
-resource_path = '/p/user_pub/e3sm/staging/resource/'
+# resource_path = '/p/user_pub/e3sm/staging/resource/'
+resource_path = '/home/bartoletti1/gitcode/datasm/datasm/resources'
 
 DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
 
@@ -30,7 +31,10 @@ def main():
     pargs = assess_args()
 
     dsid = pargs.thedsid
-    dc = dsid.split(".")        # E3SM:  0=project, 1=model, 2=exper, 3=resol, 4=realm, 5=
+    dc = dsid.split(".")
+
+    # E3SM:  0=project, 1=model, 2=exper,
+    # CMIP:  0=project, 1=activ, 2=sourc, 3=exper,
 
     with open(DEFAULT_SPEC_PATH, 'r') as instream:
         dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
@@ -38,7 +42,15 @@ def main():
     # for experiment, experimentinfo in dataset_spec['project'][dc[0]][dc[1]].items():
     #     print(f"{experiment}: {experimentinfo}")
 
-    the_experiment_record = dataset_spec['project'][dc[0]][dc[1]][dc[2]]
+
+    if dc[0] == "E3SM":
+        # print(f"DEBUG: headpart = {dc[0]}.{dc[1]}.{dc[2]}")
+        the_experiment_record = dataset_spec['project'][dc[0]][dc[1]][dc[2]]
+    else:
+        # print(f"DEBUG: headpart = {dc[0]}.{dc[1]}.{dc[2]}.{dc[3]}.{dc[4]}")
+        the_experiment_record = dataset_spec['project'][dc[0]][dc[1]][dc[2]][dc[3]][dc[4]]
+
+    # print(f"DEBUG: the_experiment_record = {the_experiment_record}")
     print(f"{the_experiment_record['start']},{the_experiment_record['end']}")
 
 
