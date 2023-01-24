@@ -14,6 +14,8 @@ def assess_args():
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')
 
+    optional.add_argument('-s', '--spec_path', action='store', dest="spec_path", type=str, required=False)
+
     args = parser.parse_args()
 
     return args
@@ -79,9 +81,15 @@ def expand_dataset_spec(dataset_spec):
 
 def main():
 
-    assess_args()
+    pargs = assess_args()
 
-    ds_spec = load_yaml(DEFAULT_SPEC_PATH)
+    if pargs.spec_path:
+        if os.path.exists(pargs.spec_path):
+            ds_spec = load_yaml(pargs.spec_path)
+        else:
+            print(f"ERROR: cannot locate specified spec path: {pargs.spec_path}")
+    else:
+        ds_spec = load_yaml(DEFAULT_SPEC_PATH)
 
     if 'CASE_EXTENSIONS' in ds_spec.keys():
         expand_dataset_spec(ds_spec)
