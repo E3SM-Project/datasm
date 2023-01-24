@@ -229,523 +229,529 @@ project:
         test:
             test:
                 test:
-                    start: 1
-                    end: 2
-                    ens:
-                        - r1i1p1f1
-                    # the test case uses the piControl data
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
+                    test:
+                        start: 1
+                        end: 2
+                        ens:
+                            - r1i1p1f1
+                        # the test case uses the piControl data
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
         C4MIP:
-            E3SM-1-1:
-                hist-bgc:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - siu
-                        - siv
-                        - clcalipso
-                ssp585-bgc:
-                    start: 2015
-                    end: 2100
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - siu
-                        - siv
-                        - clcalipso
-            E3SM-1-1-ECA:
-                ssp585-bgc:
-                    start: 2015
-                    end: 2100
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - siu
-                        - siv
-                        - clcalipso
-                hist-bgc:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - siu
-                        - siv
-                        - clcalipso
+            E3SM-Project:
+                E3SM-1-1:
+                    hist-bgc:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - siu
+                            - siv
+                            - clcalipso
+                    ssp585-bgc:
+                        start: 2015
+                        end: 2100
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - siu
+                            - siv
+                            - clcalipso
+                E3SM-1-1-ECA:
+                    ssp585-bgc:
+                        start: 2015
+                        end: 2100
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - siu
+                            - siv
+                            - clcalipso
+                    hist-bgc:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - siu
+                            - siv
+                            - clcalipso
         RFMIP:
-            E3SM-2-0:
-                piClim-control:
-                    start: 1
-                    end: 50
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - Omon
-                        - Ofx
-                        - SImon
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-                piClim-histaer:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                        - r2i1p1f1
-                        - r3i1p1f1
-                    except:
-                        - Omon
-                        - Ofx
-                        - SImon
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-                piClim-histall:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                        - r2i1p1f1
-                        - r3i1p1f1
-                    except:
-                        - Omon
-                        - Ofx
-                        - SImon
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
+            E3SM-Project:
+                E3SM-2-0:
+                    piClim-control:
+                        start: 1
+                        end: 50
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - Omon
+                            - Ofx
+                            - SImon
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    piClim-histaer:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                        except:
+                            - Omon
+                            - Ofx
+                            - SImon
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    piClim-histall:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                        except:
+                            - Omon
+                            - Ofx
+                            - SImon
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
         ScenarioMIP:
-            E3SM-1-0:
-                ssp585:
-                    start: 2015
-                    end: 2099
-                    ens:
-                        - r1i1p1f1
-                        - r2i1p1f1
-                        - r3i1p1f1
-                        - r4i1p1f1
-                        - r5i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-            E3SM-1-1:
-                ssp585:
-                    start: 2015
-                    end: 2100
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - siu
-                        - siv
-                        - clcalipso
-            E3SM-1-1-ECA:
-                ssp585:
-                    start: 2015
-                    end: 2100
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - siu
-                        - siv
-                        - clcalipso
+            E3SM-Project:
+                E3SM-1-0:
+                    ssp585:
+                        start: 2015
+                        end: 2099
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                            - r4i1p1f1
+                            - r5i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                E3SM-1-1:
+                    ssp585:
+                        start: 2015
+                        end: 2100
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - siu
+                            - siv
+                            - clcalipso
+                E3SM-1-1-ECA:
+                    ssp585:
+                        start: 2015
+                        end: 2100
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - siu
+                            - siv
+                            - clcalipso
         DAMIP:
-            E3SM-1-0:
-                hist-GHG:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                        - r2i1p1f1
-                        - r3i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-            E3SM-2-0:
-                hist-aer:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                        - r2i1p1f1
-                        - r3i1p1f1
-                        - r4i1p1f1
-                        - r5i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-                hist-GHG:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                        - r2i1p1f1
-                        - r3i1p1f1
-                        - r4i1p1f1
-                        - r5i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-                hist-nat:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                        - r2i1p1f1
-                        - r3i1p1f1
-                        - r4i1p1f1
-                        - r5i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
+            E3SM-Project:
+                E3SM-1-0:
+                    hist-GHG:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                E3SM-2-0:
+                    hist-aer:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                            - r4i1p1f1
+                            - r5i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    hist-GHG:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                            - r4i1p1f1
+                            - r5i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    hist-nat:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                            - r4i1p1f1
+                            - r5i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
         CMIP:
-            E3SM-1-0:
-                piControl:
-                    start: 1
-                    end: 500
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-                1pctCO2:
-                    start: 1
-                    end: 150
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-                abrupt-4xCO2:
-                    start: 1
-                    end: 150
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-                amip:
-                    start: 1870
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                        - r2i1p1f1
-                        - r3i1p1f1
-                    except:
-                        - Omon
-                        - Ofx
-                        - SImon
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-                historical:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                        - r2i1p1f1
-                        - r3i1p1f1
-                        - r4i1p1f1
-                        - r5i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-            E3SM-1-1:
-                piControl:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - siu
-                        - siv
-                        - clcalipso
-                piControl-ext85yr:
-                    start: 2015
-                    end: 2100
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - siu
-                        - siv
-                        - clcalipso
-                historical:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - siu
-                        - siv
-                        - clcalipso
-            E3SM-1-1-ECA:
-                piControl:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - siu
-                        - siv
-                        - clcalipso
-                piControl-ext85yr:
-                    start: 2015
-                    end: 2100
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - siu
-                        - siv
-                        - clcalipso
-                historical:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - siu
-                        - siv
-                        - clcalipso
-            E3SM-2-0:
-                piControl:
-                    start: 1
-                    end: 500
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-                1pctCO2:
-                    start: 1
-                    end: 150
-                    ens:
-                        - r1i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-                abrupt-4xCO2:
-                    start: 1
-                    end: 150
-                    ens:
-                        - r1i1p1f1
-                        - r2i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-                amip:
-                    start: 1870
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                        - r2i1p1f1
-                        - r3i1p1f1
-                    except:
-                        - Omon
-                        - Ofx
-                        - SImon
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
-                historical:
-                    start: 1850
-                    end: 2014
-                    ens:
-                        - r1i1p1f1
-                        - r2i1p1f1
-                        - r3i1p1f1
-                        - r4i1p1f1
-                        - r5i1p1f1
-                    except:
-                        - cLitter
-                        - cProduct
-                        - cSoilFast
-                        - cSoilMedium
-                        - cSoilSlow
-                        - fFire
-                        - fHarvest
-                        - cVeg
-                        - nbp
-                        - gpp
-                        - rh
-                        - ra
+            E3SM-Project:
+                E3SM-1-0:
+                    piControl:
+                        start: 1
+                        end: 500
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    1pctCO2:
+                        start: 1
+                        end: 150
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    abrupt-4xCO2:
+                        start: 1
+                        end: 150
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    amip:
+                        start: 1870
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                        except:
+                            - Omon
+                            - Ofx
+                            - SImon
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    historical:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                            - r4i1p1f1
+                            - r5i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                E3SM-1-1:
+                    piControl:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - siu
+                            - siv
+                            - clcalipso
+                    piControl-ext85yr:
+                        start: 2015
+                        end: 2100
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - siu
+                            - siv
+                            - clcalipso
+                    historical:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - siu
+                            - siv
+                            - clcalipso
+                E3SM-1-1-ECA:
+                    piControl:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - siu
+                            - siv
+                            - clcalipso
+                    piControl-ext85yr:
+                        start: 2015
+                        end: 2100
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - siu
+                            - siv
+                            - clcalipso
+                    historical:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - siu
+                            - siv
+                            - clcalipso
+                E3SM-2-0:
+                    piControl:
+                        start: 1
+                        end: 500
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    1pctCO2:
+                        start: 1
+                        end: 150
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    abrupt-4xCO2:
+                        start: 1
+                        end: 150
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    amip:
+                        start: 1870
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                        except:
+                            - Omon
+                            - Ofx
+                            - SImon
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    historical:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                            - r4i1p1f1
+                            - r5i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
     E3SM:
         '1_0':
             piControl:
