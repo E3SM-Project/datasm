@@ -19,7 +19,7 @@ import datasm.util as util
 from datasm.dataset import Dataset, DatasetStatus, DatasetStatusMessage
 from datasm.listener import Listener
 from datasm.slurm import Slurm
-from datasm.util import log_message, setup_logging
+from datasm.util import log_message, setup_logging, parent_native_dsid
 from datasm.workflows import Workflow
 
 resource_path, _ = os.path.split(resources.__file__)
@@ -177,26 +177,35 @@ class AutoDataSM:
             Dataset, the E3SM dataset that matches the input requirements for the job if found, else None
         """
         # log_message("debug", f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}")
-        log_message("info", f"find_e3sm_source_dataset: Seeking raw E3SM dataset for job {job.name}")
+        log_message("info", f"find_e3sm_source_dataset: Seeking raw E3SM dataset for job {job.name} (type(job) = {type(job)})")
+
+        log_message("info", f"job._dataset = {job._dataset}")
+        log_message("info", f"job.dataset = {job.dataset}")
+
+        native_dsid = parent_native_dsid(job.dataset.dataset_id)
+        log_message("info", f"find_e3sm_source_dataset: parent_native_dsid() returns {native_dsid}")
+
+        if native_dsid == "None":
+            log_message("info", f"find_e3sm_source_dataset: Found None for job {job.name}")
+            return None
 
         for req, ds in job._requires.items():
             log_message("info", f"find_e3sm_source_dataset: DEBUG: job._requires includes req = {req}")
 
-        for x in self.collect_e3sm_datasets():
-            dataset = Dataset(
-                dataset_id=x,
-                status_path=os.path.join(self.status_path, f"{x}.status"),
-                pub_base=self.publication_path,
-                warehouse_base=self.warehouse_path,
-                archive_base=self.archive_path,
-                no_status_file=True)
-            log_message("debug", f"find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'requires_dataset()'")
-            if job.requires_dataset(dataset):
-                log_message("info", f"find_e3sm_source_dataset: dataset {dataset.dataset_id} matched job requirement")
-                dataset.initialize_status_file()
-                # log_message("debug", msg, self.debug)
-                log_message("info", f"find_e3sm_source_dataset: Found {dataset.dataset_id} for job {job.name}")
-                return dataset
+        dataset = Dataset(
+            dataset_id=native_dsid,
+            status_path=os.path.join(self.status_path, f"{native_dsid}.status"),
+            pub_base=self.publication_path,
+            warehouse_base=self.warehouse_path,
+            archive_base=self.archive_path,
+            no_status_file=True)
+        log_message("debug", f"find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'requires_dataset()'")
+        if job.requires_dataset(dataset):
+            log_message("info", f"find_e3sm_source_dataset: dataset {dataset.dataset_id} matched job requirement")
+            dataset.initialize_status_file()
+            # log_message("debug", msg, self.debug)
+            log_message("info", f"find_e3sm_source_dataset: Found {dataset.dataset_id} for job {job.name}")
+            return dataset
         log_message("info", f"find_e3sm_source_dataset: Found None for job {job.name}")
         return None
 
@@ -207,11 +216,6 @@ class AutoDataSM:
 
         # if the user gave us a wild card, filter out anything
         # that doesn't match their pattern
-
-        # log_message("info", f"setup_datasets: self.dataset_ids = {self.dataset_ids}")
-        # for x in cmip6_ids:
-        #     print(f"{x}", flush=True)
-        # sys.exit(1)
 
         if self.dataset_ids and self.dataset_ids is not None:
             dataset_ids = []
@@ -226,7 +230,7 @@ class AutoDataSM:
             self.dataset_ids = all_dataset_ids
 
         if not self.dataset_ids:
-            log_message( "error", f"setup_datasets: No datasets in dataset_spec match pattern from command line parameter --dataset-id {self.dataset_ids}")
+            log_message( "error", f"setup_datasets: No datasets in dataset_spec ({self.spec_path}) match pattern from command line parameter --dataset-id {self.dataset_ids}")
             sys.exit(1)
         else:
             msg = f"Running with datasets {pformat(self.dataset_ids)}"
@@ -258,8 +262,8 @@ class AutoDataSM:
         # fill in the start and end year for each dataset
         for dataset_id, dataset in self.datasets.items():
             if dataset.project == "CMIP6":
-                start_year = self.dataset_spec["project"]["CMIP6"][dataset.activity][dataset.model_version][dataset.experiment]["start"]
-                end_year = self.dataset_spec["project"]["CMIP6"][dataset.activity][dataset.model_version][dataset.experiment]["end"]
+                start_year = self.dataset_spec["project"]["CMIP6"][dataset.activity][dataset.institution][dataset.model_version][dataset.experiment]["start"]
+                end_year = self.dataset_spec["project"]["CMIP6"][dataset.activity][dataset.institution][dataset.model_version][dataset.experiment]["end"]
             else:
                 start_year = self.dataset_spec["project"]["E3SM"][dataset.model_version][dataset.experiment]["start"]
                 end_year = self.dataset_spec["project"]["E3SM"][dataset.model_version][dataset.experiment]["end"]
@@ -268,7 +272,7 @@ class AutoDataSM:
             dataset.end_year = end_year
 
         # if the dataset is a time-series, find out what
-        # its data variables are
+        # its data variables are [must have project=E3SM]
         for dataset in self.datasets.values():
             if "time-series" in dataset.data_type:
                 facets = dataset.dataset_id.split(".")
@@ -611,25 +615,24 @@ class AutoDataSM:
         return
 
     def collect_cmip_datasets(self, **kwargs):
+
         for activity_name, activity_val in self.dataset_spec["project"]["CMIP6"].items():
             if activity_name == "test" and not self.testing:
                 continue
-            for version_name, version_value in activity_val.items():
-                for experimentname, experimentvalue in version_value.items():
-                    for ensemble in experimentvalue["ens"]:
-                        for table_name, table_value in self.dataset_spec["tables"].items():
-                            for variable in table_value:
-                                if (
-                                    variable in experimentvalue["except"]
-                                    or table_name in experimentvalue["except"]
-                                    or variable == "all"
-                                ):
-                                    continue
-                                if "_highfreq" in variable:     # should be unnecessary now
-                                    idx = variable.find('_')
-                                    variable = variable[:idx]
-                                dataset_id = f"CMIP6.{activity_name}.E3SM-Project.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr"
-                                yield dataset_id
+            for institution_id, institution_branch in activity_val.items():
+                for version_name, version_value in institution_branch.items():    # version_name is CMIP6 Source_ID
+                    for experimentname, experimentvalue in version_value.items():
+                        for ensemble in experimentvalue["ens"]:
+                            for table_name, table_value in self.dataset_spec["tables"].items():
+                                for variable in table_value:
+                                    if (
+                                        variable in experimentvalue["except"]
+                                        or table_name in experimentvalue["except"]
+                                        or variable == "all"
+                                    ):
+                                        continue
+                                    dataset_id = f"CMIP6.{activity_name}.{institution_id}.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr"
+                                    yield dataset_id
 
     def collect_e3sm_datasets(self, **kwargs):
         for version in self.dataset_spec["project"]["E3SM"]:
