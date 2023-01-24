@@ -264,6 +264,10 @@ class Workflow(object):
                  "the workflow applied to them. If given, also use the --dataset-id flag "
                  "to specify the dataset-id that should be applied to the data\n")
         parser.add_argument(
+            "--dataset-spec",
+            default=DEFAULT_SPEC_PATH,
+            help=f"The path to the dataset specification yaml file, default={DEFAULT_SPEC_PATH}",)
+        parser.add_argument(
             '--job-workers',
             type=int,
             default=8,
