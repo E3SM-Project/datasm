@@ -14,6 +14,8 @@ def assess_args():
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')
 
+    optional.add_argument('-s', '--spec_path', action='store', dest="spec_path", type=str, required=False)
+
     args = parser.parse_args()
 
     return args
@@ -45,22 +47,24 @@ def load_yaml(inpath):
         in_yaml = yaml.load(instream, Loader=yaml.SafeLoader)
     return in_yaml
 
+# CMIP6: Project.Activity.Institution.SourceID.Experiment.VariantLabel.RealmFreq.VarName.Grid
 
 def collect_cmip_datasets(dataset_spec):
-    for activity_name, activity_val in dataset_spec['project']['CMIP6'].items():
+    for activity_name, activity_val in dataset_spec["project"]["CMIP6"].items():
         if activity_name == "test":
             continue
-        for version_name, version_value in activity_val.items():
-            for experimentname, experimentvalue in version_value.items():
-                for ensemble in experimentvalue['ens']:
-                    for table_name, table_value in dataset_spec['tables'].items():
-                        for variable in table_value:
-                            if variable in experimentvalue['except'] or table_name in experimentvalue['except'] or variable == "all":
-                                continue
-                            dataset_id = f"CMIP6.{activity_name}.E3SM-Project.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr"
-                            yield dataset_id
+        for institution_id, institution_branch in activity_val.items():
+            for version_name, version_value in institution_branch.items():    # version_name is CMIP6 Source_ID
+                for experimentname, experimentvalue in version_value.items():
+                    for ensemble in experimentvalue["ens"]:
+                        for table_name, table_value in dataset_spec["tables"].items():
+                            for variable in table_value:
+                                if ( variable in experimentvalue["except"] or table_name in experimentvalue["except"] or variable == "all"):
+                                    continue
+                                dataset_id = f"CMIP6.{activity_name}.{institution_id}.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr"
+                                yield dataset_id
 
-
+# E3SM: Project.ModelVersion.Experiment.Resolution.Realm.Grid.OutputType.Freq.Ensemble
 
 def collect_e3sm_datasets(dataset_spec):
     for version in dataset_spec['project']['E3SM']:
@@ -82,9 +86,15 @@ def dsids_from_dataset_spec(dataset_spec):
 
 def main():
 
-    assess_args()
+    pargs = assess_args()
 
-    in_yaml = load_yaml(DEFAULT_SPEC_PATH)
+    if pargs.spec_path:
+        if os.path.exists(pargs.spec_path):
+            in_yaml = load_yaml(pargs.spec_path)
+        else:
+            print(f"ERROR: cannot locate specified spec path: {pargs.spec_path}")
+    else:
+        in_yaml = load_yaml(DEFAULT_SPEC_PATH)
 
     all_cmip6_dsids = dsids_from_dataset_spec(in_yaml)
 
