@@ -1,10 +1,10 @@
 import yaml
-import os
+import os, sys
 
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 from datasm.workflows.jobs import WorkflowJob
-from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata
+from datasm.util import log_message, prepare_cmip_job_metadata
 
 NAME = 'GenerateAtmMonCMIP'
 
@@ -26,7 +26,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
         parameters = {'data_path': raw_dataset.latest_warehouse_dir}
         parameters.update(cwl_config)
 
-        _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+        _, _, institution, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
         # seek "model_version" for v2 accommodations
 
@@ -46,6 +46,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
 
         info_file = NamedTemporaryFile(delete=False)
         cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq mon -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        log_message("info", f"resolve_cmd: calling e2c: CMD = {cmd}")
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
@@ -70,6 +71,10 @@ class GenerateAtmMonCMIP(WorkflowJob):
                 mlev = True
                 std_var_list.extend(e3sm_var)
                 std_cmor_list.append(item['CMIP6 Name'])
+
+        if not mlev and not plev:
+            log_message("error", "resolve_cmd: e3sm_to_cmip --info returned EMPTY variable info")
+            sys.exit(1)
 
         parameters['vrt_map_path'] = self.config['vrt_map_path']        # not needed for mlev-only but no harm
         parameters['std_var_list'] = std_var_list                       # for mlev, else no harm if empty
@@ -100,13 +105,11 @@ class GenerateAtmMonCMIP(WorkflowJob):
         log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
 
         parameters['tables_path'] = self.config['cmip_tables_path']
-        parameters['metadata_path'] = os.path.join(
-            self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")   # model_version = CMIP6 "Source"
 
-        # force dataset output version here
-        ds_version = "v" + get_UTC_YMD()
-        set_version_in_user_metadata(parameters['metadata_path'], ds_version)
-        log_message("info", f"Set dataset version in {parameters['metadata_path']} to {ds_version}")
+        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
+
+        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+        parameters['metadata_path'] = metadata_path
 
         # step two, write out the parameter file and setup the temp directory
         self._cmip_var = 'all' if is_all else cmip_var[0]

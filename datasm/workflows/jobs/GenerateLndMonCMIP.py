@@ -1,10 +1,9 @@
 import yaml
 import os
-import shutil
 from pathlib import Path
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
-from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata
+from datasm.util import log_message, prepare_cmip_job_metadata
 from datasm.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateLndMonCMIP'
@@ -33,7 +32,7 @@ class GenerateLndMonCMIP(WorkflowJob):
 
         cwl_config = self.config['cmip_lnd_mon']
 
-        _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+        _, _, institution, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
         raw_dataset = self.requires['land-native-mon']
         if raw_dataset is None:
@@ -101,18 +100,6 @@ class GenerateLndMonCMIP(WorkflowJob):
         workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow)
         log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
 
-        # Obtain metadata file, move to self._slurm_out for current-date-based version edit
-
-        metadata_name = f"{experiment}_{variant}.json"
-        metadata_path_src = os.path.join(self.config['cmip_metadata_path'],model_version,f"{metadata_name}")
-        shutil.copy(metadata_path_src,self._slurm_out)
-        metadata_path =  os.path.realpath(os.path.join(self._slurm_out,metadata_name))
-        # force dataset output version here
-        ds_version = "v" + get_UTC_YMD()
-        set_version_in_user_metadata(metadata_path, ds_version)
-        log_message("info", f"Set dataset version in {metadata_path} to {ds_version}")
-        parameters['metadata_path'] = metadata_path
-
         # Obtain file match pattern and mapfile by model_version
 
         if model_version == "E3SM-2-0":
@@ -121,6 +108,11 @@ class GenerateLndMonCMIP(WorkflowJob):
         else:
             parameters['find_pattern'] = ".clm2.h0"
             parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
+
+        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
+
+        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+        parameters['metadata_path'] = metadata_path
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else cmip_var[0]

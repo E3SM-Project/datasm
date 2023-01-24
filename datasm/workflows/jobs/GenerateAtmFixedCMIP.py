@@ -4,7 +4,7 @@ from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
 
 import yaml
-from datasm.util import log_message, get_UTC_YMD, get_first_nc_file, set_version_in_user_metadata
+from datasm.util import log_message, prepare_cmip_job_metadata, get_first_nc_file
 from datasm.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateAtmFixedCMIP'
@@ -90,12 +90,9 @@ class GenerateAtmFixedCMIP(WorkflowJob):
         log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
 
         parameters['tables_path'] = self.config['cmip_tables_path']
-        parameters['metadata_path'] = os.path.join(self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")  # model_version = CMIP6 "Source"
 
-        # force dataset output version here
-        ds_version = "v" + get_UTC_YMD()
-        set_version_in_user_metadata(parameters['metadata_path'], ds_version)
-        log_message("info", f"Set dataset version in {parameters['metadata_path']} to {ds_version}")
+        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+        parameters['metadata_path'] = metadata_path
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else in_cmip_vars[0]

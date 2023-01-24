@@ -4,7 +4,7 @@ from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
 
 import yaml
-from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata
+from datasm.util import log_message, prepare_cmip_job_metadata
 from datasm.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateAtmDayCMIP'
@@ -28,7 +28,7 @@ class GenerateAtmDayCMIP(WorkflowJob):
         parameters = {'data_path': raw_dataset.latest_warehouse_dir}
         parameters.update(cwl_config)
 
-        _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+        _, _, institution, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
         # if we want to run all the variables
         # we can pull them from the dataset spec
@@ -78,16 +78,16 @@ class GenerateAtmDayCMIP(WorkflowJob):
 
         cwl_workflow = "atm-highfreq/atm-highfreq.cwl"
         parameters['tables_path'] = self.config['cmip_tables_path']
-        parameters['metadata_path'] = os.path.join(self.config['cmip_metadata_path'], model_version, f"{experiment}_{variant}.json")
+
         if model_version == "E3SM-2-0":
             parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
         else:
             parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
 
-        # force dataset output version here
-        ds_version = "v" + get_UTC_YMD()
-        set_version_in_user_metadata(parameters['metadata_path'], ds_version)
-        log_message("info", f"Set dataset version in {parameters['metadata_path']} to {ds_version}")
+        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
+
+        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+        parameters['metadata_path'] = metadata_path
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else in_cmip_vars[0]
