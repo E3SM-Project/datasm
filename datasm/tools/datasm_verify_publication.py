@@ -83,7 +83,7 @@ def setup_logging(loglevel, logpath):
     )
     logging.Formatter.converter = time.gmtime
     # should be a separate message call
-    # logging.info(f"Starting up the warehouse with parameters: \n{pformat(self.__dict__)}")
+    # logging.info(f"Starting up the datasm with parameters: \n{pformat(self.__dict__)}")
 
 
 # -----------------------------------------------
@@ -261,7 +261,8 @@ def is_dsid_external(dsid):
     if dsid.split(".")[0] == "E3SM":  # project
         return False
     if dsid.split(".")[0] == "CMIP6": # project
-        if dsid.split(".")[2] == "E3SM-Project":  # institution_id
+        institution = dsid.split(".")[2]
+        if institution in [ "E3SM-Project", "UCSB" ]:  # institution_id
             return False
     return True
 
@@ -321,7 +322,7 @@ def main():
             # print(f"statfile = {statfile}")
             statents = load_file_lines(statfile)
             if not statents:
-                log_message("error", f"warehouse_verify_publication: No status file or status file entries in file: {statfile}")
+                log_message("error", f"datasm_verify_publication: No status file or status file entries in file: {statfile}")
                 continue
             got_sfile = True
             last_stats = get_last_status_value(statents)
@@ -368,7 +369,7 @@ def main():
                 latest_versions.append(record['version'])
         latest_versions.sort()
         if len(latest_versions) < 1:
-            log_message("error", f"warehouse_verify_publication: No 'latest=True' version for dataset {dsid}")
+            log_message("error", f"datasm_verify_publication: No 'latest=True' version for dataset {dsid}")
             continue
         max_latest_version = latest_versions[-1]
         for record in docs:
