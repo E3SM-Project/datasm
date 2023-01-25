@@ -14,7 +14,7 @@ class GenerateAtmMonTimeseries(WorkflowJob):
 
     def resolve_cmd(self):
 
-        exclude = self._spec['project']['E3SM'][self.dataset.model_version][self.dataset.experiment].get('except', [])
+        exclude = self._spec['project']['E3SM'][self.institution][self.dataset.model_version][self.dataset.experiment].get('except', [])
         variables = [x for x in self._spec['time-series']['atmos'] if x not in exclude]
 
         raw_dataset = self.requires['atmos-native-mon']
