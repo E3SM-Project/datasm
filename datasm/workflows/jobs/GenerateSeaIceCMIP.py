@@ -1,11 +1,10 @@
 import os
 import yaml
-import shutil
 from pathlib import Path
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 from datasm.workflows.jobs import WorkflowJob
-from datasm.util import log_message, get_UTC_YMD, set_version_in_user_metadata, latest_aux_data
+from datasm.util import log_message, prepare_cmip_job_metadata, latest_aux_data
 
 NAME = 'GenerateSeaIceCMIP'
 
@@ -53,42 +52,6 @@ class GenerateSeaIceCMIP(WorkflowJob):
         var_string = ', '.join(cmip_var)
         log_message("info", f"DBG: resolve_cmd: var_string = {var_string}")
 
-        '''
-        # Call E2C to obtain variable info
-        info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip --info --realm mpassi --map dummy -v {var_string} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
-        log_message("info", f"E2C --info call: cmd = {cmd}")
-        proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-        _, err = proc.communicate()
-        if err:
-            log_message("error", f"resolve_cmd failed to obtain e3sm_to_cmip info {info_file.name}")
-            log_message("error", f"  cmd = {cmd}")
-            log_message("error", f"  err = {err}")
-            return 1    # was return None
-
-        with open(info_file.name, 'r') as instream:
-            variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
-        if variable_info is None:
-            log_message("error", f"Unable to find correct input variable for requested CMIP conversion, is {cmd} correct?")
-            raise ValueError(f"Unable to find correct input variable for requested CMIP conversion, is {cmd} correct?")
-            return 1    # was return None
-
-        std_var_list = []
-        std_cmor_list = []
-
-        log_message("info", "==================================================================================")
-        for item in variable_info:
-            log_message("info", f"DBG: E2C INFO item = {item}")
-        log_message("info", "==================================================================================")
-
-        for item in variable_info:
-            if isinstance(item['E3SM Variables'], list):
-                std_var_list.extend([v for v in item['E3SM Variables']])
-            std_cmor_list.append(item['CMIP6 Name'])
-
-        log_message("info", f"DBG: resolve_cmd: obtained std_cmor_list = {std_cmor_list}")
-        '''
-
         # Apply variable info to parameters collection
         parameters['cmor_var_list'] = cmip_var
 
@@ -98,18 +61,6 @@ class GenerateSeaIceCMIP(WorkflowJob):
         cwl_workflow = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
         log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
 
-        # Obtain metadata file, move to self._slurm_out for current-date-based version edit
-
-        metadata_name = f"{experiment}_{variant}.json"
-        metadata_path_src = os.path.join(self.config['cmip_metadata_path'],model_version,f"{metadata_name}")
-        shutil.copy(metadata_path_src,self._slurm_out)
-        metadata_path =  os.path.realpath(os.path.join(self._slurm_out,metadata_name))
-        # force dataset output version here
-        ds_version = "v" + get_UTC_YMD()
-        set_version_in_user_metadata(metadata_path, ds_version)
-        log_message("info", f"Set dataset version in {metadata_path} to {ds_version}")
-        parameters['metadata'] = { 'class': 'File', 'path': metadata_path }
-
         # Obtain mapfile and region_path by model_version
 
         if model_version == "E3SM-2-0":
@@ -118,6 +69,11 @@ class GenerateSeaIceCMIP(WorkflowJob):
         else:
             parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['v1_oEC60to30_to_180x360'] }
             parameters['region_path'] = parameters['v2_mpas_region_path']
+
+        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
+
+        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+        parameters['metadata'] = { 'class': 'File', 'path': metadata_path }
 
         namefile = latest_aux_data(self.dataset.dataset_id, "namefile", False)
         restfile = latest_aux_data(self.dataset.dataset_id, "restart", True)
