@@ -141,13 +141,15 @@ fi
                 log_message("info", f"init: setup_requisites: Yes: self.requires_dataset(dataset) returns req = {req}");
                 self._requires[req] = dataset
             else:
-                log_message("info", f"init: setup_requisites: ERR: {dataset.dataset_id} does not match for {self.name} requires {self.requires}");
+                log_message("info", f"init: setup_requisites:  No: {dataset.dataset_id} does not match for {self.name} requires {self.requires}");
 
 
     # dataset: has dataset_id, status_path, pub_base, warehouse_base, archive_base, no_status_file=True from caller, else from class
     # NOTE: This function is used in two different ways
     #    1.  At "job init", to check whether the "self.dataset" intended for this job to manage has been assigned correctly.
     #    2.  To check whether a given arbitrary dataset matches the requirements for a "raw source" dataset.
+    #
+    # NOTE:  for case 2:  "self.dataset" is the dataset to be produced.  "dataset" is the source native dataset required.
 
     def requires_dataset(self, dataset):
         """
@@ -158,9 +160,9 @@ fi
         # if self.dataset.dataset_id == dataset.dataset_id:
         #     return None
         for req, _ in self._requires.items():
-            log_message("debug", f"requires_dataset: DBG_REQ: self {self.name} has req {req}")
+            log_message("info", f"requires_dataset: DBG_REQ: self {self.name} has req {req}")
 
-        log_message("debug", f"init: requires_dataset(): trying dataset.experiment={dataset.experiment}, self.dataset.experiment={self.dataset.experiment}")
+        log_message("info", f"init: requires_dataset(): (STEP 1) trying dataset.experiment={dataset.experiment}, self.dataset.experiment={self.dataset.experiment}")
 
         # for project E3SM jobs, the "sought" dataset must match the job's (self.)dataset.
         if self.dataset.project == 'E3SM':
@@ -172,39 +174,45 @@ fi
                 e3sm_cmip_case = self._spec['project']['E3SM'][dataset_facets[1]][dataset_facets[2]].get('cmip_case')
                 # reject if this E3SM dataset does not have a "cmip_case" in the dataset_spec.
                 if not e3sm_cmip_case:
+                    log_message("info", f"init: requires_dataset: No cmip_case found.")
                     return None
 
-                my_dataset_facets = self.dataset.dataset_id.split('.')
-                my_case_attrs = '.'.join(my_dataset_facets[:5])
+                log_message("info", f"init: requires_dataset: found cmip_case = {e3sm_cmip_case}")
+                dst_dataset_facets = self.dataset.dataset_id.split('.')
+                dst_case_attrs = '.'.join(dst_dataset_facets[:5])
                 # reject if the found cmip_case does not match the job's dataset major facets.
-                if not my_case_attrs == e3sm_cmip_case:
+                if not dst_case_attrs == e3sm_cmip_case:
                     return None
 
-        log_message("debug", f"init: requires_dataset(): Experiment ({dataset.experiment}) Aligns");
+        log_message("info", f"init: requires_dataset(): Experiment ({dataset.experiment}) Aligns");
 
-        dataset_model = dataset.model_version
-        my_dataset_model = self.dataset.model_version
-        if '_' in dataset_model:
-            dataset_model = 'E3SM-' + '-'.join(dataset.model_version.split('_'))
-        if '_' in my_dataset_model:
-            my_dataset_model = 'E3SM-' + '-'.join(self.dataset.model_version.split('_'))
-        if dataset_model != my_dataset_model:
-            # reject if (translated) model does not match
-            return None
+        src_dataset_model = dataset.model_version
+        dst_dataset_model = self.dataset.model_version
+        if '_' in src_dataset_model:
+            src_dataset_model = 'E3SM-' + '-'.join(dataset.model_version.split('_'))
+        if '_' in dst_dataset_model:
+            dst_dataset_model = 'E3SM-' + '-'.join(self.dataset.model_version.split('_'))
+        if src_dataset_model != dst_dataset_model:
+            if src_dataset_model != "E3SM-1-0-LE": # HACK to accommodate v1_Large_Ensemble
+                log_message("info", f"init: requires_dataset: ERR: src_dataset_model = {src_dataset_model} but dst_dataset_model = {dst_dataset_model}")
+                # reject if (translated) model does not match
+                return None
 
-        log_message("debug", f"init: requires_dataset(): Model_version ({dataset_model}) Aligns");
+        log_message("info", f"init: requires_dataset(): Model_version ({src_dataset_model}) Aligns");
 
-        dataset_ensemble = dataset.ensemble
-        my_dataset_ensemble = self.dataset.ensemble
-        if 'ens' in dataset_ensemble:
-            dataset_ensemble = f"r{dataset.ensemble[3:]}i1p1f1"
-        if 'ens' in my_dataset_ensemble:
-            my_dataset_ensemble = f"r{self.dataset.ensemble[3:]}i1p1f1"
-        if dataset_ensemble != my_dataset_ensemble:
+        src_dataset_ensemble = dataset.ensemble
+        dst_dataset_ensemble = self.dataset.ensemble
+        log_message("info", f"init: requires_dataset(): src_ens = {src_dataset_ensemble}, dst_ens = {dst_dataset_ensemble}")
+        if 'ens' in src_dataset_ensemble:
+            src_dataset_ensemble = f"r{dataset.ensemble[3:]}i1p1f1"
+        if 'ens' in dst_dataset_ensemble:
+            dst_dataset_ensemble = f"r{self.dataset.ensemble[3:]}i1p1f1"
+        if src_dataset_ensemble[0:3] != dst_dataset_ensemble[0:3]:
             # reject if N in E3SM "ensN" does not match the N in the job's "rNi1p1f1"
+            log_message("info", f"init: requires_dataset: ERR: src_dataset_ensemble = {src_dataset_ensemble} but dst_dataset_ensemble = {dst_dataset_ensemble}")
             return None
 
-        log_message("debug", f"init: requires_dataset(): Ensemble ({dataset_ensemble}) Aligns");
+        log_message("info", f"init: requires_dataset(): Ensemble ({src_dataset_ensemble}) Aligns");
 
         log_message("info", f"init: requires_dataset(): === ")
         log_message("info", f"init: requires_dataset(): Trying all self._requires.items() for dataset_id {self.dataset.dataset_id}")
