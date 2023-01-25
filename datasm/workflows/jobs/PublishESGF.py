@@ -22,7 +22,7 @@ class PublishEsgf(WorkflowJob):
             model_version = dataset_attrs[1]
             experiment_name = dataset_attrs[2]
 
-            experiment_info = self._spec['project']['E3SM'][model_version][experiment_name]
+            experiment_info = self._spec['project']['E3SM'][self.institution][model_version][experiment_name]
             if (campaign := experiment_info.get('campaign')):
                 optional_facets['campaign'] = campaign
             if (science_driver := experiment_info.get('science_driver')):
