@@ -104,6 +104,7 @@ class Dataset(object):
             self.project = "CMIP6"
             self.data_type = "cmip"
             self.activity = facets[1]
+            self.institution = facets[2]
             self.model_version = facets[3]
             self.experiment = facets[4]
             self.ensemble = facets[5]
@@ -138,7 +139,7 @@ class Dataset(object):
                     self.warehouse_base,
                     self.project,
                     self.activity,
-                    "E3SM-Project",
+                    self.institution,
                     self.model_version,
                     self.experiment,
                     self.ensemble,
@@ -157,6 +158,7 @@ class Dataset(object):
             self.freq = facets[7]
             self.ensemble = facets[8]
             self.activity = None
+            self.institution = None
             self.table = None
             if not kwargs.get('no_status_file'):
                 self.warehouse_path = Path(
@@ -188,7 +190,7 @@ class Dataset(object):
                 self.warehouse_base,
                 self.project,
                 self.activity,
-                "E3SM-Project",
+                self.institution,
                 self.model_version,
                 self.experiment,
                 self.ensemble,
@@ -365,7 +367,7 @@ class Dataset(object):
                     self.pub_base,
                     self.project,
                     self.activity,
-                    'E3SM-Project',
+                    self.institution,
                     self.model_version,
                     self.experiment,
                     self.ensemble,

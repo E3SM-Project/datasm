@@ -14,7 +14,7 @@ class GenerateLndTimeseries(WorkflowJob):
 
     def resolve_cmd(self):
 
-        exclude = self._spec['project']['E3SM'][self.dataset.model_version][self.dataset.experiment].get('except', [])
+        exclude = self._spec['project']['E3SM'][self.institution][self.dataset.model_version][self.dataset.experiment].get('except', [])
         variables = [x for x in self._spec['time-series']['land'] if x not in exclude]
 
         dsid = f"{self.dataset.dataset_id}"

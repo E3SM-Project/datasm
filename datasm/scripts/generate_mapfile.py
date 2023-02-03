@@ -98,7 +98,15 @@ def main():
 
     futures = []
     pool = ProcessPoolExecutor(max_workers=numberproc)
-    for path in input_path.glob("*.nc"):
+
+    if "namefile" in str(input_path):
+        glob_pattern = "*_in"
+    elif "streams" in str(input_path):
+        glob_pattern = "streams.*"
+    else:
+        glob_pattern = "*.nc"
+
+    for path in input_path.glob(glob_pattern):
         futures.append(pool.submit(hash_file, path))
 
     with open(outpath, "w") as outstream:
