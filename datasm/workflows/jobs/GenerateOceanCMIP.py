@@ -95,7 +95,7 @@ class GenerateOceanCMIP(WorkflowJob):
             parameters['region_path'] = parameters['v2_mpas_region_path']
         else:
             parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['v1_oEC60to30_to_180x360'] }
-            parameters['region_path'] = parameters['v2_mpas_region_path']
+            parameters['region_path'] = parameters['v1_mpas_region_path']
 
         if is_oa_var:
             parameters['mpas_map_path'] = self.config['grids']['oEC60to30_to_180x360']
