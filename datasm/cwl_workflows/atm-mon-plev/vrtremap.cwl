@@ -62,6 +62,8 @@ inputs:
     type: int
   casename:
     type: string
+  fpatt:
+    type: string
   account: 
     type: string
   partition: 
@@ -92,4 +94,4 @@ outputs:
     type: File[]
     outputBinding:
       glob:
-        $(inputs.casename).cam.h0.[0-9][0-9][0-9][0-9]-[0-9][0-9].nc
+        $(inputs.casename)$(inputs.fpatt).[0-9][0-9][0-9][0-9]-[0-9][0-9].nc

@@ -22,6 +22,8 @@ inputs:
   plev_var_list: string[]
   plev_cmor_list: string[]
 
+  find_pattern: string
+
   account: string
   partition: string
   timeout: string
@@ -38,6 +40,7 @@ steps:
     run: find_casename.cwl
     in:
       atm_data_path: data_path
+      find_patt: find_pattern
     out:
       - casename
   
@@ -63,6 +66,7 @@ steps:
     run: discover_atm_files.cwl
     in:
       input: data_path
+      fpatt: find_pattern
       start: step_segments/segments_start
       end: step_segments/segments_end
     scatter:
@@ -90,6 +94,7 @@ steps:
       infiles: step_pull_paths/list_of_strings
       vrtmap: vrt_map_path
       casename: step_find_casename/casename
+      fpatt: find_pattern
       num_workers: num_workers
       account: account
       partition: partition
