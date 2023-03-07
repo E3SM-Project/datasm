@@ -74,7 +74,8 @@ class GenerateAtmMonCMIP(WorkflowJob):
 
         if not mlev and not plev:
             log_message("error", "resolve_cmd: e3sm_to_cmip --info returned EMPTY variable info")
-            sys.exit(1)
+            self._cmd = "echo EMPTY variable info; exit 1"
+            return 1
 
         parameters['vrt_map_path'] = self.config['vrt_map_path']        # not needed for mlev-only but no harm
         parameters['std_var_list'] = std_var_list                       # for mlev, else no harm if empty
@@ -86,7 +87,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
             parameters['find_pattern'] = ".eam.h0"
             parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
             if plev and not mlev:
-                cwl_workflow = "atm-mon-plev-eam/atm-plev.cwl"
+                cwl_workflow = "atm-mon-plev/atm-plev.cwl"
             elif not plev and mlev:
                 cwl_workflow = "atm-mon-model-lev/atm-std.cwl"
             elif plev and mlev:
