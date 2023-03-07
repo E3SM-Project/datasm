@@ -38,13 +38,13 @@ def main():
     F2.sort()
     FB.sort()
 
-    print(f'ONLY {args.file1} : {len(F1)} items')
+    print(f'only-{args.file1} : {len(F1)} items')
     print_file_list(f"only-{args.file1}",F1)
 
-    print(f'ONLY {args.file2} : {len(F2)} items')
+    print(f'only-{args.file2} : {len(F2)} items')
     print_file_list(f"only-{args.file2}",F2)
 
-    print(f'BOTH {args.file1} and {args.file2} : {len(FB)} items')
+    print(f'both-{args.file1}-and-{args.file2} : {len(FB)} items')
     print_file_list(f"both-{args.file1}-and-{args.file2}",FB)
 
     sys.exit(0)
