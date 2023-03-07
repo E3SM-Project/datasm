@@ -377,6 +377,8 @@ class AutoDataSM:
         Returns: list of new job objects
         """
 
+        Exit_On_Bad_Job = True
+
         log_message("info", f"start_datasets: Generate job objects for each dataset")
         log_message("debug", f"start_datasets: datasets={datasets}")
         new_jobs = []
@@ -535,6 +537,8 @@ class AutoDataSM:
                 else:
                     log_message("info", f"Error starting up job {job}")
                     log_message("error", f"Error starting up job {job}")
+                    if Exit_On_Bad_Job:
+                        os._exit(1)
                     continue
             else:
                 log_message("error", "DGB: job NOT added to pool")
