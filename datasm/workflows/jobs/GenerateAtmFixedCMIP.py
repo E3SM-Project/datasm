@@ -15,13 +15,13 @@ class GenerateAtmFixedCMIP(WorkflowJob):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        self._requires = {'atmos-native-mon': None}
+        self._requires = {'atmos-native-fixed': None}
         self._cmd = ''
         self._cmip_var = ''
 
     def resolve_cmd(self):
 
-        raw_dataset = self.requires['atmos-native-mon']
+        raw_dataset = self.requires['atmos-native-fixed']
 
         data_path = raw_dataset.latest_warehouse_dir
         anyfile = get_first_nc_file(data_path)
