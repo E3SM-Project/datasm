@@ -992,6 +992,140 @@ project:
                                     - namefile.fixed
                                     - restart.fixed
                                     - streams.fixed
+            1950-1970-Transient-HR:
+                start: 1950
+                end: 1970
+                ens:
+                    - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
+                campaign: HighResMIP-v1
+                resolution:
+                    0_25deg_atm_18-6km_ocean:
+                        atmos:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 720x1440
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr_ave
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                        land:
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 720x1440
+                                data_types:
+                                    - model-output.mon
+                        ocean:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.5day_snap
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        sea-ice:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+            1971-2015-Transient-HR:
+                start: 1971
+                end: 2015
+                ens:
+                    - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
+                campaign: HighResMIP-v1
+                resolution:
+                    0_25deg_atm_18-6km_ocean:
+                        atmos:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 720x1440
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr_ave
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                        land:
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 720x1440
+                                data_types:
+                                    - model-output.mon
+                        ocean:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.5day_snap
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        sea-ice:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
             1950-Control-HR-56-136:
                 start: 56
                 end: 136
@@ -4064,6 +4198,310 @@ project:
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0.piControl
                 resolution:
                     LR:
+                        atmos:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                        land:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.5day_snap
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        sea-ice:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+        '2_0_NARRM':
+            1pctCO2:
+                start: 1
+                end: 150
+                ens:
+                    - ens1
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0-NARRM.1pctCO2
+                resolution:
+                    LR-NARRM:
+                        atmos:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                        land:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.5day_snap
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        sea-ice:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+            abrupt-4xCO2:
+                start: 1
+                end: 150
+                ens:
+                    - ens1
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0-NARRM.abrupt-4xCO2
+                resolution:
+                    LR-NARRM:
+                        atmos:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                        land:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.5day_snap
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        sea-ice:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+            amip:
+                start: 1870
+                end: 2014
+                ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0-NARRM.amip
+                resolution:
+                    LR-NARRM:
+                        atmos:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                        land:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+            historical:
+                start: 1850
+                end: 2014
+                ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                    - ens4
+                    - ens5
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0-NARRM.historical
+                resolution:
+                    LR-NARRM:
+                        atmos:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                        land:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.5day_snap
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        sea-ice:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+            piControl:
+                start: 1
+                end: 500
+                ens:
+                    - ens1
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-0-NARRM.piControl
+                resolution:
+                    LR-NARRM:
                         atmos:
                             - 
                                 grid: native
