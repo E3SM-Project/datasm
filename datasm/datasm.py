@@ -189,7 +189,7 @@ class AutoDataSM:
             log_message("info", f"find_e3sm_source_dataset: Found None for job {job.name}")
             return None
 
-        for req, ds in job._requires.items():
+        for req, ds in job._requires.items(): # located in jobs/__init__.py
             log_message("info", f"find_e3sm_source_dataset: DEBUG: job._requires includes req = {req}")
 
         dataset = Dataset(
