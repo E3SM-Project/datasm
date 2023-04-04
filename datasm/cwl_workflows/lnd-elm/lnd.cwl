@@ -24,7 +24,8 @@ inputs:
 
   account: string
   partition: string
-  timeout: string
+  slurm_timeout: string
+  e2c_timeout: int
 
 outputs: 
   cmorized:
@@ -83,7 +84,7 @@ steps:
       lnd_files: step_discover_lnd_files/lnd_files
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
       var_list: lnd_var_list
     scatter:
       - lnd_files
@@ -102,7 +103,7 @@ steps:
       remapped_lnd_files: step_remap/remaped_lnd_files
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
     scatter:
       - remapped_lnd_files
       - start_year
@@ -122,7 +123,8 @@ steps:
       raw_file_list: time_series/remaped_time_series
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
+      e2c_timeout: e2c_timeout
     scatter:
       - raw_file_list
     out:

@@ -17,6 +17,8 @@ requirements:
               parser.add_argument(
                   '-i', '--input', help="root input path")
               parser.add_argument(
+                  '-f', '--fpatt', help="file-matching pattern")
+              parser.add_argument(
                   '-s', '--start-year', help="start year", type=int)
               parser.add_argument(
                   '-e', '--end-year', help="end year", type=int)
@@ -30,7 +32,7 @@ requirements:
               start = _args.start_year
               end = _args.end_year
 
-              atm_pattern = r'[c|e]am\.h\d'
+              atm_pattern = _args.fpatt
               atm_files = list()
 
               for root, dirs, files in os.walk(inpath):
@@ -52,6 +54,10 @@ inputs:
     type: string
     inputBinding:
       prefix: --input
+  file_pattern:
+    type: string
+    inputBinding:
+      prefix: --fpatt
 
 outputs:
   atm_files:

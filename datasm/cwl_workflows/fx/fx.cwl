@@ -14,11 +14,11 @@ inputs:
 
   std_var_list: string[]
   cmor_var_list: string[]
-  map_path: string
+  hrz_atm_map_path: string
 
   # cmor
   tables_path: string
-  metadata_path: string
+  metadata: string
 
 outputs:
   cmorized:
@@ -34,7 +34,7 @@ steps:
     run: hrzmap_fx.cwl
     in:
       variable_names: std_var_list
-      map_path: map_path
+      map_path: hrz_atm_map_path
       input_file: atm_data_path
     out:
       - remapped_fx
@@ -43,7 +43,7 @@ steps:
     run: cmor.cwl
     in:
       tables_path: tables_path
-      metadata_path: metadata_path
+      metadata: metadata
       var_list: cmor_var_list
       raw_file: step_hrzmap/remapped_fx
     out:

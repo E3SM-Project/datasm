@@ -11,6 +11,7 @@ inputs:
 
   data_path: string
   metadata_path: string
+  file_pattern: string
 
   frequency: int
   num_workers: int
@@ -27,7 +28,8 @@ inputs:
 
   account: string
   partition: string
-  timeout: string
+  slurm_timeout: string
+  e2c_timeout: int
 
 outputs:
   cmorized:
@@ -73,6 +75,7 @@ steps:
     run: discover_atm_files.cwl
     in:
       input: data_path
+      file_pattern: file_pattern
       start: step_segments/segments_start
       end: step_segments/segments_end
     scatter:
@@ -110,7 +113,7 @@ steps:
       input_files: step_pull_paths/list_of_strings
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
     out:
       - time_series_files
   
@@ -125,7 +128,7 @@ steps:
       input_files: step_std_hrz_remap/time_series_files
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
     out:
       - bounded_files
 
@@ -141,7 +144,8 @@ steps:
       raw_file_list: step_append_bnds/bounded_files
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
+      e2c_timeout: e2c_timeout
     out:
       - cmip6_dir
       - cmor_logs
@@ -157,7 +161,7 @@ steps:
       num_workers: num_workers
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
     out: 
       - vrt_remapped_file
   
@@ -179,7 +183,7 @@ steps:
       input_files: step_vrt_remap/vrt_remapped_file
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
     out:
       - time_series_files
 
@@ -194,7 +198,7 @@ steps:
       input_files: step_plev_hrz_remap/time_series_files
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
     out:
       - bounded_files
 
@@ -211,7 +215,8 @@ steps:
       raw_file_list: step_plev_append_bnds/bounded_files
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
+      e2c_timeout: e2c_timeout
     out:
       - cmip6_dir
       - cmor_logs

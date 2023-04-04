@@ -26,7 +26,7 @@ requirements:
                   --logdir {{ outdir }} \
                   --output {{ outdir }} \
                   --input {{ input }} \
-                  --timeout {{ timeout }}
+                  --timeout {{ e_timeout }}
               RETURN=$?
               if [ $RETURN != 0 ]; then
                   echo "Restarting"
@@ -46,13 +46,13 @@ requirements:
                       map=values.map,
                       outdir=values.outdir,
                       input=values.input,
-                      timeout=values.timeout,
+                      e_timeout=values.e_timeout,
                       workflow_output=values.workflow_output)
                   with open(script_path, 'w') as outfile:
                       outfile.write(script_contents)
                   
                   call(['chmod', '+x', script_path])
-                  call(['srun', '-A', values.account, '--partition', values.partition, '-t', '2:00:00', script_path])
+                  call(['srun', '-A', values.account, '--partition', values.partition, '-t', values.s_timeout, script_path])
               except Exception as e:
                   raise e
               else:
@@ -67,7 +67,7 @@ requirements:
               parser.add_argument('--map', required=True)
               parser.add_argument('--outdir', required=True)
               parser.add_argument('--input', required=True)
-              parser.add_argument('--timeout', required=True)
+              parser.add_argument('--e_timeout', required=True)
               parser.add_argument('--partition', required=True)
               parser.add_argument('--workflow_output', required=True)
               exit(
@@ -92,7 +92,7 @@ inputs:
     inputBinding:
       prefix: --tables
   metadata:
-    type: File
+    type: string
     inputBinding:
       prefix: --metadata
   var_list:
@@ -103,10 +103,14 @@ inputs:
     type: File
     inputBinding:
       prefix: --map
-  timeout:
+  slurm_timeout:
+    type: string
+    inputBinding:
+      prefix: --s_timeout
+  e2c_timeout:
     type: int
     inputBinding:
-      prefix: --timeout
+      prefix: --e_timeout
   workflow_output:
     type: string
     inputBinding:

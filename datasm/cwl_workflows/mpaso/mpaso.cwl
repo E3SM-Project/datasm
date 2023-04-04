@@ -7,20 +7,21 @@ requirements:
 
 inputs:
   data_path: string
-  metadata: File
+  metadata: string
   workflow_output: string
 
   mapfile: File
   frequency: int
 
   namelist_path: string
-  region_path: string
+  region_file: string
   restart_path: string
 
   tables_path: string
   cmor_var_list: string[]
 
-  timeout: int
+  slurm_timeout: string
+  e2c_timeout: int
   partition: string
   account: string
 
@@ -43,7 +44,7 @@ steps:
       input: data_path
       namelist: namelist_path
       restart: restart_path
-      region_path: region_path
+      region_file: region_file
     out:
       - segments
   
@@ -56,7 +57,8 @@ steps:
       metadata: metadata
       var_list: cmor_var_list
       mapfile: mapfile
-      timeout: timeout
+      slurm_timeout: slurm_timeout
+      e2c_timeout: e2c_timeout
       partition: partition
       account: account
       workflow_output: workflow_output

@@ -114,7 +114,7 @@ inputs:
     type: string
     inputBinding:
       prefix: --map
-  region_path:
+  region_file:
     type: string
     inputBinding:
       prefix: --region

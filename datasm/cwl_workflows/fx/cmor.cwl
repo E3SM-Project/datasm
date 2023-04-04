@@ -12,7 +12,7 @@ inputs:
     type: string
     inputBinding:
       prefix: --tables-path
-  metadata_path:
+  metadata:
     type: string
     inputBinding:
       prefix: --user-metadata

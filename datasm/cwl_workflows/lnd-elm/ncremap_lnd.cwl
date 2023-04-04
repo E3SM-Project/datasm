@@ -11,7 +11,7 @@ arguments:
   - --partition
   - $(inputs.partition)
   - -t
-  - $(inputs.timeout)
+  - $(inputs.slurm_timeout)
   - ncremap
   - '-7'
   - --dfl_lvl=1
@@ -31,7 +31,7 @@ inputs:
     type: string
   partition:
     type: string
-  timeout:
+  slurm_timeout:
     type: string
   remapfile:
     type: string

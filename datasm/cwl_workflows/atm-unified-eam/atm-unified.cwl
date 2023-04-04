@@ -27,7 +27,8 @@ inputs:
 
   account: string
   partition: string
-  timeout: string
+  slurm_timeout: string
+  e2c_timeout: int
 
 outputs:
   cmorized:
@@ -104,7 +105,7 @@ steps:
       input_files: step_pull_paths/list_of_strings
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
     out:
       - time_series_files
   
@@ -120,7 +121,8 @@ steps:
       raw_file_list: step_std_hrz_remap/time_series_files
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
+      e2c_timeout: e2c_timeout
     out:
       - cmip6_dir
 
@@ -135,7 +137,7 @@ steps:
       num_workers: num_workers
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
     out: 
       - vrt_remapped_file
   
