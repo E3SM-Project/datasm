@@ -102,6 +102,7 @@ class Workflow(object):
             log_message("info", f"WF_init next_state: test_state {test_state} FOUND in self.transition.keys.")
             log_message("debug", f"WF_init next_state: test_state {test_state} FOUND in self.transition.keys: leads to selection from {self.transitions[test_state]}")
             realm_code = dataset.realm.replace("-", "") #ALWAYS - but use a temp local variable here, not dataset.realm!
+            log_message("info", f"WF_init next_state: obtained realm_code {realm_code}")
             if dataset.grid == "native":
                 target_data_type = f'{realm_code}-native-{dataset.freq}'
             else:
