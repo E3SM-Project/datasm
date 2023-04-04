@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
-from datasm.util import log_message, prepare_cmip_job_metadata
+from datasm.util import log_message, prepare_cmip_job_metadata, derivative_conf
 from datasm.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateLndMonCMIP'
@@ -51,7 +51,7 @@ class GenerateLndMonCMIP(WorkflowJob):
 
         parameters['lnd_data_path'] = raw_dataset.latest_warehouse_dir
 
-        parameters.update(cwl_config)
+        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
 
         # if we want to run all the variables
         # we can pull them from the dataset spec
@@ -94,20 +94,9 @@ class GenerateLndMonCMIP(WorkflowJob):
         parameters['lnd_var_list'] = std_var_list
         parameters['cmor_var_list'] = std_cmor_list
 
-        # assign cwl workflow
-
-        cwl_workflow = "lnd-elm/lnd.cwl"
-        workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow)
-        log_message("info", f"resolve_cmd: Employing cwl_workflow {cwl_workflow}")
-
         # Obtain file match pattern and mapfile by model_version
 
-        if model_version == "E3SM-2-0":
-            parameters['find_pattern'] = ".elm.h0"
-            parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
-        else:
-            parameters['find_pattern'] = ".clm2.h0"
-            parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
+        parameters.update( derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path']) )
 
         # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
 
@@ -121,10 +110,17 @@ class GenerateLndMonCMIP(WorkflowJob):
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 
+        if not self.serial:
+            parallel = "--parallel"
+        else:
+            parallel = ''
+
         # step three, render out the CWL run command
         # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
-        outpath = '/p/user_pub/e3sm/warehouse'  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
+        outpath = self.config['DEFAULT_WAREHOUSE_PATH']  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
 
-        log_message("info", f"DEBUG-001: render out the CWL run command: cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {workflow_path} {parameter_path}")
-        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} --preserve-environment UDUNITS2_XML_PATH {workflow_path} {parameter_path}"
+        cwl_workflow_main = "lnd-elm/lnd.cwl"
+        cwl_workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
+
+        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameter_path}"
 

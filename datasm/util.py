@@ -304,8 +304,72 @@ def prepare_cmip_job_metadata(cmip_dsid, in_meta_path, slurm_out):
 
     return metadata_path
 
+def selection(alist,spec):
+    speclist = spec.split(',')
+
+    for spec_val in speclist:
+        print(f"TESTINGFOR: {spec_val}")
+        newlist = list()
+        for aline in alist:
+            print(f" ALINE = {aline}")
+            if aline.split(',')[0] == spec_val:
+                rlist = (',').join(aline.split(',')[1:])
+                newlist.append(rlist)
+        alist = newlist
+
+    return alist
+
+def derivative_conf(target_dsid,resource_path):
+    
+    project = target_dsid.split('.')[0]
+
+    if project == "CMIP6":
+        e3sm_dsid = parent_native_dsid(target_dsid)
+    else:
+        e3sm_dsid = target_dsid
+
+    project, model, resol, realm, grid, out_type, freq, ensem = e3sm_dsid.split('.')
+
+    # create the selection spec
+
+    selspec = f"{realm},{resol},{model}"
+    
+    # load the derivatives configuration
+
+    dc_file = os.path.join(resource_path, "derivatives.conf")
+    dclines = loadFileLines(dc_file)
+
+    spec_1 = f"{selspec},REGRID"
+    regrid = selection(dclines,spec_1)
+    if len(regrid) != 1:
+        regrid = "None"
+
+    spec_2 = f"{selspec},MASK"
+    region_mask = selection(dclines,spec_2)
+    if len(region_mask) != 1:
+        region_mask = "None"
+
+    spec_3 = f"{selspec},FILE_SELECTOR"
+    file_selector = selection(dclines,spec_3)
+    if len(file_selector) != 1:
+        file_selector = "None"
+
+    spec_4 = f"{selspec},CASE_FINDER"
+    case_finder = selection(dclines,spec_4)
+    if len(case_finder) != 1:
+        case_finder = "None"
+
+    ''' produce dictionary of return values '''
+    retval = dict()
+    retval['hrz_atm_map_path'] = regrid
+    retval['region_file'] = region_mask
+    retval['file_pattern'] = file_selector
+    retval['case_finder'] = case_finder
+
+    return retval
 
 
+    
 
 
 # -----------------------------------------------
@@ -356,7 +420,7 @@ def parent_native_dsid(target_dsid):
 
     if project == "E3SM":       # for climo and timeseries, e.g. E3SM.2_0.amip.LR.atmos.180x360.climo.mon.ens1
         project, model, resol, realm, grid, out_type, freq, ensem = target_dsid.split('.')
-        if out_type not in [ "climo", "time-series" ]:
+        if out_type not in [ "climo", "time-series" ] and grid == "native":
             return "None"
 
         native_dsid = ('.').join([ project, model, resol, realm, "native", "model-output", freq, ensem ])

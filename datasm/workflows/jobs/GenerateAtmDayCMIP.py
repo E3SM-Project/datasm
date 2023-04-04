@@ -4,7 +4,7 @@ from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
 
 import yaml
-from datasm.util import log_message, prepare_cmip_job_metadata
+from datasm.util import log_message, prepare_cmip_job_metadata, derivative_conf
 from datasm.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateAtmDayCMIP'
@@ -26,7 +26,7 @@ class GenerateAtmDayCMIP(WorkflowJob):
 
         # log_message("debug", f"Using raw input from {raw_dataset.latest_warehouse_dir}")
         parameters = {'data_path': raw_dataset.latest_warehouse_dir}
-        parameters.update(cwl_config)
+        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
 
         _, _, institution, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
@@ -76,13 +76,9 @@ class GenerateAtmDayCMIP(WorkflowJob):
         log_message("info", f"Obtained e3sm_vars: {', '.join(e3sm_vars)}")
         log_message("info", f"Obtained cmip_vars: {', '.join(cmip_vars)}")
 
-        cwl_workflow = "atm-highfreq/atm-highfreq.cwl"
         parameters['tables_path'] = self.config['cmip_tables_path']
 
-        if model_version == "E3SM-2-0":
-            parameters['hrz_atm_map_path'] = self.config['grids']['v2_ne30_to_180x360']
-        else:
-            parameters['hrz_atm_map_path'] = self.config['grids']['v1_ne30_to_180x360']
+        parameters.update( derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path']) )
 
         # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
 
@@ -98,10 +94,13 @@ class GenerateAtmDayCMIP(WorkflowJob):
 
         # step three, render out the CWL run command
         # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
-        outpath = '/p/user_pub/e3sm/warehouse'  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
+        outpath = self.config['DEFAULT_WAREHOUSE_PATH']  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
+
+        cwl_workflow_main = "atm-highfreq/atm-highfreq.cwl"
+        cwl_workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
 
         if not self.serial:
             parallel = "--parallel"
         else:
             parallel = ''
-        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {os.path.join(self.config['cwl_workflows_path'], cwl_workflow)} {parameter_path}"
+        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameter_path}"
