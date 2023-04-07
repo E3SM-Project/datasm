@@ -18,6 +18,7 @@ grids:
 
 e3sm_resource_path: /p/user_pub/e3sm/staging/resource/
 e3sm_gridfile_path: /p/user_pub/e3sm/staging/resource/grids/
+e3sm_map_file_path: /p/user_pub/e3sm/staging/resource/maps/
 e3sm_namefile_path: /p/user_pub/e3sm/staging/resource/namefiles/
 e3sm_restarts_path: /p/user_pub/e3sm/staging/resource/restarts/
 cmip_metadata_path: /p/user_pub/e3sm/staging/resource/CMIP6-Metadata/

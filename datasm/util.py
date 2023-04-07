@@ -305,16 +305,17 @@ def prepare_cmip_job_metadata(cmip_dsid, in_meta_path, slurm_out):
     return metadata_path
 
 def selection(alist,spec):
+    # print(f"DEBUG - Selection for : {spec}")
     speclist = spec.split(',')
 
     for spec_val in speclist:
-        print(f"TESTINGFOR: {spec_val}")
+        # print(f"SPEC_VAL: {spec_val}")
         newlist = list()
         for aline in alist:
-            print(f" ALINE = {aline}")
             if aline.split(',')[0] == spec_val:
                 rlist = (',').join(aline.split(',')[1:])
                 newlist.append(rlist)
+
         alist = newlist
 
     return alist
@@ -328,7 +329,7 @@ def derivative_conf(target_dsid,resource_path):
     else:
         e3sm_dsid = target_dsid
 
-    project, model, resol, realm, grid, out_type, freq, ensem = e3sm_dsid.split('.')
+    project, model, exper, resol, realm, grid, out_type, freq, ensem = e3sm_dsid.split('.')
 
     # create the selection spec
 
@@ -337,32 +338,40 @@ def derivative_conf(target_dsid,resource_path):
     # load the derivatives configuration
 
     dc_file = os.path.join(resource_path, "derivatives.conf")
-    dclines = loadFileLines(dc_file)
+    dclines = load_file_lines(dc_file)
 
     spec_1 = f"{selspec},REGRID"
     regrid = selection(dclines,spec_1)
     if len(regrid) != 1:
         regrid = "None"
+    else:
+        regrid = regrid[0]
 
     spec_2 = f"{selspec},MASK"
     region_mask = selection(dclines,spec_2)
     if len(region_mask) != 1:
         region_mask = "None"
+    else:
+        region_mask = region_mask[0]
 
     spec_3 = f"{selspec},FILE_SELECTOR"
     file_selector = selection(dclines,spec_3)
     if len(file_selector) != 1:
         file_selector = "None"
+    else:
+        file_selector = file_selector[0]
 
     spec_4 = f"{selspec},CASE_FINDER"
     case_finder = selection(dclines,spec_4)
     if len(case_finder) != 1:
         case_finder = "None"
+    else:
+        case_finder = case_finder[0]
 
     ''' produce dictionary of return values '''
     retval = dict()
-    retval['hrz_atm_map_path'] = regrid
-    retval['region_file'] = region_mask
+    retval['hrz_atm_map_path'] = os.path.join(resource_path,'maps',regrid)
+    retval['region_file'] = os.path.join(resource_path,'maps',region_mask)
     retval['file_pattern'] = file_selector
     retval['case_finder'] = case_finder
 
@@ -419,13 +428,15 @@ def parent_native_dsid(target_dsid):
     project = target_dsid.split('.')[0]
 
     if project == "E3SM":       # for climo and timeseries, e.g. E3SM.2_0.amip.LR.atmos.180x360.climo.mon.ens1
-        project, model, resol, realm, grid, out_type, freq, ensem = target_dsid.split('.')
+        # log_message("info", f"parent_native_dsid: received target dsid {target_dsid}")
+        project, model, exper, resol, realm, grid, out_type, freq, ensem = target_dsid.split('.')
         if out_type not in [ "climo", "time-series" ] and grid == "native":
             return "None"
 
-        native_dsid = ('.').join([ project, model, resol, realm, "native", "model-output", freq, ensem ])
+        native_dsid = ('.').join([ project, model, exper, resol, realm, "native", "model-output", freq, ensem ])
         return native_dsid
-        
+
+    # Project not E3SM 
     allowed_institutions = [ "E3SM-Project", "UCSB" ]
 
     project, activ, inst, source, cmip_exp, variant, cmip_realm, _, _ = target_dsid.split('.')
