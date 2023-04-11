@@ -10,7 +10,7 @@ inputs:
   metadata: string
   workflow_output: string
 
-  mapfile: File
+  mapfile: string
   frequency: int
 
   namelist_path: string

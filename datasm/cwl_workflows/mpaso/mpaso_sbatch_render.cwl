@@ -68,6 +68,7 @@ requirements:
               parser.add_argument('--outdir', required=True)
               parser.add_argument('--input', required=True)
               parser.add_argument('--e_timeout', required=True)
+              parser.add_argument('--s_timeout', required=True)
               parser.add_argument('--partition', required=True)
               parser.add_argument('--workflow_output', required=True)
               exit(
@@ -100,7 +101,7 @@ inputs:
     inputBinding:
       prefix: --variables
   mapfile:
-    type: File
+    type: string
     inputBinding:
       prefix: --map
   slurm_timeout:
