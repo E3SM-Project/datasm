@@ -329,11 +329,14 @@ def derivative_conf(target_dsid,resource_path):
     else:
         e3sm_dsid = target_dsid
 
+    log_message("info", f"DBG: deriv_conf: target {target_dsid}, parent {e3sm_dsid}")
+
     project, model, exper, resol, realm, grid, out_type, freq, ensem = e3sm_dsid.split('.')
 
     # create the selection spec
 
     selspec = f"{realm},{resol},{model}"
+    log_message("info", f"DBG: deriv_conf: generated selection spec: {selspec}")
     
     # load the derivatives configuration
 
@@ -342,6 +345,7 @@ def derivative_conf(target_dsid,resource_path):
 
     spec_1 = f"{selspec},REGRID"
     regrid = selection(dclines,spec_1)
+    log_message("info", f"DBG: deriv_conf: obtained {len(regrid)} regrid matches: {regrid}")
     if len(regrid) != 1:
         regrid = "None"
     else:
@@ -371,6 +375,7 @@ def derivative_conf(target_dsid,resource_path):
     ''' produce dictionary of return values '''
     retval = dict()
     retval['hrz_atm_map_path'] = os.path.join(resource_path,'maps',regrid)
+    retval['mapfile'] = os.path.join(resource_path,'maps',regrid)
     retval['region_file'] = os.path.join(resource_path,'maps',region_mask)
     retval['file_pattern'] = file_selector
     retval['case_finder'] = case_finder
