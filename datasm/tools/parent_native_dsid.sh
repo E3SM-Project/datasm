@@ -11,25 +11,19 @@ dsid=$1
 
 project=`echo $dsid | cut -f1 -d.`
 
-if [ $project == "E3SM" ]; then
-
-    # handle climos and time-series here:  e.g. E3SM.2_0.amip.LR.atmos.180x360.climo.mon.ens1
-    headpart=`echo $dsid | cut -f1-5 -d.`
-    key_part=`echo $dsid | cut -f7 -d.`
-    tailpart=`echo $dsid | cut -f8-9 -d.`
-    if [[ $key_part != "climo" && $key_part != "time-series" ]]; then 
-        echo "NONE: unrecognized output-type \"$key_part\""
-        exit 1
-    fi
-    src_dsid="${headpart}.native.model-output.${tailpart}"
-    echo $src_dsid
-    exit 0
-    
-fi
-
 if [ $project != "CMIP6" ]; then
-    echo "NONE: non-CMIP6 not yet supported"
-    exit 0
+    if [ $project == "E3SM" ]; then
+
+        headpart=`echo $dsid | cut -f1-5 -d.`
+        tailpart=`echo $dsid | cut -f8-9 -d.`
+        src_dsid="${headpart}.native.model-output.${tailpart}"
+        echo $src_dsid
+        exit 0
+        
+    fi
+    echo "NONE: unrecognized project: $project"
+    exit 1
+
 fi
 
 # project is CMIP6
