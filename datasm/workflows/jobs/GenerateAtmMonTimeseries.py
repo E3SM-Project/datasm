@@ -27,12 +27,8 @@ class GenerateAtmMonTimeseries(WorkflowJob):
         native_resolution = dsid.split(".")[3]
 
         # NOTE: available grids are defined in resources/datasm_config.yaml
-
         parameters = derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path'])
         
-        # DEBUG
-        log_message("info", f"resolve_cmd: DEBUG OBTAINED PARAMETERS: {parameters}")
-
         map_path = parameters['hrz_atm_map_path']
 
         out_path = self.find_outpath()
