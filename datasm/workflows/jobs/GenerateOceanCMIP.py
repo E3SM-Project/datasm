@@ -40,6 +40,9 @@ class GenerateOceanCMIP(WorkflowJob):
         parameters = dict()
         parameters.update(cwl_config)   # obtain up frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
 
+        log_message("info", f"resolve_cmd: params[ e2c_timeout ] = {parameters['e2c_timeout']}");
+        log_message("info", f"resolve_cmd: params[ slurm_timeout ] = {parameters['slurm_timeout']}");
+
         # start with universal constants
 
         parameters['tables_path'] = self.config['cmip_tables_path']
