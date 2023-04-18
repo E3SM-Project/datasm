@@ -97,7 +97,8 @@ def collect_segments(inpath, num_jobs, timename, bndsname):
             b1, b2, idx = future.result()
             # if the first value is None, then the file failed its check
             # and the second value is the index of the file that failed
-            if not b1:
+            if b1 is None:
+                con_message("debug", f"Remove file {paths[idx]} for first value of time interval is none") 
                 # we can simply not add the entry to the file_info list
                 pass
             else:
