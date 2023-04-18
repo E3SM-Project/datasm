@@ -83,7 +83,6 @@ Once the parameter file is complete, the workflow can be executed by calling the
 
     cwltool --tmpdir-prefix=$TMPDIR ~/projects/e3sm_to_cmip/scripts/cwl_workflows/mpaso/mpaso.cwl mpaso-job.yaml
 
-
 End-to-End High Frequency Example
 =================================
 
