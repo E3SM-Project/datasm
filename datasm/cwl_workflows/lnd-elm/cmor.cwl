@@ -30,8 +30,10 @@ inputs:
     type: string
   partition:
     type: string
-  timeout:
+  slurm_timeout:
     type: string
+  e2c_timeout:
+    type: int
 
 arguments:
   - -A
@@ -39,8 +41,10 @@ arguments:
   - --partition
   - $(inputs.partition)
   - -t
-  - $(inputs.timeout)
+  - $(inputs.slurm_timeout)
   - e3sm_to_cmip
+  - --timeout
+  - $(inputs.e2c_timeout)
   - -s
   - --input-path
   - .

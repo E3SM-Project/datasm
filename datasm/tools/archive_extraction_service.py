@@ -116,7 +116,12 @@ def parse_jobset_config(configfile):
 
 
 def get_archspec(archline):
+    logMessage('INFO',f"get_archspec processing archline: {archline}")
     archvals = archline.split(',')
+    if len(archvals) != 9:
+        logMessage('ERROR', f"get_archspec: archline contains wrong number of fields")
+        return None
+
     archspec = {}
     archspec['campa'] = archvals[0]
     archspec['model'] = archvals[1]
@@ -294,7 +299,7 @@ def main():
 
 
         request_file = req_files[0]  # or req_files[-1], ensure oldest is selected
-        dataset_spec = load_file_lines(request_file) # list of Archive_Map lines for one dataset
+        request_spec = load_file_lines(request_file) # list of Archive_Map lines for one dataset
 
         # move request file to gv_output_dir
         request_file_done = os.path.join(gv_output_dir,os.path.basename(request_file))
@@ -306,12 +311,16 @@ def main():
         # The Inner Loop
         statfile = ''
         newstat = False
-        for am_spec_line in dataset_spec:
+        for am_spec_line in request_spec:
 
             # BECOME SETUP:  Ensure dsid, paths and status file are ready:
 
             logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Conducting Setup for extraction request:{am_spec_line}')
             arch_spec = get_archspec(am_spec_line)
+            if arch_spec == None:
+                logMessage('ERROR',f'ARCHIVE_EXTRACTION_SERVICE: bad am_spec_line: {am_spec_line}')
+                continue
+
             dsid = get_dsid_via_archline(am_spec_line)
             statfile = ensureStatusFile(dsid)
             ens_path = get_warehouse_path_via_dsid(dsid)        # intended warehouse dataset ensemble path

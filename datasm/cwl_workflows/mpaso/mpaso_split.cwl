@@ -92,7 +92,7 @@ inputs:
     type: string
     inputBinding:
       prefix: --input
-  region_path:
+  region_file:
     type: string
     inputBinding:
       prefix: --region

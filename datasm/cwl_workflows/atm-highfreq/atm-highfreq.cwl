@@ -11,6 +11,7 @@ inputs:
 
   data_path: string
   metadata_path: string
+  file_pattern: string
 
   frequency: int
   sample_freq: string
@@ -25,7 +26,8 @@ inputs:
 
   account: string
   partition: string
-  timeout: string
+  slurm_timeout: string
+  e2c_timeout: int
 
 outputs:
   cmorized:
@@ -76,7 +78,7 @@ steps:
       input_files: step_pull_paths/list_of_strings
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
       time_steps_per_day: time_steps_per_day
     out:
       - time_series_files
@@ -92,6 +94,7 @@ steps:
       raw_file_list: step_std_hrz_remap/time_series_files
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
+      e2c_timeout: e2c_timeout
     out:
       - cmip6_dir

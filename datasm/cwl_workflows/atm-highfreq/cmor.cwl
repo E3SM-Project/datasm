@@ -28,8 +28,10 @@ inputs:
     type: string
   partition: 
     type: string
-  timeout: 
+  slurm_timeout: 
     type: string
+  e2c_timeout: 
+    type: int
   sample_freq:
     type: string
 
@@ -39,9 +41,11 @@ arguments:
   - --partition
   - $(inputs.partition)
   - -t
-  - $(inputs.timeout)
+  - $(inputs.slurm_timeout)
   - e3sm_to_cmip
   - --serial
+  - prefix: --timeout
+    valueFrom: $(inputs.e2c_timeout)
   - --freq=$(inputs.sample_freq)
   - prefix: --output-path
     valueFrom: $(runtime.outdir)

@@ -752,6 +752,106 @@ project:
                             - gpp
                             - rh
                             - ra
+                E3SM-2-0-NARRM:
+                    piControl:
+                        start: 1
+                        end: 500
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    1pctCO2:
+                        start: 1
+                        end: 150
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    abrupt-4xCO2:
+                        start: 1
+                        end: 150
+                        ens:
+                            - r1i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    amip:
+                        start: 1870
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                        except:
+                            - Omon
+                            - Ofx
+                            - SImon
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                    historical:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                            - r4i1p1f1
+                            - r5i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
     E3SM:
         '1_0':
             piControl:
@@ -1196,6 +1296,140 @@ project:
             1950-Control-HR-136-150:
                 start: 136
                 end: 150
+                ens:
+                    - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
+                campaign: HighResMIP-v1
+                resolution:
+                    0_25deg_atm_18-6km_ocean:
+                        atmos:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 720x1440
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr_ave
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                        land:
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 720x1440
+                                data_types:
+                                    - model-output.mon
+                        ocean:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.5day_snap
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        sea-ice:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+            1950-1970-Transient-HR:
+                start: 1950
+                end: 1970
+                ens:
+                    - ens1
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
+                campaign: HighResMIP-v1
+                resolution:
+                    0_25deg_atm_18-6km_ocean:
+                        atmos:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 720x1440
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr_ave
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.mon
+                        land:
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - model-output.mon
+                            - 
+                                grid: 720x1440
+                                data_types:
+                                    - model-output.mon
+                        ocean:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.5day_snap
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        sea-ice:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+            1971-2015-Transient-HR:
+                start: 1971
+                end: 2015
                 ens:
                     - ens1
                 except:

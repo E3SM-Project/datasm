@@ -10,7 +10,8 @@ requirements:
 inputs:
 
   frequency: int
-  timeout: int
+  slurm_timeout: string
+  e2c_timeout: int
   account: string
   partition: string
   workflow_output: string
@@ -27,11 +28,11 @@ inputs:
   
   mpas_map_path: string
   mpas_restart_path: string
-  mpas_region_path: string
+  region_file: string
   mpas_namelist_path: string
 
   tables_path: string
-  metadata_path: File
+  metadata: string
   
 
 outputs:
@@ -128,12 +129,13 @@ steps:
       namelist_path: mpas_namelist_path
       restart_path: mpas_restart_path
       psl_files: step_hrz_remap/time_series_files
-      region_path: mpas_region_path
+      region_file: region_file
       tables_path: tables_path
-      metadata: metadata_path
+      metadata: metadata
       cmor_var_list: mpas_var_list
       num_workers: num_workers
-      timeout: timeout
+      slurm_timeout: slurm_timeout
+      e2c_timeout: e2c_timeout
       account: account
       partition: partition
       workflow_output: workflow_output

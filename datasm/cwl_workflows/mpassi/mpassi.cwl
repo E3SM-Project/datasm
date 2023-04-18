@@ -7,16 +7,17 @@ requirements:
 
 inputs:
   data_path: string
-  metadata: File
+  metadata: string
   workflow_output: string
 
   partition: string
   account: string
-  timeout: int
+  slurm_timeout: string
+  e2c_timeout: int
   
   namelist_path: string
   restart_path: string  
-  mapfile: File
+  mapfile: string
 
   frequency: int
   tables_path: string
@@ -49,7 +50,8 @@ steps:
     in:
       account: account
       partition: partition
-      timeout: timeout
+      slurm_timeout: slurm_timeout
+      e2c_timeout: e2c_timeout
       input_directory: step_segments/segments
       tables_path: tables_path
       var_list: cmor_var_list

@@ -4,7 +4,7 @@ from pathlib import Path
 from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
 from datasm.workflows.jobs import WorkflowJob
-from datasm.util import log_message, prepare_cmip_job_metadata, latest_aux_data
+from datasm.util import log_message, prepare_cmip_job_metadata, latest_aux_data, derivative_conf
 
 NAME = 'GenerateOceanCMIP'
 
@@ -38,6 +38,7 @@ class GenerateOceanCMIP(WorkflowJob):
         # Begin parameters collection
 
         parameters = dict()
+        parameters.update(cwl_config)   # obtain up frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
 
         # start with universal constants
 
@@ -56,7 +57,6 @@ class GenerateOceanCMIP(WorkflowJob):
             raw_ocean_dataset = self.requires['ocean-native-mon']
             parameters['data_path'] = raw_ocean_dataset.latest_warehouse_dir
 
-        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout, mpas_region_path
         # Override default 10 YPF for certain variables
         if cmip_var in [ 'all', 'hfsifrazil', 'masscello', 'so', 'thetao', 'thkcello', 'uo', 'vo', 'volcello', 'wo', 'zhalfo' ]:
             parameters['frequency'] = 5
@@ -86,24 +86,18 @@ class GenerateOceanCMIP(WorkflowJob):
             parameters['cmor_var_list'] = cmip_var
             cwl_workflow_main = "mpaso/mpaso.cwl"
 
-        cwl_workflow = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
+        cwl_workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
 
-        # Obtain mapfile and region_path by model_version
+        # Obtain mapfile and region_file by model_version
 
-        if model_version == "E3SM-2-0":
-            parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['v2_oEC60to30_to_180x360'] }
-            parameters['region_path'] = parameters['v2_mpas_region_path']
-        else:
-            parameters['mapfile'] = { 'class': 'File', 'path': self.config['grids']['v1_oEC60to30_to_180x360'] }
-            parameters['region_path'] = parameters['v1_mpas_region_path']
+        parameters.update( derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path']) )
 
         if is_oa_var:
             parameters['mpas_map_path'] = self.config['grids']['oEC60to30_to_180x360']
 
         # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
 
-        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
-        parameters['metadata'] = { 'class': 'File', 'path': f"{metadata_path}" }
+        parameters['metadata'] = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
 
         # if is_oa_var:
         #     parameters['metadata_path'] = parameters['metadata']
@@ -116,7 +110,7 @@ class GenerateOceanCMIP(WorkflowJob):
         parameters['namelist_path'] = namefile
         parameters['restart_path'] = restfile
 
-        parameters['workflow_output'] = '/p/user_pub/e3sm/warehouse'
+        parameters['workflow_output'] = self.config['DEFAULT_WAREHOUSE_PATH']
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else cmip_var[0]
@@ -127,10 +121,10 @@ class GenerateOceanCMIP(WorkflowJob):
 
         # step three, render out the CWL run command
         # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
-        outpath = '/p/user_pub/e3sm/warehouse'  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
+        outpath = self.config['DEFAULT_WAREHOUSE_PATH']  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
 
         if not self.serial:
             parallel = "--parallel"
         else:
             parallel = ''
-        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow} {parameter_path}"
+        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameter_path}"

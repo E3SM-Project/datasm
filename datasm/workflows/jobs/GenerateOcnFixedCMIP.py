@@ -4,7 +4,7 @@ from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
 
 import yaml
-from datasm.util import log_message, prepare_cmip_job_metadata, get_first_nc_file, derivative_conf
+from datasm.util import log_message, prepare_cmip_job_metadata, get_first_nc_file
 from datasm.workflows.jobs import WorkflowJob
 
 NAME = 'GenerateAtmFixedCMIP'
@@ -15,22 +15,22 @@ class GenerateAtmFixedCMIP(WorkflowJob):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        self._requires = {'atmos-native-fixed': None}
+        self._requires = {'ocean-native-mon': None}
         self._cmd = ''
         self._cmip_var = ''
 
     def resolve_cmd(self):
 
-        raw_dataset = self.requires['atmos-native-fixed']
+        raw_dataset = self.requires['ocean-native-mon']
 
         data_path = raw_dataset.latest_warehouse_dir
         anyfile = get_first_nc_file(data_path)
         anypath = os.path.join(data_path, anyfile)
         data_path_dict = { 'class': 'File', 'path': anypath }
 
-        parameters = {'atm_data_path': data_path_dict }
-        cwl_config = self.config['cmip_atm_mon']
-        parameters.update(cwl_config)   # obtain up frequency, num_workers, account, partition, e2c_timeout and slurm_timeout.
+        parameters = {'ocn_data_path': data_path_dict }
+        cwl_config = self.config['cmip_ocn_mon']
+        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout
 
         _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
@@ -80,25 +80,31 @@ class GenerateAtmFixedCMIP(WorkflowJob):
         log_message("info", f"Obtained e3sm_vars: {', '.join(e3sm_vars)}")
         log_message("info", f"Obtained cmip_vars: {', '.join(cmip_vars)}")
 
-        parameters.update( derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path']) )
+        # Obtain mapfile and region_file by model_version
+
+        if model_version == "E3SM-2-0":
+            parameters['mapfile'] = self.config['grids']['v2_oEC60to30_to_180x360']
+            parameters['region_file'] = parameters['v2_mpas_region_path']
+        else:
+            parameters['mapfile'] = self.config['grids']['v1_oEC60to30_to_180x360']
+            parameters['region_file'] = parameters['v1_mpas_region_path']
 
         parameters['tables_path'] = self.config['cmip_tables_path']
 
-        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
-        parameters['metadata_path'] = metadata_path
+        parameters['metadata'] = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else in_cmip_vars[0]
         parameter_path = os.path.join(
-            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-mon-{var_id}.yaml")
+            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-ocn-cmip-mon-{var_id}.yaml")
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 
         # step three, render out the CWL run command
         # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
-        outpath = self.config['DEFAULT_WAREHOUSE_PATH']  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
+        outpath = '/p/user_pub/e3sm/warehouse'  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
 
-        cwl_workflow_main = "fx/fx.cwl"
+        cwl_workflow_main = "Ofx/Ofx.cwl"
         cwl_workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
         
         if not self.serial:
@@ -106,3 +112,12 @@ class GenerateAtmFixedCMIP(WorkflowJob):
         else:
             parallel = ''
         self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameter_path}"
+
+
+#
+# e2c command-line for Ofx generation:
+
+# e3sm_to_cmip -s --realm Ofx --var-list areacello --map /p/user_pub/e3sm/staging/resource/maps/map_EC30to60E2r2_to_cmip6_180x360_aave.20220301.nc --input-path /p/user_pub/e3sm/zhang40/e2c_tony/e2c_test_data/v2.mpassi_input/ --output-path /p/user_pub/e3sm/zhang40/tests/ncremap_sgs  --user-metadata /p/user_pub/e3sm/zhang40/e2c_tony/e2c_test_data/holodeck/input/historical_r1i1p1f1.json --tables-path /p/user_pub/e3sm/staging/resource/cmor/cmip6-cmor-tables/Tables
+
+#  
+

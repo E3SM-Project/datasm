@@ -17,11 +17,13 @@ grids:
   v2_ne120_to_cmip6_720x1440: /p/user_pub/e3sm/staging/resource/maps/map_ne120_to_cmip6_720x1440_aave.20200901.nc
 
 e3sm_resource_path: /p/user_pub/e3sm/staging/resource/
+e3sm_gridfile_path: /p/user_pub/e3sm/staging/resource/grids/
+e3sm_map_file_path: /p/user_pub/e3sm/staging/resource/maps/
 e3sm_namefile_path: /p/user_pub/e3sm/staging/resource/namefiles/
 e3sm_restarts_path: /p/user_pub/e3sm/staging/resource/restarts/
 cmip_metadata_path: /p/user_pub/e3sm/staging/resource/CMIP6-Metadata/
 cmip_tables_path: /p/user_pub/e3sm/staging/resource/cmor/cmip6-cmor-tables/Tables/
-cwl_workflows_path: /p/user_pub/e3sm/staging/resource/cmor/cwl_workflows/
+cwl_workflows_path: /p/user_pub/e3sm/staging/resource/cwl_workflows/
 vrt_map_path: /p/user_pub/e3sm/staging/resource/grids/vrt_remap_plev19.nc
 
 cmip_atm_mon:
@@ -29,14 +31,16 @@ cmip_atm_mon:
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: '36000'
+  e2c_timeout: 36000
+  slurm_timeout: "1-00:00"
 
 cmip_atm_day:
   frequency: 10
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: '36000'
+  e2c_timeout: 36000
+  slurm_timeout: "1-00:00"
   sample_freq: day
   time_steps_per_day: "1"
 
@@ -45,7 +49,8 @@ cmip_atm_3hr:
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: '36000'
+  e2c_timeout: 36000
+  slurm_timeout: "1-00:00"
   sample_freq: 3hr
   time_steps_per_day: "8"
 
@@ -54,14 +59,15 @@ cmip_lnd_mon:
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: '36000'
+  e2c_timeout: 36000
+  slurm_timeout: "1-00:00"
 
 cmip_ocn_mon:
   frequency: 10
   num_workers: 12
   account: e3sm
   partition: debug
-  timeout: 43200
-  slurm_timeout: "12:00:00"
+  e2c_timeout: 108000
+  slurm_timeout: "2-00:00"
   v1_mpas_region_path: /p/user_pub/e3sm/staging/resource/grids/oEC60to30v3_Atlantic_region_and_southern_transect.nc
   v2_mpas_region_path: /p/user_pub/e3sm/staging/resource/grids/EC30to60E2r2_mocBasinsAndTransects20210623.nc

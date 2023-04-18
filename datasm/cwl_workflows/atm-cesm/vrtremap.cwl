@@ -66,7 +66,7 @@ inputs:
     type: string
   partition: 
     type: string
-  timeout: 
+  slurm_timeout: 
     type: string
 
 arguments:
@@ -75,7 +75,7 @@ arguments:
   - --partition
   - $(inputs.partition)
   - -t
-  - $(inputs.timeout)
+  - $(inputs.slurm_timeout)
   - python
   - vrtremap.py
   - --output

@@ -1,5 +1,5 @@
 from datasm.workflows.jobs import WorkflowJob
-from datasm.util import log_message
+from datasm.util import log_message, derivative_conf
 
 
 NAME = 'GenerateAtmMonTimeseries'
@@ -14,7 +14,7 @@ class GenerateAtmMonTimeseries(WorkflowJob):
 
     def resolve_cmd(self):
 
-        exclude = self._spec['project']['E3SM'][self.institution][self.dataset.model_version][self.dataset.experiment].get('except', [])
+        exclude = self._spec['project']['E3SM'][self.dataset.model_version][self.dataset.experiment].get('except', [])
         variables = [x for x in self._spec['time-series']['atmos'] if x not in exclude]
 
         raw_dataset = self.requires['atmos-native-mon']
@@ -25,13 +25,12 @@ class GenerateAtmMonTimeseries(WorkflowJob):
 
         dsid = f"{self.dataset.dataset_id}"
         native_resolution = dsid.split(".")[3]
-        # NOTE: available grids are defined in resources/datasm_config.yaml
-        mapkey = "ne30_to_180x360"
-        if native_resolution == "0_25deg_atm_18-6km_ocean":
-            mapkey = "ne120pg2_to_cmip6_720x1440"
-            # or else maybe "ne120np4_to_cmip6_180x360"
 
-        map_path = self.config['grids'][mapkey]
+        # NOTE: available grids are defined in resources/datasm_config.yaml
+        parameters = derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path'])
+        
+        map_path = parameters['hrz_atm_map_path']
+
         out_path = self.find_outpath()
 
         self._cmd = f"""

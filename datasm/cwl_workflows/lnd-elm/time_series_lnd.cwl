@@ -22,7 +22,7 @@ inputs:
     type: string
   partition:
     type: string
-  timeout:
+  slurm_timeout:
     type: string
 
 arguments:
@@ -31,7 +31,7 @@ arguments:
   - --partition
   - $(inputs.partition)
   - -t
-  - $(inputs.timeout)
+  - $(inputs.slurm_timeout)
   - ncclimo
   - "-7"
   - --dfl_lvl=1

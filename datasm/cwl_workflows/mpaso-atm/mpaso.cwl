@@ -17,17 +17,18 @@ inputs:
 
   namelist_path: string
   restart_path: string
-  region_path: string
+  region_file: string
 
   psl_files: File[]
 
   tables_path: string
-  metadata: File
+  metadata: string
 
   cmor_var_list: string[]
   num_workers: int
 
-  timeout: int
+  slurm_timeout: string
+  e2c_timeout: int
   account: string
   partition: string
 
@@ -45,7 +46,7 @@ steps:
       namelist: namelist_path
       restart: restart_path
       psl_files: psl_files
-      region_path: region_path
+      region_file: region_file
     out:
       - segments
   
@@ -58,7 +59,8 @@ steps:
       metadata: metadata
       var_list: cmor_var_list
       map_path: map_path
-      timeout: timeout
+      slurm_timeout: slurm_timeout
+      e2c_timeout: e2c_timeout
       partition: partition
       account: account
       workflow_output: workflow_output
