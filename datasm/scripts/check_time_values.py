@@ -7,7 +7,7 @@ import numpy as np
 import netCDF4
 from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from datasm.util import con_message
+from datasm.util import log_message
 
 calendars = {
     "noleap": {
@@ -40,11 +40,12 @@ def get_time_units(path):
 
 def get_month(path):
     pattern = r"\d{4}-\d{2}"
-    s = re.search(pattern, path)
+    base = os.path.basename(path)
+    s = re.search(pattern, base)
     if not s:
-        con_message("error", f"Unable to find month string for {path}")
+        log_message("error", f"Unable to find month string for {path}")
         sys.exit(1)
-    return int(path[s.start() + 5 : s.start() + 7])
+    return int(base[s.start() + 5 : s.start() + 7])
 
 
 def check_file(file, freq, idx, time_name="time"):
@@ -68,10 +69,7 @@ def check_file(file, freq, idx, time_name="time"):
                 # monthly data
                 return time, time, idx
             elif delta != freq:
-                con_message(
-                    "warning",
-                    f"time discontinuity in {file} at {time}, delta was {delta} when it should have been {freq}",
-                )
+                log_message("warning", f"time discontinuity in {file} at {time}, delta was {delta} when it should have been {freq}")
             prevtime = time
         last = time
     return first, last, idx
@@ -99,7 +97,7 @@ def main():
     args = parser.parse_args()
     inpath = args.input
 
-    con_message("info", f"Running timechecker:dataset={inpath}")
+    log_message("info", f"Running timechecker:dataset={inpath}")
 
     # collect all the files and sort them by their date stamp
     names = [
@@ -112,10 +110,7 @@ def main():
     for name in names:
         start = re.search(pattern, name).start()
         if not start:
-            con_message(
-                "error",
-                f"The year stamp search pattern {pattern} didn't find what it was expecting",
-            )
+            log_message("error", f"The year stamp search pattern {pattern} didn't find what it was expecting")
             sys.exit(1)
         fileinfo.append({"prefix": name[:start], "suffix": name[start:], "name": name})
     files = [x["name"] for x in sorted(fileinfo, key=lambda i: i["suffix"])]
@@ -132,22 +127,22 @@ def main():
 
         if freq == "month_1":
             monthly = True
-            con_message("info", "Found monthly data")
+            log_message("info", "Found monthly data")
             calendar = ds[time_name].attrs["calendar"]
             if calendar not in calendars:
-                con_message("error", f"Unsupported calendar type {calendar}")
+                log_message("error", f"Unsupported calendar type {calendar}")
                 sys.exit(1)
         elif freq is None:
             if ds.attrs.get("title") == "CLM History file information" or ds.attrs.get("title") == "ELM History file information":      # this is obscure
                 monthly = True
             calendar = ds[time_name].attrs["calendar"]
             if calendar not in calendars:
-                con_message("error", f"Unsupported calendar type {calendar}")
+                log_message("error", f"Unsupported calendar type {calendar}")
                 sys.exit(1)
         else:
-            con_message("info", "Found sub-monthly data")
+            log_message("info", "Found sub-monthly data")
             freq = ds[time_name][1].values.item() - ds[time_name][0].values.item()
-            con_message("info", f"Detected frequency: {freq}, with units: {time_units}")
+            log_message("info", f"Detected frequency: {freq}, with units: {time_units}")
 
     # iterate over each of the files and get the first and last index from each file
     issues = list()
@@ -169,6 +164,7 @@ def main():
 
     prev = None
     for first, last, idx in indices:
+        log_message("debug", f"DBG: first, last, idx = {first}, {last}, {idx}")
         if not prev:
             prev = last
             continue
@@ -191,11 +187,11 @@ def main():
     if issues:
         issues.append(f"Result=Fail:dataset={inpath}")
         for msg in issues:
-            con_message("warning", msg)
+            log_message("warning", msg)
         return 1
 
-    con_message("info", "No time index issues found.")
-    con_message("info", f"Result=Pass:dataset={inpath}")
+    log_message("info", "No time index issues found.")
+    log_message("info", f"Result=Pass:dataset={inpath}")
     return 0
 
 
