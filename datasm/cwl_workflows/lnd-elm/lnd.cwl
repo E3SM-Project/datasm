@@ -20,7 +20,7 @@ inputs:
   lnd_var_list: string[]
   cmor_var_list: string[]
 
-  find_pattern: string
+  file_pattern: string
 
   account: string
   partition: string
@@ -39,7 +39,7 @@ steps:
     run: find_casename.cwl
     in:
       data_path: lnd_data_path
-      find_patt: find_pattern
+      find_patt: file_pattern
     out:
       - casename
   
@@ -65,7 +65,7 @@ steps:
     run: discover_lnd_files.cwl
     in:
       input: lnd_data_path
-      fpatt: find_pattern
+      fpatt: file_pattern
       start: step_segments/segments_start
       end: step_segments/segments_end
     scatter:

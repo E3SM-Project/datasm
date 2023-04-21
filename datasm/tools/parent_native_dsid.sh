@@ -63,6 +63,8 @@ modelversion=`echo $source_id | cut -f2- -d- | tr - _`
 # what about HR campaign?
 if [ $modelversion == "2_0" ]; then
     resolution="LR"
+elif [ $modelversion == "2_0_NARRM" ]; then
+    resolution="LR-NARRM"
 else
     resolution="1deg_atm_60-30km_ocean"
 fi

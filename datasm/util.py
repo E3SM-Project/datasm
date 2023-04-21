@@ -455,9 +455,11 @@ def parent_native_dsid(target_dsid):
     if model == "1_0" and inst == "UCSB":
         model = "1_0_LE"
 
-    # only option of rnow
+    # only options for now
     if model == "2_0":
         resol = "LR"
+    elif model == "2_0_NARRM":
+        resol = "LR-NARRM"
     else:
         resol = "1deg_atm_60-30km_ocean"
     grid = "native"

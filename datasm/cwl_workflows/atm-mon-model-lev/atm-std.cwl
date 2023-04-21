@@ -21,7 +21,7 @@ inputs:
   std_var_list: string[]
   std_cmor_list: string[]
 
-  find_pattern: string
+  file_pattern: string
 
   account: string
   partition: string
@@ -39,7 +39,7 @@ steps:
     run: find_casename.cwl
     in:
       atm_data_path: data_path
-      find_patt: find_pattern
+      find_patt: file_pattern
     out:
       - casename
   
@@ -65,7 +65,7 @@ steps:
     run: discover_atm_files.cwl
     in:
       input: data_path
-      fpatt: find_pattern
+      fpatt: file_pattern
       start: step_segments/segments_start
       end: step_segments/segments_end
     scatter:
