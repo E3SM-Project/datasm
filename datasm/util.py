@@ -40,6 +40,7 @@ def load_file_lines(file_path):
         ]
     return retlist
 
+
 # -----------------------------------------------
 
 def collision_free_name(apath, abase):
@@ -308,7 +309,7 @@ def prepare_cmip_job_metadata(cmip_dsid, in_meta_path, slurm_out):
 
     return metadata_path
 
-def selection(alist,spec):
+def dc_spec_selection(alist,spec):
     # print(f"DEBUG - Selection for : {spec}")
     speclist = spec.split(',')
 
@@ -337,10 +338,10 @@ def derivative_conf(target_dsid,resource_path):
 
     project, model, exper, resol, realm, grid, out_type, freq, ensem = e3sm_dsid.split('.')
 
-    # create the selection spec
+    # create the dc_spec_selection spec
 
     selspec = f"{realm},{resol},{model}"
-    log_message("info", f"DBG: deriv_conf: generated selection spec: {selspec}")
+    log_message("info", f"DBG: deriv_conf: generated dc_spec_selection spec: {selspec} for resource_path {resource_path}/derivatives.conf")
     
     # load the derivatives configuration
 
@@ -348,7 +349,7 @@ def derivative_conf(target_dsid,resource_path):
     dclines = load_file_lines(dc_file)
 
     spec_1 = f"{selspec},REGRID"
-    regrid = selection(dclines,spec_1)
+    regrid = dc_spec_selection(dclines,spec_1)
     log_message("info", f"DBG: deriv_conf: obtained {len(regrid)} regrid matches: {regrid}")
     if len(regrid) != 1:
         regrid = "None"
@@ -356,21 +357,21 @@ def derivative_conf(target_dsid,resource_path):
         regrid = regrid[0]
 
     spec_2 = f"{selspec},MASK"
-    region_mask = selection(dclines,spec_2)
+    region_mask = dc_spec_selection(dclines,spec_2)
     if len(region_mask) != 1:
         region_mask = "None"
     else:
         region_mask = region_mask[0]
 
     spec_3 = f"{selspec},FILE_SELECTOR"
-    file_selector = selection(dclines,spec_3)
+    file_selector = dc_spec_selection(dclines,spec_3)
     if len(file_selector) != 1:
         file_selector = "None"
     else:
         file_selector = file_selector[0]
 
     spec_4 = f"{selspec},CASE_FINDER"
-    case_finder = selection(dclines,spec_4)
+    case_finder = dc_spec_selection(dclines,spec_4)
     if len(case_finder) != 1:
         case_finder = "None"
     else:
@@ -505,6 +506,9 @@ def parent_native_dsid(target_dsid):
     # print(f"DEBUG_TEST: parent_native_dsid returns {native_dsid}")
 
     return native_dsid
+
+def is_vdir_pattern(str):
+    return len(str) > 1 and str[0] == 'v' and str[1:2].isdigit() and str[1:].replace('.','',1).isdigit()
 
 wh_root = "/p/user_pub/e3sm/warehouse"
 pb_root = "/p/user_pub/work"
