@@ -54,7 +54,7 @@ inputs:
     type: string
     inputBinding:
       prefix: --input
-  file_pattern:
+  fpatt:
     type: string
     inputBinding:
       prefix: --fpatt

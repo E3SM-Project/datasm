@@ -1128,6 +1128,10 @@ project:
                                     - model-output.mon
                         land:
                             - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
@@ -1155,6 +1159,7 @@ project:
                             - 
                                 grid: native
                                 data_types:
+                                    - model-output.day
                                     - model-output.mon
                                     - namefile.fixed
                                     - restart.fixed
@@ -1195,6 +1200,10 @@ project:
                                     - model-output.mon
                         land:
                             - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                            - 
                                 grid: 180x360
                                 data_types:
                                     - model-output.mon
@@ -1222,6 +1231,7 @@ project:
                             - 
                                 grid: native
                                 data_types:
+                                    - model-output.day
                                     - model-output.mon
                                     - namefile.fixed
                                     - restart.fixed

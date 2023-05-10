@@ -55,6 +55,7 @@ steps:
     run: discover_atm_files.cwl
     in:
       input: data_path
+      fpatt: file_pattern
     out:
       - atm_files
   
