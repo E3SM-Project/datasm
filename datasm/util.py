@@ -1,4 +1,5 @@
 import sys, os
+import re
 import shutil
 import json
 import traceback
@@ -269,6 +270,9 @@ def get_dataset_version_from_file_metadata(latest_dir):  # input latest_dir alre
     ds = xr.open_dataset(first_file)
     if 'version' in ds.attrs.keys():
         ds_version = ds.attrs['version']
+        if not re.match(r"v\d", ds_version):
+            log_message("info", f"Invalid version {ds_version} in metadata")
+            ds_version = 'NONE'
     else:
         log_message("info", f"No version in ds.attrs.keys()")
         ds_version = 'NONE'
