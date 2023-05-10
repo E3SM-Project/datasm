@@ -105,61 +105,22 @@ def load_file_lines(file_path):
 
 # ======== warehouse ========================
 
-def parse_jobset_config(configfile):
-    speclist = load_file_lines(configfile)
-    jobset = dict()
-    for _ in speclist:
-        pair = _.split('=')    # each a list with two elements
-        jobset[ pair[0] ] = pair[1]
-        # print(f'  jobset[ {pair[0]} ] = {pair[1]
-    return jobset
-
-
 def get_archspec(archline):
-    logMessage('INFO',f"get_archspec processing archline: {archline}")
-    archvals = archline.split(',')
-    if len(archvals) != 9:
-        logMessage('ERROR', f"get_archspec: archline contains wrong number of fields")
+
+    archspec = dict()
+    if len( archline.split(',') ) != 4:
         return None
 
-    archspec = {}
-    archspec['campa'] = archvals[0]
-    archspec['model'] = archvals[1]
-    archspec['exper'] = archvals[2]
-    archspec['resol'] = archvals[3]
-    archspec['ensem'] = archvals[4]
-    archspec['dstyp'] = archvals[5]
-    archspec['otype'] = archvals[6]
-    archspec['apath'] = archvals[7]
-    archspec['apatt'] = archvals[8]
+    archspec['campaign'] = archline.split(',')[0]
+    archspec['dsid'] = archline.split(',')[1]
+    archspec['archpath'] = archline.split(',')[2]
+    archspec['filepatt'] = archline.split(',')[3]
 
     return archspec
 
 def get_dsid_via_archline(archline):
 
-    archspec = get_archspec(archline)
-
-    if len(archspec['dstyp'].split('_')) == 3:
-        realmcode, grid, freq = archspec['dstyp'].split('_')
-    else:
-        realmcode, grid, freq1, freq2 = archspec['dstyp'].split('_')
-        freq = ('_').join([freq1,freq2])
-
-    realm = realm_longname(realmcode)
-    if grid == 'nat':
-        grid = 'native'
-
-    # note: model-output assumption on archive only
-    dsid = '.'.join(['E3SM', \
-                    archspec['model'], \
-                    archspec['exper'], \
-                    archspec['resol'], \
-                    realm, \
-                    grid, \
-                    archspec['otype'], \
-                    freq, \
-                    archspec['ensem']])
-
+    dsid = archline.split(',')[1]
     return dsid
 
 def get_warehouse_path_via_dsid(dsid):
@@ -321,7 +282,8 @@ def main():
                 logMessage('ERROR',f'ARCHIVE_EXTRACTION_SERVICE: bad am_spec_line: {am_spec_line}')
                 continue
 
-            dsid = get_dsid_via_archline(am_spec_line)
+            dsid = arch_spec['dsid']
+
             statfile = ensureStatusFile(dsid)
             ens_path = get_warehouse_path_via_dsid(dsid)        # intended warehouse dataset ensemble path
 
@@ -346,8 +308,8 @@ def main():
 
             tm_start = time.time()
 
-            arch_path = arch_spec['apath']
-            arch_patt = arch_spec['apatt']
+            arch_path = arch_spec['archpath']
+            arch_patt = arch_spec['filepatt']
             holodeck = os.path.join(gv_holospace,"holodeck-" + ts('') )
             holozst = os.path.join(holodeck,'zstash')
 
