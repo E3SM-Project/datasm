@@ -535,13 +535,15 @@ class AutoDataSM:
                     job.job_id = job_id
                     self.job_pool.append(job)
                 else:
-                    log_message("info", f"Error starting up job {job}")
-                    log_message("error", f"Error starting up job {job}")
-                    if Exit_On_Bad_Job:
+                    log_message("info", f"Error starting up job {job}. EXIT if serial.")
+                    log_message("error", f"Error starting up job {job}. EXIT if serial.")
+                    if Exit_On_Bad_Job and self.serial:
                         os._exit(1)
                     continue
             else:
-                log_message("error", "DGB: job NOT added to pool")
+                log_message("error", "DGB: job NOT added to pool. EXIT if serial")
+                if Exit_On_Bad_Job and self.serial:
+                    os._exit(1)
                 log_message("info", f"start_datasets: DGB: job.job_id = {job.job_id}, job_reqs_met = {job_reqs_met}")
                 attributes = [attr for attr in dir(job) if not attr.startswith('__')]
                 for attr in attributes:

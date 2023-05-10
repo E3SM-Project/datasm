@@ -13,6 +13,7 @@ from datasm.util import (
     load_file_lines,
     search_esgf,
     get_last_status_line,
+    is_vdir_pattern,
     log_message,
 )
 
@@ -50,7 +51,6 @@ SEASONS = [
     {"name": "JJA", "start": "06", "end": "08"},
     {"name": "SON", "start": "09", "end": "11"},
 ]
-
 
 class Dataset(object):
     def get_status_from_archive(self):
@@ -303,7 +303,7 @@ class Dataset(object):
                 [
                     float(str(x.name)[1:])
                     for x in self.publication_path.iterdir()
-                    if x.is_dir()
+                    if x.is_dir() and is_vdir_pattern(x.name)
                 ]
             ).pop()
         except IndexError:
@@ -327,7 +327,7 @@ class Dataset(object):
                 [
                     float(str(x.name)[1:])
                     for x in self.publication_path.iterdir()
-                    if x.is_dir()
+                    if x.is_dir() and is_vdir_pattern(x.name)
                 ]
             ).pop()
         except IndexError:
