@@ -32,7 +32,7 @@ cmip_atm_mon:
   account: e3sm
   partition: debug
   e2c_timeout: 36000
-  slurm_timeout: "1-00:00"
+  slurm_timeout: "2-00:00"
 
 cmip_atm_day:
   frequency: 10
@@ -40,7 +40,7 @@ cmip_atm_day:
   account: e3sm
   partition: debug
   e2c_timeout: 36000
-  slurm_timeout: "1-00:00"
+  slurm_timeout: "2-00:00"
   sample_freq: day
   time_steps_per_day: "1"
 
@@ -50,7 +50,7 @@ cmip_atm_3hr:
   account: e3sm
   partition: debug
   e2c_timeout: 36000
-  slurm_timeout: "1-00:00"
+  slurm_timeout: "2-00:00"
   sample_freq: 3hr
   time_steps_per_day: "8"
 
