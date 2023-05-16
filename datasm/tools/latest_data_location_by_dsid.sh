@@ -85,7 +85,7 @@ fi
 
 # both populated. select latest
 
-if [ $wh_lastleaf < $pb_lastleaf ]; then
+if [[ $wh_lastleaf < $pb_lastleaf ]]; then
     fullpath="$pb_path/$pb_lastleaf"
 else
     fullpath="$wh_path/$wh_lastleaf"
