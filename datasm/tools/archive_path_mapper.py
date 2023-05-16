@@ -69,8 +69,14 @@ def assess_args():
     if args.SDEP_Pattfile:
         the_SDEP = args.SDEP_Pattfile
 
+def sort_file_in_place(afile):
 
-
+    with open(afile) as inF:
+        lines = list(line for line in (l.strip() for l in inF) if line) # skip blanks
+    lines.sort()
+    with open(afile, "w") as outF:
+        for line in lines:
+            outF.write(f"{line}\n")
 
 def get_al_spec(specline):
     archvals = specline.split(',')
@@ -83,10 +89,11 @@ def get_al_spec(specline):
     aspec['apath'] = archvals[5]
     return aspec
 
+# specline = Realm.Grid.Freq,OutType,CorePatt,Campaigns
 def get_sdep_spec(specline):
     sdepvals = specline.split(',')
     aspec = {}
-    aspec['dtype'] = sdepvals[0].replace(' ','_')
+    aspec['dtype'] = sdepvals[0].replace('.','_')
     aspec['otype'] = sdepvals[1]
     aspec['spatt'] = sdepvals[2]
     aspec['clist'] = sdepvals[3].split(' ')
@@ -98,7 +105,21 @@ disqual_rst = [ 'post/', 'test', 'run/try', 'run/bench', 'old/run', 'pp/remap', 
 def recover_filename_elements(filename):
     # convert colon-separated archive_map key to CSV and pipe-coded archive-path to a true path
     am_temp = ':'.join(filename.split(':')[1:])
-    return am_temp.replace('|','/').replace(':',',')
+    old_ret_val = am_temp.replace('|','/').replace(':',',')
+
+    # Must convert
+    #   DECK-v1,1_0_LE,ssp370,1deg_atm_60-30km_ocean,ens11,river_native_mon,model-output,<ArchivePath>
+    # to
+    #   DECK-v1, Proj.Model.Exper.Resol.Realm.Grid.OutType.Freq.Ensem, OutType,<ArchivePath>
+
+    parts = old_ret_val.split(',')
+    dtype = parts[5].split('_')
+    if len(dtype) > 3:
+        dtype[2] = f"{dtype[2]}_{dtype[3]}"
+
+    ret_val = f"{parts[0]},E3SM.{parts[1]}.{parts[2]}.{parts[3]}.{dtype[0]}.{dtype[1]}.{parts[6]}.{dtype[2]}.{parts[4]},{parts[7]}"
+    
+    return ret_val
 
 
 def main():
@@ -154,6 +175,7 @@ def main():
         #    print(f' DICT = {adict}')
 
         ALE += 1
+        ale_code = f"ALE_{str(ALE).zfill(2)}"
 
         basetag = ':'.join([al_spec['campa'],al_spec['model'],al_spec['exper'],al_spec['resol'],al_spec['ensem']])
 
@@ -174,7 +196,7 @@ def main():
             ds_otyp = adict['otype']
             ds_patt = adict['spatt']
             ds_path = arch_path.replace('/','|')
-            outfile = ':'.join([str(ALE),basetag,dstitle,ds_otyp,ds_path])
+            outfile = ':'.join([ale_code,basetag,dstitle,ds_otyp,ds_path])
             
             # call zstash
             logmsg(f"DBG: Calling zstash ls --hpss=none with pattern: {ds_patt}")
@@ -192,9 +214,14 @@ def main():
             if len(proc_err) > 0:
                 print(f'{proc_err}',flush=True)
 
+            if len(proc_out) == 0:
+                logmsg(f"WARNING: zstash returned no matches")
+                continue
+
             outpath = os.path.join(pathsFound,outfile)
             f = open(outpath,"w")
             f.write(proc_out)
+            sort_file_in_place(outpath)
 
         os.chdir('..')
 
