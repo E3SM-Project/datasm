@@ -4,7 +4,7 @@ from argparse import RawTextHelpFormatter
 
 
 helptext = '''
-    Usage:  python list_e3sm_dsids.py  (generates all E3SM dataset_ids to stdout)
+    Usage:  python list_e3sm_dsids.py  [-d/--dataset-spec <alternate_spec>] (generates all E3SM dataset_ids to stdout)
 '''
 
 def assess_args():
@@ -14,7 +14,8 @@ def assess_args():
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')
 
-    optional.add_argument('-s', '--spec_path', action='store', dest="spec_path", type=str, required=False)
+    optional.add_argument('-d', '--dataset-spec', action='store', dest="dsetspec", type=str, required=False)
+
 
     args = parser.parse_args()
 
@@ -22,7 +23,7 @@ def assess_args():
 
 
 resource_path = '/p/user_pub/e3sm/staging/resource/'
-DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
+default_dsetspec = os.path.join(resource_path, 'dataset_spec.yaml')
 
 def loadFileLines(afile):
     retlist = []
@@ -83,13 +84,10 @@ def main():
 
     pargs = assess_args()
 
-    if pargs.spec_path:
-        if os.path.exists(pargs.spec_path):
-            ds_spec = load_yaml(pargs.spec_path)
-        else:
-            print(f"ERROR: cannot locate specified spec path: {pargs.spec_path}")
+    if pargs.dsetspec:
+        ds_spec = load_yaml(pargs.dsetspec)
     else:
-        ds_spec = load_yaml(DEFAULT_SPEC_PATH)
+        ds_spec = load_yaml(default_dsetspec)
 
     if 'CASE_EXTENSIONS' in ds_spec.keys():
         expand_dataset_spec(ds_spec)
