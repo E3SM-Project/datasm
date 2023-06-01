@@ -44,9 +44,13 @@ def main():
     input_path = Path(parsed_args.input)
 
     if not input_path.exists() or not input_path.is_dir():
-        con_message("error", f"Input directory does not exist or is not a directory")
-        log_message("error", f"DEBUG: Input directory does not exist or is not a directory")
+        log_message("error", f"Input directory does not exist or is not a directory")
         return 1
+
+    if not any(input_path.iterdir()):
+        log_message("error", f"Input directory is empty: {input_path}")
+        return 1
+
     futures = []
     pool = ProcessPoolExecutor(max_workers=parsed_args.processes)
     for path in input_path.glob("*.nc"):
