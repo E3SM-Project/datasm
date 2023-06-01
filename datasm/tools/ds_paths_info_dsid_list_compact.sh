@@ -2,7 +2,9 @@
 
 dsidlist=$1
 
+dspi_compact=/p/user_pub/e3sm/staging/tools/ds_paths_info_compact.sh
+
 for dsid in `cat $dsidlist`; do
     echo " "
-    ~/.w/ds_paths_info_compact.sh $dsid
+    $dspi_compact $dsid
 done
