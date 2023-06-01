@@ -2,8 +2,17 @@
 
 # Process Control Variables
 verbose=1
-dryrun=1
+dryrun=0
 realrun=$((1 - dryrun))
+
+if [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]]; then
+    echo "Usage: $0 <cmip6_dataset_id> [ <start_year> <final_year> ]"
+    exit 0
+fi
+
+if [[ $dryrun == 1 ]]; then
+    echo "NOTE: Running in DRYRUN Mode.  Edit dryrun manually to change."
+fi
 
 # define a Boolean year-range testing function
 # Usage: is_file_in_year_range <file> <start_yr> <final_yr>
@@ -115,9 +124,9 @@ tss=`date -u +%Y%m%d_%H%M%S`
 
 # Create and Populate the holodeck
 holodeck="$workdir/holodeck-$tss"
-holodeck_in="$workdir/holodeck/input"
-holodeck_out="$workdir/holodeck/output"
-holodeck_log="$workdir/holodeck/log"
+holodeck_in="$holodeck/input"
+holodeck_out="$holodeck/output"
+holodeck_log="$holodeck/log"
 
 mkdir -p $holodeck_in $holodeck_out $holodeck_log
 
@@ -134,14 +143,14 @@ ln -s $region_file $region_file_base
 echo "Creating datafile symlinks in holodeck - this may take a minute . . ."
 for afile in `ls $latest_data_path`; do
     if [[ $limit_years -eq 1 ]]; then
-        if [[ `is_file_in_year_range $afile $start_yr $final_yr` ]]; then 
+        if [[ `is_file_in_year_range $afile $start_yr $final_yr` -eq 1 ]]; then 
             ln -s $latest_data_path/$afile $afile
         fi
     else    # just do it
         ln -s $latest_data_path/$afile $afile
     fi
 done
-cd $workdir
+cd $holodeck
 
 # Forge the E2C Command Line
 cmd="e3sm_to_cmip -s --realm $cmip_realm --var-list $cmip_var_name --map $map_file --input-path $holodeck_in --output-path $holodeck_out --logdir $holodeck_log --user-metadata $metadata_path --tables-path $tables_path"
@@ -171,6 +180,8 @@ if [ $realrun -eq 1 ]; then
 fi
 
 last_ts=`date -u +%Y%m%d_%H%M%S_%6N`
+
+final_src=$holodeck_out/$dsidpath/$version
 
 fcount=`ls $final_src | wc -l`
 echo $last_ts: Process completed. Return code = $retcode.  Generated $fcount output files for dataset $in_cmip_dsid

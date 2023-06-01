@@ -5,6 +5,15 @@ verbose=1
 dryrun=1
 realrun=$((1 - dryrun))
 
+if [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]]; then
+    echo "Usage: $0 <cmip6_dataset_id> [ <start_year> <final_year> ]"
+    exit 0
+fi
+
+if [[ $dryrun == 1 ]]; then
+    echo "NOTE: Running in DRYRUN Mode.  Edit dryrun manually to change."
+fi
+
 # define a Boolean year-range testing function
 # Usage: is_file_in_year_range <file> <start_yr> <final_yr>
 
@@ -117,9 +126,9 @@ tss=`date -u +%Y%m%d_%H%M%S`
 
 # Create and Populate the holodeck
 holodeck="$workdir/holodeck-$tss"
-holodeck_in="$workdir/holodeck/input"
-holodeck_out="$workdir/holodeck/output"
-holodeck_log="$workdir/holodeck/log"
+holodeck_in="$holodeck/input"
+holodeck_out="$holodeck/output"
+holodeck_log="$holodeck/log"
 
 mkdir -p $holodeck_in $holodeck_out $holodeck_log
 
@@ -143,7 +152,7 @@ for afile in `ls $latest_data_path`; do
         ln -s $latest_data_path/$afile $afile
     fi
 done
-cd $workdir
+cd $holodeck
 
 # Forge the E2C Command Line
 cmd="e3sm_to_cmip -s --realm $cmip_realm --var-list $cmip_var_name --map $map_file --input-path $holodeck_in --output-path $holodeck_out --logdir $holodeck_log --user-metadata $metadata_path --tables-path $tables_path"
