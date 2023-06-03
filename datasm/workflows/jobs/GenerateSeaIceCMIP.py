@@ -34,6 +34,10 @@ class GenerateSeaIceCMIP(WorkflowJob):
 
         parameters['tables_path'] = self.config['cmip_tables_path']
 
+        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
+
+        parameters['metadata'] = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+
         # Obtain latest data path
 
         parameters['data_path'] = raw_seaice_dataset.latest_warehouse_dir
@@ -58,10 +62,6 @@ class GenerateSeaIceCMIP(WorkflowJob):
         # Obtain mapfile and region_file by model_version
 
         parameters.update( derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path']) )
-
-        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
-
-        parameters['metadata'] = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
 
         namefile = latest_aux_data(self.dataset.dataset_id, "namefile", False)
         restfile = latest_aux_data(self.dataset.dataset_id, "restart", True)

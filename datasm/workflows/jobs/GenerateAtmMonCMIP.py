@@ -44,19 +44,33 @@ class GenerateAtmMonCMIP(WorkflowJob):
         plev_var_list = []
         plev_cmor_list = []
 
+        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
+
+        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+        parameters['metadata_path'] = metadata_path
+
+        cm_out = os.path.join(self._slurm_out, "CMIP6")
+
         info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} --freq mon -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} -o {cm_out} -u {metadata_path} --freq mon -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         log_message("info", f"resolve_cmd: calling e2c: CMD = {cmd}")
+
+        print(f"DEBUG: calling e2c: CMD = {cmd}", flush=True)
+
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
         if err:
-            log_message("info", f"(stderr) checking variables: {err}")
-            # return None # apparently not a serious error, merely data written to stderr.
+            log_message("info", f"ERROR checking variables: {err}")
 
         plev = False
         mlev = False
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
+
+        if variable_info == None:
+            log_message("error", f"ERROR checking variables: No data returned from e3sm_to_cmip --info")
+            os._exit(1)
+
         for item in variable_info:
             if ',' in item['E3SM Variables']:
                 e3sm_var = [v.strip() for v in item['E3SM Variables'].split(',')]
@@ -84,11 +98,6 @@ class GenerateAtmMonCMIP(WorkflowJob):
         parameters['plev_cmor_list'] = plev_cmor_list                   # for plev, else no harm if empty
 
         parameters['tables_path'] = self.config['cmip_tables_path']
-
-        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
-
-        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
-        parameters['metadata_path'] = metadata_path
 
         parameters.update( derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path']) )
 

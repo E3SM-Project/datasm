@@ -47,6 +47,10 @@ class GenerateOceanCMIP(WorkflowJob):
 
         parameters['tables_path'] = self.config['cmip_tables_path']
 
+        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
+
+        parameters['metadata'] = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+
         # Obtain latest data path 
 
         # use 'mpas_data_path' and 'atm_data_path' for mpaso-atm.
@@ -97,10 +101,6 @@ class GenerateOceanCMIP(WorkflowJob):
 
         if is_oa_var:
             parameters['mpas_map_path'] = self.config['grids']['oEC60to30_to_180x360']
-
-        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
-
-        parameters['metadata'] = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
 
         # if is_oa_var:
         #     parameters['metadata_path'] = parameters['metadata']
