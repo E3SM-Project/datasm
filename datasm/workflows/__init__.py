@@ -29,6 +29,12 @@ NAME = 'DataSM'
 class Workflow(object):
 
     def __init__(self, parent=None, slurm_scripts='temp', **kwargs):
+
+        print(" === ")
+        print(f' Kwargs for {parent}: {kwargs}' )
+        print(" === ")
+
+
         self.parent = parent
         self.transitions = {}
         self.children = {}
@@ -38,6 +44,9 @@ class Workflow(object):
         self.params = kwargs
         self.job_workers = kwargs.get('job_workers')
         self.debug = kwargs.get('debug')
+
+        # self.dataset_spec = kwargs.get('dataset_spec') # tonyb9000
+
         setup_logging('info', 'DataSM.log')
         log_message("info", f"Workflow {self.name} initialized")
 
@@ -137,7 +146,8 @@ class Workflow(object):
             log_message("error", f"WF_init next_state: (info) child_keys: {self.children.keys()}")
 
             # import ipdb; ipdb.set_trace()
-            sys.exit(1)
+            # sys.exit(1)
+            os._exit(1)
 
     def get_job(self, dataset, state, params, scripts_path, slurm_out_path, workflow, job_workers=8, **kwargs):
         state_attrs = state.split(':')

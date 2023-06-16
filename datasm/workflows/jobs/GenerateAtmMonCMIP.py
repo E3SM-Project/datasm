@@ -49,10 +49,9 @@ class GenerateAtmMonCMIP(WorkflowJob):
         metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
         parameters['metadata_path'] = metadata_path
 
-        cm_out = os.path.join(self._slurm_out, "CMIP6")
-
         info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} -o {cm_out} -u {metadata_path} --freq mon -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmip_out = os.path.join(self._slurm_out, "CMIP6")
+        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} -o {cmip_out} -u {metadata_path} --freq mon -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         log_message("info", f"resolve_cmd: calling e2c: CMD = {cmd}")
 
         print(f"DEBUG: calling e2c: CMD = {cmd}", flush=True)

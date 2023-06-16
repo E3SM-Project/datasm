@@ -18,7 +18,12 @@ Run post-processing jobs to generate climatologies, regridded time-series, and C
 class PostProcess(Workflow):
 
     def __init__(self, *args, **kwargs):
+        print(" === ")
+        print(f' Kwargs PostProc init: {kwargs}' )
+        print(" === ", flush=True)
+
         super().__init__(**kwargs)
+
         self.name = NAME.upper()
         parallel = self.params.get('parallel')
         self.serial = False if parallel else True
@@ -28,11 +33,16 @@ class PostProcess(Workflow):
     def __call__(self):
         from datasm.datasm import AutoDataSM
 
+        print(" === ")
+        print(f' Params PostProc call: {self.params}' )
+        print(" === ")
+
         dataset_id = self.params['dataset_id']
         log_message("info", f'Starting with datasets {dataset_id}')
 
         if (metadata_path := self.params.get('metadata_path')):
             self.metadata_path = Path(metadata_path)
+        spec_path = self.params.get('dataset_spec') # tonyb9000
         data_path = self.params.get('data_path')
         publ_path = self.params.get('publication_path')
         natv_path = self.params.get('publication_path')
@@ -50,6 +60,7 @@ class PostProcess(Workflow):
 
         datasm = AutoDataSM(
             workflow=self,
+            spec_path=spec_path,   # tonyb9000
             dataset_id=dataset_id,
             warehouse_path=wh_path,
             serial=self.serial,

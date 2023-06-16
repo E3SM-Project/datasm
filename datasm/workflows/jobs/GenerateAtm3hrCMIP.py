@@ -46,7 +46,8 @@ class GenerateAtm3hrCMIP(WorkflowJob):
 
         info_file = NamedTemporaryFile(delete=False)
         log_message("info", f"Obtained temp info file name: {info_file.name}")
-        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} -o . -u {metadata_path} --freq 3hr -v {', '.join(in_cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmip_out = os.path.join(self._slurm_out, "CMIP6")
+        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} -o {cmip_out} -u {metadata_path} --freq 3hr -v {', '.join(in_cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         log_message("info", f"resolve_cmd: issuing variable info cmd: {cmd}")
 
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)

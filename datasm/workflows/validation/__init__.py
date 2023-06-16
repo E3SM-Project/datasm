@@ -36,6 +36,10 @@ class Validation(Workflow):
         from datasm.datasm import AutoDataSM
         log_message('info', f'starting workflow {self.name}')
 
+        # self.params is dict
+        log_message('info', f'DEBUG_CMD_PARSE: self.params = {self.params}')
+
+        dataset_spec = self.params['dataset_spec']       
         dataset_ids = self.params['dataset_id']
         warehouse_path = self.params['warehouse_path']
         publication_path = self.params['publication_path']
@@ -45,6 +49,8 @@ class Validation(Workflow):
         if (data_path := self.params.get('data_path')):
             datasm = AutoDataSM(
                 workflow=self,
+
+                spec_path=dataset_spec,
                 dataset_id=dataset_ids,
                 warehouse_path=data_path,
                 publication_path=publication_path,
@@ -56,6 +62,8 @@ class Validation(Workflow):
         else:
             datasm = AutoDataSM(
                 workflow=self,
+
+                spec_path=dataset_spec,
                 dataset_id=dataset_ids,
                 warehouse_path=warehouse_path,
                 publication_path=publication_path,
