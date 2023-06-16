@@ -1,16 +1,15 @@
 import os
+import yaml
 from pathlib import Path
 from subprocess import PIPE, Popen
 from tempfile import NamedTemporaryFile
-
-import yaml
-from datasm.util import log_message, prepare_cmip_job_metadata, get_first_nc_file
 from datasm.workflows.jobs import WorkflowJob
+from datasm.util import log_message, prepare_cmip_job_metadata, derivative_conf, get_first_nc_file
 
-NAME = 'GenerateAtmFixedCMIP'
+NAME = 'GenerateOcnFixedCMIP'
 
 
-class GenerateAtmFixedCMIP(WorkflowJob):
+class GenerateOcnFixedCMIP(WorkflowJob):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -21,18 +20,32 @@ class GenerateAtmFixedCMIP(WorkflowJob):
 
     def resolve_cmd(self):
 
-        raw_dataset = self.requires['ocean-native-mon']
+        log_message("info", f"resolve_cmd: Start: dsid={self.dataset.dataset_id}")
 
+        _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+
+        cwl_config = self.config['cmip_ocn_mon']
+
+        # Begin parameters collection
+
+        parameters = dict()
+        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout
+
+        # start with universal constants
+
+        parameters['tables_path'] = self.config['cmip_tables_path']
+
+        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
+
+        parameters['metadata'] = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+
+        raw_dataset = self.requires['ocean-native-mon']
         data_path = raw_dataset.latest_warehouse_dir
         anyfile = get_first_nc_file(data_path)
         anypath = os.path.join(data_path, anyfile)
         data_path_dict = { 'class': 'File', 'path': anypath }
-
-        parameters = {'ocn_data_path': data_path_dict }
-        cwl_config = self.config['cmip_ocn_mon']
-        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout
-
-        _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+        
+        parameters['ocn_data_path'] = data_path_dict
 
         # if we want to run all the variables
         # we can pull them from the dataset spec
@@ -82,16 +95,7 @@ class GenerateAtmFixedCMIP(WorkflowJob):
 
         # Obtain mapfile and region_file by model_version
 
-        if model_version == "E3SM-2-0":
-            parameters['mapfile'] = self.config['grids']['v2_oEC60to30_to_180x360']
-            parameters['region_file'] = parameters['v2_mpas_region_path']
-        else:
-            parameters['mapfile'] = self.config['grids']['v1_oEC60to30_to_180x360']
-            parameters['region_file'] = parameters['v1_mpas_region_path']
-
-        parameters['tables_path'] = self.config['cmip_tables_path']
-
-        parameters['metadata'] = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+        parameters.update( derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path']) )
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else in_cmip_vars[0]
@@ -100,13 +104,13 @@ class GenerateAtmFixedCMIP(WorkflowJob):
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 
+        cwl_workflow_main = "Ofx/Ofx.cwl"
+        cwl_workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
+        
         # step three, render out the CWL run command
         # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
         outpath = '/p/user_pub/e3sm/warehouse'  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
 
-        cwl_workflow_main = "Ofx/Ofx.cwl"
-        cwl_workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
-        
         if not self.serial:
             parallel = "--parallel"
         else:

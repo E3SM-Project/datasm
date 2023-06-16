@@ -68,11 +68,19 @@ mapspath=/p/user_pub/e3sm/staging/resource/maps
 if [ $fullpath -eq 1 ]; then
     echo "hrz_atm_map_path:$mapspath/$regrid"
     echo "mapfile:$mapspath/$regrid"
-    echo "region_file:$mapspath/$region_mask"
+    if [ $region_mask == "NONE" ]; then
+        echo "region_file:NONE"
+    else
+        echo "region_file:$mapspath/$region_mask"
+    fi
 else
     echo "hrz_atm_map_path:$regrid"
     echo "mapfile:$regrid"
-    echo "region_file:$region_mask"
+    if [ $region_mask == "NONE" ]; then
+        echo "region_file:NONE"
+    else
+        echo "region_file:$region_mask"
+    fi
 fi
 echo "file_pattern:$file_selector"
 echo "case_finder:$case_finder"

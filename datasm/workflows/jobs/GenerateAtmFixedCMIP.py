@@ -43,9 +43,13 @@ class GenerateAtmFixedCMIP(WorkflowJob):
             is_all = False
             in_cmip_vars = [cmip_var]
 
+        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+        parameters['metadata_path'] = metadata_path
+
         info_file = NamedTemporaryFile(delete=False)
         log_message("info", f"Obtained temp info file name: {info_file.name}")
-        cmd = f"e3sm_to_cmip --info -i {data_path} --freq mon -v {', '.join(in_cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmip_out = os.path.join(self._slurm_out, "CMIP6")
+        cmd = f"e3sm_to_cmip --info -i {data_path} -o {cmip_out} -u {metadata_path} --freq mon -v {', '.join(in_cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         log_message("info", f"resolve_cmd: issuing variable info cmd: {cmd}")
 
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
@@ -56,6 +60,11 @@ class GenerateAtmFixedCMIP(WorkflowJob):
 
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
+
+        if variable_info == None:
+            log_message("error", f"ERROR checking variables: No data returned from e3sm_to_cmip --info")
+            os._exit(1)
+
 
         e3sm_vars = []
         cmip_vars = []
@@ -83,9 +92,6 @@ class GenerateAtmFixedCMIP(WorkflowJob):
         parameters.update( derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path']) )
 
         parameters['tables_path'] = self.config['cmip_tables_path']
-
-        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
-        parameters['metadata_path'] = metadata_path
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else in_cmip_vars[0]

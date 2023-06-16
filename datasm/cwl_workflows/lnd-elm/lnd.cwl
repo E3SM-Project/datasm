@@ -9,7 +9,7 @@ requirements:
 
 inputs:
 
-  lnd_data_path: string
+  data_path: string
   frequency: int
   num_workers: int
 
@@ -38,7 +38,7 @@ steps:
   step_get_casename:
     run: find_casename.cwl
     in:
-      data_path: lnd_data_path
+      data_path: data_path
       find_patt: file_pattern
     out:
       - casename
@@ -46,7 +46,7 @@ steps:
   step_get_start_end:
     run: get_start_end.cwl
     in:
-      data_path: lnd_data_path
+      data_path: data_path
     out:
       - start_year
       - end_year
@@ -64,7 +64,7 @@ steps:
   step_discover_lnd_files:
     run: discover_lnd_files.cwl
     in:
-      input: lnd_data_path
+      input: data_path
       fpatt: file_pattern
       start: step_segments/segments_start
       end: step_segments/segments_end

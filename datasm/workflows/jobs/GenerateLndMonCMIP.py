@@ -49,7 +49,7 @@ class GenerateLndMonCMIP(WorkflowJob):
 
         # Obtain latest data path
 
-        parameters['lnd_data_path'] = raw_dataset.latest_warehouse_dir
+        parameters['data_path'] = raw_dataset.latest_warehouse_dir
 
         parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
 
@@ -65,8 +65,15 @@ class GenerateLndMonCMIP(WorkflowJob):
         # Call E2C to obtain variable info
         std_var_list = []
         std_cmor_list = []
+
+        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
+
+        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+        parameters['metadata_path'] = metadata_path
+
         info_file = NamedTemporaryFile(delete=False)
-        cmd = f"e3sm_to_cmip -i {parameters['lnd_data_path']} --info --map none --realm lnd -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmip_out = os.path.join(self._slurm_out, "CMIP6")
+        cmd = f"e3sm_to_cmip -i {parameters['data_path']} -o {cmip_out} -u {metadata_path} --info --map none --realm lnd -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
         log_message("info", f"resolve_cmd: E2C --info call cmd = {cmd}")
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
@@ -77,9 +84,10 @@ class GenerateLndMonCMIP(WorkflowJob):
 
         with open(info_file.name, 'r') as instream:
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
-        if variable_info is None:
-            log_message("error", f"Unable to find correct input variable for requested CMIP conversion, is {cmd} correct?")
-            raise ValueError(f"Unable to find correct input variable for requested CMIP conversion, is {cmd} correct?")
+
+        if variable_info == None:
+            log_message("error", f"ERROR checking variables: No data returned from e3sm_to_cmip --info")
+            os._exit(1)
 
         for item in variable_info:
             if ',' in item['E3SM Variables']:
@@ -97,11 +105,6 @@ class GenerateLndMonCMIP(WorkflowJob):
         # Obtain file match pattern and mapfile by model_version
 
         parameters.update( derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path']) )
-
-        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
-
-        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
-        parameters['metadata_path'] = metadata_path
 
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else cmip_var[0]

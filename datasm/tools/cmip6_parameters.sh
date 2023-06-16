@@ -18,14 +18,23 @@ restart_dsid=${headpart}.restart.fixed.${tailpart}
 
 namefile_data_path=`$latest $namefile_dsid`
 restart_data_path=`$latest $restart_dsid`
+restart_data_path=${restart_data_path/"sea-ice"/"ocean"}
 
-namefile=`ls $namefile_data_path | head -1`
-restartf=`ls $restart_data_path | head -1`
+if [[ $namefile_data_path == "NONE" ]]; then
+    namefile_data="NONE"
+else
+    namefile=`ls $namefile_data_path | head -1`
+    namefile_data=$namefile_data_path/$namefile
+fi
+if [[ $restart_data_path == "NONE" ]]; then
+    restart_data="NONE"
+else
+    restartf=`ls $restart_data_path | head -1`
+    restart_data=$restart_data_path/$restartf
+fi
 
-namefile_data=$namefile_data_path/$namefile
-restart_data=$restart_data_path/$restartf
 
-
+echo "parent_native_dsid:$parent_dsid"
 echo "input_data:$input_data"
 echo "namefile_data:$namefile_data"
 echo "restart_data:$restart_data"

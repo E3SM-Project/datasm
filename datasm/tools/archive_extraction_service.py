@@ -234,6 +234,8 @@ def collision_free_name(apath, abase):
 # Must ensure we have a DSID name for the dataset status file, before warehouse facet directory exists.
 # Must test for existence of facet dest, if augmenting.  May create to 0_extraction/init_status_files/, move later
 
+verbose=True
+
 def main():
 
     assess_args()
@@ -333,27 +335,32 @@ def main():
             setStatus(statfile,'EXTRACTION','ZSTASH:Engaged')
 
             # call zstash and wait for return
-            cmd = ['zstash', 'extract', '--hpss=none', arch_patt]
+            if verbose:
+                cmd = ['zstash', 'extract', '--hpss=none', '--verbose', arch_patt]
+            else:
+                cmd = ['zstash', 'extract', '--hpss=none', arch_patt]
             proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
             proc_out, proc_err = proc.communicate()
+            proc_out = proc_out.decode('utf-8')
+            proc_err = proc_err.decode('utf-8')
 
             if not proc.returncode == 0:
                 logMessage('ERROR',f'zstash returned exitcode {proc.returncode}')
+                if verbose:
+                    logMessage('ERROR',f'(verbose) proc_out: {proc_out}')
+                logMessage('ERROR',f'(verbose) proc_err: {proc_err}')
                 setStatus(statfile,'EXTRACTION',f'ZSTASH:Fail:exitcode={proc.returncode}')
                 setStatus(statfile,'DATASM',f'EXTRACTION:Fail')
                 os.chdir(parentdir)
                 shutil.rmtree(holodeck,ignore_errors=True)
                 time.sleep(5)
                 continue
-                
+            
+            if verbose:
+                logMessage('INFO',f"(verbose) proc_out: {proc_out}")    
             logMessage('INFO','ARCHIVE_EXTRACTION_SERVICE:zstash completed.')
             setStatus(statfile,'EXTRACTION','ZSTASH:Pass')
             setStatus(statfile,'DATASM',f'EXTRACTION:Pass')
-
-            proc_out = proc_out.decode('utf-8')
-            proc_err = proc_err.decode('utf-8')
-            print(f'{proc_out}',flush=True)
-            print(f'{proc_err}',flush=True)
 
             # CONFIRM files extracted
 

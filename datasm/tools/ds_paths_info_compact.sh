@@ -41,30 +41,32 @@ else
     echo "NONE"
 fi
 
-echo "WH_PATH: $wh_path"
-    if [ -d $wh_path ]; then
-        vdirs=`ls $wh_path`
-        for vdir in $vdirs; do
-            if [ ${vdir:0:1} != "v" ]; then
-                continue
-            fi
-            vnum=`ls $wh_path/$vdir | wc -l`
-            echo "      $vdir:  $vnum files"
-        done
-    else
-        echo "      (empty)"
-    fi
+if [ -d $wh_path ]; then
+    echo -n "WH_PATH: $wh_path: "
+    vdirs=`ls $wh_path`
+    for vdir in $vdirs; do
+        if [ ${vdir:0:1} != "v" ]; then
+            continue
+        fi
+        vnum=`ls $wh_path/$vdir | wc -l`
+        echo -n " ($vdir:  $vnum files) "
+    done
+else
+    echo -n "WH_PATH: $wh_path: NO_RESULTS"
+fi
+echo " "
 
-echo "PB_PATH: $pb_path"
-    if [ -d $pb_path ]; then
-        vdirs=`ls $pb_path`
-        for vdir in $vdirs; do
-            if [ ${vdir:0:1} != "v" ]; then
-                continue
-            fi
-            vnum=`ls $pb_path/$vdir | wc -l`
-            echo "      $vdir:  $vnum files"
-        done
-    else
-        echo "      (empty)"
-    fi
+if [ -d $pb_path ]; then
+    echo -n "PB_PATH: $pb_path: "
+    vdirs=`ls $pb_path`
+    for vdir in $vdirs; do
+        if [ ${vdir:0:1} != "v" ]; then
+            continue
+        fi
+        vnum=`ls $pb_path/$vdir | wc -l`
+        echo -n "      $vdir:  $vnum files"
+    done
+else
+    echo -n "PB_PATH: $pb_path: NO_RESULTS"
+fi
+echo " "
