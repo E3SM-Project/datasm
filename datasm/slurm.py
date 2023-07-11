@@ -58,7 +58,8 @@ class Slurm(object):
         except Exception as e:
             print("Batch job submission failed")
             print_debug(e)
-            return 0
+            # return 0
+            os._exit(1)
 
         if err:
             raise Exception("SLURM ERROR: " + err)
@@ -215,6 +216,7 @@ class Slurm(object):
                 sleep(1)
         if tries == 10:
             raise Exception("SLURM ERROR: Unable to communicate with squeue")
+            os._exit(1)
 
         queueinfo = []
         for item in out.split(b"\n")[1:]:

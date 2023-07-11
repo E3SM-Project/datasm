@@ -94,4 +94,4 @@ outputs:
     type: File[]
     outputBinding:
       glob:
-        $(inputs.casename)$(inputs.fpatt).[0-9][0-9][0-9][0-9]-[0-9][0-9].nc
+        $(inputs.casename)$(inputs.fpatt)0.[0-9][0-9][0-9][0-9]-[0-9][0-9].nc
