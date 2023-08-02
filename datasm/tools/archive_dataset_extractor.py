@@ -1,4 +1,5 @@
-import sys, os
+import sys
+import os
 import argparse
 from argparse import RawTextHelpFormatter
 import glob

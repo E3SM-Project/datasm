@@ -9,14 +9,11 @@ from pytz import UTC
 
 import ipdb
 
-from datasm.util import (
-    load_file_lines,
-    search_esgf,
-    get_last_status_line,
-    is_vdir_pattern,
-    log_message,
-)
-
+from datasm.util import get_last_status_line
+from datasm.util import is_vdir_pattern
+from datasm.util import load_file_lines
+from datasm.util import log_message
+from datasm.util import search_esgf
 
 class DatasetStatus(Enum):
     UNITITIALIZED = "DATASM:UNINITIALIZED:"

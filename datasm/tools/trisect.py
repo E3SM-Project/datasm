@@ -1,4 +1,6 @@
-import os, sys, argparse
+import os
+import sys
+import argparse
 
 # Given two files of lines, convert each to sets of lines A and B.
 # Output the set differences A-B and B-A, and intersection A&B.

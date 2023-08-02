@@ -1,4 +1,5 @@
-import sys, os
+import sys
+import os
 import argparse
 from argparse import RawTextHelpFormatter
 import glob
@@ -404,7 +405,7 @@ def main():
             
             tm_final = time.time()
             ET = tm_final - tm_start
-            logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Completed file transfer to warehouse: filecount = {fcount}, ET = {ET}')
+            logMessage('INFO',f'ARCHIVE_EXTRACTION_SERVICE:Completed file transfer to warehouse: dsid={dsid}: filecount = {fcount}, ET = {ET}')
             logMessage('INFO', ' ');
             setStatus(statfile,'EXTRACTION',f'TRANSFER:Pass:dstdir=v0,filecount={fcount}')
             os.chdir(parentdir)

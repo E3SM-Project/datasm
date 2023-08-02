@@ -49,7 +49,8 @@ class GenerateLndMonCMIP(WorkflowJob):
 
         # Obtain latest data path
 
-        parameters['data_path'] = raw_dataset.latest_warehouse_dir
+        data_path = raw_dataset.latest_warehouse_dir
+        parameters['data_path'] = data_path
 
         parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
 
@@ -73,7 +74,8 @@ class GenerateLndMonCMIP(WorkflowJob):
 
         info_file = NamedTemporaryFile(delete=False)
         cmip_out = os.path.join(self._slurm_out, "CMIP6")
-        cmd = f"e3sm_to_cmip -i {parameters['data_path']} -o {cmip_out} -u {metadata_path} --info --map none --realm lnd -v {', '.join(cmip_var)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        var_str = ', '.join(cmip_var)
+        cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq mon -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm lnd"
         log_message("info", f"resolve_cmd: E2C --info call cmd = {cmd}")
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()

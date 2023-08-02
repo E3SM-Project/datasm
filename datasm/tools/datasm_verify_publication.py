@@ -1,6 +1,7 @@
-import sys, os
-import json
+import os
+import sys
 import argparse
+import json
 from argparse import RawTextHelpFormatter
 
 import traceback

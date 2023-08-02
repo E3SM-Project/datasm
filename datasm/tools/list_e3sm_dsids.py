@@ -1,4 +1,6 @@
-import os, sys, argparse
+import os
+import sys
+import argparse
 import yaml
 from argparse import RawTextHelpFormatter
 

@@ -35,10 +35,6 @@ class GenerateOcnFixedCMIP(WorkflowJob):
 
         parameters['tables_path'] = self.config['cmip_tables_path']
 
-        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
-
-        parameters['metadata'] = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
-
         raw_dataset = self.requires['ocean-native-mon']
         data_path = raw_dataset.latest_warehouse_dir
         anyfile = get_first_nc_file(data_path)
@@ -56,9 +52,19 @@ class GenerateOcnFixedCMIP(WorkflowJob):
             is_all = False
             in_cmip_vars = [cmip_var]
 
+        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
+
+        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
+        parameters['metadata_path'] = metadata_path
+
         info_file = NamedTemporaryFile(delete=False)
         log_message("info", f"Obtained temp info file name: {info_file.name}")
-        cmd = f"e3sm_to_cmip --info -i {data_path} --freq mon -v {', '.join(in_cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        cmip_out = os.path.join(self._slurm_out, "CMIP6")
+        var_str = ', '.join(in_cmip_vars)
+        info_realm = mpaso
+        if table == "SImon":
+            info_realm = mpassi
+        cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq mon -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm {info_realm}"
         log_message("info", f"resolve_cmd: issuing variable info cmd: {cmd}")
 
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
