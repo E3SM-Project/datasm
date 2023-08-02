@@ -49,7 +49,8 @@ class GenerateAtmFixedCMIP(WorkflowJob):
         info_file = NamedTemporaryFile(delete=False)
         log_message("info", f"Obtained temp info file name: {info_file.name}")
         cmip_out = os.path.join(self._slurm_out, "CMIP6")
-        cmd = f"e3sm_to_cmip --info -i {data_path} -o {cmip_out} -u {metadata_path} --freq mon -v {', '.join(in_cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        var_str = ', '.join(in_cmip_vars)
+        cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq mon -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm atm"
         log_message("info", f"resolve_cmd: issuing variable info cmd: {cmd}")
 
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)

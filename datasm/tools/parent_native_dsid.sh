@@ -6,6 +6,11 @@
 # CMIP6 Example:        CMIP6.C4MIP.E3SM-Project.E3SM-1-1-ECA.hist-bgc.r1i1p1f1.3hr.pr.gr
 #       project.activity.institution.sourceid.experiment.variant.freq.var.grid
 
+if [ $# -eq 0 ]; then
+    echo "NONE: No dataset_id supplied"
+    exit 1
+fi
+
 dsid=$1
 
 
@@ -59,8 +64,10 @@ if [[ $institute != "E3SM-Project" && $institute != "UCSB" ]]; then
     exit 0
 fi
 
-modelversion=`echo $source_id | cut -f2- -d- | tr - _`
+modelversion=`echo $source_id | cut -f2- -d- | tr - _`  # CMIP6 dsids will NOT have "-LE" in the Source_ID
 # what about HR campaign?
+
+# HACK for NARRM
 if [ $modelversion == "2_0" ]; then
     resolution="LR"
 elif [ $modelversion == "2_0_NARRM" ]; then
@@ -72,6 +79,14 @@ fi
 # HACK for v1_Large_Ensemble (External)
 if [[ $modelversion == "1_0" && $institute == "UCSB" ]]; then
     modelversion="1_0_LE"
+fi
+
+# HACK for v2_Large_Ensemble (External)
+if [[ $modelversion == "2_0" ]]; then
+    rdex=`echo $variant | cut -f1 -di | cut -c2-`
+    if [[ $rdex -ge 6 ]]; then
+        modelversion="2_0_LE"
+    fi
 fi
 
 grid="native"

@@ -1,4 +1,5 @@
-import sys, os
+import os
+import sys
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -170,6 +171,7 @@ fi
                 return None
         else:
             dataset_facets = dataset.dataset_id.split('.')
+            log_message("info", f"init: requires_dataset(): dataset.dataset_id = {dataset.dataset_id}")
             if self.dataset.project == 'CMIP6' and dataset.project == 'E3SM':
                 e3sm_cmip_case = self._spec['project']['E3SM'][dataset_facets[1]][dataset_facets[2]].get('cmip_case')
                 # reject if this E3SM dataset does not have a "cmip_case" in the dataset_spec.
@@ -193,7 +195,7 @@ fi
         if '_' in dst_dataset_model:
             dst_dataset_model = 'E3SM-' + '-'.join(self.dataset.model_version.split('_'))
         if src_dataset_model != dst_dataset_model:
-            if src_dataset_model != "E3SM-1-0-LE": # HACK to accommodate v1_Large_Ensemble
+            if src_dataset_model not in [ "E3SM-1-0-LE", "E3SM-2-0-LE" ] : # HACK to accommodate v1_Large_Ensemble and v2_Large_Ensemble
                 log_message("info", f"init: requires_dataset: ERR: src_dataset_model = {src_dataset_model} but dst_dataset_model = {dst_dataset_model}")
                 # reject if (translated) model does not match
                 return None

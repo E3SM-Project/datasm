@@ -1,4 +1,5 @@
-import sys, os
+import sys
+import os
 import re
 import shutil
 import json
@@ -292,10 +293,14 @@ def prepare_cmip_job_metadata(cmip_dsid, in_meta_path, slurm_out):
 
     metadata_name = f"{experiment}_{variant}.json"
 
-    # more cruft to support v1_LE
-    metadata_version = model_version        # metadata_version = CMIP6 "Source" unless v1_LE
+    # more cruft to support v1_LE and v2_LE
+    metadata_version = model_version        # metadata_version = CMIP6 "Source" unless v1_LE or v2_LE
     if institution == "UCSB":
         metadata_version = "E3SM-1-0-LE"
+    elif model_version == "E3SM-2-0" and experiment == "historical":
+        rdex = int(variant.split('i')[0].split('r')[1])
+        if rdex >= 6 and rdex <= 21:
+            metadata_version = "E3SM-2-0-LE"
 
     # copy metadata file to slurm directory for edit
     metadata_path_src = os.path.join(in_meta_path, metadata_version, f"{metadata_name}")
@@ -454,24 +459,30 @@ def parent_native_dsid(target_dsid):
         return "NONE"
     if inst not in allowed_institutions:
         return "NONE"
-    model = source[5:].replace('-', '_')
 
-    # HACK for v1_Large_Ensemble (External)
-    if model == "1_0" and inst == "UCSB":
-        model = "1_0_LE"
+    model = source[5:].replace('-', '_')        # CMIP6 dsids will NOT have "-LE" in the Source_ID
 
-    # only options for now
+    rdexpart = variant.split('i')[0]    # should be rN*
+    rdex = rdexpart[1:] # should be N*
+    ens = "ens" + rdex
+
+    # HACK for NARRM - only options for now
     if model == "2_0":
         resol = "LR"
     elif model == "2_0_NARRM":
         resol = "LR-NARRM"
     else:
         resol = "1deg_atm_60-30km_ocean"
+
+    # HACK for v1_Large_Ensemble (External)
+    if model == "1_0" and inst == "UCSB":
+        model = "1_0_LE"
+    # HACK for v2_Large_Ensemble (External)
+    if model == "2_0" and int(rdex) >= 6 and int(rdex) <= 21:
+        model = "2_0_LE"
+
     grid = "native"
     otype = "model-output"
-    rvalpart = variant.split('i')[0]    # should be rN*
-    rval = rvalpart[1:] # should be N*
-    ens = "ens" + rval
 
     if cmip_realm == "SImon":
         realm = "sea-ice"

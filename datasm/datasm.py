@@ -28,6 +28,7 @@ resource_path, _ = os.path.split(resources.__file__)
 # Horrible
 DEFAULT_SPEC_PATH = os.path.join("/p/user_pub/e3sm/staging/resource", "dataset_spec.yaml")
 # DEFAULT_SPEC_PATH = os.path.join("/p/user_pub/e3sm/archive/External/E3SMv1_LE/resource", "v1_LE_dataset_spec.yaml")
+# DEFAULT_SPEC_PATH = os.path.join("/p/user_pub/e3sm/archive/External/E3SMv2_LE/resource", "v2_LE_dataset_spec.yaml")
 
 
 DEFAULT_CONF_PATH = os.path.join(resource_path, "datasm_config.yaml")
@@ -223,7 +224,7 @@ class AutoDataSM:
             warehouse_base=self.warehouse_path,
             archive_base=self.archive_path,
             no_status_file=True)
-        log_message("debug", f"find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'requires_dataset()'")
+        log_message("info", f"find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'requires_dataset()'")
         if job.requires_dataset(dataset):
             log_message("info", f"find_e3sm_source_dataset: dataset {dataset.dataset_id} matched job requirement")
             dataset.initialize_status_file()

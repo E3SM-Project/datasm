@@ -24,11 +24,13 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         raw_dataset = self.requires['atmos-native-3hr']
         cwl_config = self.config['cmip_atm_3hr']
 
-        # log_message("debug", f"Using raw input from {raw_dataset.latest_warehouse_dir}")
-        parameters = {'data_path': raw_dataset.latest_warehouse_dir}
+        _, _, institution, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+
+        parameters = dict()
         parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
 
-        _, _, institution, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+        data_path = raw_dataset.latest_warehouse_dir
+        parameters['data_path'] = data_path
 
         # if we want to run all the variables
         # we can pull them from the dataset spec
@@ -47,7 +49,8 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         info_file = NamedTemporaryFile(delete=False)
         log_message("info", f"Obtained temp info file name: {info_file.name}")
         cmip_out = os.path.join(self._slurm_out, "CMIP6")
-        cmd = f"e3sm_to_cmip --info -i {parameters['data_path']} -o {cmip_out} -u {metadata_path} --freq 3hr -v {', '.join(in_cmip_vars)} -t {self.config['cmip_tables_path']} --info-out {info_file.name}"
+        var_str = ', '.join(in_cmip_vars)
+        cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq 3hr -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm atm"
         log_message("info", f"resolve_cmd: issuing variable info cmd: {cmd}")
 
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
@@ -60,9 +63,8 @@ class GenerateAtm3hrCMIP(WorkflowJob):
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
 
         if variable_info == None:
-            log_message("error", f"ERROR checking variables: No data returned from e3sm_to_cmip --info")
+            log_message("error", f"ERROR checking variables: No data returned from e3sm_to_cmip --info: {cmd}")
             os._exit(1)
-
 
         e3sm_vars = []
         cmip_vars = []
