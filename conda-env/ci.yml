@@ -8,25 +8,26 @@ channels:
 dependencies:
   # Base
   # ==================
-  - python>=3.8
+  - python >=3.9
   - pip
-  - yaml
-  - nco
-  - cmor>=3.6.0
-  - netcdf4
-  - numpy
-  - xarray
-  - matplotlib
   - distributed
-  - tqdm
+  - ipdb
+  - matplotlib
+  - netcdf4
+  - numpy >=1.23.0 # This version of numpy includes support for Python 3.11.
+  - pyyaml
   - termcolor
+  - tqdm
   - watchdog
-  - e3sm_to_cmip
-  - zstash
+  - xarray >=2022.02.0 # This version of Xarray drops support for Python 3.8.
   # Required for CWL workflows.
-  - cwltool
-  - nodejs
-  # Testing
-  # ==================
-  - pytest
+  - cwltool >=3.1.20220202173120
+  - nodejs >=17.4.0
+  # Used in modules for `extract`, `validate`, and `postprocess` operations.
+  - nco >=5.1.3
+  - e3sm_to_cmip >=1.9.1
+  - zstash >=1.2.0
+  # Used in modules for `publish` operation.
+  - esgconfigparser >=1.0.0a1
+  - esgcet >=5.2.0
 prefix: /opt/miniconda3/envs/datasm_ci
