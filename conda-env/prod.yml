@@ -2,7 +2,6 @@
 name: datasm_prod
 channels:
   - conda-forge
-  - e3sm
   - defaults
 dependencies:
   # Base
