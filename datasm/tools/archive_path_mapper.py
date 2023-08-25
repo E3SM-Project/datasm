@@ -1,5 +1,4 @@
-import sys
-import os
+import sys, os
 import argparse
 from argparse import RawTextHelpFormatter
 import glob
@@ -130,7 +129,7 @@ def main():
     zstashversion = check_output(['zstash', 'version']).decode('utf-8').strip()
     # print(f'zstash version: {zstashversion}')
 
-    if not (zstashversion == 'v0.4.1' or zstashversion == 'v0.4.2' or zstashversion == 'v1.0.0' or zstashversion == 'v1.1.0' or zstashversion == 'v1.2.0'):
+    if zstashversion < "0.4.1":
         logmsg(f"ERROR: ABORTING:  zstash version [{zstashversion}] is not 0.4.1 or greater, or is unavailable")
         sys.exit(1)
 

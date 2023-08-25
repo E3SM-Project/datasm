@@ -9,6 +9,8 @@ CheckFileIntegrity:Ready:
 CheckFileIntegrity:Pass:
     default:
         - Fail
+    atmos-native-fixed:
+        - Pass
     atmos-native-3hr:
         - ATMValidation:Ready
     atmos-native-3hr_snap:
@@ -23,13 +25,19 @@ CheckFileIntegrity:Pass:
         - ATMValidation:Ready
     atmos-native-day_cosp:
         - ATMValidation:Ready
+    land-native-fixed:
+        - Pass
     land-native-mon:
         - LNDVALIDATION:Ready
     river-native-mon:
         - Pass
+    ocean-native-fixed:
+        - Pass
     ocean-native-mon:
         - Pass
     ocean-native-5day_snap:
+        - Pass
+    seaice-native-fixed:
         - Pass
     seaice-native-mon:
         - Pass
