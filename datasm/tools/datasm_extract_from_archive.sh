@@ -40,25 +40,9 @@ while [ $i -le $# ]; do
 done
 
 
-
-if [[ $# -gt 1 && $2 == "prestage" ]]; then
-    prestage=1
-fi
-
 workdir=$userpath/Pub_Work/0_Extraction
 extr_reqs_pend="/p/user_pub/e3sm/archive/.extraction_requests_pending"
 extr_reqs_pres="/p/user_pub/e3sm/archive/.extraction_requests_prestage"
-
-# Override manually if needed
-do_force=0
-
-if [ $# -eq 2 ]; then
-    arg2=$2
-    if [ ${arg2:0:3} == "am=" ]; then
-        slen=${#arg2}
-        arch_map=${arg2:3: $slen}
-    fi
-fi
 
 extraction_service=/p/user_pub/e3sm/staging/tools/archive_extraction_service.py
 mapfilegen_service=/p/user_pub/e3sm/staging/tools/mapfile_generation_service.py

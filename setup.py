@@ -35,7 +35,7 @@ class CleanCommand(distutils.cmd.Command):
 
 setup(
     author="datasm developers",
-    python_requires=">=3.8,<3.10",
+    python_requires=">=3.9,<3.12",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
@@ -57,8 +57,7 @@ setup(
         ],
     },
     test_suite="tests",
-    # TODO: Update this URL once the repo is renamed.
-    url="https://github.com/E3SM-Project/esgfpub",
+    url="https://github.com/E3SM-Project/datasm",
     version="0.1.0",
     zip_safe=False,
     cmdclass={
