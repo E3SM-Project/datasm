@@ -2,11 +2,12 @@
 
 dsid=$1
 
-pb_root=/p/user_pub/work
-wh_root1=/p/user_pub/e3sm/warehouse
-sf_root1=/p/user_pub/e3sm/staging/status
-wh_root2=/p/user_pub/e3sm/warehouse_ext
-sf_root2=/p/user_pub/e3sm/staging/status_ext
+pb_root=`$DSM_GETPATH PUBLICATION_DATA`
+wh_root1=`$DSM_GETPATH STAGING_DATA`
+sf_root1=`$DSM_GETPATH STAGING_STATUS`
+
+staging=`$DSM_GETPATH DSM_STAGING`
+sf_root2=$staging/status_ext
 
 sf_root=""
 wh_root=""
@@ -23,7 +24,7 @@ if [ $project == "CMIP6" ]; then
         wh_root=$wh_root1
     else
         sf_root=$sf_root2
-        wh_root=$wh_root2
+        wh_root=$wh_root1
     fi
 fi
 

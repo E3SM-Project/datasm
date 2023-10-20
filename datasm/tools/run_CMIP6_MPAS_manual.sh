@@ -4,6 +4,12 @@
 verbose=1
 dryrun=1
 realrun=$((1 - dryrun))
+testrun=1
+
+helptext="Dryrun:  Execution commandlines and status file updates are echoed, but not run."
+helptext="         Holodeck of symlinks is produced, but no dataset is produced."
+helptext="Testrun: (overrides Dryrun). Dataset produced but not moved to warehouse."
+helptext="         Dataset status file is not updated."
 
 if [[ $# -eq 0 || $1 == "-h" || $1 == "--help" ]]; then
     echo "Usage: $0 <cmip6_dataset_id> [ <start_year> <final_year> ]"
@@ -12,6 +18,12 @@ fi
 
 if [[ $dryrun == 1 ]]; then
     echo "NOTE: Running in DRYRUN Mode.  Edit dryrun manually to change."
+fi
+if [[ $testrun == 1 ]]; then
+    dryrun=0
+    realrun=1
+    echo "NOTE: Running in TEST Mode.  Output will not be moved to warehouse"
+    echo " and dataset status file will not be updated. Edit testrun manually to change."
 fi
 
 # define a Boolean year-range testing function
@@ -64,13 +76,18 @@ fi
 workdir=`pwd`
 workdir=`realpath $workdir`
 
+# other root paths
+tools=`$DSM_GETPATH STAGING_TOOLS`
+resource=`$DSM_GETPATH STAGING_RESOURCE`
+w_root=`$DSM_GETPATH STAGING_DATA`
+
 # external dependencies
 
-cmip6_params=/p/user_pub/e3sm/staging/tools/cmip6_parameters.sh
-force_status=/p/user_pub/e3sm/staging/tools/ensure_status_file_for_dsid.sh
-meta_version=/p/user_pub/e3sm/staging/tools/metadata_version.py
+cmip6_params=$tools/cmip6_parameters.sh
+force_status=$tools/ensure_status_file_for_dsid.sh
+meta_version=$tools/metadata_version.py
 
-parent_dsid=`/p/user_pub/e3sm/staging/tools/parent_native_dsid.sh $in_cmip_dsid`
+parent_dsid=`$tools/parent_native_dsid.sh $in_cmip_dsid`
 
 params_temp=params-$ts
 $cmip6_params $in_cmip_dsid > $params_temp
@@ -96,12 +113,12 @@ region_file_base=`basename $region_file`
 # generate metadata_path from CMIP6 dataset_id components
 exper_source=`echo $in_cmip_dsid | cut -f4 -d.`
 exper_variant=`echo $in_cmip_dsid | cut -f5,6 -d. | tr . _`
-metadata_path=/p/user_pub/e3sm/staging/resource/CMIP6-Metadata/$exper_source/${exper_variant}.json
+metadata_path=$resource/CMIP6-Metadata/$exper_source/${exper_variant}.json
 echo "metadata_path      = $metadata_path"
 meta_base=`basename $metadata_path`
 
 # This is a constant - read-only
-tables_path=/p/user_pub/e3sm/staging/resource/cmor/cmip6-cmor-tables/Tables
+tables_path=$resource/cmor/cmip6-cmor-tables/Tables
 
 if [ $verbose ]; then
     echo "workdir            = $workdir"
@@ -145,7 +162,7 @@ ln -s $region_file $region_file_base
 echo "Creating datafile symlinks in holodeck - this may take a minute . . ."
 for afile in `ls $latest_data_path`; do
     if [[ $limit_years -eq 1 ]]; then
-        if [[ `is_file_in_year_range $afile $start_yr $final_yr` ]]; then 
+        if [[ `is_file_in_year_range $afile $start_yr $final_yr` -eq 1 ]]; then 
             ln -s $latest_data_path/$afile $afile
         fi
     else    # just do it
@@ -157,13 +174,13 @@ cd $holodeck
 # Forge the E2C Command Line
 cmd="e3sm_to_cmip -s --realm $cmip_realm --var-list $cmip_var_name --map $map_file --input-path $holodeck_in --output-path $holodeck_out --logdir $holodeck_log --user-metadata $metadata_path --tables-path $tables_path"
 
-if [ $dryrun -eq 1 ]; then
+if [ $realrun -eq 0 ]; then
     echo ""
     echo "DryRun: CMD:  $cmd"
     exit 0
 fi
 
-# Begin Process Execution, including creation/update of status file
+# Begin Process Execution =========================================
 
 init_ts=`date -u +%Y%m%d_%H%M%S_%6N`
 
@@ -171,7 +188,7 @@ init_ts=`date -u +%Y%m%d_%H%M%S_%6N`
 python $meta_version -i $metadata_path -m set
 version=`python $meta_version -i $metadata_path -m get`
 
-echo DECLARING version = $version
+echo DECLARING dataset version = $version
 
 echo "$init_ts: Issuing CMD = $cmd"
 if [ $realrun -eq 1 ]; then
@@ -190,16 +207,20 @@ last_ts=`date -u +%Y%m%d_%H%M%S_%6N`
 fcount=`ls $final_src | wc -l`
 echo $last_ts: Process completed. Return code = $retcode.  Generated $fcount output files for dataset $in_cmip_dsid
 
-if [ $realrun -eq 1 ]; then
+if [[ $realrun == 1 && $testrun == 0 ]]; then
     if [ $fcount -eq 0 ]; then
         echo "STAT:$last_ts:POSTPROCESS:Fail" >> $status_path
         exit 0
     fi
 fi
 
+if [[ $testrun == 1 ]]; then
+    echo "Testrun mode completed.  Examine $holodeck/output for generated dataset files"
+    exit 0
+fi
+
 # After command completes, MOVE files from $output_path to proper faceted destination path in Warehouse.
 
-w_root=/p/user_pub/e3sm/warehouse
 finaldest=$w_root/$dsidpath/$version
 
 if [ $realrun -eq 1 ]; then
@@ -208,5 +229,5 @@ if [ $realrun -eq 1 ]; then
     echo "STAT:$last_ts:POSTPROCESS:Pass" >> $status_path
 fi
 
-
+echo "Fullrun mode completed.  Examine $finaldest for generated dataset files"
 

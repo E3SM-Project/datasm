@@ -5,8 +5,8 @@ comm="return the full path to the lastest populated version directory, else NONE
 
 dsid=$1
 
-wh_root=/p/user_pub/e3sm/warehouse
-pb_root=/p/user_pub/work
+wh_root=`$DSM_GETPATH STAGING_DATA`
+pb_root=`$DSM_GETPATH PUBLICATION_DATA`
 
 ds_path=`echo $dsid | tr . /`
 

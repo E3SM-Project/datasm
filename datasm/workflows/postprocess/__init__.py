@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 from pathlib import Path
 from time import sleep
 from termcolor import colored, cprint
@@ -14,6 +15,8 @@ HELP_TEXT = """
 Run post-processing jobs to generate climatologies, regridded time-series, and CMIP6 datasets
 """
 
+gp = os.environ['DSM_GETPATH']
+default_natv_src_root = subprocess.run([gp, "PUBLICATION_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
 
 class PostProcess(Workflow):
 
@@ -70,6 +73,8 @@ class PostProcess(Workflow):
             testing=testing,
             tmpdir=tmpdir)
 
+        log_message("info", f"[postprocess __init__ __call__: spec_path = {spec_path}")
+
         datasm.setup_datasets(check_esgf=False)
 
         for dataset_id, dataset in datasm.datasets.items():
@@ -103,8 +108,7 @@ class PostProcess(Workflow):
             '--native-srcroot',
             action="store_true",
             required=False,
-            # default=f"{os.environ.get('TMPDIR', '/tmp')}",
-            default="/p/user_pub/work",
+            default = default_natv_src_root,
             help="The root directory to seek native data for post-processing.  Default is the publication_path (root)")
         parser.add_argument(
             '--parallel',

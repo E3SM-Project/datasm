@@ -1,5 +1,4 @@
-import sys
-import os
+import sys, os
 import argparse
 from argparse import RawTextHelpFormatter
 from pathlib import Path

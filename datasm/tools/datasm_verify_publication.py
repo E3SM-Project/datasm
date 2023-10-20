@@ -1,7 +1,6 @@
-import os
-import sys
-import argparse
+import sys, os
 import json
+import argparse
 from argparse import RawTextHelpFormatter
 
 import traceback
@@ -9,6 +8,7 @@ import inspect
 import logging
 import requests
 import time
+import subprocess
 
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
@@ -44,9 +44,12 @@ helptext = '''
         If the dataset is NOT in pub_root, issue warnings but do not update the status file, irrespective of "-u".
 '''
 
-gv_stat_root = '/p/user_pub/e3sm/staging/status'
-gv_stat_root_ext = '/p/user_pub/e3sm/staging/status_ext'
-gv_pub_root = '/p/user_pub/work'
+gp = os.environ['DSM_GETPATH']
+dsm_staging = subprocess.run([gp, "DSM_STAGING"],stdout=subprocess.PIPE,text=True).stdout.strip()
+gv_pub_root = subprocess.run([gp, "PUBLICATION_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
+
+gv_stat_root = f"{dsm_staging}/status"
+gv_stat_root_ext = f"{dsm_staging}/status_ext"
 
 def assess_args():
 

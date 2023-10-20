@@ -1,7 +1,7 @@
-import os
-import sys
-import argparse
+import os, sys
+import subprocess
 import yaml
+import argparse
 from argparse import RawTextHelpFormatter
 
 
@@ -23,7 +23,8 @@ def assess_args():
 
     return args
 
-resource_path = '/p/user_pub/e3sm/staging/resource/'
+gp = os.environ['DSM_GETPATH']
+resource_path = subprocess.run([gp, "STAGING_RESOURCE"],stdout=subprocess.PIPE,text=True).stdout.strip()
 
 DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
 

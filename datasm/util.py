@@ -1,5 +1,6 @@
 import sys
 import os
+import subprocess
 import re
 import shutil
 import json
@@ -229,6 +230,44 @@ def log_message(level, message, user_level='INFO'):  # message BOTH to log file 
 
 # -----------------------------------------------
 
+def search_esgf(
+    project,
+    facets,
+    node="esgf-node.llnl.gov",
+    filter_values=[
+        "cf_standard_name",
+        "variable",
+        "variable_long_name",
+        "variable_units",
+    ],
+    latest="true",
+):
+    """
+    Make a search request to an ESGF node and return information about the datasets that match the search parameters
+
+    Parameters:
+        project (str): The ESGF project to search inside
+        facets (dict): A dict with keys of facets, and values of facet values to search
+        node (str): The esgf index node to querry
+        filter_values (list): A list of string values to be filtered out of the return document
+        latest (str): boolean (true/false not True/False) to search for only the latest version of a dataset
+    """
+    url = f"https://{node}/esg-search/search/?offset=0&limit=10000&project={project}&format=application%2Fsolr%2Bjson&latest={latest}&{'&'.join([f'{k}={v}' for k,v in facets.items()])}"
+    log_message("info", f"search_esgf: issues URL: {url}")
+    req = requests.get(url)
+    if req.status_code != 200:
+        log_message("error", f"util.py: search_esgf: ESGF search request failed: (stat_code {req.status_code}) {url}")
+        raise ValueError(f"ESGF search request failed: {url}")
+
+    docs = [
+        {k: v for k, v in doc.items() if k not in filter_values}
+        for doc in req.json()["response"]["docs"]
+    ]
+    log_message("info", f"util.py: search_esgf: returning docs len={len(docs)}")
+    return docs
+
+# -----------------------------------------------
+
 def json_readfile(filename):
     with open(filename, "r") as file_content:
         json_in = json.load(file_content)
@@ -297,9 +336,12 @@ def prepare_cmip_job_metadata(cmip_dsid, in_meta_path, slurm_out):
     metadata_version = model_version        # metadata_version = CMIP6 "Source" unless v1_LE or v2_LE
     if institution == "UCSB":
         metadata_version = "E3SM-1-0-LE"
-    elif model_version == "E3SM-2-0" and experiment == "historical":
-        rdex = int(variant.split('i')[0].split('r')[1])
-        if rdex >= 6 and rdex <= 21:
+    elif model_version == "E3SM-2-0":
+        if experiment == "historical":
+            rdex = int(variant.split('i')[0].split('r')[1])
+            if rdex >= 6 and rdex <= 21:
+                metadata_version = "E3SM-2-0-LE"
+        elif experiment == "ssp370":
             metadata_version = "E3SM-2-0-LE"
 
     # copy metadata file to slurm directory for edit
@@ -399,44 +441,35 @@ def derivative_conf(target_dsid,resource_path):
 # -----------------------------------------------
 
 
-def search_esgf(
-    project,
-    facets,
-    node="esgf-node.llnl.gov",
-    filter_values=[
-        "cf_standard_name",
-        "variable",
-        "variable_long_name",
-        "variable_units",
-    ],
-    latest="true",
-):
-    """
-    Make a search request to an ESGF node and return information about the datasets that match the search parameters
-
-    Parameters:
-        project (str): The ESGF project to search inside
-        facets (dict): A dict with keys of facets, and values of facet values to search
-        node (str): The esgf index node to querry
-        filter_values (list): A list of string values to be filtered out of the return document
-        latest (str): boolean (true/false not True/False) to search for only the latest version of a dataset
-    """
-    url = f"https://{node}/esg-search/search/?offset=0&limit=10000&project={project}&format=application%2Fsolr%2Bjson&latest={latest}&{'&'.join([f'{k}={v}' for k,v in facets.items()])}"
-    log_message("info", f"search_esgf: issues URL: {url}")
-    req = requests.get(url)
-    if req.status_code != 200:
-        log_message("error", f"util.py: search_esgf: ESGF search request failed: (stat_code {req.status_code}) {url}")
-        raise ValueError(f"ESGF search request failed: {url}")
-
-    docs = [
-        {k: v for k, v in doc.items() if k not in filter_values}
-        for doc in req.json()["response"]["docs"]
-    ]
-    log_message("info", f"util.py: search_esgf: returning docs len={len(docs)}")
-    return docs
-
-
 # -----------------------------------------------
+
+# These (HACK) substitution manipulations should be defined in an external table, not code
+
+def set_e3sm_model_resolution_ensemble(sourceid,institution,experiment,variant):
+
+    src_model = sourceid[5:].replace('-', '_')        # CMIP6 dsids will NOT have "-LE" in the Source_ID
+    rdex = int(variant.split('i')[0].split('r')[1])   # ensemble number  
+    ens = f"ens{rdex}"
+
+    # HACK for NARRM - only options for now
+    if src_model == "2_0":
+        resol = "LR"
+    elif src_model == "2_0_NARRM":
+        resol = "LR-NARRM"
+    else:
+        resol = "1deg_atm_60-30km_ocean"
+
+    ret_model = src_model
+    # HACK for v1_Large_Ensemble (External)
+    if src_model == "1_0" and institution == "UCSB":
+        ret_model = "1_0_LE"
+    # HACK for v2_Large_Ensemble (External)
+    if src_model == "2_0":
+        if (rdex >= 6 and rdex <= 21) or experiment == "ssp370":
+            ret_model = "2_0_LE"
+
+    return ret_model, resol, ens
+
 
 def parent_native_dsid(target_dsid):
 
@@ -460,26 +493,9 @@ def parent_native_dsid(target_dsid):
     if inst not in allowed_institutions:
         return "NONE"
 
-    model = source[5:].replace('-', '_')        # CMIP6 dsids will NOT have "-LE" in the Source_ID
+    model, resol, ens = set_e3sm_model_resolution_ensemble(source,inst,cmip_exp,variant)
 
-    rdexpart = variant.split('i')[0]    # should be rN*
-    rdex = rdexpart[1:] # should be N*
-    ens = "ens" + rdex
-
-    # HACK for NARRM - only options for now
-    if model == "2_0":
-        resol = "LR"
-    elif model == "2_0_NARRM":
-        resol = "LR-NARRM"
-    else:
-        resol = "1deg_atm_60-30km_ocean"
-
-    # HACK for v1_Large_Ensemble (External)
-    if model == "1_0" and inst == "UCSB":
-        model = "1_0_LE"
-    # HACK for v2_Large_Ensemble (External)
-    if model == "2_0" and int(rdex) >= 6 and int(rdex) <= 21:
-        model = "2_0_LE"
+    # log_message("error", f"DEBUG_TEST: parent_native_dsid: (model,resol,ens) = ({model},{resol},{ens})")
 
     grid = "native"
     otype = "model-output"
@@ -514,15 +530,16 @@ def parent_native_dsid(target_dsid):
 
     native_dsid = ('.').join([ "E3SM", model, experiment, resol, realm, grid, otype, freq, ens ])
 
-    # print(f"DEBUG_TEST: parent_native_dsid returns {native_dsid}")
+    log_message("error", f"DEBUG_TEST: parent_native_dsid: returns native dsid {native_dsid}")
 
     return native_dsid
 
 def is_vdir_pattern(str):
     return len(str) > 1 and str[0] == 'v' and str[1:2].isdigit() and str[1:].replace('.','',1).isdigit()
 
-wh_root = "/p/user_pub/e3sm/warehouse"
-pb_root = "/p/user_pub/work"
+gp = os.environ['DSM_GETPATH']
+wh_root = subprocess.run([gp, "STAGING_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
+pb_root = subprocess.run([gp, "PUBLICATION_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
 
 def latest_data_vdir(dsid):
     corepath = dsid.replace('.', '/')

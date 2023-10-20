@@ -1,5 +1,5 @@
-import os
-import sys
+import os, sys
+import subprocess
 import argparse
 import re
 from argparse import RawTextHelpFormatter
@@ -32,24 +32,24 @@ helptext = '''
 
         Existence is determined by:
 
-        (D):  Appearance in the E3SM Dataset_Spec (/p/user_pub/e3sm/staging/resource/dataset_spec.yaml)
-        (A):  Appearance in the Archive_Map (/p/user_pub/e3sm/archive/.cfg/Archive_Map)
-        (W):  The Warehouse directories (/p/user_pub/e3sm/warehouse/E3SM/(facets)/[v0|v1...]/
-        (P):  The Publication directories (/p/user_pub/work/E3SM/(facets)/[v0|v1...]/
+        (D):  Appearance in the E3SM Dataset_Spec ([STAGING_RESOURCE]/dataset_spec.yaml)
+        (A):  Appearance in the Archive_Map ([ARCHIVE_MANAGEMENT]/Archive_Map)
+        (W):  The Warehouse directories ([STAGING_DATA]/E3SM/(facets)/[v0|v1...]/
+        (P):  The Publication directories ([PUBLICATION_DATA]/E3SM/(facets)/[v0|v1...]/
         (S):  The (ESGF) Search node (determined by live https request queries to esgf-node.llnl.gov)
 
     if [--unrestricted] is specified, datasets will be included even if they do NOT appear in the Dataset_Spec.
 '''
 
-# INPUT FILES (These could be in a nice config somewhere.  staging/.paths
-staging_paths = '/p/user_pub/e3sm/staging/.paths'
+gp = os.environ['DSM_GETPATH']
 
-PB_ROOT = '/p/user_pub/work'
-WH_ROOT = '/p/user_pub/e3sm/warehouse'
-DS_SPEC = '/p/user_pub/e3sm/staging/resource/dataset_spec.yaml'
-DS_STAT = '/p/user_pub/e3sm/staging/status'
-
-ARCH_MAP  = '/p/user_pub/e3sm/archive/.cfg/Archive_Map'
+PB_ROOT = subprocess.run([gp,"PUBLICATION_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
+WH_ROOT = subprocess.run([gp,"STAGING_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
+DS_STAT = subprocess.run([gp,"STAGING_STATUS"],stdout=subprocess.PIPE,text=True).stdout.strip()
+ARCHMAN = subprocess.run([gp,"ARCHIVE_MANAGEMENT"],stdout=subprocess.PIPE,text=True).stdout.strip()
+STAG_RC = subprocess.run([gp,"STAGING_RESOURCE"],stdout=subprocess.PIPE,text=True).stdout.strip()
+DS_SPEC = f"{STAG_RC}/dataset_spec.yaml"
+ARCHMAP = f"{ARCHMAN}/Archive_Map"
 
 # output_mode
 gv_csv = True
@@ -623,7 +623,7 @@ def main():
     '''
     # split the Archive_Map into a list of records, each record a list of fields
     #   Campaign,Model,Experiment,Resolution,Ensemble,DatasetType,ArchivePath,DatatypeTarExtractionPattern,Notes
-    am_lines = loadFileLines(ARCH_MAP)
+    am_lines = loadFileLines(ARCHMAP)
     for amline in am_lines:
         dsid = dsid_from_archive_map(amline)
         if not dsid in ds_struct:

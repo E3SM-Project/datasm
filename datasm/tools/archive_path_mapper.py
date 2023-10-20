@@ -3,6 +3,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 import glob
 import shutil
+import subprocess
 from subprocess import Popen, PIPE, check_output
 import time
 from datetime import datetime
@@ -13,19 +14,24 @@ helptext = '''
 
     The archive_path_mapper accepts a file containing one or more Archive_Locator specification line, and
 
-    See: "/p/user_pub/e3sm/archive/.cfg/Archive_Locator" for archive selection specification lines.
+    See: "[DSM_GETPATH ARCHIVE_MANAGEMENT]/Archive_Locator" for archive selection specification lines.
 
     By default, the archive(s) will be plied against every file-pattern listed in the pattern file
-        /p/user_pub/e3sm/archive/.cfg/Standard_Datatype_Extraction_Patterns
+        [DSM_GETPATH ARCHIVE_MANAGEMENT]/Standard_Datatype_Extraction_Patterns
 
     You can override this to seek only selected patterns by supplying a file of similar format.
 
     NOTE:  This process requires an environment with zstash v0.4.1 or greater.
 '''
 
-the_SDEP = '/p/user_pub/e3sm/archive/.cfg/Standard_Datatype_Extraction_Patterns'
+gp = os.environ['DSM_GETPATH']
+archmanpath = subprocess.run([gp, "ARCHIVE_MANAGEMENT"],stdout=subprocess.PIPE,text=True).stdout.strip()
+the_SDEP = f"{archmanpath}/Standard_Datatype_Extraction_Patterns"
 
-WorkDir = '/p/user_pub/e3sm/bartoletti1/Pub_Work/0_Extraction/ArchivePathMapper/'
+userroot = subprocess.run([gp, "USER_ROOT"],stdout=subprocess.PIPE,text=True).stdout.strip()
+
+WorkDir = f"{user_root}/Operations/2_ArchiveMapping"
+
 pathsFound = os.path.join(WorkDir,'PathsFound')
 
 holodeck = os.path.join(WorkDir,'Holodeck')

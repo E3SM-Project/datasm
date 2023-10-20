@@ -2,11 +2,14 @@
 
 # won't start with warehouse_dev conda env.
 
-user=`whoami`
-userpath=/p/user_pub/e3sm/$user
+dsm_tools=`$DSM_GETPATH STAGING_TOOLS`
+user_root=`$DSM_GETPATH USER_ROOT`
 
-extraction_service=/p/user_pub/e3sm/staging/tools/archive_extraction_service.py
-mapfilegen_service=/p/user_pub/e3sm/staging/tools/mapfile_generation_service.py
+user=`whoami`
+userpath=$user_root/$user
+
+extraction_service=$dsm_tools/archive_extraction_service.py
+mapfilegen_service=$dsm_tools/mapfile_generation_service.py
 
 if [ ! -d $userpath ]; then
     echo "ERROR: No user path \"$userpath\" found."
@@ -29,8 +32,8 @@ if [ $1 == "extraction" ]; then
         echo "Archive Extraction Service is already running"
         exit 0
     fi    
-    mkdir -p $userpath/Pub_Work/0_Extraction
-    cd $userpath/Pub_Work/0_Extraction
+    mkdir -p $userpath/Operations/3_DatasetExtraction
+    cd $userpath/Operations/3_DatasetExtraction
     # clean up logs, then
     if [ -f nohup.out ]; then
         mv nohup.out runlogs/nohup.out-$ts
@@ -43,11 +46,14 @@ fi
 
 if [ $1 == "mapfilegen" ]; then
 
+    echo "Sorry - mapfile generation service is now subsumed under publication."
+    exit 0
+
     if [ $mapfilegen_is_running -ne 0 ]; then
         echo "Mapfile Generation Service is already running"
         exit 0
     fi    
-    cd $userpath/Pub_Work/2_Mapwork
+    cd $userpath/Operations/6_DatasetPublication
     # clean up logs, then
     if [ -f nohup.out ]; then
         mv nohup.out Runlogs/nohup.out-$ts

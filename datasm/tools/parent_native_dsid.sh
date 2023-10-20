@@ -84,7 +84,7 @@ fi
 # HACK for v2_Large_Ensemble (External)
 if [[ $modelversion == "2_0" ]]; then
     rdex=`echo $variant | cut -f1 -di | cut -c2-`
-    if [[ $rdex -ge 6 ]]; then
+    if [[ $rdex -ge 6 || $cmip_exp == "ssp370" ]]; then
         modelversion="2_0_LE"
     fi
 fi

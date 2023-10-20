@@ -3,9 +3,10 @@
 # must supply a CMIP6 dataset_id
 in_dsid=$1
 
-parent=/p/user_pub/e3sm/staging/tools/parent_native_dsid.sh
-latest=/p/user_pub/e3sm/staging/tools/latest_data_location_by_dsid.sh
-derivc=/p/user_pub/e3sm/staging/tools/derivative_conf.sh
+tools=`$DSM_GETPATH STAGING_TOOLS`
+parent=$tools/parent_native_dsid.sh
+latest=$tools/latest_data_location_by_dsid.sh
+derivc=$tools/derivative_conf.sh
 
 parent_dsid=`$parent $in_dsid`
 input_data=`$latest $parent_dsid`

@@ -1,3 +1,6 @@
+### WARNING - DO NOT EDIT DIRECTLY - changes can be overwritten.    ###
+### USE (resource)/datasm_config.template.sh to modity and recreate ###
+
 DEFAULT_WAREHOUSE_PATH: /p/user_pub/e3sm/warehouse/
 DEFAULT_PUBLICATION_PATH: /p/user_pub/work/
 DEFAULT_ARCHIVE_PATH: /p/user_pub/e3sm/archive/

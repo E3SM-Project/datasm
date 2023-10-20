@@ -1,5 +1,4 @@
-import sys
-import os
+import sys, os
 import argparse
 from argparse import RawTextHelpFormatter
 import glob
@@ -12,33 +11,28 @@ import pytz
 from pathlib import Path
 
 gv_logname = ''
-gv_holospace = '/p/user_pub/e3sm/staging/holospace'
 
-gv_WH_root = '/p/user_pub/e3sm/warehouse'
-gv_PUB_root = '/p/user_pub/work'
-gv_input_dir = '/p/user_pub/e3sm/archive/.extraction_requests_pending'
-gv_output_dir = '/p/user_pub/e3sm/archive/.extraction_requests_processed'
-gv_stat_root = '/p/user_pub/e3sm/staging/status'
+gp = os.environ['DSM_GETPATH']
+staging = subprocess.run([gp, "DSM_STAGING"],stdout=subprocess.PIPE,text=True).stdout.strip()
+archman = subprocess.run([gp, "ARCHIVE_MANAGEMENT"],stdout=subprocess.PIPE,text=True).stdout.strip()
+gv_WH_root = subprocess.run([gp, "STAGING_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
+gv_PUB_root = subprocess.run([gp, "PUBLICATION_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
+gv_stat_root = subprocess.run([gp, "STAGING_STATUS"],stdout=subprocess.PIPE,text=True).stdout.strip()
+
+gv_holospace = f"{staging}/holospace"
+gv_input_dir = f"{archman}/extraction_requests_pending"
+gv_output_dir = f"{archman}/extraction_requests_processsed"
 
 helptext = '''
 
-    usage:  nohup python archive_extraction_service.py [-h/--help] [-c/--config jobset_configfile] &
-
-    The default jobset config file is /p/user_pub/e3sm/archive/.cfg/jobset_config.  It contains
-
-        project=<project>       (default is E3SM)
-        pubversion=<vers>       (default is v0)
-        pub_root=<path>         (default is /p/user_pub/e3sm/warehouse/E3SM)
-        overwrite=<True|False>  (default is True, allows adding files to a non-empty destination.)
-
-    These values must apply to every experiment/archive line pulled from the extraction requests directory.
+    usage:  nohup python archive_extraction_service.py [-h/--help] &
 
     The archive_extraction_service checks for the oldest extraction-request file in 
 
-        /p/user_pub/e3sm/archive/.extraction_requests_pending/
+        [$DSM_GETPATH ARCHIVE_MANAGEMENT]/extraction_requests_pending/
 
     Each request file must have the name "extract_request-<dsid>", and must contain one or more lines
-    from the Archive_Map (/p/user_pub/e3sm/archive/.cfg/Archive_Map) sufficient to fully cover the
+    from the Archive_Map ([$DSM_GETPATH ARCHIVE_MANAGEMENT]/Archive_Map) sufficient to fully cover the
     intended dataset extraction.  Some datasets are spread across multiple archive paths.
 
     A separate utility, archive_map_to_dsid, can be supplied a list of Archive_Map lines, and
@@ -58,7 +52,6 @@ def assess_args():
     parser._action_groups.pop()
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')
-    optional.add_argument('-c', '--config', action='store', dest="jobset_config", type=str, required=False)
 
     args = parser.parse_args()
 

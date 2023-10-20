@@ -1,5 +1,4 @@
-import sys
-import os
+import sys, os
 import argparse
 from argparse import RawTextHelpFormatter
 import glob
@@ -17,7 +16,7 @@ helptext = '''
     existence of a non-empty destination directory will not deter extraction. if '-d dest_dir' is not
     given, only the list of files that would have been extracted is produced.
 
-    See: "/p/user_pub/e3sm/archive/.cfg/Archive_Map" for dataset selection specification lines.
+    See: "[STAGING_ARCHIVE]/Archive_Map" for dataset selection specification lines.
 
     NOTE:  This process requires an environment with zstash v0.4.1 or greater.
 '''
