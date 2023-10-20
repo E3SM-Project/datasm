@@ -15,13 +15,15 @@ class GenerateAtmFixedCMIP(WorkflowJob):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        self._requires = {'atmos-native-fixed': None}
+        self._requires = {'atmos-native-mon': None}
         self._cmd = ''
         self._cmip_var = ''
 
     def resolve_cmd(self):
 
-        raw_dataset = self.requires['atmos-native-fixed']
+        log_message("info", f"resolve_cmd: Module Name = {NAME}")
+
+        raw_dataset = self.requires['atmos-native-mon']
 
         data_path = raw_dataset.latest_warehouse_dir
         anyfile = get_first_nc_file(data_path)
@@ -44,7 +46,7 @@ class GenerateAtmFixedCMIP(WorkflowJob):
             in_cmip_vars = [cmip_var]
 
         metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
-        parameters['metadata_path'] = metadata_path
+        parameters['metadata'] = metadata_path
 
         info_file = NamedTemporaryFile(delete=False)
         log_message("info", f"Obtained temp info file name: {info_file.name}")

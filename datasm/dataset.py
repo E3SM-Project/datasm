@@ -94,7 +94,7 @@ class Dataset(object):
 
         self.versions = versions
 
-        log_message("debug", f"init: splitting to obtain facets: dsid = {self.dataset_id}")
+        log_message("debug", f"dataset.py init: splitting to obtain facets: dsid = {self.dataset_id}")
         facets = self.dataset_id.split(".")
 
         if facets[0] == "CMIP6":
@@ -108,7 +108,7 @@ class Dataset(object):
             self.table = facets[6]
             self.cmip_var = facets[7]
             self.resolution = None
-            if facets[6] in ["Amon", "3hr", "day", "6hr", "CFmon", "AERmon"]:
+            if facets[6] in ["Amon", "3hr", "day", "6hr", "CFmon", "AERmon", "fx"]:
                 self.realm = "atmos"
             elif facets[6] in ["Lmon", "LImon"]:
                 self.realm = "land"
@@ -116,8 +116,6 @@ class Dataset(object):
                 self.realm = "ocean"
             elif facets[6] == "SImon":
                 self.realm = "sea-ice"
-            elif facets[6] == "fx":
-                self.realm = "fixed"
             else:
                 log_message("error", f"{facets[6]} is not an expected CMIP6 table")
                 sys.exit(1)
@@ -129,6 +127,7 @@ class Dataset(object):
                     break
             if self.table == "fx" or self.table == "Ofx":
                 self.freq = "fixed"
+                # self.freq = "mon"
 
             self.grid = "gr"
             if not kwargs.get('no_status_file'):

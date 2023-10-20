@@ -24,7 +24,7 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         raw_dataset = self.requires['atmos-native-3hr']
         cwl_config = self.config['cmip_atm_3hr']
 
-        _, _, institution, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+        _, _, institution, cmip_model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
         parameters = dict()
         parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
@@ -50,7 +50,8 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         log_message("info", f"Obtained temp info file name: {info_file.name}")
         cmip_out = os.path.join(self._slurm_out, "CMIP6")
         var_str = ', '.join(in_cmip_vars)
-        cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq 3hr -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm atm"
+        freq = "3hr"
+        cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq {freq} -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm atm"
         log_message("info", f"resolve_cmd: issuing variable info cmd: {cmd}")
 
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
@@ -96,7 +97,7 @@ class GenerateAtm3hrCMIP(WorkflowJob):
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else in_cmip_vars[0]
         parameter_path = os.path.join(
-            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-3hr-{var_id}.yaml")
+            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-{freq}-{var_id}.yaml")
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 

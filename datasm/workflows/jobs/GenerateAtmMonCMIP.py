@@ -21,6 +21,8 @@ class GenerateAtmMonCMIP(WorkflowJob):
 
     def resolve_cmd(self):
 
+        log_message("info", f"resolve_cmd: Module Name = {NAME}")
+
         raw_dataset = self.requires['atmos-native-mon']
         cwl_config = self.config['cmip_atm_mon']
 
@@ -56,10 +58,9 @@ class GenerateAtmMonCMIP(WorkflowJob):
         info_file = NamedTemporaryFile(delete=False)
         cmip_out = os.path.join(self._slurm_out, "CMIP6")
         var_str = ', '.join(cmip_var)
-        cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq mon -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm atm"
+        freq = "mon"
+        cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq {freq} -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm atm"
         log_message("info", f"resolve_cmd: calling e2c: CMD = {cmd}")
-
-        print(f"DEBUG: calling e2c: CMD = {cmd}", flush=True)
 
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
@@ -125,7 +126,7 @@ class GenerateAtmMonCMIP(WorkflowJob):
         # step two, write out the parameter file and setup the temp directory
         self._cmip_var = 'all' if is_all else cmip_var[0]
         parameter_path = os.path.join(
-            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-mon-{self._cmip_var}.yaml")
+            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-{freq}-{self._cmip_var}.yaml")
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 

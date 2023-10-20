@@ -31,7 +31,7 @@ class GenerateLndTimeseries(WorkflowJob):
         end = self.dataset.end_year
 
         # this should be calculated dynamically, rounded to something standard
-        # see: /p/user_pub/e3sm/bartoletti1/Projects/Dynamic_YPF_Calculation
+        # see: [USER_ROOT]/bartoletti1/Projects/Dynamic_YPF_Calculation
         ypf=50
 
         flags = "-7 -P elm --dfl_lvl=1 --no_cell_measures "

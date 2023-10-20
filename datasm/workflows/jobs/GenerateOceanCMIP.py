@@ -31,14 +31,14 @@ class GenerateOceanCMIP(WorkflowJob):
 
         cwl_config = self.config['cmip_ocn_mon']
 
+        is_oa_var = False
+        if cmip_var in oa_vars:
+            is_oa_var = True
+
         # Begin parameters collection
 
         parameters = dict()
         parameters.update(cwl_config)   # obtain up frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
-
-        is_oa_var = False
-        if cmip_var in oa_vars:
-            is_oa_var = True
 
         # start with universal constants
 
@@ -64,6 +64,10 @@ class GenerateOceanCMIP(WorkflowJob):
         # Override default 10 YPF for certain variables
         if cmip_var in [ 'all', 'hfsifrazil', 'masscello', 'so', 'thetao', 'thkcello', 'uo', 'vo', 'volcello', 'wo', 'zhalfo' ]:
             parameters['frequency'] = 5
+
+        # [EXPERIMENT] set YPF to 500 for "fixed"
+        if table == "Ofx":
+            parameters['frequency'] = 500
 
         log_message("info", f"DBG: parameters['data_path'] = {parameters['data_path']}")
 
