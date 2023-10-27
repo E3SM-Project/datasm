@@ -3,6 +3,7 @@ import subprocess
 import yaml
 import argparse
 from argparse import RawTextHelpFormatter
+from datasm.util import get_dsm_paths
 
 
 helptext = '''
@@ -23,8 +24,8 @@ def assess_args():
 
     return args
 
-gp = os.environ['DSM_GETPATH']
-resource_path = subprocess.run([gp, "STAGING_RESOURCE"],stdout=subprocess.PIPE,text=True).stdout.strip()
+dsm_paths = get_dsm_paths()
+resource_path = dsm_paths['STAGING_RESOURCE']
 
 DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
 

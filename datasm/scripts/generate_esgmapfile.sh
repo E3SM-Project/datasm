@@ -4,7 +4,7 @@
 # generate_esgmapfile <num_processes> <dataset_fullpath> 
 # Note: output mapfile fullpath will be <dataset_ens_path>.mapfile
 
-ini_path=/p/user_pub/e3sm/staging/ini_std/      #hard-coded for now
+ini_path=`$DSM_GETPATH DSM_STAGING`/ini_std/
 log_path=./
 
 proc_num=$1
@@ -28,8 +28,9 @@ fi
 
 ds_tm1=`date +%s`
 
+this_user=`whoami`
 #conda init bash
-source /p/user_pub/e3sm/bartoletti1/anaconda3/etc/profile.d/conda.sh    # HARDCODED!
+anaconda_profile=`$DSM_GETPATH USER_ROOT`/$this_user/anaconda3/etc/profile.d/conda.sh
 conda activate pub
 esgmapfile make --debug -i $ini_path --max-processes $proc_num --project e3sm --mapfile .mapfile --outdir $out_path $dataset_fullpath
 retcode=$?

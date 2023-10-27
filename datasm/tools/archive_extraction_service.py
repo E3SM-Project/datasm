@@ -3,7 +3,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 import glob
 import shutil
-import subprocess
+from datasm.util import get_dsm_paths
 from subprocess import Popen, PIPE, check_output
 import time
 from datetime import datetime
@@ -12,12 +12,12 @@ from pathlib import Path
 
 gv_logname = ''
 
-gp = os.environ['DSM_GETPATH']
-staging = subprocess.run([gp, "DSM_STAGING"],stdout=subprocess.PIPE,text=True).stdout.strip()
-archman = subprocess.run([gp, "ARCHIVE_MANAGEMENT"],stdout=subprocess.PIPE,text=True).stdout.strip()
-gv_WH_root = subprocess.run([gp, "STAGING_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
-gv_PUB_root = subprocess.run([gp, "PUBLICATION_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
-gv_stat_root = subprocess.run([gp, "STAGING_STATUS"],stdout=subprocess.PIPE,text=True).stdout.strip()
+dsm_paths = get_dsm_paths()
+staging = dsm_paths["DSM_STAGING"]
+archman = dsm_paths["ARCHIVE_MANAGEMENT"]
+gv_WH_root = dsm_paths["STAGING_DATA"]
+gv_PUB_root = dsm_paths["PUBLICATION_DATA"]
+gv_stat_root = dsm_paths["STAGING_STATUS"]
 
 gv_holospace = f"{staging}/holospace"
 gv_input_dir = f"{archman}/extraction_requests_pending"
@@ -29,10 +29,10 @@ helptext = '''
 
     The archive_extraction_service checks for the oldest extraction-request file in 
 
-        [$DSM_GETPATH ARCHIVE_MANAGEMENT]/extraction_requests_pending/
+        [ARCHIVE_MANAGEMENT]/extraction_requests_pending/
 
     Each request file must have the name "extract_request-<dsid>", and must contain one or more lines
-    from the Archive_Map ([$DSM_GETPATH ARCHIVE_MANAGEMENT]/Archive_Map) sufficient to fully cover the
+    from the Archive_Map ([ARCHIVE_MANAGEMENT]/Archive_Map) sufficient to fully cover the
     intended dataset extraction.  Some datasets are spread across multiple archive paths.
 
     A separate utility, archive_map_to_dsid, can be supplied a list of Archive_Map lines, and

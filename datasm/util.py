@@ -537,14 +537,33 @@ def parent_native_dsid(target_dsid):
 def is_vdir_pattern(str):
     return len(str) > 1 and str[0] == 'v' and str[1:2].isdigit() and str[1:].replace('.','',1).isdigit()
 
-gp = os.environ['DSM_GETPATH']
-wh_root = subprocess.run([gp, "STAGING_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
-pb_root = subprocess.run([gp, "PUBLICATION_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
+
+DSM_ROOT_PATHS = dict()
+
+def get_dsm_paths():
+    global DSM_ROOT_PATHS
+
+    if len(DSM_ROOT_PATHS) > 0:
+        return DSM_ROOT_PATHS
+
+    gp = os.environ['DSM_GETPATH']
+    path_lines = subprocess.run([gp, "ALL"],stdout=subprocess.PIPE,text=True).stdout.strip()
+    path_lines = path_lines.split('\n')
+
+    for aline in path_lines:
+        path_key, path_val = aline.split(':')
+        DSM_ROOT_PATHS[path_key] = path_val
+
+    return DSM_ROOT_PATHS
+
 
 def latest_data_vdir(dsid):
+
     corepath = dsid.replace('.', '/')
-    enspath1 = os.path.join( wh_root, corepath )
-    enspath2 = os.path.join( pb_root, corepath )
+
+    rootpaths = get_dsm_paths()
+    enspath1 = os.path.join( rootpaths['STAGING_DATA'], corepath )
+    enspath2 = os.path.join( rootpaths['PUBLICATION_DATA'], corepath )
 
     if os.path.exists(enspath1):
         if os.path.exists(enspath2):

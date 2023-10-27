@@ -20,24 +20,23 @@ import datasm.util as util
 from datasm.dataset import Dataset, DatasetStatus, DatasetStatusMessage
 from datasm.listener import Listener
 from datasm.slurm import Slurm
-from datasm.util import log_message, setup_logging, parent_native_dsid
+from datasm.util import get_dsm_paths, log_message, setup_logging, parent_native_dsid
 from datasm.workflows import Workflow
 
-inner_resource_path, _ = os.path.split(resources.__file__)
 
-DEFAULT_CONF_PATH = os.path.join(inner_resource_path, "datasm_config.yaml")
-
-gp = os.environ['DSM_GETPATH']
-outer_resource_path = subprocess.run([gp, "STAGING_RESOURCE"],stdout=subprocess.PIPE,text=True).stdout.strip()
+dsm_paths = get_dsm_paths()
+outer_resource_path = dsm_paths["STAGING_RESOURCE"]
 DEFAULT_SPEC_PATH = os.path.join(outer_resource_path, "dataset_spec.yaml")
+DEFAULT_STATUS_PATH = dsm_paths["STAGING_STATUS"]
+DEFAULT_WAREHOUSE_PATH = dsm_paths["STAGING_DATA"]
+DEFAULT_PUBLICATION_PATH = dsm_paths["PUBLICATION_DATA"]
+DEFAULT_ARCHIVE_PATH = dsm_paths["ARCHIVE_STORAGE"]
 
+inner_resource_path, _ = os.path.split(resources.__file__)
+DEFAULT_CONF_PATH = os.path.join(inner_resource_path, "datasm_config.yaml")
 
 with open(DEFAULT_CONF_PATH, "r") as instream:
     datasm_conf = yaml.load(instream, Loader=yaml.SafeLoader)
-DEFAULT_WAREHOUSE_PATH = datasm_conf["DEFAULT_WAREHOUSE_PATH"]
-DEFAULT_PUBLICATION_PATH = datasm_conf["DEFAULT_PUBLICATION_PATH"]
-DEFAULT_ARCHIVE_PATH = datasm_conf["DEFAULT_ARCHIVE_PATH"]
-DEFAULT_STATUS_PATH = datasm_conf["DEFAULT_STATUS_PATH"]
 NAME = "auto"
 
 # -------------------------------------------------------------

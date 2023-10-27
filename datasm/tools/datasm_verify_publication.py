@@ -8,7 +8,6 @@ import inspect
 import logging
 import requests
 import time
-import subprocess
 
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
@@ -16,6 +15,7 @@ from pathlib import Path
 from datetime import datetime
 from pytz import UTC
 from termcolor import colored, cprint
+from datasm.util import get_dsm_paths
 
 
 # -----------------------------------------------
@@ -44,9 +44,10 @@ helptext = '''
         If the dataset is NOT in pub_root, issue warnings but do not update the status file, irrespective of "-u".
 '''
 
-gp = os.environ['DSM_GETPATH']
-dsm_staging = subprocess.run([gp, "DSM_STAGING"],stdout=subprocess.PIPE,text=True).stdout.strip()
-gv_pub_root = subprocess.run([gp, "PUBLICATION_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
+dsm_paths = get_dsm_paths()
+
+dsm_staging = dsm_paths["DSM_STAGING"]
+gv_pub_root = dsm_paths["PUBLICATION_DATA"]
 
 gv_stat_root = f"{dsm_staging}/status"
 gv_stat_root_ext = f"{dsm_staging}/status_ext"

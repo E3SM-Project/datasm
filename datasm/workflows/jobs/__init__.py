@@ -224,9 +224,6 @@ fi
         log_message("info", f"init: requires_dataset(): === ")
         log_message("info", f"init: requires_dataset(): Trying all self._requires.items() for dataset_id {self.dataset.dataset_id}")
 
-        # log_message("info", f"init: (target) self.dataset dsid = {self.dataset.dataset_id}")
-        # log_message("info", f"init: (source)      dataset dsid = {dataset.dataset_id}")
-
         for req, ds in self._requires.items():
             if ds:
                 log_message("info", f"init: requires_dataset(): already satisfied (req: ds) = {req}:{ds.dataset_id}")
@@ -250,9 +247,6 @@ fi
 
             self_rcode = self.dataset.realm
             self_fcode = self.dataset.freq
-
-            # log_message("info", f"init: (rcode,fcode) = ({rcode},{fcode})")
-            # log_message("info", f"init: (self_rcode,self_fcode) = ({self_rcode},{self_fcode})")
 
             req = '-'.join([req_attrs[0], req_attrs[1], req_attrs[2]])
 

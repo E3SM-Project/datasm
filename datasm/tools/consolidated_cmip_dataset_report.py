@@ -1,5 +1,4 @@
 import os, sys
-import subprocess
 import argparse
 import re
 from argparse import RawTextHelpFormatter
@@ -8,6 +7,7 @@ import time
 from datetime import datetime
 import pytz
 import yaml
+from datasm.util import get_dsm_paths
 
 '''
 The Big Idea:  Create a dictionary "ds_struct[]" keyed by dataset_ID, whose values will be the desired
@@ -41,13 +41,13 @@ helptext = '''
     if [--unrestricted] is specified, datasets will be included even if they do NOT appear in the Dataset_Spec.
 '''
 
-gp = os.environ['DSM_GETPATH']
+dsm_paths = get_dsm_paths()
 
-PB_ROOT = subprocess.run([gp,"PUBLICATION_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
-WH_ROOT = subprocess.run([gp,"STAGING_DATA"],stdout=subprocess.PIPE,text=True).stdout.strip()
-DS_STAT = subprocess.run([gp,"STAGING_STATUS"],stdout=subprocess.PIPE,text=True).stdout.strip()
-ARCHMAN = subprocess.run([gp,"ARCHIVE_MANAGEMENT"],stdout=subprocess.PIPE,text=True).stdout.strip()
-STAG_RC = subprocess.run([gp,"STAGING_RESOURCE"],stdout=subprocess.PIPE,text=True).stdout.strip()
+PB_ROOT = dsm_paths["PUBLICATION_DATA"]
+WH_ROOT = dsm_paths["STAGING_DATA"]
+DS_STAT = dsm_paths["STAGING_STATUS"]
+ARCHMAN = dsm_paths["ARCHIVE_MANAGEMENT"]
+STAG_RC = dsm_paths["STAGING_RESOURCE"]
 DS_SPEC = f"{STAG_RC}/dataset_spec.yaml"
 ARCHMAP = f"{ARCHMAN}/Archive_Map"
 
