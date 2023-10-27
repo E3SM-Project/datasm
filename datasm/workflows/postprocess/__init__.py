@@ -44,7 +44,7 @@ class PostProcess(Workflow):
 
         if (metadata_path := self.params.get('metadata_path')):
             self.metadata_path = Path(metadata_path)
-        spec_path = self.params.get('dataset_spec') # tonyb9000
+        spec_path = self.params.get('dataset_spec')
         data_path = self.params.get('data_path')
         publ_path = self.params.get('publication_path')
         natv_path = self.params.get('publication_path')
@@ -62,7 +62,7 @@ class PostProcess(Workflow):
 
         datasm = AutoDataSM(
             workflow=self,
-            spec_path=spec_path,   # tonyb9000
+            spec_path=spec_path,
             dataset_id=dataset_id,
             warehouse_path=wh_path,
             serial=self.serial,

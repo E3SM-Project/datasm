@@ -38,7 +38,7 @@ class Publication(Workflow):
             if not self.pub_path.exists():
                 log_message("info",f"WF_pub_init Publication_call: create pub dir {self.pub_path.resolve()}")
                 os.makedirs(self.pub_path.resolve())
-        spec_path = self.params.get('dataset_spec') # tonyb9000
+        spec_path = self.params.get('dataset_spec')
         data_path = self.params.get('data_path')
         status_path = self.params.get('status_path')
 
@@ -55,7 +55,7 @@ class Publication(Workflow):
 
         datasm = AutoDataSM(
             workflow=self,
-            spec_path=spec_path,   # tonyb9000
+            spec_path=spec_path,
             dataset_id=dataset_id,
             warehouse_path=w_path,
             publication_path=self.pub_path,
