@@ -1,8 +1,7 @@
-import os
-import sys
-import argparse
+import os, sys, argparse
 import yaml
 from argparse import RawTextHelpFormatter
+from datasm.util import get_dsm_paths
 
 
 helptext = '''
@@ -24,7 +23,8 @@ def assess_args():
     return args
 
 
-resource_path = '/p/user_pub/e3sm/staging/resource/'
+dsm_paths = get_dsm_paths()
+resource_path = dsm_paths["STAGING_RESOURCE"]
 default_dsetspec = os.path.join(resource_path, 'dataset_spec.yaml')
 
 def loadFileLines(afile):

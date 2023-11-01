@@ -2,21 +2,23 @@
 
 ts=`date -u +%Y%m%d`
 
+pub_root=`$DSM_GETPATH PUBLICATION_DATA`
+
 tmp_report="tmp_CMIP6_vol_report-$ts"
 
-for actv in `ls /p/user_pub/work/CMIP6`; do
-    insti=`ls /p/user_pub/work/CMIP6/$actv`
+for actv in `ls $pub_root/CMIP6`; do
+    insti=`ls $pub_root/CMIP6/$actv`
     for inst in $insti; do
-        srclist=`ls /p/user_pub/work/CMIP6/$actv/$inst`
+        srclist=`ls $pub_root/CMIP6/$actv/$inst`
         for asrc in $srclist; do
             if [ ${asrc:0:4} != "E3SM" ]; then
                 continue
             fi
-            elist=`ls /p/user_pub/work/CMIP6/$actv/$inst/$asrc`
+            elist=`ls $pub_root/CMIP6/$actv/$inst/$asrc`
             for exper in $elist; do
                 # echo "$actv,$inst,$asrc,$exper" >> $tmp_report
                 # continue
-                vol1=`du -b /p/user_pub/work/CMIP6/$actv/$inst/$asrc/$exper | tail -1 | cut -f1`
+                vol1=`du -b $pub_root/CMIP6/$actv/$inst/$asrc/$exper | tail -1 | cut -f1`
                 volTB=$(echo "scale=2; $vol1/1000000000000" | bc)
                 echo "$actv,$inst,$asrc,$exper,$volTB" >> $tmp_report
             done

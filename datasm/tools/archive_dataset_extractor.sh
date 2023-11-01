@@ -26,7 +26,11 @@ if [ $# -gt 1 ]; then
 	fi
 fi
 
-Archive_Map=/p/user_pub/e3sm/archive/.cfg/Archive_Map
+# Relocatable paths
+arch_cfg=`$DSM_GETPATH ARCHIVE_MANAGEMENT`
+toolpath=`$DSM_GETPATH STAGING_TOOLS`
+
+Archive_Map=$arch_cfg/Archive_Map
 
 
 zstash_version=`zstash version`
@@ -38,10 +42,10 @@ if [ $zstash_version_major == "v0" ]; then
 fi
 
 user=`whoami`
-userpath=/p/user_pub/e3sm/$user
+userpath=`$DSM_GETPATH USER_ROOT`/$user
 
-extraction_service=/p/user_pub/e3sm/staging/tools/archive_extraction_service.py
-mapfilegen_service=/p/user_pub/e3sm/staging/tools/mapfile_generation_service.py
+extraction_service=$toolpath/archive_extraction_service.py
+mapfilegen_service=$toolpath/mapfile_generation_service.py
 
 if [ ! -d $userpath ]; then
     echo "ERROR: No user path \"$userpath\" found."
@@ -64,7 +68,7 @@ tar_patt=`echo $spec | cut -f9 -d,`
 #OVERRIDE
 # tar_patt=${tar_patt}000*
 
-The_Holodeck=$userpath/Pub_Work/0_Extraction/Holodeck
+The_Holodeck=$userpath/Operations/3_DatasetExtraction/Holodeck
 mkdir -p $The_Holodeck
 
 echo "Cleaning the Holodeck"

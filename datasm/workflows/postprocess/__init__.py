@@ -4,7 +4,7 @@ from pathlib import Path
 from time import sleep
 from termcolor import colored, cprint
 from datasm.workflows import Workflow
-from datasm.util import log_message
+from datasm.util import get_dsm_paths, log_message
 from datasm.dataset import DatasetStatusMessage
 
 NAME = 'PostProcess'
@@ -14,6 +14,8 @@ HELP_TEXT = """
 Run post-processing jobs to generate climatologies, regridded time-series, and CMIP6 datasets
 """
 
+dsm_paths = get_dsm_paths()
+default_natv_src_root = dsm_paths["PUBLICATION_DATA"]
 
 class PostProcess(Workflow):
 
@@ -42,7 +44,7 @@ class PostProcess(Workflow):
 
         if (metadata_path := self.params.get('metadata_path')):
             self.metadata_path = Path(metadata_path)
-        spec_path = self.params.get('dataset_spec') # tonyb9000
+        spec_path = self.params.get('dataset_spec')
         data_path = self.params.get('data_path')
         publ_path = self.params.get('publication_path')
         natv_path = self.params.get('publication_path')
@@ -60,7 +62,7 @@ class PostProcess(Workflow):
 
         datasm = AutoDataSM(
             workflow=self,
-            spec_path=spec_path,   # tonyb9000
+            spec_path=spec_path,
             dataset_id=dataset_id,
             warehouse_path=wh_path,
             serial=self.serial,
@@ -69,6 +71,8 @@ class PostProcess(Workflow):
             status_path=status_path,
             testing=testing,
             tmpdir=tmpdir)
+
+        log_message("info", f"[postprocess __init__ __call__: spec_path = {spec_path}")
 
         datasm.setup_datasets(check_esgf=False)
 
@@ -103,8 +107,7 @@ class PostProcess(Workflow):
             '--native-srcroot',
             action="store_true",
             required=False,
-            # default=f"{os.environ.get('TMPDIR', '/tmp')}",
-            default="/p/user_pub/work",
+            default = default_natv_src_root,
             help="The root directory to seek native data for post-processing.  Default is the publication_path (root)")
         parser.add_argument(
             '--parallel',

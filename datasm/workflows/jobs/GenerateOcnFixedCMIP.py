@@ -61,9 +61,9 @@ class GenerateOcnFixedCMIP(WorkflowJob):
         log_message("info", f"Obtained temp info file name: {info_file.name}")
         cmip_out = os.path.join(self._slurm_out, "CMIP6")
         var_str = ', '.join(in_cmip_vars)
-        info_realm = mpaso
+        info_realm = "mpaso"
         if table == "SImon":
-            info_realm = mpassi
+            info_realm = "mpassi"
         cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq mon -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm {info_realm}"
         log_message("info", f"resolve_cmd: issuing variable info cmd: {cmd}")
 
@@ -115,7 +115,7 @@ class GenerateOcnFixedCMIP(WorkflowJob):
         
         # step three, render out the CWL run command
         # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
-        outpath = '/p/user_pub/e3sm/warehouse'  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
+        outpath = self.config['DEFAULT_WAREHOUSE_PATH']  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
 
         if not self.serial:
             parallel = "--parallel"
@@ -127,7 +127,7 @@ class GenerateOcnFixedCMIP(WorkflowJob):
 #
 # e2c command-line for Ofx generation:
 
-# e3sm_to_cmip -s --realm Ofx --var-list areacello --map /p/user_pub/e3sm/staging/resource/maps/map_EC30to60E2r2_to_cmip6_180x360_aave.20220301.nc --input-path /p/user_pub/e3sm/zhang40/e2c_tony/e2c_test_data/v2.mpassi_input/ --output-path /p/user_pub/e3sm/zhang40/tests/ncremap_sgs  --user-metadata /p/user_pub/e3sm/zhang40/e2c_tony/e2c_test_data/holodeck/input/historical_r1i1p1f1.json --tables-path /p/user_pub/e3sm/staging/resource/cmor/cmip6-cmor-tables/Tables
+# e3sm_to_cmip -s --realm Ofx --var-list areacello --map [STAGING_RESOURCE]/maps/map_EC30to60E2r2_to_cmip6_180x360_aave.20220301.nc --input-path [USER_ROOT]/zhang40/e2c_tony/e2c_test_data/v2.mpassi_input/ --output-path [USER_ROOT]/zhang40/tests/ncremap_sgs  --user-metadata [USER_ROOT]/zhang40/e2c_tony/e2c_test_data/holodeck/input/historical_r1i1p1f1.json --tables-path [STAGING_RESOURCE]/cmor/cmip6-cmor-tables/Tables
 
 #  
 

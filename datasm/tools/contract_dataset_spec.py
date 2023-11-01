@@ -1,6 +1,4 @@
-import os
-import sys
-import argparse
+import os, sys, argparse
 import yaml
 from argparse import RawTextHelpFormatter
 
@@ -8,7 +6,7 @@ from argparse import RawTextHelpFormatter
 helptext = '''
     Usage:  python contract_dataset_spec.py  -i dataset_spec_expanded.yaml -o dataset_spec_contracted.yaml
 
-    Reads in the E3SM dataset_spec (example: /p/user_pub/e3sm/staging/resource/dataset_spec.yaml).
+    Reads in the E3SM dataset_spec (example: [STAGING_RESOURCE]/dataset_spec.yaml).
     (Assumes the dataset_spec is in ordinary expanded form, and has no "CASE_EXTENSIONS:" section.)
     For each Project=E3SM Model_Version and Experiment, it locates the branch(es) labeled "resolution",
     and determines the unique set of these, to be labeled "CASE_EXTENSION_01", "CASE_EXTENSION_02", etc.

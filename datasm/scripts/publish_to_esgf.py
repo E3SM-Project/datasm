@@ -54,6 +54,7 @@ def publish_dataset(args):
     src_path = Path(args.src_path)
     optional_facets = None
     if args.optional_facets:
+        log_message("info", f"{__name__}: publish_dataset: Have optional facets");
         optional_facets = {}
         for item in args.optional_facets:
             key, value = item.split("=")
@@ -112,7 +113,7 @@ def publish_dataset(args):
             )
             proc.wait()
 
-        con_message("info", f"Return code {str(proc.returncode)} on cmd: {cmd}")      # generated weird error in 3_Publish/slurm_scripts-20211013_185431_334581
+        log_message("info", f"{__name__}: Return code {str(proc.returncode)} on cmd: {cmd}")
 
         return proc.returncode
 

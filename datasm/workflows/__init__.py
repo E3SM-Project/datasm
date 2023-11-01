@@ -30,11 +30,6 @@ class Workflow(object):
 
     def __init__(self, parent=None, slurm_scripts='temp', **kwargs):
 
-        print(" === ")
-        print(f' Kwargs for {parent}: {kwargs}' )
-        print(" === ")
-
-
         self.parent = parent
         self.transitions = {}
         self.children = {}
@@ -44,8 +39,6 @@ class Workflow(object):
         self.params = kwargs
         self.job_workers = kwargs.get('job_workers')
         self.debug = kwargs.get('debug')
-
-        # self.dataset_spec = kwargs.get('dataset_spec') # tonyb9000
 
         setup_logging('info', 'DataSM.log')
         log_message("info", f"Workflow {self.name} initialized")
@@ -119,6 +112,7 @@ class Workflow(object):
 
             log_message("info", f"WF_init next_state: target_data_type = {target_data_type}")
             self.print_debug(f"target_data_type: {target_data_type}")
+            # Obtain subsequent states for current test_state
             transitions = self.transitions[test_state].get(target_data_type)
             log_message("info", f"WF_init next_state: transitions = {transitions}")
             if transitions is None:
@@ -179,7 +173,7 @@ class Workflow(object):
             serial=kwargs.get('serial', True),
             tmpdir=kwargs.get('tmpdir', os.environ.get('TMPDIR', '/tmp')))
 
-        log_message('info', f"get_job: created job instance {job_instance} from job()")
+        log_message('info', f"Workflow get_job: created job instance {job_instance} from job()")
 
         other_datasets = [x for x in kwargs.get('other_datasets') if x.dataset_id != dataset.dataset_id]
 

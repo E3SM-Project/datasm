@@ -94,7 +94,7 @@ class Dataset(object):
 
         self.versions = versions
 
-        log_message("debug", f"init: splitting to obtain facets: dsid = {self.dataset_id}")
+        log_message("debug", f"{__name__}: init: splitting to obtain facets: dsid = {self.dataset_id}")
         facets = self.dataset_id.split(".")
 
         if facets[0] == "CMIP6":
@@ -108,7 +108,7 @@ class Dataset(object):
             self.table = facets[6]
             self.cmip_var = facets[7]
             self.resolution = None
-            if facets[6] in ["Amon", "3hr", "day", "6hr", "CFmon", "AERmon"]:
+            if facets[6] in ["Amon", "3hr", "day", "6hr", "CFmon", "AERmon", "fx"]:
                 self.realm = "atmos"
             elif facets[6] in ["Lmon", "LImon"]:
                 self.realm = "land"
@@ -116,10 +116,8 @@ class Dataset(object):
                 self.realm = "ocean"
             elif facets[6] == "SImon":
                 self.realm = "sea-ice"
-            elif facets[6] == "fx":
-                self.realm = "fixed"
             else:
-                log_message("error", f"{facets[6]} is not an expected CMIP6 table")
+                log_message("error", f"{__name__}: {facets[6]} is not an expected CMIP6 table")
                 sys.exit(1)
 
             self.freq = None
@@ -173,11 +171,11 @@ class Dataset(object):
         if not kwargs.get('no_status_file'):
             self.initialize_status_file()
 
-        log_message("debug", f"init: self.realm = {self.realm}")
+        log_message("debug", f"{__name__}: init: self.realm = {self.realm}")
 
     def initialize_status_file(self):
         if not self.status_path.exists():
-            msg = f"creating new status file {self.status_path}"
+            msg = f"{__name__} creating new status file {self.status_path}"
             log_message("info", msg)
             self.status_path.touch(mode=0o660, exist_ok=True)
 
@@ -216,13 +214,13 @@ class Dataset(object):
                     found_id = True
                     break
         if not found_id:
-            log_message("info", f"initialize_status_file: status file {self.status_path} doesnt list its dataset id, adding it")
+            log_message("info", f"{__name__} initialize_status_file: status file {self.status_path} doesnt list its dataset id, adding it")
             with open(self.status_path, "a") as outstream:
                 outstream.write(f"DATASETID={self.dataset_id}\n")
 
         if not self.update_from_status_file(update=False):
             self._status = DatasetStatus.UNITITIALIZED.value
-            log_message("info", f"{self.dataset_id} initialized and set to {self._status}")
+            log_message("info", f"{__name__}: {self.dataset_id} initialized and set to {self._status}")
         else:
             # if we're initializing a dataset and the last update
             # was that it had failed, or was Engaged
@@ -233,7 +231,7 @@ class Dataset(object):
             else:
                 self._status = latest
 
-        log_message("info", f"initialize_status_file: self._status = {self._status}")
+        log_message("info", f"{__name__}: initialize_status_file: self._status = {self._status}")
 
 
     # Anyone care to explain the logic here? This is fragile!
@@ -259,7 +257,7 @@ class Dataset(object):
             not self.warehouse_path and not self.warehouse_path.exists()
         ):
             log_message(
-                "error", f"The dataset {self.dataset_id} does not have a warehouse path"
+                "error", f"{__name__}: The dataset {self.dataset_id} does not have a warehouse path"
             )
             sys.exit(1)
         if self.project != "CMIP6" and not self.warehouse_path.exists():
@@ -386,8 +384,8 @@ class Dataset(object):
                     self.ensemble,
                 )
             self._publication_path = pubpath
-            log_message("info", f"publication_path (property): pubpath = {pubpath}")
-            log_message("info", f"publication_path (property): self.realm = {self.realm}")
+            log_message("info", f"{__name__}: publication_path (property): pubpath = {pubpath}")
+            log_message("info", f"{__name__}: publication_path (property): self.realm = {self.realm}")
 
         return self._publication_path
 
@@ -405,7 +403,7 @@ class Dataset(object):
         self.load_dataset_status_file()
         latest, _ = self.get_latest_status()
         if status is None or status == self._status or latest == status:
-            log_message("info", f"status.setter: Return pre-set with input status = {status}")
+            log_message("info", f"{__name__}: status.setter: Return pre-set with input status = {status}")
             return
         params = None
         if isinstance(status, tuple):
@@ -423,7 +421,7 @@ class Dataset(object):
                 items = [f"{k}={v}".replace(":", "^") for k, v in params.items()]
                 msg += ",".join(items)
             outstream.write(msg + "\n")
-            log_message("info", f"status.setter: Wrote STAT message: {msg}")
+            log_message("info", f"{__name__}: status.setter: Wrote STAT message: {msg}")
 
     def lock(self, path):
         if path is None or self.is_locked(path):
@@ -547,16 +545,16 @@ class Dataset(object):
 
         if not docs or int(docs[0]["number_of_files"]) == 0:
             if not docs:
-                log_message("info", f"dataset.py get_esgf_status: search facets for Dataset returned empty docs")
+                log_message("info", f"{__name__}: get_esgf_status: search facets for Dataset returned empty docs")
             else:
-                log_message("info", f"dataset.py get_esgf_status: dataset query returned file_count = {int(docs[0]['number_of_files'])}")
+                log_message("info", f"{__name__}: get_esgf_status: dataset query returned file_count = {int(docs[0]['number_of_files'])}")
             return DatasetStatus.UNITITIALIZED.value
 
         facets = {"dataset_id": docs[0]["id"], "type": "File"}
 
         docs = search_esgf(project, facets)
         if not docs or len(docs) == 0:
-            log_message("info", f"dataset.py get_esgf_status: search facets for File returned empty docs")
+            log_message("info", f"{__name__}: get_esgf_status: search facets for File returned empty docs")
             return DatasetStatus.UNITITIALIZED.value
 
         files = [x["title"] for x in docs]
@@ -668,7 +666,7 @@ class Dataset(object):
         first = files[0]
         pattern = re.compile(r"\d{4}-\d{2}.*nc")
         if not (idx := pattern.search(first)):
-            log_message("error", f"Unexpected file format: {first}")
+            log_message("error", f"{__name__}: Unexpected file format: {first}")
             sys.exit(1)
 
         prefix = first[: idx.start()]
@@ -699,10 +697,7 @@ class Dataset(object):
 
         # DEBUG not self.datavasrs
         if not self.datavars:
-            log_message(
-                "error",
-                f"dataset.py: check_time_series: dataset {self.dataset_id} is trying to validate time-series files, but has no datavars",
-            )
+            log_message( "error", f"{__name__}: check_time_series: dataset {self.dataset_id} is trying to validate time-series files, but has no datavars",)
             sys.exit(1)
 
         for var in self.datavars:
@@ -717,17 +712,13 @@ class Dataset(object):
                     v_files.append(x)
 
             if not v_files:
-                missing.append(
-                    f"{self.dataset_id}-{var}-{self.start_year:04d}-{self.end_year:04d}"
-                )
+                missing.append(f"{self.dataset_id}-{var}-{self.start_year:04d}-{self.end_year:04d}")
                 continue
 
             v_files = sorted(v_files)
             v_start, v_end = self.get_ts_start_end(v_files[0])
             if self.start_year != v_start:
-                missing.append(
-                    f"{self.dataset_id}-{var}-{self.start_year:04d}-{v_start:04d}"
-                )
+                missing.append(f"{self.dataset_id}-{var}-{self.start_year:04d}-{v_start:04d}")
 
             prev_end = self.start_year
             for file in v_files:
@@ -738,15 +729,11 @@ class Dataset(object):
                 if file_start == prev_end + 1:
                     prev_end = file_end
                 else:
-                    missing.append(
-                        f"{self.dataset_id}-{var}-{prev_end:04d}-{file_start:04d}"
-                    )
+                    missing.append(f"{self.dataset_id}-{var}-{prev_end:04d}-{file_start:04d}")
 
             file_start, file_end = self.get_ts_start_end(files[-1])
             if file_end != self.end_year:
-                missing.append(
-                    f"{self.dataset_id}-{var}-{file_start:04d}-{self.end_year:04d}"
-                )
+                missing.append(f"{self.dataset_id}-{var}-{file_start:04d}-{self.end_year:04d}")
 
         return missing
 
@@ -761,14 +748,11 @@ class Dataset(object):
         try:
             idx = re.search(pattern=pattern, string=files[0])
         except Exception as e:
-            log_message(
-                "error",
-                f"file {files[0]} does not match expected pattern for monthly files",
-            )
+            log_message( "error", f"{__name__}: file {files[0]} does not match expected pattern for monthly files",)
             sys.exit(1)
 
         if not idx:
-            log_message("error", f"Unexpected file format: {files[0]}")
+            log_message("error", f"{__name__}: Unexpected file format: {files[0]}")
             sys.exit(1)
 
         prefix = files[0][: idx.start()]
@@ -792,7 +776,7 @@ class Dataset(object):
         files = sorted(files)
         idx = re.search(pattern=pattern, string=files[0])
         if not idx:
-            log_message("error", f"Unexpected file format: {files[0]}")
+            log_message("error", f"{__name__}: Unexpected file format: {files[0]}")
             sys.exit(1)
         prefix = files[0][: idx.start() - 2]
 
@@ -824,7 +808,7 @@ class Dataset(object):
         p = re.compile(r"_\d{6}_\d{6}.*nc")
         idx = p.search(filename)
         if not idx:
-            log_message("error", f"Unexpected file format: {filename}")
+            log_message("error", f"{__name__}: Unexpected file format: {filename}")
             sys.exit(1)
         start = int(filename[idx.start() + 1 : idx.start() + 5])
         end = int(filename[idx.start() + 8 : idx.start() + 12])
@@ -920,7 +904,7 @@ class Dataset(object):
 
     def is_blocked(self, state):
         if not self.status_path or not self.status_path.exists():
-            log_message("error", f"Status file for {self.dataset_id} cannot be found")
+            log_message("error", f"{__name__}: Status file for {self.dataset_id} cannot be found")
             sys.exit(1)
 
         # reload the status file in case somethings changed

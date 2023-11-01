@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# NOTE: this functionality should match that of the function "derivative_conf()" in datasm/util.py
+
 in_dsid=$1
 
 fullpath=0
@@ -9,10 +11,11 @@ if [ $# -eq 2 ]; then
     fi
 fi
 
-get_parent=/p/user_pub/e3sm/staging/tools/parent_native_dsid.sh
+dsm_tools=`$DSM_GETPATH STAGING_TOOLS`
+dsm_resource=`$DSM_GETPATH STAGING_RESOURCE`
 
-resource_path=/p/user_pub/e3sm/staging/resource
-deriv_conf=$resource_path/derivatives.conf
+get_parent=$dsm_tools/parent_native_dsid.sh
+deriv_conf=$dsm_resource/derivatives.conf
 
 # obtain     'hrz_atm_map_path', 'mapfile', 'region_file', 'file_pattern', and 'case_finder'
 
@@ -63,7 +66,7 @@ else
     case_finder=`echo $case_finder | cut -f5 -d,`
 fi
 
-mapspath=/p/user_pub/e3sm/staging/resource/maps
+mapspath=$dsm_resource/maps
 
 if [ $fullpath -eq 1 ]; then
     echo "hrz_atm_map_path:$mapspath/$regrid"

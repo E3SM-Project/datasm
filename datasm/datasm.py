@@ -3,6 +3,7 @@ import fnmatch
 import inspect
 import os
 import sys
+import subprocess
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from pprint import pformat
@@ -19,26 +20,23 @@ import datasm.util as util
 from datasm.dataset import Dataset, DatasetStatus, DatasetStatusMessage
 from datasm.listener import Listener
 from datasm.slurm import Slurm
-from datasm.util import log_message, setup_logging, parent_native_dsid
+from datasm.util import get_dsm_paths, log_message, setup_logging, parent_native_dsid
 from datasm.workflows import Workflow
 
-resource_path, _ = os.path.split(resources.__file__)
 
-# DEFAULT_SPEC_PATH = os.path.join(resource_path, "dataset_spec.yaml")
-# Horrible
-DEFAULT_SPEC_PATH = os.path.join("/p/user_pub/e3sm/staging/resource", "dataset_spec.yaml")
-# DEFAULT_SPEC_PATH = os.path.join("/p/user_pub/e3sm/archive/External/E3SMv1_LE/resource", "v1_LE_dataset_spec.yaml")
-# DEFAULT_SPEC_PATH = os.path.join("/p/user_pub/e3sm/archive/External/E3SMv2_LE/resource", "v2_LE_dataset_spec.yaml")
+dsm_paths = get_dsm_paths()
+outer_resource_path = dsm_paths["STAGING_RESOURCE"]
+DEFAULT_SPEC_PATH = os.path.join(outer_resource_path, "dataset_spec.yaml")
+DEFAULT_STATUS_PATH = dsm_paths["STAGING_STATUS"]
+DEFAULT_WAREHOUSE_PATH = dsm_paths["STAGING_DATA"]
+DEFAULT_PUBLICATION_PATH = dsm_paths["PUBLICATION_DATA"]
+DEFAULT_ARCHIVE_PATH = dsm_paths["ARCHIVE_STORAGE"]
 
-
-DEFAULT_CONF_PATH = os.path.join(resource_path, "datasm_config.yaml")
+inner_resource_path, _ = os.path.split(resources.__file__)
+DEFAULT_CONF_PATH = os.path.join(inner_resource_path, "datasm_config.yaml")
 
 with open(DEFAULT_CONF_PATH, "r") as instream:
     datasm_conf = yaml.load(instream, Loader=yaml.SafeLoader)
-DEFAULT_WAREHOUSE_PATH = datasm_conf["DEFAULT_WAREHOUSE_PATH"]
-DEFAULT_PUBLICATION_PATH = datasm_conf["DEFAULT_PUBLICATION_PATH"]
-DEFAULT_ARCHIVE_PATH = datasm_conf["DEFAULT_ARCHIVE_PATH"]
-DEFAULT_STATUS_PATH = datasm_conf["DEFAULT_STATUS_PATH"]
 NAME = "auto"
 
 # -------------------------------------------------------------
@@ -49,10 +47,6 @@ class AutoDataSM:
         super().__init__()
 
         global DEFAULT_SPEC_PATH
-
-        print(" === ")
-        print(f' Kwargs TOP: {kwargs}' )
-        print(" === ")
 
         self.slurm_path = kwargs.get("slurm", "slurm_scripts")
         # not sure where to put this - Tony
@@ -65,7 +59,8 @@ class AutoDataSM:
         self.archive_path = Path(kwargs.get( "archive_path", DEFAULT_ARCHIVE_PATH))
         self.status_path = Path(kwargs.get("status_path", DEFAULT_STATUS_PATH))
 
-        self.spec_path = Path(kwargs.get("dataset_spec", DEFAULT_SPEC_PATH))
+        self.spec_path = Path(kwargs.get("spec_path", DEFAULT_SPEC_PATH))
+
         if self.spec_path != DEFAULT_SPEC_PATH:
             DEFAULT_SPEC_PATH = Path(self.spec_path)
             log_message("info", f"TOP: Applying alternative dataset_spec: {self.spec_path}")
@@ -101,10 +96,6 @@ class AutoDataSM:
         log_message("info", f"TOP: self.slurm_path = {self.slurm_path}")
         log_message("info", f"TOP: self.spec_path = {self.spec_path}")
 
-        #if self.spec_path != Path(DEFAULT_SPEC_PATH):
-        #    DEFAULT_SPEC_PATH = f"{self.spec_path}"
-        #    log_message("info", f"TOP: Applying alternative dataset_spec: {self.spec_path}")
-        
         if self.report_missing:
             pass
         else:
@@ -211,11 +202,11 @@ class AutoDataSM:
         log_message("info", f"find_e3sm_source_dataset: parent_native_dsid() returns {native_dsid}")
 
         if native_dsid == "None":
-            log_message("info", f"find_e3sm_source_dataset: Found None for job {job.name}")
+            log_message("error", f"find_e3sm_source_dataset: Found no native_dsid for job {job.name}")
             return None
 
-        for req, ds in job._requires.items(): # located in jobs/__init__.py
-            log_message("info", f"find_e3sm_source_dataset: DEBUG: job._requires includes req = {req}")
+        for req, ds in job._requires.items(): # located in workflows/jobs/__init__.py
+            log_message("info", f"find_e3sm_source_dataset: DEBUG: job._requires includes req = {req}, ds = {ds}")
 
         dataset = Dataset(
             dataset_id=native_dsid,
@@ -224,14 +215,17 @@ class AutoDataSM:
             warehouse_base=self.warehouse_path,
             archive_base=self.archive_path,
             no_status_file=True)
+
         log_message("info", f"find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'requires_dataset()'")
+
         if job.requires_dataset(dataset):
             log_message("info", f"find_e3sm_source_dataset: dataset {dataset.dataset_id} matched job requirement")
             dataset.initialize_status_file()
             # log_message("debug", msg, self.debug)
             log_message("info", f"find_e3sm_source_dataset: Found {dataset.dataset_id} for job {job.name}")
             return dataset
-        log_message("info", f"find_e3sm_source_dataset: Found None for job {job.name}")
+
+        log_message("error", f"find_e3sm_source_dataset: Found None for job {job.name}")
         return None
 
     def setup_datasets(self, check_esgf=True):
@@ -255,7 +249,7 @@ class AutoDataSM:
             self.dataset_ids = all_dataset_ids
 
         if not self.dataset_ids:
-            log_message( "error", f"setup_datasets: No datasets in dataset_spec ({self.spec_path}) match pattern from command line parameter --dataset-id {self.dataset_ids}")
+
             log_message( "info", f"setup_datasets: No datasets in dataset_spec ({self.spec_path}) match pattern from command line parameter --dataset-id {self.dataset_ids}")
             sys.exit(1)
             # os._exit(1)
@@ -562,7 +556,6 @@ class AutoDataSM:
                     job.job_id = job_id
                     self.job_pool.append(job)
                 else:
-                    log_message("info", f"Error starting up job {job}. EXIT if serial.")
                     log_message("error", f"Error starting up job {job}. EXIT if serial.")
                     if Exit_On_Bad_Job and self.serial:
                         os._exit(1)

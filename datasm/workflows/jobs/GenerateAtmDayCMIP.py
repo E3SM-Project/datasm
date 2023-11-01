@@ -24,7 +24,7 @@ class GenerateAtmDayCMIP(WorkflowJob):
         raw_dataset = self.requires['atmos-native-day']
         cwl_config = self.config['cmip_atm_day']
 
-        _, _, institution, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+        _, _, institution, cmip_model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
         parameters = dict()
         parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
@@ -50,7 +50,8 @@ class GenerateAtmDayCMIP(WorkflowJob):
         log_message("info", f"Obtained temp info file name: {info_file.name}")
         cmip_out = os.path.join(self._slurm_out, "CMIP6")
         var_str = ', '.join(in_cmip_vars)
-        cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq day -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm atm"
+        freq = "day"
+        cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq {freq} -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm atm"
         log_message("info", f"resolve_cmd: issuing variable info cmd: {cmd}")
 
         proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
@@ -63,9 +64,8 @@ class GenerateAtmDayCMIP(WorkflowJob):
             variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
 
         if variable_info == None:
-            log_message("error", f"ERROR checking variables: No data returned from e3sm_to_cmip --info")
+            log_message("error", f"ERROR checking variables: No data returned from e3sm_to_cmip --info: {cmd}")
             os._exit(1)
-
 
         e3sm_vars = []
         cmip_vars = []
@@ -80,15 +80,16 @@ class GenerateAtmDayCMIP(WorkflowJob):
 
         if len(e3sm_vars) == 0:
             log_message("info", "warning: no e3sm_vars identified")
+            os._exit(1)
         if len(cmip_vars) == 0:
             log_message("info", "error: no cmip_vars identified")
-            return None
-
-        parameters['std_var_list'] = e3sm_vars
-        parameters['std_cmor_list'] = cmip_vars
+            os._exit(1)
 
         log_message("info", f"Obtained e3sm_vars: {', '.join(e3sm_vars)}")
         log_message("info", f"Obtained cmip_vars: {', '.join(cmip_vars)}")
+
+        parameters['std_var_list'] = e3sm_vars
+        parameters['std_cmor_list'] = cmip_vars
 
         parameters['tables_path'] = self.config['cmip_tables_path']
 
@@ -97,7 +98,7 @@ class GenerateAtmDayCMIP(WorkflowJob):
         # step two, write out the parameter file and setup the temp directory
         var_id = 'all' if is_all else in_cmip_vars[0]
         parameter_path = os.path.join(
-            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-day-{var_id}.yaml")
+            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-{freq}-{var_id}.yaml")
         with open(parameter_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 

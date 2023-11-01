@@ -6,30 +6,32 @@
 
 cmip6_dsid=$1
 
-parent_dsid=`/p/user_pub/e3sm/staging/tools/parent_native_dsid.sh $cmip6_dsid`
+tools=`$DSM_GETPATH STAGING_TOOLS`
+wh_root=`$DSM_GETPATH STAGING_DATA`
+pb_root=`$DSM_GETPATH PUBLICATION_DATA`
+
+parent_dsid=`$tools/parent_native_dsid.sh $cmip6_dsid`
 
 if [ ${parent_dsid:0:4} == "NONE" ]; then
     echo "NONE"
     exit 0
 fi
 
-parent_path=`/p/user_pub/e3sm/staging/tools/latest_data_location_by_dsid.sh $parent_dsid`
+parent_path=`$tools/latest_data_location_by_dsid.sh $parent_dsid`
 
 if [ ${parent_path:0:4} == "NONE" ]; then
     echo "NONE"
     exit 0
 fi
 
-# seek one of
-# /p/user_pub/work/
-# /p/user_pub/e3sm/warehouse/
+# seek in STAGING_DATA or PUBLICATION_DATA
 
-if [ ${parent_path:0:17} == "/p/user_pub/work/" ]; then
+if [ ${parent_path:0:16} == $pb_root ]; then
     echo "publication"
     exit 0
 fi
 
-if [ ${parent_path:0:27} == "/p/user_pub/e3sm/warehouse/" ]; then
+if [ ${parent_path:0:26} == $wh_root ]; then
     echo "warehouse"
     exit 0
 fi

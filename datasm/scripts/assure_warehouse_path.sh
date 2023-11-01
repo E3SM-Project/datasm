@@ -3,7 +3,7 @@
 # Usage:  assure_warehouse_path <dataset_id> <source_root>
 #
 # This script expects positional inputs (1) dataset_id, and (2) source_root, where
-#  source_root is usually "/p/user_pub/e3sm/warehouse" or "/p/user_pub/work" (pub_root),
+#  source_root is usually [STAGING_DATA] or [PUBLICATION_DATA] (pub_root),
 #  but can be any directory such that (root)/<dataset_id faceted path>/v# leads to the data.
 #
 # This script will return the given source_root if the files in the derived path are uniform,
@@ -20,7 +20,7 @@
 #  holodeck dir, If not, a symlink to the file with name modified to match the original "lead"
 #  is added to the holodeck.  The holodeck equivalent of a warehouse_root is returned.
 
-holospace="/p/user_pub/e3sm/staging/holospace/warehouse"
+holospace=`$DSM_GETPATH DSM_STAGING`/holospace/warehouse
 
 # Generate full source path to files from dataset_id and source_root
 dataset_id=$1

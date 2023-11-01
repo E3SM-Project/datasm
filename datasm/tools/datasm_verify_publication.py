@@ -1,7 +1,6 @@
-import os
-import sys
-import argparse
+import sys, os
 import json
+import argparse
 from argparse import RawTextHelpFormatter
 
 import traceback
@@ -16,6 +15,7 @@ from pathlib import Path
 from datetime import datetime
 from pytz import UTC
 from termcolor import colored, cprint
+from datasm.util import get_dsm_paths
 
 
 # -----------------------------------------------
@@ -44,9 +44,13 @@ helptext = '''
         If the dataset is NOT in pub_root, issue warnings but do not update the status file, irrespective of "-u".
 '''
 
-gv_stat_root = '/p/user_pub/e3sm/staging/status'
-gv_stat_root_ext = '/p/user_pub/e3sm/staging/status_ext'
-gv_pub_root = '/p/user_pub/work'
+dsm_paths = get_dsm_paths()
+
+dsm_staging = dsm_paths["DSM_STAGING"]
+gv_pub_root = dsm_paths["PUBLICATION_DATA"]
+
+gv_stat_root = f"{dsm_staging}/status"
+gv_stat_root_ext = f"{dsm_staging}/status_ext"
 
 def assess_args():
 

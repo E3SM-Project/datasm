@@ -151,6 +151,8 @@ fi
     #    2.  To check whether a given arbitrary dataset matches the requirements for a "raw source" dataset.
     #
     # NOTE:  for case 2:  "self.dataset" is the dataset to be produced.  "dataset" is the source native dataset required.
+    #
+    # Return value should be "realm-grid-freq" or None
 
     def requires_dataset(self, dataset):
         """
@@ -160,6 +162,9 @@ fi
         # import ipdb; ipdb.set_trace()
         # if self.dataset.dataset_id == dataset.dataset_id:
         #     return None
+
+        log_message("info", f"requires_dataset: self.dataset={self.dataset.dataset_id}, dataset={dataset.dataset_id}")
+
         for req, _ in self._requires.items():
             log_message("info", f"requires_dataset: DBG_REQ: self {self.name} has req {req}")
 
@@ -236,11 +241,15 @@ fi
                 req_attrs[2] = req_attrs[3]
                 log_message("info", f"requires_dataset: created req_attrs[0,1,2] = {req_attrs[0]}-{req_attrs[1]}-{req_attrs[2]}")
 
-            req = '-'.join([req_attrs[0], req_attrs[1], req_attrs[2]])
-
             rcode = dataset.realm.replace('-','')
             gcode = dataset.grid.replace('-','')
             fcode = dataset.freq.replace('-','')
+
+            self_rcode = self.dataset.realm
+            self_fcode = self.dataset.freq
+
+            req = '-'.join([req_attrs[0], req_attrs[1], req_attrs[2]])
+
             log_message("info", f"init: requires_dataset(): Testing this dataset {rcode}-{gcode}-{fcode} against job req {req}")
 
             # skip dataset if any non-* item does not match

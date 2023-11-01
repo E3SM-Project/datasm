@@ -1,6 +1,4 @@
-import os
-import sys
-import argparse
+import os, sys, argparse
 import yaml
 from argparse import RawTextHelpFormatter
 
@@ -8,7 +6,7 @@ from argparse import RawTextHelpFormatter
 helptext = '''
     Usage:  python expand_dsspec_branches.py  -i dataset_spec_contracted.yaml -o dataset_spec_expanded.yaml
 
-    Reads in the E3SM dataset_spec (example: /p/user_pub/e3sm/staging/resource/dataset_spec.yaml).
+    Reads in the E3SM dataset_spec (example: [ARCHIVE_MANAGEMENT]/dataset_spec.yaml).
     (Assumes the dataset_spec is in contracted form, and has a "CASE_EXTENSIONS:" section.)
     For each Project=E3SM Model_Version and Experiment, it locates the branch labeled "resolution"
     and uses the "Extension_ID" found there to locate that branch in the CASE_EXTENSIONS table,

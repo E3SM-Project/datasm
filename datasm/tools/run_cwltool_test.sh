@@ -6,12 +6,13 @@ in_cmip_dsid=$1
 dry_run=1
 
 # external dependencie
-get_cmip6_parms=/p/user_pub/e3sm/staging/tools/cmip6_parameters.sh
-force_status=/p/user_pub/e3sm/staging/tools/ensure_status_file_for_dsid.sh
-list_e3sm_dsids=/p/user_pub/e3sm/staging/tools/list_e3sm_dsids.py
-meta_version=/p/user_pub/e3sm/staging/tools/metadata_version.py
+dsm_tools=`$DSM_GETPATH STAGING_TOOLS`
+resource_path=`$DSM_GETPATH STAGING_RESOURCE`
+get_cmip6_parms=$dsm_tools/cmip6_parameters.sh
+force_status=$dsm_tools/ensure_status_file_for_dsid.sh
+list_e3sm_dsids=$dsm_tools/list_e3sm_dsids.py
+meta_version=$dsm_tools/metadata_version.py
 
-resource_path=/p/user_pub/e3sm/staging/resource
 var_trans_table=$resource_path/table_cmip_var_to_e3sm
 tables_path=$resource_path/cmor/cmip6-cmor-tables/Tables/
 vrt_map_path=$resource_path/maps/vrt_remap_plev19.nc
@@ -53,7 +54,7 @@ parameter_file=$parameter_path/${in_cmip_dsid}-${cmip_var}.yaml
 
 major_model=`echo $cmip_model_version | cut -f2 -d-`
 metadata_name="${cmip_experiment}_${cmip_variant}.json"
-metadata=/p/user_pub/e3sm/staging/resource/CMIP6-Metadata/$cmip_model_version/$metadata_name
+metadata=$resource_path/CMIP6-Metadata/$cmip_model_version/$metadata_name
 # UPDATE dataset version in metadata
 cp $metadata $parameter_path
 metadata=$parameter_path/$metadata_name
@@ -153,7 +154,7 @@ else # river?
     exit 0
 fi
 
-cwl_workflow_path=/p/user_pub/e3sm/staging/resource/cwl_workflows/$cwl_tail_path
+cwl_workflow_path=$resource_path/cwl_workflows/$cwl_tail_path
 
 mkdir -p cwl_params
 

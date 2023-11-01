@@ -1,9 +1,19 @@
 The utilities or tools contained herein are not strictly necessary for datasm operation,
-and are not called upon by the datasm system.  They are nonetheless useful for managing
-E3SM data operations.  Their functions are briefly described below:
+and are not called upon by the datasm system.  They are nonetheless essential for user
+management of ancillary datasm operation, status determination, and related tasks that
+support E3SM data operations.  Their functions are briefly described below:
 
 NOTE:  These tools are "installed" to /p/user_pub/e3sm/staging/tools, and many rely upon
 definition files (Archive_Map, dataset_spec.yam) in /p/user_pub/e3sm/staging/resource.
+
+NOTE:  To employ these tools, you must add the following to your .bashrc file:
+
+    export DSM_GETPATH=/p/user_pub/e3sm/staging/.dsm_get_root_path.sh
+
+    Many of these scripts call upon other scripts, and rather than have the paths to
+    these scripts hard-coded into each script (making then non-relocatable), the above
+    "dsm_get_root_path.sh" reads a table (/p/user_pub/e3sm/staging/.dsm_root_paths)
+    to resolve keywords used to specify important datasm root paths.
 
 NOTE:  Much of E3SM data operations involve "datasets", and in that regard, dataset_ids
 are ubiquitous and employed as "tokens" for many operations.  Single dataset_ids, or
@@ -12,8 +22,11 @@ accomplish a given task.  Hence the utilities "list_e3sm_dsids" and "list_cmip_d
 each of which employ the dataset-defining "dataset_spec.yaml" are often filtered down to
 an appropriate list of dataset_ids as a first step in condicting operations.
 
+
+
 IMPORTANT CONFIGURATION FILES:
 
+    /p/user_pub/e3sm/staging/.dsm_root_paths
     /p/user_pub/e3sm/archive/.cfg/Archive_Locator
     /p/user_pub/e3sm/archive/.cfg/Archive_Map
     /p/user_pub/e3sm/archive/.cfg/Standard_Datatype_Extraction_Patterns
@@ -21,11 +34,6 @@ IMPORTANT CONFIGURATION FILES:
     /p/user_pub/e3sm/staging/resource/table_cmip_var_to_e3sm
 
 ALPHABETIC LISTING OF TOOLS:
-
-am_key_from_dsid.sh:
-
-    Given a native dataset_id, this script will return the key string that identifies
-    which Archive_Map entries exist for this dataset.
 
 archive_dataset_extractor.sh:
 

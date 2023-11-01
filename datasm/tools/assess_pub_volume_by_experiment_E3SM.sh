@@ -2,14 +2,16 @@
 
 ts=`date -u +%Y%m%d`
 
+pub_root=`$DSM_GETPATH PUBLICATION_DATA`
+
 tmp_report="tmp_E3SM_vol_report-$ts"
 
-for adir in `ls /p/user_pub/work/E3SM`; do
-    dlist=`ls /p/user_pub/work/E3SM/$adir`
+for adir in `ls $pub_root/E3SM`; do
+    dlist=`ls $pub_root/E3SM/$adir`
     for subdir in $dlist; do
         # echo $adir,$subdir >> $tmp_report
         # continue
-        vol1=`du -b /p/user_pub/work/E3SM/$adir/$subdir | tail -1 | cut -f1`
+        vol1=`du -b $pub_root/E3SM/$adir/$subdir | tail -1 | cut -f1`
         volTB=$(echo "scale=2; $vol1/1000000000000" | bc)
         echo $adir/$subdir,$volTB >> $tmp_report
     done

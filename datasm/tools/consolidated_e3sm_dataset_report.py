@@ -1,5 +1,4 @@
-import os
-import sys
+import os, sys
 import argparse
 import re
 from argparse import RawTextHelpFormatter
@@ -8,6 +7,7 @@ import time
 from datetime import datetime
 import pytz
 import yaml
+from datasm.util import get_dsm_paths
 
 '''
 The Big Idea:  Create a dictionary "ds_struct[]" keyed by dataset_ID, whose values will be the desired
@@ -32,30 +32,27 @@ helptext = '''
 
         Existence is determined by:
 
-        (D):  Appearance in the E3SM Dataset_Spec (/p/user_pub/e3sm/staging/resource/dataset_spec.yaml)
-        (A):  Appearance in the Archive_Map (/p/user_pub/e3sm/archive/.cfg/Archive_Map)
-        (W):  The Warehouse directories (/p/user_pub/e3sm/warehouse/E3SM/(facets)/[v0|v1...]/
-        (P):  The Publication directories (/p/user_pub/work/E3SM/(facets)/[v0|v1...]/
+        (D):  Appearance in the E3SM Dataset_Spec ([STAGING_RESOURCE]/dataset_spec.yaml)
+        (A):  Appearance in the Archive_Map ([STAGING_ARCHIVE]/Archive_Map)
+        (W):  The Warehouse directories ([STAGING_DATA]/E3SM/(facets)/[v0|v1...]/
+        (P):  The Publication directories ([PUBLICATION_DATA]/E3SM/(facets)/[v0|v1...]/
         (S):  The (ESGF) Search node (determined by live https request queries to esgf-node.llnl.gov)
 
     if [--unrestricted] is specified, datasets will be included even if they do NOT appear in the Dataset_Spec.
 '''
 
-# INPUT FILES (These could be in a nice config somewhere.  staging/.paths
-staging_paths = '/p/user_pub/e3sm/staging/.paths'
+dsm_paths = get_dsm_paths()
 
-PB_ROOT = '/p/user_pub/work'
-WH_ROOT = '/p/user_pub/e3sm/warehouse'
-DS_SPEC = '/p/user_pub/e3sm/staging/resource/dataset_spec.yaml'
-DS_STAT = '/p/user_pub/e3sm/staging/status'
-
-ARCH_MAP  = '/p/user_pub/e3sm/archive/.cfg/Archive_Map'
-esgf_pr   = ''
+PB_ROOT = dsm_paths["PUBLICATION_DATA"]
+WH_ROOT = dsm_paths["STAGING_DATA"]
+DS_STAT = dsm_paths["STAGING_STATUS"]
+ARCHMAN = dsm_paths["ARCHIVE_MANAGEMENT"]
+STAG_RC = dsm_paths["STAGING_RESOURCE"]
+DS_SPEC = f"{STAG_RC}/dataset_spec.yaml"
+ARCHMAP = f"{ARCHMAN}/Archive_Map"
 
 # output_mode
 gv_csv = True
-
-# esgf_pr   = '/p/user_pub/e3sm/bartoletti1/Pub_Status/sproket/ESGF_publication_report-20200915.144250'
 
 def ts():
     return pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
@@ -653,7 +650,7 @@ def main():
     # split the Archive_Map into a list of records, each record a list of fields
     #   (was) Campaign,Model,Experiment,Resolution,Ensemble,DatasetType,ArchivePath,DatatypeTarExtractionPattern,Notes
     #   (now) Campaign,Model,Experiment,Resolution,Ensemble,DatasetType,OutputType,,ArchivePath,DatatypeTarExtractionPattern,Notes
-    am_lines = loadFileLines(ARCH_MAP)
+    am_lines = loadFileLines(ARCHMAP)
     for amline in am_lines:
         dsid = dsid_from_archive_map(amline)
         if not dsid in ds_struct:
