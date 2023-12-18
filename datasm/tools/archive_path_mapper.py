@@ -28,9 +28,10 @@ dsm_paths = get_dsm_paths()
 archmanpath = dsm_paths["ARCHIVE_MANAGEMENT"]
 the_SDEP = f"{archmanpath}/Standard_Datatype_Extraction_Patterns"
 
-user_root = dsm_paths["USER_ROOT"]
+userroot = dsm_paths["USER_ROOT"]
+thisuser = os.getlogin()
 
-WorkDir = f"{user_root}/Operations/2_ArchiveMapping"
+WorkDir = f"{userroot}/{thisuser}/Operations/2_ArchiveMapping"
 
 pathsFound = os.path.join(WorkDir,'PathsFound')
 
@@ -146,8 +147,6 @@ def main():
 
     # process each archive location
 
-    # print(f'DEBUG: cleared PathsFound: Begin processing AL file and SDEP file')
-
     with open(AL_Listfile) as f:
         al_contents = f.read().split('\n')
 
@@ -158,7 +157,7 @@ def main():
 
     al_linelist = [ al_line for al_line in al_contents if al_line[:-1] ]
     for al_line in al_linelist:
-        # print(f'DEBUG: AL line: {al_line}')
+        print(f'Processing Archive Locator Entry: {al_line}')
         al_spec = get_al_spec(al_line)
         arch_path = al_spec['apath']
         if arch_path == 'NAV':
@@ -169,7 +168,6 @@ def main():
         sdep_selected = []      # a list of dictionaries
         for sdep_line in sdep_list:
             sdep_spec = get_sdep_spec(sdep_line)
-            # print(f"DEBUG {sdep_spec['dtype']}, {sdep_spec['otype']}, {sdep_spec['spatt']}, {sdep_spec['clist']}")
             if sdep_spec['spatt'] == 'ignore':
                 continue
             if al_spec['campa'] not in sdep_spec['clist']:      # al_list campaign MUST be in sdep campaign list
@@ -207,12 +205,19 @@ def main():
             # call zstash
             logmsg(f"DBG: Calling zstash ls --hpss=none with pattern: {ds_patt}")
             cmd = ['zstash', 'ls', '--hpss=none', ds_patt]
-            proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
-            proc_out, proc_err = proc.communicate()
+
+            try:
+                proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+                try:
+                    proc_out, proc_err = proc.communicate()
+                except:
+                    pass
+            except:
+                pass
             if not proc.returncode == 0:
                 logmsg(f"ERROR: zstash returned exitcode {proc.returncode}")
-                os.chdir('..')
-                sys.exit(proc.returncode)
+                # sys.exit(proc.returncode)
+                continue
 
             proc_out = proc_out.decode('utf-8')
             proc_err = proc_err.decode('utf-8')
@@ -229,7 +234,7 @@ def main():
             f.write(proc_out)
             sort_file_in_place(outpath)
 
-        os.chdir('..')
+        os.chdir(WorkDir)
 
     # stage 2 first_last collection
 
