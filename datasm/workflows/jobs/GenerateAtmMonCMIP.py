@@ -1,11 +1,9 @@
 import os
-import sys
-import yaml
+from pathlib import Path
 
-from subprocess import Popen, PIPE
-from tempfile import NamedTemporaryFile
+import yaml
 from datasm.workflows.jobs import WorkflowJob
-from datasm.util import log_message, prepare_cmip_job_metadata, derivative_conf
+from datasm.util import log_message, get_e2c_info, parent_native_dsid, latest_data_vdir, prepare_cmip_job_metadata, derivative_conf
 
 NAME = 'GenerateAtmMonCMIP'
 
@@ -17,94 +15,59 @@ class GenerateAtmMonCMIP(WorkflowJob):
         self.name = NAME
         self._requires = {'atmos-native-mon': None}
         self._cmd = ''
-        self._cmip_var = ''
 
     def resolve_cmd(self):
 
-        log_message("info", f"resolve_cmd: Module Name = {NAME}")
+        target_dsid = self.dataset.dataset_id
+        parent_dsid = parent_native_dsid(target_dsid)
 
-        raw_dataset = self.requires['atmos-native-mon']
         cwl_config = self.config['cmip_atm_mon']
+        metadata_path = self.config['cmip_metadata_path']
+        resource_path = self.config['e3sm_resource_path']
+        tables_path = self.config['cmip_tables_path']
+
+        deriv_conf = derivative_conf(target_dsid, resource_path)
+
+        data_path = latest_data_vdir(parent_dsid)
+        outpath = self.config['DEFAULT_WAREHOUSE_PATH']
+
+        metadata_file = prepare_cmip_job_metadata(target_dsid, metadata_path, self._slurm_out)
 
         _, _, institution, cmip_model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
-        parameters = dict()
-        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
+        # secure the target and native variables via e3sm_to_cmip --info
 
-        data_path = raw_dataset.latest_warehouse_dir
-        parameters['data_path'] = data_path
-
-        # seek "cmip_model_version" for v2 accommodations
-
-        # if we want to run all the variables
-        # we can pull them from the dataset spec
-        if cmip_var == 'all':
-            is_all = True
-            cmip_var = [x for x in self._spec['tables'][table] if x != 'all']
-        else:
-            is_all = False
-            cmip_var = [cmip_var]
-
-        std_var_list = []
-        std_cmor_list = []
-        plev_var_list = []
-        plev_cmor_list = []
-
-        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
-
-        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
-        parameters['metadata_path'] = metadata_path
-
-        info_file = NamedTemporaryFile(delete=False)
         cmip_out = os.path.join(self._slurm_out, "CMIP6")
-        var_str = ', '.join(cmip_var)
-        freq = "mon"
-        cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq {freq} -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm atm"
-        log_message("info", f"resolve_cmd: calling e2c: CMD = {cmd}")
+        freq = parent_dsid.split('.')[7]
+        realm = "atm"
 
-        proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-        _, err = proc.communicate()
-        if err:
-            log_message("info", f"ERROR checking variables: {err}")
+        var_info = get_e2c_info(cmip_var, freq, realm, data_path, cmip_out, metadata_file, tables_path)
 
-        plev = False
-        mlev = False
-        with open(info_file.name, 'r') as instream:
-            variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
+        # build up parameters list for job config .yaml write
+        parameters = dict()
 
-        if variable_info == None:
-            log_message("error", f"ERROR checking variables: No data returned from e3sm_to_cmip --info")
-            os._exit(1)
+        parameters['tables_path'] = tables_path
+        parameters['data_path'] = data_path
+        parameters['metadata_path'] = metadata_file
 
-        for item in variable_info:
-            if ',' in item['E3SM Variables']:
-                e3sm_var = [v.strip() for v in item['E3SM Variables'].split(',')]
-            else:
-                e3sm_var = [item['E3SM Variables']]
+        parameters['std_var_list']   = var_info['natv_vars']      # for mlev, else no harm if empty
+        parameters['std_cmor_list']  = var_info['cmip_vars']      # for mlev, else no harm if empty
+        parameters['plev_var_list']  = var_info['natv_plev_vars'] # for plev, else no harm if empty
+        parameters['plev_cmor_list'] = var_info['cmip_plev_vars'] # for plev, else no harm if empty
 
-            if 'Levels' in item.keys() and item['Levels']['name'] == 'plev19':
-                plev = True
-                plev_var_list.extend(e3sm_var)
-                plev_cmor_list.append(item['CMIP6 Name'])
-            else:
-                mlev = True
-                std_var_list.extend(e3sm_var)
-                std_cmor_list.append(item['CMIP6 Name'])
+        parameters['vrt_map_path'] = self.config['vrt_map_path']  # not needed for mlev-only but no harm
 
-        if not mlev and not plev:
-            log_message("error", "resolve_cmd: e3sm_to_cmip --info returned EMPTY variable info")
-            self._cmd = "echo EMPTY variable info; exit 1"
-            return 1
+        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
+        parameters.update(deriv_conf)   # obtain hrz_atm_map_path, mapfile, region_file, file_pattern, case_finder
 
-        parameters['vrt_map_path'] = self.config['vrt_map_path']        # not needed for mlev-only but no harm
-        parameters['std_var_list'] = std_var_list                       # for mlev, else no harm if empty
-        parameters['std_cmor_list'] = std_cmor_list                     # for mlev, else no harm if empty
-        parameters['plev_var_list'] = plev_var_list                     # for plev, else no harm if empty
-        parameters['plev_cmor_list'] = plev_cmor_list                   # for plev, else no harm if empty
+        # write out the parameter file and setup the temp directory
+        parameters_name = f"{experiment}-{cmip_model_version}-{variant}-{realm}-cmip-{freq}-{cmip_var}.yaml"
+        parameters_path = os.path.join(self._slurm_out, parameters_name)
+        with open(parameters_path, 'w') as outstream:
+            yaml.dump(parameters, outstream)
 
-        parameters['tables_path'] = self.config['cmip_tables_path']
-
-        parameters.update( derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path']) )
+        mlev = var_info['mlev']
+        plev = var_info['plev']
 
         if cmip_model_version == "E3SM-2-0":
             if plev and not mlev:
@@ -123,19 +86,9 @@ class GenerateAtmMonCMIP(WorkflowJob):
 
         cwl_workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
 
-        # step two, write out the parameter file and setup the temp directory
-        self._cmip_var = 'all' if is_all else cmip_var[0]
-        parameter_path = os.path.join(
-            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-atm-cmip-{freq}-{self._cmip_var}.yaml")
-        with open(parameter_path, 'w') as outstream:
-            yaml.dump(parameters, outstream)
-
-        # step three, render out the CWL run command
-        # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
-        outpath = self.config['DEFAULT_WAREHOUSE_PATH']  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
-
         if not self.serial:
             parallel = "--parallel"
         else:
             parallel = ''
-        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameter_path}"
+
+        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameters_path}"

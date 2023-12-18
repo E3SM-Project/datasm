@@ -29,12 +29,17 @@ class GenerateAtmMonTimeseries(WorkflowJob):
         # NOTE: available grids are defined in resources/datasm_config.yaml
         parameters = derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path'])
         
+        data_path = raw_dataset.latest_warehouse_dir
+        log_message("error",f"FAKE_ERROR:{__name__}:resolve_cmd: data_path = {data_path}")
+
         map_path = parameters['hrz_atm_map_path']
 
+        # this should NOT be the Pub Dir!
+        # how about self.config['DEFAULT_WAREHOUSE_PATH']
         out_path = self.find_outpath()
 
         self._cmd = f"""
-            ncclimo --ypf=50 -v {','.join(variables)} -j {self._job_workers} -s {start} -e {end} -i {raw_dataset.latest_warehouse_dir} -o {native_out}  -O {out_path} --map={map_path}
+            ncclimo --ypf=50 -v {','.join(variables)} -j {self._job_workers} -s {start} -e {end} -i {data_path} -o {native_out}  -O {out_path} --map={map_path}
         """
         log_message("info", f"resolve_cmd: cmd = {self._cmd}")
 

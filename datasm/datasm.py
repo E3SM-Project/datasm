@@ -199,14 +199,14 @@ class AutoDataSM:
         log_message("info", f"job.dataset = {job.dataset}")
 
         native_dsid = parent_native_dsid(job.dataset.dataset_id)
-        log_message("info", f"find_e3sm_source_dataset: parent_native_dsid() returns {native_dsid}")
+        log_message("info", f"{__name__}: find_e3sm_source_dataset: parent_native_dsid() returns {native_dsid}")
 
         if native_dsid == "None":
-            log_message("error", f"find_e3sm_source_dataset: Found no native_dsid for job {job.name}")
+            log_message("error", f"{__name__}: find_e3sm_source_dataset: Found no native_dsid for job {job.name}")
             return None
 
         for req, ds in job._requires.items(): # located in workflows/jobs/__init__.py
-            log_message("info", f"find_e3sm_source_dataset: DEBUG: job._requires includes req = {req}, ds = {ds}")
+            log_message("info", f"{__name__}: find_e3sm_source_dataset: DEBUG: job._requires includes req = {req}, ds = {ds}")
 
         dataset = Dataset(
             dataset_id=native_dsid,
@@ -216,16 +216,16 @@ class AutoDataSM:
             archive_base=self.archive_path,
             no_status_file=True)
 
-        log_message("info", f"find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'requires_dataset()'")
+        log_message("info", f"{__name__}: find_e3sm_source_dataset: tries dsid {dataset.dataset_id}, calls 'requires_dataset()'")
 
         if job.requires_dataset(dataset):
-            log_message("info", f"find_e3sm_source_dataset: dataset {dataset.dataset_id} matched job requirement")
+            log_message("info", f"{__name__}: find_e3sm_source_dataset: dataset {dataset.dataset_id} matched job requirement")
             dataset.initialize_status_file()
             # log_message("debug", msg, self.debug)
-            log_message("info", f"find_e3sm_source_dataset: Found {dataset.dataset_id} for job {job.name}")
+            log_message("info", f"{__name__}: find_e3sm_source_dataset: Found {dataset.dataset_id} for job {job.name}")
             return dataset
 
-        log_message("error", f"find_e3sm_source_dataset: Found None for job {job.name}")
+        log_message("error", f"{__name__}: find_e3sm_source_dataset: Found None for job {job.name}")
         return None
 
     def setup_datasets(self, check_esgf=True):
