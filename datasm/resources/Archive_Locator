@@ -104,6 +104,14 @@ DECK-v2,2_0,piClim-histall,LR,ens2,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.pi
 DECK-v2,2_0,piClim-histall,LR,ens3,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.piClim-histall_0041
 DECK-v2,2_0,piControl_land,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.piControl_land
 DECK-v2,2_0,piControl,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.piControl
+DECK-v2,2_1,1pctCO2,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.1pctCO2_0101
+DECK-v2,2_1,abrupt-4xCO2,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.abrupt-4xCO2_0101
+DECK-v2,2_1,historical,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0101
+DECK-v2,2_1,historical,LR,ens2,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0151
+DECK-v2,2_1,historical,LR,ens3,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0201
+DECK-v2,2_1,historical,LR,ens4,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0251
+DECK-v2,2_1,historical,LR,ens5,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0301
+DECK-v2,2_1,piControl,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.piControl
 HR-v1,1_0,1950-1970-Transient-HR,0_25deg_atm_18-6km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/HR-v1/20200517-maint-1.0-tro.A_WCYCL20TRS_CMIP6_HR.ne120_oRRS18v3_ICG.unc11-20years
 HR-v1,1_0,1950-Control,0_25deg_atm_18-6km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/HR-v1/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG
 HR-v1,1_0,1950-Control-21yrContHiVol-HR,0_25deg_atm_18-6km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/HR-v1/theta.20190910.branch_noCNT.n438b.unc03.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG
