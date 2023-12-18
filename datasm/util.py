@@ -4,6 +4,7 @@ import subprocess
 import re
 import shutil
 import json
+import yaml
 import traceback
 import inspect
 import logging
@@ -352,7 +353,7 @@ def prepare_cmip_job_metadata(cmip_dsid, in_meta_path, slurm_out):
     # force dataset output version here
     ds_version = "v" + get_UTC_YMD()
     set_version_in_user_metadata(metadata_path, ds_version)
-    log_message("info", f"Set dataset version in {metadata_path} to {ds_version}")
+    log_message("error", f"FAKE_ERROR: Set metadata dataset version in {metadata_path} to {ds_version}")
 
     return metadata_path
 
@@ -435,11 +436,62 @@ def derivative_conf(target_dsid,resource_path):
     return retval
 
 
-    
-
-
 # -----------------------------------------------
 
+def get_e2c_info(cmip_var, freq, realm, data_path, cmip_out, metadata_path, cmip_tables_path):
+    workdir = f"{os.getcwd()}"
+    log_message("error",f"FAKE_ERROR:get_e2c_info: PWD = {workdir}")
+
+    info_file = NamedTemporaryFile(delete=False)
+    log_message("info", f"Obtained temp info file name: {info_file.name}")
+    cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq {freq} -v {cmip_var} -t {cmip_tables_path} --info-out {info_file.name} --realm {realm}"
+    log_message("error", f"FAKE_ERROR: {__name__}:get_e2c_info: issuing variable info cmd: {cmd}")
+
+    proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
+    _, err = proc.communicate()
+    if err:     # anything on stderr, may not be important
+        log_message("info", f"(stderr) checking variables: {err}")
+
+    with open(info_file.name, 'r') as instream:
+        variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
+
+    if variable_info == None:
+        log_message("error", f"ERROR checking variables: No data returned from e3sm_to_cmip --info: {cmd}")
+        os._exit(1)
+
+    variable_info = variable_info[0]    # expect a single dictionary
+
+    log_message("error", f"FAKE_ERROR: get_e2c_info: type(variable_info from yaml_loader) = {type(variable_info)}")
+
+    var_info = dict()
+    var_info['mlev'] = False
+    var_info['plev'] = False
+    var_info['natv_vars'] = list()
+    var_info['cmip_vars'] = list()
+    var_info['natv_plev_vars'] = list()
+    var_info['cmip_plev_vars'] = list()
+
+
+    native_info = list()
+    for item in variable_info['E3SM Variables'].split(','):
+        native_info.append( item.strip() )
+
+    if 'Levels' in variable_info.keys() and variable_info['Levels']['name'] == 'plev19':
+        var_info['plev'] = True
+        var_info['natv_plev_vars'].extend(native_info)
+        var_info['cmip_plev_vars'].append(variable_info['CMIP6 Name'])
+    else:
+        var_info['mlev'] = True
+        log_message("error", f"FAKE_ERROR: get_e2c_info obtained native_info = {native_info}")
+        var_info['natv_vars'].extend(native_info)
+        var_info['cmip_vars'].append(variable_info['CMIP6 Name'])
+
+    if not var_info['mlev'] and not var_info['plev']:
+        log_message("error", "resolve_cmd: e3sm_to_cmip --info returned EMPTY variable info")
+        self._cmd = "echo EMPTY variable info; exit 1"
+        os._exit(1)
+
+    return var_info
 
 # -----------------------------------------------
 
@@ -495,8 +547,6 @@ def parent_native_dsid(target_dsid):
 
     model, resol, ens = set_e3sm_model_resolution_ensemble(source,inst,cmip_exp,variant)
 
-    # log_message("error", f"DEBUG_TEST: parent_native_dsid: (model,resol,ens) = ({model},{resol},{ens})")
-
     grid = "native"
     otype = "model-output"
 
@@ -530,7 +580,7 @@ def parent_native_dsid(target_dsid):
 
     native_dsid = ('.').join([ "E3SM", model, experiment, resol, realm, grid, otype, freq, ens ])
 
-    log_message("error", f"DEBUG_TEST: parent_native_dsid: returns native dsid {native_dsid}")
+    log_message("info", f"DEBUG_TEST: parent_native_dsid: returns native dsid {native_dsid}")
 
     return native_dsid
 

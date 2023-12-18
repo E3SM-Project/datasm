@@ -1,10 +1,9 @@
 import os
-import yaml
 from pathlib import Path
-from subprocess import PIPE, Popen
-from tempfile import NamedTemporaryFile
+
+import yaml
 from datasm.workflows.jobs import WorkflowJob
-from datasm.util import log_message, prepare_cmip_job_metadata, derivative_conf, get_first_nc_file
+from datasm.util import log_message, get_e2c_info, parent_native_dsid, latest_data_vdir, prepare_cmip_job_metadata, derivative_conf
 
 NAME = 'GenerateOcnFixedCMIP'
 
@@ -16,112 +15,74 @@ class GenerateOcnFixedCMIP(WorkflowJob):
         self.name = NAME
         self._requires = {'ocean-native-mon': None}
         self._cmd = ''
-        self._cmip_var = ''
 
     def resolve_cmd(self):
 
-        log_message("info", f"resolve_cmd: Start: dsid={self.dataset.dataset_id}")
-
-        _, _, _, model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
+        target_dsid = self.dataset.dataset_id
+        parent_dsid = parent_native_dsid(target_dsid)
 
         cwl_config = self.config['cmip_ocn_mon']
+        metadata_path = self.config['cmip_metadata_path']
+        resource_path = self.config['e3sm_resource_path']
+        tables_path = self.config['cmip_tables_path']
 
-        # Begin parameters collection
+        deriv_conf = derivative_conf(target_dsid, resource_path)
 
-        parameters = dict()
-        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, timeout, slurm_timeout
+        data_path = latest_data_vdir(parent_dsid)
+        datafile = get_first_nc_file(data_path)
+        filepath = os.path.join(data_path, datafile)
+        data_path_dict = { 'class': 'File', 'path': filepath }
+        outpath = self.config['DEFAULT_WAREHOUSE_PATH']
 
-        # start with universal constants
+        metadata_file = prepare_cmip_job_metadata(target_dsid, metadata_path, self._slurm_out)
 
-        parameters['tables_path'] = self.config['cmip_tables_path']
+        _, _, institution, cmip_model_version, experiment, variant, table, cmip_var, _ = self.dataset.dataset_id.split('.')
 
-        raw_dataset = self.requires['ocean-native-mon']
-        data_path = raw_dataset.latest_warehouse_dir
-        anyfile = get_first_nc_file(data_path)
-        anypath = os.path.join(data_path, anyfile)
-        data_path_dict = { 'class': 'File', 'path': anypath }
-        
-        parameters['ocn_data_path'] = data_path_dict
+        # secure the target and native variables via e3sm_to_cmip --info
 
-        # if we want to run all the variables
-        # we can pull them from the dataset spec
-        if cmip_var == 'all':
-            is_all = True
-            in_cmip_vars = [x for x in self._spec['tables'][table] if x != 'all']
-        else:
-            is_all = False
-            in_cmip_vars = [cmip_var]
-
-        # Obtain metadata file, after move to self._slurm_out and current-date-based version edit
-
-        metadata_path = prepare_cmip_job_metadata(self.dataset.dataset_id, self.config['cmip_metadata_path'], self._slurm_out)
-        parameters['metadata_path'] = metadata_path
-
-        info_file = NamedTemporaryFile(delete=False)
-        log_message("info", f"Obtained temp info file name: {info_file.name}")
         cmip_out = os.path.join(self._slurm_out, "CMIP6")
-        var_str = ', '.join(in_cmip_vars)
+        freq = parent_dsid.split('.')[7]
+        realm = "Ofx"
         info_realm = "mpaso"
         if table == "SImon":
             info_realm = "mpassi"
-        cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq mon -v {var_str} -t {self.config['cmip_tables_path']} --info-out {info_file.name} --realm {info_realm}"
-        log_message("info", f"resolve_cmd: issuing variable info cmd: {cmd}")
 
-        proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
-        _, err = proc.communicate()
-        if err:
-            log_message("info", f"(stderr) checking variables: {err}")
-            # return None # apparently not a serious error, merely data written to stderr.
+        var_info = get_e2c_info(cmip_var, freq, realm, data_path, cmip_out, metadata_file, tables_path)
 
-        with open(info_file.name, 'r') as instream:
-            variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
+        # build up parameters list for job config .yaml write
 
-        e3sm_vars = []
-        cmip_vars = []
-        for item in variable_info:
-            if isinstance(item['E3SM Variables'], list):
-                e3sm_vars.extend([v for v in item['E3SM Variables']])
-            else:
-                e3sm_vars.append(item['E3SM Variables'])
+        parameters = dict()
 
-            vname = item['CMIP6 Name']
-            cmip_vars.append(vname)
+        parameters['tables_path'] = tables_path
+        parameters['data_path'] = data_path
+        parameters['ocn_data_path'] = data_path_dict
+        parameters['metadata_path'] = metadata_path
 
-        if len(e3sm_vars) == 0:
-            log_message("info", "warning: no e3sm_vars identified")
-        if len(cmip_vars) == 0:
-            log_message("info", "error: no cmip_vars identified")
-            return None
+        parameters['std_var_list']  = var_info['natv_vars']
+        parameters['cmor_var_list'] = var_info['cmip_vars']
 
-        parameters['std_var_list'] = e3sm_vars
-        parameters['cmor_var_list'] = cmip_vars
+        parameters.update(cwl_config)   # obtain frequency, num_workers, account, partition, e2c_timeout, slurm_timeout
+        parameters.update(deriv_conf)   # obtain hrz_atm_map_path, mapfile, region_file, file_pattern, case_finder
 
         log_message("info", f"Obtained e3sm_vars: {', '.join(e3sm_vars)}")
         log_message("info", f"Obtained cmip_vars: {', '.join(cmip_vars)}")
 
-        # Obtain mapfile and region_file by model_version
 
-        parameters.update( derivative_conf(self.dataset.dataset_id, self.config['e3sm_resource_path']) )
-
-        # step two, write out the parameter file and setup the temp directory
-        var_id = 'all' if is_all else in_cmip_vars[0]
-        parameter_path = os.path.join(
-            self._slurm_out, f"{self.dataset.experiment}-{self.dataset.model_version}-{self.dataset.ensemble}-ocn-cmip-mon-{var_id}.yaml")
-        with open(parameter_path, 'w') as outstream:
+        # write out the parameter file and setup the temp directory
+        parameters_name = f"{experiment}-{cmip_model_version}-{variant}-{realm}-cmip-{freq}-{cmip_var}.yaml"
+        parameters_path = os.path.join( self._slurm_out, parameters_name)
+        with open(parameters_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 
         cwl_workflow_main = "Ofx/Ofx.cwl"
         cwl_workflow_path = os.path.join(self.config['cwl_workflows_path'], cwl_workflow_main)
         
-        # step three, render out the CWL run command
-        # OVERRIDE : needed to be "pub_dir" to find the data, but back to "warehouse" to write results to the warehouse
-        outpath = self.config['DEFAULT_WAREHOUSE_PATH']  # was "self.dataset.warehouse_base", but -w <pub_root> for input selection interferes.
-
         if not self.serial:
             parallel = "--parallel"
         else:
             parallel = ''
-        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameter_path}"
+
+        self._cmd = f"cwltool --outdir {outpath} --tmpdir-prefix={self.tmpdir} {parallel} --preserve-environment UDUNITS2_XML_PATH {cwl_workflow_path} {parameters_path}"
 
 
 #
