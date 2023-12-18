@@ -286,6 +286,7 @@ fi
     def find_outpath(self):
         latest_path = self._dataset.latest_warehouse_dir
         # assuming the path ends in something like "v0" or "v0.1"
+        log_message("info", f"init: self.find_outpath says self._dataset.latest_warehouse_dir = {latest_path}")
         version = latest_path.split('v')[-1]
         if '.' in version:
             version_number = int(version.split('.')[-1])

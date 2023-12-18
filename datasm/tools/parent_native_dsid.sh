@@ -139,6 +139,8 @@ if [ ${modelversion:0:3} == "1_1" ]; then
         experiment="ssp585-BDRC"
     elif [ $cmip_exp == "ssp585" ]; then
         experiment="ssp585-BDRD"
+    else
+        experiment=$cmip_exp
     fi
 else
     experiment=$cmip_exp

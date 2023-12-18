@@ -21,7 +21,7 @@ gv_stat_root = dsm_paths["STAGING_STATUS"]
 
 gv_holospace = f"{staging}/holospace"
 gv_input_dir = f"{archman}/extraction_requests_pending"
-gv_output_dir = f"{archman}/extraction_requests_processsed"
+gv_output_dir = f"{archman}/extraction_requests_processed"
 
 helptext = '''
 

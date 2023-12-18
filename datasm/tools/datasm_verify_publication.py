@@ -314,10 +314,11 @@ def main():
         # establish project
         project = dsid.split(".")[0]
         if project == "E3SM":
-            project = project.lower()
+            project = project.lower()       # required to satisfy esgf tables ...
         add_facet = dict()
         if project == "CMIP6" and not pargs.unrestricted:
-            add_facet = { "institution_id": "E3SM-Project" }
+            institution = dsid.split(".")[2]
+            add_facet = { "institution_id": institution }
 
         got_sfile = False
         got_stats = False
