@@ -1,0 +1,61 @@
+
+UPON RELOCATION:
+
+    For a full Re-Install of the Publication System, first 3 Steps to take:
+
+    1.  Select a fixed user-readble/executable <location> for placing
+        .dsm_get_root_path.sh
+        .dsm_root_paths
+
+    2.  Edit the script "dsm_get_root_path.sh" to give it the
+        selected <location>.
+
+    3.  Have each user add the following line to their .bashrc file:
+        export DSM_GETPATH=<location>/.dsm_get_root_path.sh
+
+The file of root-paths, 
+    /p/user_pub/e3sm/staging/.dsm_root_paths
+
+contains
+
+    # root_tag:root_path
+    ARCHIVE_STORAGE:/p/user_pub/e3sm/archive
+    ARCHIVE_MANAGEMENT:/p/user_pub/e3sm/staging/resource/archive
+    DSM_STAGING:/p/user_pub/e3sm/staging
+    STAGING_DATA:/p/user_pub/e3sm/warehouse
+    STAGING_RESOURCE:/p/user_pub/e3sm/staging/resource
+    STAGING_STATUS:/p/user_pub/e3sm/staging/status
+    STAGING_TOOLS:/p/user_pub/e3sm/staging/tools
+    PUBLICATION_DATA:/p/user_pub/work
+    USER_ROOT:/p/user_pub/e3sm
+
+
+USAGE in BASH
+
+    apath=`$DSM_GETPATH <root_tag>`
+
+    (example)
+    warehouse_root=`$DSM_GETPATH STAGING_DATA`
+
+USAGE in PYTHON
+
+    import datasm.util
+
+    dsm_paths = get_dsm_paths()
+    warehouse_root = dsm_paths["STAGING_DATA"]
+    archive_root = dsm_paths["ARCHIVE_STORAGE"]
+    ... etc - whatever root paths are needed
+
+# NOTE:  For User Ops_work, these directories give a good way to isolate operational activities, sequester logfiles generated, etc.
+
+    Operations/0_Documentation
+    Operations/1_Acquisition
+    Operations/2_ArchiveMapping
+    Operations/3_DatasetExtraction
+    Operations/4_DatasetValidation
+    Operations/5_DatasetGeneration
+    Operations/6_DatasetPublication
+    Operations/7_StatusReporting
+    Operations/8_Corrections
+    Operations/9_Testing
+

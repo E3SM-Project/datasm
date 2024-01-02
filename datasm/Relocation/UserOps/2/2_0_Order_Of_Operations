@@ -1,0 +1,70 @@
+1.  Create accurate Table of ensemble#,archive_name,branch_point_in_parent
+    (Must manually explore the new archives to generate this table)
+
+2.  Use (1) to create the necessary "Archive_Locator" file or entries (al_listfile):
+
+        <campaign>,<model>,<experiment>,<resolution>,<ensemble>,<full_path_to_archive>
+
+3.  Ensure dataset_spec is in place.  This will be either an update to the global E3SM dataset_spec,
+    or a separate custom dataset spec under "[STAGING_RESOURCE]/archive/External/<model>/" 
+
+4.  Use "list_e3sm [-d <dataset_spec>] to generate list of all native dataset_ids.
+    ([STAGING_TOOLS]/list_e3sm_dsids.sh | grep <model> | grep <experiment> | grep native )
+
+5.  If only CMIP6 will be published, Filter (4) down to only the native sets needed for CMIP.
+    These are usually:
+
+        E3SM.<model>.<experiment>.<resolution>.atmos.native.model-output.3hr.<ensemble>
+        E3SM.<model>.<experiment>.<resolution>.atmos.native.model-output.day.<ensemble>
+        E3SM.<model>.<experiment>.<resolution>.atmos.native.model-output.mon.<ensemble>
+        E3SM.<model>.<experiment>.<resolution>.land.native.model-output.mon.<ensemble>
+        E3SM.<model>.<experiment>.<resolution>.ocean.native.model-output.mon.<ensemble>
+        E3SM.<model>.<experiment>.<resolution>.sea-ice.native.model-output.mon.<ensemble>
+
+6.  IF an Archive_Map (AM) already exists for some of the entries, use
+
+        0_1_need_archive_map_entries.sh dsidlist
+
+    to reduce the list to those that need AM entries
+
+7.  IF the set of needed extraction patterns to expand is unknown, either use the full sdepfile
+
+        /p/user_pub_e3sm/archive/.cfg/Standard_Datatype_Extraction_Patterns
+
+    or reduce it to those needed only for the given dsidlist with
+
+        0_2_get_al_sdep.sh dsidlist > sdepfile
+
+8.  Run the archive_path_mapper:
+
+        python [STAGING_TOOLS]/archive_path_mapper.py -a al_listfile [-s sdepfile]
+
+        (Local directories "Holodeck" and "PathsFound" will be destroyed and recreated.)
+
+    The output will be a file named "headset_list_first_last", and contain 3-line sections of the form:
+
+        <campaign>,<dataset_id>,<path_to_archive_dir>,<file_match_pattern>
+            HEADF,<first_pattern_match_in_archive_dir>
+            HEADL,<last_pattern_match_in_archive_dir>
+
+    If the first and last have the same tarred directory and filename structure (up to sim-date),
+    then there was only a one file-listing matching the pattern, and one should take (for instance)
+    the "HEADL" line, beginning at the comma, and append it to the <campaign> line, replacing the
+    "sim-date" part with a wildcard (e.g. replace "1850-01-01.nc" with "*.nc").  For dataset_ids
+    that list frequency "fixed" (namefiles, restarts, and streams file) do not use the wildcard.
+
+    If the first and last files listed have differnt paths, or different filename structure, you will
+    need to search the newly-created "PathsFound/" directory for the file containing the found lists
+    for this dataset_id.  It will have multiple sorted file lists, and one of these will be the one
+    for the desired datafiles.  Once located, augment the <campaign> line with ",<path/pattern>",
+    wildcarded as appropriate.
+
+9.  Finally, close the edited "headset_list_first_last" file, rename it headset_list_first_last-<date>,
+    and issue:
+
+        cat headset_list_first_last-<date> | grep -v HEAD > AM_update-<date>
+
+    this will strip out the "HEADF" and "HEADL" lines, leaving only the augented <campaign> lines,
+    representing the new Archive_Map entries.  These entries can be appended to the standard
+    Archive_Map ([STAGING_RESOURCE]/archive/Archive_Map), if these are E3SM entries.  Otherwise they
+    can be saved under [STAGING_RESOURCE]/archive/External/<model_version>/Archive_Map.
