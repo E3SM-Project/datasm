@@ -14,26 +14,44 @@ for aline in `cat $manifest`; do
     content=`echo $aline | cut -f5 -d,`
 
 
-    if [ $section != "COMMON" ]; then
-        echo "Skipping section $section"
-        continue
-    fi
+    mkdir -p $relocdir/USER_ROOT
 
-    reloc="$relocdir/$roottag"
-    mkdir -p $reloc
-
-    if [ $tailtyp == "FILE" ]; then
-        cp $srcpath/$content $reloc
-    elif [ $tailtyp == "DIRNAME" ]; then
-        mkdir -p $reloc/$content
-    elif [ $tailtyp == "PATHTO_FILE" ]; then
-        extpath=`dirname $content`
-        fullpath=$srcpath/$extpath
-        content=`basename $content`
-        mkdir -p $reloc/$extpath
-        cp $fullpath/$content $reloc/$extpath
-    elif [ $tailtyp == "PATHTO_DIRNAME" ]; then
-        mkdir -p $reloc/$content
+    if [ $section == "COMMON" ]; then
+        relocdst="$relocdir/$roottag"
+        mkdir -p $relocdst
+        if [ $tailtyp == "FILE" ]; then
+            cp $srcpath/$content $relocdst
+        elif [ $tailtyp == "DIRNAME" ]; then
+            mkdir -p $relocdst/$content
+        elif [ $tailtyp == "PATHTO_FILE" ]; then
+            extpath=`dirname $content`
+            fullpath=$srcpath/$extpath
+            content=`basename $content`
+            mkdir -p $relocdst/$extpath
+            cp $fullpath/$content $relocdst/$extpath
+        elif [ $tailtyp == "PATHTO_DIRNAME" ]; then
+            mkdir -p $relocdst/$content
+        fi
+    elif [ $section == "USEROP" ]; then
+        dstp=$relocdir/USER_ROOT/$roottag
+        srcp=$srcpath
+        mkdir -p $dstp
+        if [ $tailtyp == "FILE" ]; then
+            cp $srcpath/$content $dstp
+        elif [ $tailtyp == "DIRNAME" ]; then
+            mkdir -p $dstp/$content
+        elif [ $tailtyp == "PATHTO_FILE" ]; then
+            extpath=`dirname $content`
+            dstp=$relocdir/USER_ROOT/$roottag/$extpath
+            mkdir -p $dstp
+            content=`basename $content`
+            srcp=$srcpath/$extpath
+            cp $srcp/$content $dstp
+        elif [ $tailtyp == "PATHTO_DIRNAME" ]; then
+            dstp=$relocdir/USER_ROOT/$roottag/$content
+            mkdir -p $dstp
+        fi
+        
     fi
 
 done
