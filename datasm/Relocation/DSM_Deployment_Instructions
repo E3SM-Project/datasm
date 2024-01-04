@@ -1,0 +1,100 @@
+
+DSM_Deployment_Instructions
+===========================
+
+NOTE:  To help avoid access control issues, it is best to create a group
+account (e.g. "publishers") and be a member of such during deployment, and
+for all subsequent "publication-related" operations.
+
+1. Unpacking
+============
+
+In any suitable location (may be temp or scratch) open the received DSM_RELOC
+package (DSM_RELOC.tar.gz) with:
+
+    gunzip DSM_RELOC.tar.gz
+    tar xvf DSM_RELOC.tar
+
+A single directory "RELOC" will appear, containing these deployment
+instructions and 9 subdirectories.
+
+    -rw-rw-r--.  1_DSM_Deployment_Instructions
+    drwxrwxr-x.  ARCHIVE_MANAGEMENT
+    drwxrwxr-x.  ARCHIVE_STORAGE
+    drwxrwxr-x.  DSM_STAGING
+    drwxrwxr-x.  PUBLICATION_DATA
+    drwxrwxr-x.  STAGING_DATA
+    drwxrwxr-x.  STAGING_RESOURCE
+    drwxrwxr-x.  STAGING_STATUS
+    drwxrwxr-x.  STAGING_TOOLS
+    drwxrwxr-x.  USER_ROOT
+
+The contents of the subdirectories will be moved to suitable filesystem
+locations by the deployment process.  Your selection of locations should
+be group readable/writeable/executable (rwx) to all members of the group
+(e.g. "publishers") who will be conducting publication operations.
+
+The directories ARCHIVE_STORAGE, PUBLICATION_DATA, and STAGING_DATA are
+supplied empty, but included as locations that must be defined.
+
+2. Setup Relocatable Paths
+==========================
+
+In the RELOC/DSM_STAGING/ directory, you will find two "hidden" files:
+
+    .dsm_root_paths
+    .dsm_get_root_path.sh
+
+The file ".dsm_root_paths" defines the location of common operational
+tools and other system components.  You must edit the .dsm_root_paths file
+to enable both the system deployment, and to allow all deployed tools to
+locate their subordinate scripts and related system configs.
+
+The chosen locations must be read/write/executable for all users who
+will be conducting publication operations (e.g. group = "publishers").
+
+The value for "USER_ROOT" should be the full root path to individual
+user account directories.  These can be "home" directories or any other
+user-specific (scratch/workspace) account directories.  (Ideally, these
+should be co-located on the filesystem with the locations where most
+data operations will be conducted, minimizing network load). At runtime,
+the value of "whoami" will be appended to this directory in order to locate
+the user-specific operational directories.
+
+You will then be ready to execute the "Relocation_Deployment.sh" script.
+
+Upon execution of the "Relocation_Deployment.sh" script, all content found
+below the RELOC/<RootTag>/ directories will be moved to their indicated
+destinations.  As well, the ".dsm_root_paths" and ".dsm_get_root_path.sh"
+will be moved to the DSM_STAGING location, and the script automatically
+edited to embed the new location of the root_paths file.
+
+Finally, each user/operator will need to add the following EXPORT to their
+personal ".bashrc" file:
+
+    export DSM_GETPATH=<full_path_to_chosen_DMS_STAGING>/.dsm_get_root_path.sh
+
+As installer, you will be prompted with the fully-qualified export upon
+the completion of deployment.
+
+Each user will need to "source" their .bashrc file, or open a new console
+terminal shell to enable the export.
+
+3. DSM System Deployment
+========================
+
+The deployment script "Relocation_Deployment.sh" should be executed in the
+directory where the un-tarred "RELOC/" appearsi below.  Otherwise, you will
+need to supply the full-path to this RELOC directory as a parameter:
+
+    ./Relocation_Deployment.sh [<full_path_to_RELOC>]
+
+Deployment should take under a minute.  You will be prompted upon completion.
+
+
+
+
+
+
+
+
