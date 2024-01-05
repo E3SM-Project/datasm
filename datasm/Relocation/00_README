@@ -1,0 +1,13 @@
+This directory is the home of the DataSM (DSM) Relocation System.
+
+It holds:
+
+1.  The "hidden" .dsm_root_paths file and .dsm_get_root_paths.sh script
+    that enables all DSM system tools to find one another, configs, etc.
+
+2.  The tools specific to defining, collecting, migrating and deploying
+    the DSM System to other sites.
+
+The DSM Operator(s) must maintain the DataSM_System_Local_Manifest_Spec
+which details all elements of the system that support common operations.
+

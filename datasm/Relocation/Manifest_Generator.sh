@@ -8,7 +8,8 @@ ops_root=`$DSM_GETPATH USER_ROOT`/$thisuser/Operations
 
 # Load the local Root Paths
 
-RootPathsFile=/p/user_pub/e3sm/staging/.dsm_root_paths
+dsm_staging=`$DSM_GETPATH DSM_STAGING`
+RootPathsFile=$dsm_staging/Relocation/.dsm_root_paths
 
 declare -A RootPaths
 

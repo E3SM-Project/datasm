@@ -56,57 +56,84 @@ if [ $# -eq 1 ]; then
     fi
 fi
 
+# Test that the root_paths_file is usable
 
-root_paths_file=$1
-
-rpf_base=`basename $root_paths_file`
-rpf_dir=`dirname $root_paths_file`
-
-if [ $rpf_base != ".dsm_root_paths" ]; then
-    echo "ERROR:  Supplied root_paths file ($root_paths_file) does not end with \".dsm_root_paths\""
-    exit 1
-fi
+root_paths_file=$reloc_dir/DSM_STAGING/Relocation/.dsm_root_paths
 
 if [ ! -f $root_paths_file ]; then
-    echo "ERROR:  Cannot locate root_paths file ($root_paths_file)"
+    echo "ERROR: Cannot locate root_paths file: $root_paths_file"
+    echo "  This file must contain \"<Root_Tag>:<full_path>\" entries for every"
+    echo "  RELOC/<RootTag> listed under the RELOC directory."
     exit 1
 fi
 
-# Proceeding to Deployment
+unsetcount=`grep SAMPLE $root_paths_file | wc -l`
+if [ $unsetcount -gt 0 ]; then
+    echo "ERROR: The root_paths file: $root_paths_file"
+    echo "  has not been properly edited.  Please replace all <RootTag>:[SAMPLE]<path>"
+    echo "  entries with <RootTag>:<full_path_to_destination> entries."
+    exit 1
+fi
 
-# part 1: test that intended destinations are accessible
+# Test that intended destinations are accessible
 
-for aline in `cat $rootPpaths_file`; do
+for aline in `cat $root_paths_file`; do
     rootTag=`echo $aline | cut -f1 -d:`
     rootVal=`echo $aline | cut -f2 -d:`
 
     mkdir -p $rootVal 2>/dev/null
     rv=$?
     if [ $rv -ne 0 ]; then
-        echo "ERROR:  Cannot find or create destination directory $rootVal (for $rootTag)"
+        echo "ERROR:  (RootTag = $rootTag): Cannot find or create destination directory $rootVal"
         exit 1
     fi
 done
 
-for aline in `cat $rootPpaths_file`; do
+# Capture the root_paths_file locally, for later reference post-deployment
+
+cp $root_paths_file .RPF
+
+# Proceeding to Deployment
+
+total_deploy_count=0
+
+for aline in `cat .RPF`; do
     rootTag=`echo $aline | cut -f1 -d:`
     rootVal=`echo $aline | cut -f2 -d:`
 
-    srcdir=
-    
+    srcdir=$reloc_dir/$rootTag
 
+    echo ""
+    echo "Processing srcdir $srcdir to dest $rootVal"
 
-# Eventually ...
+    depcount=0
+    for item in `ls -a $srcdir`; do
+        if [[ $item == "." || $item == ".." ]]; then
+            continue
+        fi
+        mv $srcdir/$item $rootVal
+        depcount=$((depcount + 1))
+    done
+    volume=`du -b $reloc_dir/$rootTag | tail -1 | cut -f1 -d' '`
+    echo "$rootTag:     Deployed $depcount items        ($volume Bytes)"
+    total_deploy_count=$((total_deploy_count + depcount))
+done
 
-new_dsm_stp=`grep DSM_STAGING $root_paths_file | cut -f2 -d:`
+echo ""
+echo Total items deployed: $total_deploy_count
+echo ""
 
-sed -i "s%RELOC_HOME%$new_dsm_stp" $rpf_dir/.dsm_get_root_path.sh
+# Finally:  Setup Path Relocation System ...
+
+new_dsm_stp=`grep DSM_STAGING .RPF | cut -f2 -d:`
+
+sed -i "s%RELOC_HOME%$new_dsm_stp%" $new_dsm_stp/Relocation/.dsm_get_root_path.sh
 
 
 echo "DataSM System Deployment Completed. Intended user/operators will need to add
 the following export to their personal .bashrc file:
 
-    export DSM_GETPATH=$new_dsm_stp/.dsm_get_root_path.sh
+    export DSM_GETPATH=$new_dsm_stp/Relocation/.dsm_get_root_path.sh
 
 Enjoy!"
 

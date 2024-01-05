@@ -14,7 +14,7 @@ UPON RELOCATION:
         export DSM_GETPATH=<location>/.dsm_get_root_path.sh
 
 The file of root-paths, 
-    /p/user_pub/e3sm/staging/.dsm_root_paths
+    /p/user_pub/e3sm/staging/Relocation/.dsm_root_paths
 
 contains
 

@@ -6,6 +6,12 @@ NOTE:  To help avoid access control issues, it is best to create a group
 account (e.g. "publishers") and be a member of such during deployment, and
 for all subsequent "publication-related" operations.
 
+0. Shortcut Instructions
+    a.  Edit the file RELOC/DSM_STAGING/Relocation/.dsm_root_paths
+        to supply the desired destination directories.
+        (Ensure permissions allow creation and/or writing).
+    b.  Issue RELOC/DSM_STAGING/Relocation/Relocation_Deployment.sh
+
 1. Unpacking
 ============
 
@@ -15,10 +21,9 @@ package (DSM_RELOC.tar.gz) with:
     gunzip DSM_RELOC.tar.gz
     tar xvf DSM_RELOC.tar
 
-A single directory "RELOC" will appear, containing these deployment
-instructions and 9 subdirectories.
+These deployment instructions, and a single directory "RELOC" will appear,
+containing these 9 subdirectories.
 
-    -rw-rw-r--.  1_DSM_Deployment_Instructions
     drwxrwxr-x.  ARCHIVE_MANAGEMENT
     drwxrwxr-x.  ARCHIVE_STORAGE
     drwxrwxr-x.  DSM_STAGING
@@ -40,7 +45,8 @@ supplied empty, but included as locations that must be defined.
 2. Setup Relocatable Paths
 ==========================
 
-In the RELOC/DSM_STAGING/ directory, you will find two "hidden" files:
+In the RELOC/DSM_STAGING/Relocation directory, you will find two "hidden"
+files:
 
     .dsm_root_paths
     .dsm_get_root_path.sh
@@ -84,8 +90,13 @@ terminal shell to enable the export.
 ========================
 
 The deployment script "Relocation_Deployment.sh" should be executed in the
-directory where the un-tarred "RELOC/" appearsi below.  Otherwise, you will
-need to supply the full-path to this RELOC directory as a parameter:
+directory where the un-tarred "RELOC/" appears below. Simply cd to the
+directory where the tar-file was opened, and issue:
+
+    RELOC/DSM_STAGING/Relocation/Relocation_Deployment.sh
+
+Otherwise, you will need to supply the full-path to this RELOC directory
+as a parameter:
 
     ./Relocation_Deployment.sh [<full_path_to_RELOC>]
 

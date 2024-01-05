@@ -60,4 +60,4 @@ dsm_stp=`$DSM_GETPATH DSM_STAGING`
 sed -i "s%$dsm_stp%RELOC_HOME%" $relocdir/DSM_STAGING/.dsm_get_root_path.sh
 sed -i "s%:%:[SAMPLE_PATH]%g" $relocdir/DSM_STAGING/.dsm_root_paths
 
-cp DSM_Deployment_Instructions $relocdir/1_DSM_Deployment_Instructions
+# cp DSM_Deployment_Instructions $relocdir/1_DSM_Deployment_Instructions
