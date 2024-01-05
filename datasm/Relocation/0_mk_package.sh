@@ -11,13 +11,19 @@ thisdir=`pwd`
 thisdir=`realpath $thisdir`
 relocdir=$thisdir/RELOC
 
+echo "Generating expanded manifest from DataSM_System_Local_Manifest_Spec ..."
+
 ./Manifest_Generator.sh DataSM_System_Local_Manifest_Spec > $manifest 2>$pkg_log
 
-echo "Manifest $manifest created"
+echo "Manifest $manifest created."
+
+echo "Collecting (copying) manifest elements to RELOC folder ..."
 
 ./Relocation_Collection.sh $manifest $relocdir > $pkg_log 2>&1
 
 echo "Relocation materials collected to $relocdir"
+
+echo "Creating compressed DataSM Relocation tarfile ..."
 
 tar cvf DSM_RELOC.tar RELOC > $pkg_log 2>&1
 

@@ -77,9 +77,15 @@ fi
 
 # Test that intended destinations are accessible
 
+this_user=`whoami`
+
 for aline in `cat $root_paths_file`; do
     rootTag=`echo $aline | cut -f1 -d:`
     rootVal=`echo $aline | cut -f2 -d:`
+
+    if [ $rootTag == "USER_ROOT" ]; then
+        rootVal=$rootVal/$this_user
+    fi
 
     mkdir -p $rootVal 2>/dev/null
     rv=$?
@@ -100,6 +106,10 @@ total_deploy_count=0
 for aline in `cat .RPF`; do
     rootTag=`echo $aline | cut -f1 -d:`
     rootVal=`echo $aline | cut -f2 -d:`
+
+    if [ $rootTag == "USER_ROOT" ]; then
+        rootVal=$rootVal/$this_user
+    fi
 
     srcdir=$reloc_dir/$rootTag
 
@@ -126,14 +136,15 @@ echo ""
 # Finally:  Setup Path Relocation System ...
 
 new_dsm_stp=`grep DSM_STAGING .RPF | cut -f2 -d:`
+reloc_home=$new_dsm_stp/Relocation
 
-sed -i "s%RELOC_HOME%$new_dsm_stp%" $new_dsm_stp/Relocation/.dsm_get_root_path.sh
+sed -i "s%RELOC_HOME%$new_dsm_stp/$reloc_home%" $reloc_home/.dsm_get_root_path.sh
 
 
 echo "DataSM System Deployment Completed. Intended user/operators will need to add
 the following export to their personal .bashrc file:
 
-    export DSM_GETPATH=$new_dsm_stp/Relocation/.dsm_get_root_path.sh
+    export DSM_GETPATH=$reloc_home/.dsm_get_root_path.sh
 
 Enjoy!"
 

@@ -11,3 +11,28 @@ It holds:
 The DSM Operator(s) must maintain the DataSM_System_Local_Manifest_Spec
 which details all elements of the system that support common operations.
 
+Unlike elements of the DataSM application proper, which are installed as
+part of a given conda operational environment (thus, the modules remain
+within the cloned git repository and are detectible as having changed),
+many extended elements of the DSM system (common resources such as the
+dataset_spec.yaml and scored of commonly employed scripting tools, as
+well as the user/operator's local work area scripts) are scattered well
+beyond the git repository, and must be tracked and accounted for so that
+they may be routinely collected to the DataSM repository, and moreover
+identified as to their deployment locations for operational use.
+
+The DataSM_System_Local_Manifest_Spec serves to concisely identify these
+disparate elements of the DataSM System.  It can be expanded to a full
+manifest with
+
+    Manifest_Generate.sh
+
+and all content collected to a flat directory for tar-file migration by
+
+    Relocation_Collection.sh
+
+Independently, the deployed elements can be copied to the DataSM repo by
+
+    Gitstore_Common_Elements.sh
+    Gitstore_UserOp_Elements.sh
+    
