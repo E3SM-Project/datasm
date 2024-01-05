@@ -1,0 +1,9 @@
+ARCHIVE_STORAGE:/p/user_pub/e3sm/archive
+ARCHIVE_MANAGEMENT:/p/user_pub/e3sm/staging/resource/archive
+DSM_STAGING:/p/user_pub/e3sm/staging
+STAGING_DATA:/p/user_pub/e3sm/warehouse
+STAGING_RESOURCE:/p/user_pub/e3sm/staging/resource
+STAGING_STATUS:/p/user_pub/e3sm/staging/status
+STAGING_TOOLS:/p/user_pub/e3sm/staging/tools
+PUBLICATION_DATA:/p/user_pub/work
+USER_ROOT:/p/user_pub/e3sm

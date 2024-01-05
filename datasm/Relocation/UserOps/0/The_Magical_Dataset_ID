@@ -1,0 +1,106 @@
+
+The Magical Dataset ID
+
+Throughout E3SM data processing, the common currency for object status (extracted, validated, generated, published)
+are the dataset_IDs.
+
+For native data, the format is:
+
+    Project.ModelVersion.Experiment.Resolution.Realm.Grid.DataType.Freq.Ensemble
+
+    (Examples):
+
+        E3SM.1_0.1950-Control.0_25deg_atm_18-6km_ocean.atmos.native.model-output.6hr.ens1
+
+        E3SM.2_0.abrupt-4xCO2.LR.atmos.native.model-output.day.ens2
+
+        E3SM.2_0.historical.LR.ocean.native.model-output.mon.ens1
+
+E3SM derivative datasets (climos, timeseries) use the same format, distinguished by Grid and DataType:
+
+    (Examples):
+
+        E3SM.1_0.historical.1deg_atm_60-30km_ocean.atmos.180x360.climo.mon.ens1
+
+        E3SM.2_0.historical.LR.atmos.180x360.climo.mon.ens2
+
+        E3SM.2_0_NARRM.abrupt-4xCO2.LR-NARRM.atmos.180x360.time-series.mon.ens1
+        
+When specific CMIP6 variables are generated from the native data, these datasets have another format:
+
+    Project.Activity.Institution.SourceID.Experiment.VariantLabel.Table.Variable.grid
+
+    NOTE:  The "r-value" in the VariantLabel corresponds to the native Ensemble number.
+    NOTE:  "Table" is often a combo of Realm+Freq (Amon = atmos mon), but not always.
+
+    (Examples):
+
+        CMIP6.CMIP.E3SM-Project.E3SM-1-0.1pctCO2.r1i1p1f1.Amon.pr.gr
+
+        CMIP6.CMIP.E3SM-Project.E3SM-2-0-NARRM.amip.r2i1p1f1.Lmon.mrfso.gr
+
+        CMIP6.CMIP.E3SM-Project.E3SM-2-0.historical.r3i1p1f1.3hr.pr.gr
+
+
+IMPORTANT:
+
+    A great deal of our processing is configured in terms of lists of dataset_ids.  They are often
+    a component field of a table, so a simple command like
+
+        cat TheTable | grep TheDatasetID
+
+    provides you with the table information regarding that dataset.  For instance
+
+        cat /p/user_pub/e3sm/staging/resource/archive/Archive_Map | grep E3SM.2_0.abrupt-4xCO2.LR.atmos.native.model-output.day.ens2
+
+    will yield this row of the E3SM Archive_Map, providing the archive-path
+    and zstash extraction pattern for the corresponding data:
+
+        DECK-v2,E3SM.2_0.abrupt-4xCO2.LR.atmos.native.model-output.day.ens2,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301,archive/atm/hist/v2.LR.abrupt-4xCO2_0301.eam.h1.*.nc
+
+
+SUGGESTION:
+
+Determine the path on your system to the DataSM "DSM_STAGING" and "STAGING_TOOLS" directories.  I will use
+"/p/user_pub/e3sm/staging/" and "/p/user_pub/e3sm/staging/tools" to illustrate.
+
+In your .bashrc file, place the following lines
+
+    export DSM_GETPATH=/p/user_pub/e3sm/staging/.dsm_get_root_path.sh
+
+    alias llt="ls -lrt"
+
+    alias list_e3sm="python /p/user_pub/e3sm/staging/tools/list_e3sm_dsids.py"
+    alias list_cmip="python /p/user_pub/e3sm/staging/tools/list_cmip6_dsids.py"
+    alias dspi="/p/user_pub/e3sm/staging/tools/ds_paths_info.sh"
+    alias dspilc="/p/user_pub/e3sm/staging/tools/ds_paths_info_dsid_list_compact.sh"
+
+Also, add this link to your home directory:
+
+    issue the command:
+
+        ln -s /p/user_pub/e3sm/staging/tools ~/.tools
+
+    Then, when you issue "ls -al" in your home directory you should see:
+
+        /home/<your_oun>/.tools -> /p/user_pub/e3sm/staging/tools
+
+    Thereafter, wherever you are, you can issue
+
+        ls ~/.tools
+
+    to see the list of exposed datasm tools, and issue
+
+        ~./tools/<selected_tool>        (to run it)
+
+        view ~./tools/<selected_tool>   (to review the content)
+
+        cp ~./tools/<selected_tool> whatever  (to make a copy)
+
+    etc.
+
+Thereafter, a variety of tools become available, and many employ either a dataset_id, or a file list of
+dataset_ids, as input.
+
+
+

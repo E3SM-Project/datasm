@@ -1,0 +1,152 @@
+===============================================================================
+The DataSM Relocation Process
+===============================================================================
+
+The term "DataSM System" refers to the entire end-to-end software and resources
+required to support E3SM publication operations.  This includes:
+
+    system-wide data stores, configurations and scripts
+    user-specific operations setups
+    major data packages (datasm, e3sm_to_cmip, cmor tables, etc)
+    
+Not all dependencies are included in the DataSM System.  Those elements that
+are available via github repositories (PCMDI/cmip6-cmor-tables, e3sm_to_cmip)
+are tested for existence and commands made available for download as needed.
+
+NOTE:  Elements of the DSM_Relocation process are held in the git repository
+    datasm/datasm/Relocation/
+
+===============================================================================
+The DataSM Root Paths System
+===============================================================================
+
+The DataSM System involves scores of ancillary bash and python scripts, as well
+as the major application packages (datasm, e3sm_to_cmip, etc).  These ancillary
+scripts often rely upon one another.  To avoid having hundreds of hard-coded
+paths to subordinate scripts and configuration files, the DataSM Root Paths
+System allows these scripts to be moved, per site installation, and still be
+located automatically.  Two files, and one (per user) export are required.
+
+A hidden file, ".dsm_root_paths" contains lines of the form
+
+    <RootTag>:<RootPath>
+
+and together with a hidden script ".dsm_get_root_path.sh" must be placed in a
+system directory readable and executable by all DSM system users.  The script
+will need to be edited to hard-code the location of the dsm_root_paths file,
+and each user will need to add the line
+
+    export DSM_GETPATH=/<path-to-the-script>/.dsm_get_root_path.sh
+
+Once this is done, all of the DataSM system scripts and paths will operate.
+
+NOTE:  In particular, the ".dsm_root_paths" file is used by the DatsSM
+relocation "Manifest_Generator" to convert the user-defined Manifest_Spec
+into the full manifest that will be used to collect and form the relocation
+tar file.
+
+===============================================================================
+Producing the DataSM Relocation Package - Overview
+===============================================================================
+
+In order to produce a manifest of relocatable files and paths, the full path to
+a given resource is logically defined in two parts:
+
+    The local portion of the path (not to be included in the relocation).
+    These are referred to as the DataSM "root_paths". These paths will be
+    redefined by the recipient organization/site.
+
+    The relocatable portion (files, directories, or extended structure.)
+    These elements are defined with respect to the various root-paths.
+
+This demands a multi-step process of manifest generation and packaging.
+
+1.  A "manifest_spec" is written that compactly characterizes all content
+    to be relocated.
+
+    Product:    DataSM_System_Local_Manifest_Spec
+                [see Manifest_Spec Definition below]
+
+2.  A "manifest_generator.sh" script to read the manifest_spec, and explore
+    the filesystem to expand the entries into a full listing of elements.
+    Each element distinguishes its "local" path part from its "relocatable"
+    part.
+
+    Product:    manifest_generator.sh
+    Product:    DataSM_System_Local_Manifest
+
+3.  A "Collector.sh" script that reads and interprets the local_manifest to
+    collect those items to the flat Relocation_Package directory.  This latter
+    directory is what is tarred up to be the relocatatable system content.
+
+    Product:    DataSM_Relocation_Package      (directory)
+    Product:    DataSM_Relocation_Package.tar  (tar file)
+    
+4.  Upon delivery to the relocation recipient, the relocation package is
+    untarred, and a final script "Relocation_Deployment.sh" will accept the
+    recipient's choice of destination root_paths, and move the appropriate
+    content to its final locations.
+
+=============================================================================
+Manifest_Spec Definition
+=============================================================================
+
+The "Manifest_Spec" has entries of the form:
+
+    Section,RootTag,ContentClass,[RootPath],ContentSpec
+
+The two Sections are "COMMON" (user-independent) and "USEROP".  The USEROP
+section will employ the user's designated account-path, plus "Operations"
+and the actual RootTag value as the derived root path for content.
+
+The value for "RootPath" can be left empty, as it will be derived from the
+system ".dsm_root_paths" file.  If not left empty, the supplied value will
+be used.
+
+The allowed ContentClass and ContentSpec combinations are:
+
+    ContentClass        ContentSpec
+    ============================================================
+    FILE                <a_single_file>
+    DIRNAME             <a_single_dirname>
+    TYPE                ("REGFILES" or "DIRNAMES")
+    GLOB                <wildcard expression for files or dirnames>
+    PATHTO_FILE         <extended_path>/<a_single_file>
+    PATHTO_DIRNAME      <extended_path>/<a_single_dirname>
+    PATHTO_TYPE         <extended_path>/("REGFILES" or "DIRNAMES")
+    PATHTO_GLOB         <extended_path>/<wildcard for files or dirnames>
+
+When it comes to expanding these entries into a full manifest, the combined path
+
+    RootPath/<extended_path>
+
+is employed for find the actual content, or enumerate directory names, but the
+ContentClass will be reduced to only one of
+
+    FILE                <a_single_file>
+    DIRNAME             <a_single_dirname>
+    PATHTO_FILE         <extended_path>/<a_single_file>
+    PATHTO_DIRNAME      <extended_path>/<a_single_dirname>
+
+since all "TYPE"s and GLOB-style wildcards will have been expanded to individual
+entries.
+
+=============================================================================
+Relocation Collection and Tarfile Production
+=============================================================================
+
+When it comes to the Relocation_Collection phase, the expanded manifest is read,
+and files are copies (and directories are produced) a flat "RELOC" directory.
+The original "RootPath"s vanish, and are replaced by their "RootTag" names:
+
+    RELOC/<RootTag>/<a_single_file>
+    RELOC/<RootTag>/<a_single_dirname>
+    RELOC/<RootTag>/<extended_path>/<a_single_file>
+    RELOC/<RootTag>/<extended_path>/<a_single_dirname>
+
+It is then the RELOC directory that is captured in a tar file and transferred.
+
+
+
+
+

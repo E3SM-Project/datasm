@@ -1,0 +1,66 @@
+For any given wave of simulation output, given as zstash archives, we need to produce 
+
+    dataset_spec.yaml   (defines the E3SM-native, E3SM-derived, and CMIP6-derived dataset_ids)
+
+Tools such as "list_e3sm" and "list_cmip" can process this dataset_spec to output the dataset_ids.
+
+For most common simulations, the full array of defined E3SM datatypes (per ensemble) are:
+
+    Realm.Grid.DataType.Frequency           Class
+    ------------------------------------------------------
+    atmos.180x360.climo.mon                 DERIVED
+    atmos.180x360.time-series.mon           DERIVED
+    atmos.native.model-output.3hr           NATIVE_REGULAR (core) CMIP6_REQ
+    atmos.native.model-output.3hr_snap      NATIVE_REGULAR
+    atmos.native.model-output.6hr           NATIVE_REGULAR
+    atmos.native.model-output.6hr_snap      NATIVE_REGULAR
+    atmos.native.model-output.day           NATIVE_REGULAR (core) CMIP6_REQ
+    atmos.native.model-output.day_cosp      NATIVE_REGULAR
+    atmos.native.model-output.mon           NATIVE_REGULAR (core) CMIP6_REQ
+    atmos.native.namefile.fixed             NATIVE_SUPPORT
+    atmos.native.restart.fixed              NATIVE_SUPPORT
+    land.180x360.time-series.mon            DERIVED
+    land.native.model-output.mon            NATIVE_REGULAR (core) CMIP6_REQ
+    land.native.namefile.fixed              NATIVE_SUPPORT
+    land.native.restart.fixed               NATIVE_SUPPORT
+    ocean.native.model-output.5day_snap     NATIVE_REGULAR
+    ocean.native.model-output.mon           NATIVE_REGULAR (core) CMIP6_REQ
+    ocean.native.namefile.fixed             NATIVE_SUPPORT (core) CMIP6_REQ
+    ocean.native.restart.fixed              NATIVE_SUPPORT (core) CMIP6_REQ
+    ocean.native.streams.fixed              NATIVE_SUPPORT
+    river.native.model-output.mon           NATIVE_REGULAR (core)
+    river.native.namefile.fixed             NATIVE_SUPPORT
+    river.native.restart.fixed              NATIVE_SUPPORT
+    sea-ice.native.model-output.day         NATIVE_REGULAR
+    sea-ice.native.model-output.mon         NATIVE_REGULAR (core) CMIP6_REQ
+    sea-ice.native.namefile.fixed           NATIVE_SUPPORT (core) CMIP6_REQ
+    sea-ice.native.restart.fixed            NATIVE_SUPPORT (core) CMIP6_REQ
+    sea-ice.native.streams.fixed            NATIVE_SUPPORT
+ 
+Different classes of E3SM dataset_ids are needed for different purposes.  For instance, if native data
+is to be published, all must be archive-mapped and extracted.  Otherwise, only the sets required for
+CMIP6 generation need to be archive-mapped and extracted.  The data validation step is only applied to
+NATIVE_REGULAR datasets.
+
+    Model_Output:
+        
+
+
+    Archive_Locator     (table of modes,experiment,resolution,ensemble,Path_To_Archive/)
+
+    
+Where no native sets are to be published, one can thus restrict the dataset_ids needed to:
+
+ 
+    atmos.native.model-output.3hr           NATIVE_REGULAR (core) CMIP6_REQ  Validate
+    atmos.native.model-output.day           NATIVE_REGULAR (core) CMIP6_REQ  Validate
+    atmos.native.model-output.mon           NATIVE_REGULAR (core) CMIP6_REQ  Validate
+    land.native.model-output.mon            NATIVE_REGULAR (core) CMIP6_REQ  Validate
+    ocean.native.model-output.mon           NATIVE_REGULAR (core) CMIP6_REQ  Validate
+    ocean.native.namefile.fixed             NATIVE_SUPPORT (core) CMIP6_REQ
+    ocean.native.restart.fixed              NATIVE_SUPPORT (core) CMIP6_REQ
+    river.native.model-output.mon           NATIVE_REGULAR (core)
+    sea-ice.native.model-output.mon         NATIVE_REGULAR (core) CMIP6_REQ  Validate
+    sea-ice.native.namefile.fixed           NATIVE_SUPPORT (core) CMIP6_REQ
+    sea-ice.native.restart.fixed            NATIVE_SUPPORT (core) CMIP6_REQ
+
