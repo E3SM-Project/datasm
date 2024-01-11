@@ -138,7 +138,7 @@ echo ""
 new_dsm_stp=`grep DSM_STAGING .RPF | cut -f2 -d:`
 reloc_home=$new_dsm_stp/Relocation
 
-sed -i "s%RELOC_HOME%$new_dsm_stp/$reloc_home%" $reloc_home/.dsm_get_root_path.sh
+sed -i "s%RELOC_HOME%$reloc_home%" $reloc_home/.dsm_get_root_path.sh
 
 
 echo "DataSM System Deployment Completed. Intended user/operators will need to add

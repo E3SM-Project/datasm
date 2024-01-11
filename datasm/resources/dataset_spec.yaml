@@ -4892,6 +4892,53 @@ project:
                                     - namefile.fixed
                                     - restart.fixed
                                     - streams.fixed
+            amip:
+                start: 1870
+                end: 2014
+                ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                campaign: DECK-v2
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-1.amip
+                resolution:
+                    LR:
+                        atmos:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                        land:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
             historical:
                 start: 1850
                 end: 2014
