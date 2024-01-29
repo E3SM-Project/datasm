@@ -106,6 +106,7 @@ DECK-v2,2_0,piControl_land,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.pi
 DECK-v2,2_0,piControl,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.piControl
 DECK-v2,2_1,1pctCO2,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.1pctCO2_0101
 DECK-v2,2_1,abrupt-4xCO2,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.abrupt-4xCO2_0101
+DECK-v2,2_1,amip,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.amip_0101
 DECK-v2,2_1,historical,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0101
 DECK-v2,2_1,historical,LR,ens2,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0151
 DECK-v2,2_1,historical,LR,ens3,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0201
