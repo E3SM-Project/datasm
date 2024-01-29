@@ -133,6 +133,15 @@ echo ""
 echo Total items deployed: $total_deploy_count
 echo ""
 
+# Install CMOR tables from github repository
+
+thisdir=`pwd`
+thisdir=`realpath $thisdir`
+cmor_path=`grep STAGING_RESOURCE .RFP | cut -f2 -d:`/cmor
+cd $cmor_path
+git clone https://github.com/PCMDI/cmip6-cmor-tables
+cd $thisdir
+
 # Finally:  Setup Path Relocation System ...
 
 new_dsm_stp=`grep DSM_STAGING .RPF | cut -f2 -d:`
