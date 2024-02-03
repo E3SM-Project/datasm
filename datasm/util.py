@@ -508,6 +508,8 @@ def set_e3sm_model_resolution_ensemble(sourceid,institution,experiment,variant):
         resol = "LR"
     elif src_model == "2_0_NARRM":
         resol = "LR-NARRM"
+    elif src_model == "2_1":
+        resol = "LR"
     else:
         resol = "1deg_atm_60-30km_ocean"
 

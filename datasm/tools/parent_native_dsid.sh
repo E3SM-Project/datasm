@@ -68,10 +68,12 @@ modelversion=`echo $source_id | cut -f2- -d- | tr - _`  # CMIP6 dsids will NOT h
 # what about HR campaign?
 
 # HACK for NARRM
-if [ $modelversion == "2_0" ]; then
+if [ $modelversion == "2_1" ]; then
     resolution="LR"
 elif [ $modelversion == "2_0_NARRM" ]; then
     resolution="LR-NARRM"
+elif [ $modelversion == "2_0" ]; then
+    resolution="LR"
 else
     resolution="1deg_atm_60-30km_ocean"
 fi
