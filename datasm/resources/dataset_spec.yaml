@@ -912,8 +912,6 @@ project:
                         end: 2014
                         ens:
                             - r1i1p1f1
-                            - r2i1p1f1
-                            - r3i1p1f1
                         except:
                             - Omon
                             - Ofx
@@ -4897,8 +4895,6 @@ project:
                 end: 2014
                 ens:
                     - ens1
-                    - ens2
-                    - ens3
                 campaign: DECK-v2
                 science_driver: Water Cycle
                 cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-2-1.amip

@@ -6,6 +6,8 @@ sf_root1=`$DSM_GETPATH STAGING_STATUS`
 staging=`$DSM_GETPATH DSM_STAGING`
 sf_root2=$staging/status_ext
 
+project=`echo $dsid | cut -f1 -d.`
+
 if [ $project == "CMIP6" ]; then
     instid=`echo $dsid | cut -f3 -d.`
     if [[ $instid == "E3SM-Project" || $instid == "UCSB" ]]; then
