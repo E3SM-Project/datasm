@@ -3,7 +3,7 @@ from pathlib import Path
 
 import yaml
 from datasm.workflows.jobs import WorkflowJob
-from datasm.util import log_message, get_e2c_info, parent_native_dsid, latest_data_vdir, prepare_cmip_job_metadata, derivative_conf
+from datasm.util import log_message, get_e2c_info, parent_native_dsid, latest_data_vdir, prepare_cmip_job_metadata, derivative_conf, latest_aux_data
 
 NAME = 'GenerateSeaIceCMIP'
 
