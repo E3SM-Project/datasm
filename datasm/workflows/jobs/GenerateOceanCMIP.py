@@ -48,7 +48,7 @@ class GenerateOceanCMIP(WorkflowJob):
         parameters = dict()
 
         parameters['tables_path'] = tables_path
-        parameters['metadata'] = { 'class': 'File', 'path': metadata_file }
+        parameters['metadata'] = metadata_file
 
         is_oa_var = False
         if cmip_var in oa_vars:

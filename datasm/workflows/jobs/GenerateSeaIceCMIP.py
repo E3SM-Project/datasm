@@ -42,7 +42,7 @@ class GenerateSeaIceCMIP(WorkflowJob):
 
         parameters['tables_path'] = tables_path
         parameters['data_path'] = data_path
-        parameters['metadata'] = { 'class': 'File', 'path': metadata_file }
+        parameters['metadata'] = metadata_file
 
         parameters['cmor_var_list'] = [cmip_var]
 
