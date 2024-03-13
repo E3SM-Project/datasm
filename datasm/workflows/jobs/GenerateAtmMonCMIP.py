@@ -66,6 +66,8 @@ class GenerateAtmMonCMIP(WorkflowJob):
         with open(parameters_path, 'w') as outstream:
             yaml.dump(parameters, outstream)
 
+        log_message("error",f"FAKE_ERROR: writing job parameters: {parameters_path}/{parameters_name}")
+
         mlev = var_info['mlev']
         plev = var_info['plev']
 

@@ -13,7 +13,7 @@ class GenerateAtmDayCMIP(WorkflowJob):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = NAME
-        self._requires = {'atmos-native-3hr': None}
+        self._requires = {'atmos-native-day': None}
         self._cmd = ''
 
     def resolve_cmd(self):
@@ -41,7 +41,12 @@ class GenerateAtmDayCMIP(WorkflowJob):
         freq = parent_dsid.split('.')[7]
         realm = "atm"
 
+
+        log_message("error",f"FAKE_ERROR: calling get_e2c_info({cmip_var},{freq},{realm},...)")
+
+
         var_info = get_e2c_info(cmip_var, freq, realm, data_path, cmip_out, metadata_file, tables_path)
+        log_message("error",f"FAKE_ERROR: get_e2c_info returns var_info = {var_info}")
 
         # build up parameters list for job config .yaml write
         parameters = dict()
