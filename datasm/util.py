@@ -455,11 +455,12 @@ def get_e2c_info(cmip_var, freq, realm, data_path, cmip_out, metadata_path, cmip
     with open(info_file.name, 'r') as instream:
         variable_info = yaml.load(instream, Loader=yaml.SafeLoader)
 
-    if variable_info == None:
-        log_message("error", f"ERROR checking variables: No data returned from e3sm_to_cmip --info: {cmd}")
+    if variable_info == None or len(variable_info) == 0:
+        log_message("error", f"REAL_ERROR checking variables: No data returned from e3sm_to_cmip --info: {cmd}")
         os._exit(1)
 
-    variable_info = variable_info[0]    # expect a single dictionary
+    if isinstance(variable_info, list):
+        variable_info = variable_info[0]    # expect a single dictionary
 
     log_message("error", f"FAKE_ERROR: get_e2c_info: type(variable_info from yaml_loader) = {type(variable_info)}")
 

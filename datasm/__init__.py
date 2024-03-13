@@ -23,7 +23,7 @@ def parse_args(arg_sources, checkers):
         subparsers[name] = sub
 
     parsed_args = parser.parse_args()
-    log_message("info", f"TOP_PARSED_ARGS: type = {type(parsed_args)}, value={parsed_args}")
+    # log_message("info", f"TOP_PARSED_ARGS: type = {type(parsed_args)}, value={parsed_args}")
 
     # call a subcommand-specific arg-checker
     valid, name = checkers[parsed_args.subparser_name](parsed_args)
