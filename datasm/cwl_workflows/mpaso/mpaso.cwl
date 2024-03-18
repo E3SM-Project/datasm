@@ -7,7 +7,7 @@ requirements:
 
 inputs:
   data_path: string
-  metadata: string
+  metadata_file: string
   workflow_output: string
 
   mapfile: string
@@ -54,7 +54,7 @@ steps:
     in:
       input_path: step_segments/segments
       tables_path: tables_path
-      metadata: metadata
+      metadata: metadata_file
       var_list: cmor_var_list
       mapfile: mapfile
       slurm_timeout: slurm_timeout

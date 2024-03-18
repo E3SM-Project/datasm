@@ -3,7 +3,7 @@ from pathlib import Path
 
 import yaml
 from datasm.workflows.jobs import WorkflowJob
-from datasm.util import log_message, get_e2c_info, parent_native_dsid, latest_data_vdir, prepare_cmip_job_metadata, derivative_conf
+from datasm.util import log_message, get_first_nc_file, get_e2c_info, parent_native_dsid, latest_data_vdir, prepare_cmip_job_metadata, derivative_conf
 
 NAME = 'GenerateAtmFixedCMIP'
 
@@ -53,7 +53,7 @@ class GenerateAtmFixedCMIP(WorkflowJob):
         parameters['tables_path'] = tables_path
         parameters['data_path'] = data_path
         parameters['atm_data_path'] = data_path_dict
-        parameters['metadata_path'] = metadata_file
+        parameters['metadata_file'] = metadata_file
 
         parameters['std_var_list']  = var_info['natv_vars']
         parameters['cmor_var_list'] = var_info['cmip_vars']

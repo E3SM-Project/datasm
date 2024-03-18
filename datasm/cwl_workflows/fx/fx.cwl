@@ -18,7 +18,7 @@ inputs:
 
   # cmor
   tables_path: string
-  metadata: string
+  metadata_file: string
 
 outputs:
   cmorized:
@@ -43,7 +43,7 @@ steps:
     run: cmor.cwl
     in:
       tables_path: tables_path
-      metadata: metadata
+      metadata: metadata_file
       var_list: cmor_var_list
       raw_file: step_hrzmap/remapped_fx
     out:
