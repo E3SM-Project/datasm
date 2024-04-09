@@ -7,12 +7,11 @@ import json
 import shutil
 import subprocess
 import time
-import pytz
-from datetime import datetime
+from datetime import datetime, timezone
 
 # 
 def ts():
-    return 'TS_' + pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+    return 'TS_' + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
 
 
 helptext = '''

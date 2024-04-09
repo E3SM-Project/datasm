@@ -4,8 +4,7 @@ import re
 from argparse import RawTextHelpFormatter
 import requests
 import time
-from datetime import datetime
-import pytz
+from datetime import datetime, timezone
 import yaml
 from datasm.util import get_dsm_paths
 
@@ -55,7 +54,7 @@ ARCHMAP = f"{ARCHMAN}/Archive_Map"
 gv_csv = True
 
 def ts():
-    return pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+    return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
 
 def assess_args():
 
