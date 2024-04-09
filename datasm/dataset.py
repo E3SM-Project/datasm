@@ -4,8 +4,7 @@ import sys
 from enum import Enum
 
 from pathlib import Path
-from datetime import datetime
-from pytz import UTC
+from datetime import datetime, timezone
 
 import ipdb
 
@@ -414,7 +413,7 @@ class Dataset(object):
         self._status = status
 
         with open(self.status_path, "a") as outstream:
-            tstamp =  UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+            tstamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
             # msg = f'STAT:{tstamp}:DATASM:{status}'
             msg = f'STAT:{tstamp}:{status}'
             if params is not None:

@@ -6,8 +6,7 @@ import shutil
 from datasm.util import get_dsm_paths
 from subprocess import Popen, PIPE, check_output
 import time
-from datetime import datetime
-import pytz
+from datetime import datetime, timezone
 from pathlib import Path
 
 gv_logname = ''
@@ -44,7 +43,7 @@ helptext = '''
 # ======== convenience ========================
 
 def ts(prefix):
-    return prefix + pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+    return prefix + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
 
 def assess_args():
 

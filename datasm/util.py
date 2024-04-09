@@ -15,16 +15,15 @@ import xarray as xr
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
 from pathlib import Path
-from datetime import datetime
-from pytz import UTC
+from datetime import datetime, timezone
 from termcolor import colored, cprint
 
 
 def get_UTC_TS():
-    return UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+    return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
 
 def get_UTC_YMD():
-   return UTC.localize(datetime.utcnow()).strftime("%Y%m%d")
+   return datetime.now(timezone.utc).strftime("%Y%m%d")
 
 
 def load_file_lines(file_path):
@@ -308,6 +307,8 @@ def get_dataset_version_from_file_metadata(latest_dir):  # input latest_dir alre
     if first_file == None:
         log_message("info", f"No first_file")
         return 'NONE'
+
+    log_message("error", f"(Fake_Error) Testing for version in file {first_file}")
 
     ds = xr.open_dataset(first_file)
     if 'version' in ds.attrs.keys():

@@ -103,6 +103,9 @@ def main():
     gv_dosort = pargs.sort
 
     in_dict = load_yaml(pargs.infile)
+
+    #print(f"DEBUG:rw_yaml: load_yaml returned type {type(in_dict)}")
+
     yaml_write(in_dict,pargs.tabsize)
 
     sys.exit(0)

@@ -5,8 +5,7 @@ import glob
 import shutil
 from subprocess import Popen, PIPE, check_output
 import time
-from datetime import datetime
-import pytz
+from datetime import datetime, timezone
 
 helptext = '''
     Usage:  archive_dataset_extractor -a am_specfile [-d dest_dir] [-O]
@@ -33,7 +32,7 @@ holodeck = ''
 holozst = ''
 
 def ts():
-    return 'TS_' + pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+    return 'TS_' + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
 
 
 def assess_args():

@@ -6,8 +6,7 @@ import shutil
 from subprocess import Popen, PIPE, check_output
 from datasm.util import get_dsm_paths
 import time
-from datetime import datetime
-import pytz
+from datetime import datetime, timezone
 
 helptext = '''
     Usage:  archive_path_mapper -a al_listfile [-s sdepfile]
@@ -47,12 +46,12 @@ x_pattern = ''
 
 
 def ts():
-    return 'TS_' + pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+    return 'TS_' + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
 
 out_log = f"{thePWD}/runlog-{ts()}"
 
 def logmsg(msg):
-    ts = pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
     with open(out_log, "a+") as outstream:
         outstream.write(f"{ts}: {msg}\n")
 

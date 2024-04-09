@@ -12,8 +12,7 @@ import time
 from tempfile import NamedTemporaryFile
 from subprocess import Popen, PIPE
 from pathlib import Path
-from datetime import datetime
-from pytz import UTC
+from datetime import datetime, timezone
 from termcolor import colored, cprint
 from datasm.util import get_dsm_paths
 
@@ -21,7 +20,7 @@ from datasm.util import get_dsm_paths
 # -----------------------------------------------
 
 def ts():
-    return 'TS_' + pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+    return 'TS_' + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
 
 
 helptext = '''
@@ -70,7 +69,7 @@ def assess_args():
 
 
 def setup_logging(loglevel, logpath):
-    logname = logpath + "-" + UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+    logname = logpath + "-" + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
     if loglevel == "debug":
         level = logging.DEBUG
     elif loglevel == "error":
@@ -107,7 +106,7 @@ def log_message(level, message, user_level='INFO'):  # message BOTH to log file 
     level = level.upper()
     colors = {"INFO": "white", "WARNING": "yellow", "ERROR": "red", "DEBUG": "cyan"}
     color = colors.get(level, 'red')
-    tstamp = UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")  # for console output
+    tstamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
     # first, print to logfile
     if level == "DEBUG":
         logging.debug(message)
@@ -285,7 +284,7 @@ def get_last_status_value(statlist):
 def set_last_status_value(statfile,status_str):
     if os.access(statfile, os.W_OK):
         with open(statfile, "a") as outstream:
-            tstamp =  UTC.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+            tstamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
             msg = f'STAT:{tstamp}:{status_str}'
             outstream.write(msg + "\n")
     else:

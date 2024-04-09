@@ -2,17 +2,14 @@ import sys, os
 import argparse
 from argparse import RawTextHelpFormatter
 from pathlib import Path
-import glob
 import json
 import shutil
-import subprocess
 import time
-import pytz
-from datetime import datetime
+from datetime import datetime, timezone
 
 # 
 def ts():
-    return 'TS_' + pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d_%H%M%S_%f")
+    return 'TS_' + datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
 
 
 helptext = '''
@@ -74,7 +71,7 @@ def main():
         print(f"{meta_version}")
 
     if mode == "set":
-        version = 'v' + pytz.utc.localize(datetime.utcnow()).strftime("%Y%m%d")
+        version = 'v' + datetime.now(timezone.utc).strftime("%Y%m%d")
         set_version_in_user_metadata(meta_file, version)
 
     sys.exit(0)
