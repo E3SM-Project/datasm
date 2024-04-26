@@ -103,6 +103,51 @@ as a parameter:
 Deployment should take under a minute.  You will be prompted upon completion.
 
 
+4. Sourced Applications
+=======================
+
+In your choice of location for git-repositories, you will need to git-clone:
+
+    datasm
+        https://github.com/E3SM-Project/datasm
+        (e.g., local: ~/git_repo/datasm/)
+
+    e3sm_to_cmip
+        https://github.com/E3SM-Project/e3sm_to_cmip
+        (e.g., local: ~/git_repo/e3sm_to_cmip/)
+
+In particular, under the "datasm" repository, you will find
+
+    <git_repo>/datasm/datasm/resources/datasm_config.template.sh
+
+    You will need to run this script, AFTER (3) DSM System Deployment has
+    established the relocatable paths file and "DSM_GETPATH" export, so
+    that datasm can find its deployed resources.
+
+5. Runtime Environment
+======================
+
+Use Conda (or Mamba) to create an environment in which to install both
+datasm and e3sm_to_cmip.  The commands:
+
+    cd <git_repo>/datasm/
+    conda env create -n <dsm_env_name> -f conda-env/prod.yml
+    conda activate <dsm_env_name>
+    pip install .
+
+    cd <git_repo>/e3sm_to_cmip/
+    pip install .
+
+From this environment, and given the DMS relocation paths set-up, all
+elements of the system should be operational.
+
+6.  ISSUES?
+===========
+
+    azb@llnl.gov
+
+
+
 
 
 
