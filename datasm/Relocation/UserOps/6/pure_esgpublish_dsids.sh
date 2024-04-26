@@ -6,6 +6,8 @@ dsids=$1
 
 get_path_info=`$DSM_GETPATH STAGING_TOOLS`/ds_paths_info_compact.sh
 
+cfg_file=`realpath ~/.esg/esg.yaml`
+
 for dsid in `cat $dsids`; do
     ts=`date -u +%Y%m%d_%H%M%S_%6N`
     $get_path_info $dsid > ztmp_info
@@ -14,10 +16,10 @@ for dsid in `cat $dsids`; do
     map_file=$pub_path/${dsid}.map
 
     pub_log="Publication_Log-$ts-$dsid"
-    pub_cmd="esgpublish --map $map_file"
+    pub_cmd="esgpublish --config $cfg_file --map $map_file"
 
-    echo $pub_cmd > $pub_log 2>&1
-    $pub_cmd > $pub_log 2>&1
+    echo Command = $pub_cmd >> $pub_log 2>&1
+    $pub_cmd >> $pub_log 2>&1
     retcode=$?
 
     ts=`date -u +%Y%m%d_%H%M%S_%6N`
