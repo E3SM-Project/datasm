@@ -8,7 +8,7 @@ latest_path=$dsm_tools/latest_data_location_by_dsid.sh
 verdir=`$latest_path $dsid`
 if [ ! -d $verdir ]; then
     echo "NONE"
-    continue
+    exit 0
 fi
 
 firstfile=`ls $verdir | head -1 2>/dev/null`
