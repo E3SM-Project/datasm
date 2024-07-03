@@ -19,6 +19,7 @@ if [[ $# -lt 2 || $1 == "--help" ]]; then
 fi
 
 dryrun=0
+dryrun2=0
 
 # Charlie debug test
 # ncclimo=`realpath ~zender1/bin/ncclimo`
@@ -124,7 +125,7 @@ var_type () {
                 echo "atm_mon_fx"
                 return
             else
-                echo "atm_mon_2d"
+                echo "atm_mon_2d"       # default for mon
                 return
             fi
         elif [[ $freq == "day" && `in_list $var ${CVatmdy[@]}` -eq 1 ]]; then
@@ -141,6 +142,9 @@ var_type () {
         if [[ $freq == "mon" ]]; then
             if [[ `in_list $var ${CVlnd[@]}` -eq 1 ]]; then
                 echo "lnd_mon"
+                return
+            elif [[ $var == "snw" ]]; then
+                echo "lnd_ice_mon"
                 return
             else
                 echo "NONE"
@@ -217,6 +221,10 @@ for dsid in `cat $dsidlist`; do
 
     caseid=`$get_case_id $nat_dsid`
 
+    if [[ $dryrun2 -eq 1 ]]; then
+        echo "caseid: $caseid, the_var_type: $the_var_type"
+        continue
+    fi
 
     # initialize run_mode variations
     years=`python $get_years -d $nat_dsid`
@@ -303,7 +311,12 @@ for dsid in `cat $dsidlist`; do
 
     # produce symlinks to native source in native_data
 
-    if [[ $run_mode == "TEST" ]]; then
+    if [[ $the_var_type == "atm_mon_fx" ]]; then
+        # special case, just 1 file whether TEST or WORK mode
+        for afile in `ls $native_src | head -1`; do
+            ln -s $native_src/$afile $native_data/$afile 2>/dev/null
+        done
+    elif [[ $run_mode == "TEST" ]]; then
         if [[ $the_var_type == "mpaso_mon" || $the_var_type == "mpassi_mon" ]]; then
             # obtain the "year code" for first year.  May be "0001", or "1850", etc
             year_tag=`ls $native_src | head -1 | rev | cut -f2 -d. | rev | cut -f1 -d-`
@@ -311,10 +324,14 @@ for dsid in `cat $dsidlist`; do
                 afile=`basename $afile`
                 ln -s $native_src/$afile $native_data/$afile 2>/dev/null
             done
+        else
+            # NOTE: For non-MPAS, the regridding step accepts start and end year, which
+            # automatically limits the input files presented to e3sm_to_cmip
+            for afile in `ls $native_src`; do
+                ln -s $native_src/$afile $native_data/$afile 2>/dev/null
+            done
         fi
-        # NOTE: For non-MPAS, the regridding step accepts start and end year, which
-        # automatically limits the input files presented to e3sm_to_cmip
-    else
+    else  # WORK mode
         for afile in `ls $native_src`; do
             ln -s $native_src/$afile $native_data/$afile 2>/dev/null
         done
@@ -338,10 +355,12 @@ for dsid in `cat $dsidlist`; do
         fi 
     fi
 
+    #
+    # Create the var-type specific command lines ============================================
+    #
+
     # common flags
     flags='-7 --dfl_lvl=1 --no_cll_msr --no_stdin'
-
-    # Create the var-type specific command lines
 
     if [[ $the_var_type == "atm_mon_2d" ]]; then
         cmd_1="$ncclimo -P eam -j 1 --map=${map_file} --start=$start_yr --end=$end_yr --ypf=$ypf --split -c $caseid -o ${native_out} -O ${rgr_dir} -v ${nat_vars} -i ${native_data} ${flags}"
@@ -362,7 +381,7 @@ for dsid in `cat $dsidlist`; do
         flags="$flags --clm_md=hfs"
         cmd_1="$ncclimo -P eam -j 1 --map=${map_file} --start=$start_yr --end=$end_yr --ypf=$ypf --split -c $caseid -o ${native_out} -O ${rgr_dir} -v ${nat_vars} -i ${native_data} ${flags}"
         cmd_2="e3sm_to_cmip -v $cmip6var -u $metadata_file -t $cmor_tables -o $result_dir -i ${rgr_dir} --freq 3hr"
-    elif [[ $the_var_type == "lnd_mon" ]]; then
+    elif [[ $the_var_type == "lnd_mon" || $the_var_type == "lnd_ice_mon" ]]; then
         cmd_1="$ncclimo -P elm -j 1 --var_xtr=landfrac --map=${map_file} --start=$start_yr --end=$end_yr --ypf=$ypf --split -c $caseid -o ${native_out} -O ${rgr_dir} -v ${nat_vars} -i ${native_data} ${flags}"
         cmd_2="e3sm_to_cmip -v $cmip6var -u $metadata_file -t $cmor_tables -o $result_dir -i ${rgr_dir}"
     elif [[ $the_var_type == "mpaso_mon" ]]; then
@@ -405,6 +424,7 @@ for dsid in `cat $dsidlist`; do
     echo "" >> $escript
 
     # ==== Call NCO stuff first if not MPAS ====================================
+
     if [[ $the_var_type != "mpaso_mon" && $the_var_type != "mpassi_mon" ]]; then
         echo "${cmd_1} >> \$the_sublog 2>&1" >> $escript
         echo "" >> $escript
@@ -432,28 +452,24 @@ for dsid in `cat $dsidlist`; do
         fi
     fi
 
-    # echo "# DEBUG SKIP E2C, Exit Here" >> $escript
-    # echo "exit 0" >> $escript
-    # echo "" >> $escript
-
-
     # ==== Call E2C stuff now, if we are still here ====================================
     # if mpaso, must loop on decades
 
     if [[ $the_var_type == "mpaso_mon" && $run_mode == "WORK" ]]; then
-        # echo "engineer codes to loop on decades here"
+        # echo "engineer codes to loop on ypf=20 years here"
 
         echo "native_src=$native_src" >> $escript
         echo "start_year=\`ls \$native_src | rev | cut -f2 -d. | rev | cut -f1 -d- | head -1\`" >> $escript
         echo "final_year=\`ls \$native_src | rev | cut -f2 -d. | rev | cut -f1 -d- | tail -1\`" >> $escript
         echo "range_years=\$((10#\$final_year - 10#\$start_year + 1))" >> $escript
-        echo "ypf=10" >> $escript
+        echo "ypf=20" >> $escript
         echo "range_segs=\$((range_years/ypf))" >> $escript
+        echo "if [[ \$((range_segs*ypf)) -lt \$range_years ]]; then range_segs=\$((range_segs + 1)); fi" >> $escript
         echo "" >> $escript
         echo "native_data=$native_data" >> $escript
         echo "" >> $escript
         echo "ts2=\`date -u +%Y%m%d_%H%M%S_%6N\`" >> $escript
-        echo "echo \"\$ts2:Begin processing \$range_years years at \$ypf years per segment\" >> \$the_sublog 2>&1" >> $escript
+        echo "echo \"\$ts2:Begin processing \$range_years years at \$ypf years per segment. Total segments = \$range_segs\" >> \$the_sublog 2>&1" >> $escript
         echo "" >> $escript
         echo "for ((segdex=0;segdex<range_segs;segdex++)); do" >> $escript
         echo "" >> $escript
@@ -514,19 +530,16 @@ for dsid in `cat $dsidlist`; do
 
     chmod 750 $escript
 
-    #
-    # END SUBORDINATE ESCRIPT GENERATION =====================================================
-    #
-
     echo "Produced for eval:  escript=$escript" >> $logfile
 
     if [[ $dryrun -eq 1 ]]; then
         continue
     fi
 
+    # 
+    # SECTION:  Subscript Execution ==========================================================
     #
-    # BEGIN REAL PROCESSING ==================================================================
-    #
+
     ts1=`date -u +%Y%m%d_%H%M%S_%6N`
     echo "$ts1: Begin Processing dataset_id: $dsid (the_var_type = $the_var_type)" >> $logfile
 
@@ -534,9 +547,9 @@ for dsid in `cat $dsidlist`; do
         echo "STAT:$ts1:POSTPROCESS:DSM_Generate_CMIP6:Engaged" >> $status_file
     fi
 
-    # EVAL OCCURS HERE # # # # # #
     ${escript} >> $logfile 2>&1
     ret_code=$?
+
     if [[ $ret_code -ne 0 ]]; then
         echo "ERROR:  Subprocess exit code = $ret_code" >> $logfile 2>&1
         if [[ $run_mode == "WORK" ]]; then
@@ -546,6 +559,10 @@ for dsid in `cat $dsidlist`; do
         continue
     fi
     
+    #
+    # SECTION:  Product Disposition  =========================================================
+    #
+
     ts2=`date -u +%Y%m%d_%H%M%S_%6N`
 
     # if run_mode == WORK, Forge the warehouse destination facet-path and move the product

@@ -4,26 +4,25 @@ POSTPROCESS:Ready:
   atmos-timeseries-mon:
     - GenerateAtmMonTimeseries:Ready
   atmos-cmip-mon:
-    - GenerateAtmMonCMIP:Ready
+    - GenerateCMIP:Ready
   atmos-cmip-day:
-    - GenerateAtmDayCMIP:Ready
+    - GenerateCMIP:Ready
   atmos-cmip-3hr:
-    - GenerateAtm3hrCMIP:Ready
+    - GenerateCMIP:Ready
   atmos-cmip-fixed:
-    - GenerateAtmFixedCMIP:Ready
+    - GenerateCMIP:Ready
   land-timeseries-mon:
     - GenerateLndTimeseries:Ready
   land-cmip-mon:
-    - GenerateLndMonCMIP:Ready
+    - GenerateCMIP:Ready
   ocean-cmip-mon:
-    - GenerateOceanCMIP:Ready
+    - GenerateCMIP:Ready
   ocean-cmip-fixed:
-    - GenerateOceanCMIP:Ready
+    - GenerateCMIP:Ready
   seaice-cmip-mon:
-    - GenerateSeaIceCMIP:Ready
+    - GenerateCMIP:Ready
   ice-cmip-mon:
-    - GenerateIceCMIP:Ready
-
+    - GenerateCMIP:Ready
   default:
     - Pass
 
@@ -47,44 +46,14 @@ GenerateAtmMonTimeseries:Fail:
   default:
     - Fail
 
-GenerateAtmMonCMIP:Ready:
+GenerateCMIP:Ready:
   default:
-    - GenerateAtmMonCMIP:Engaged
-GenerateAtmMonCMIP:Pass:
+    - GenerateCMIP:Engaged
+GenerateCMIP:Pass:
   default:
     - ValidateCMIP:Ready
     # - Pass
-GenerateAtmMonCMIP:Fail:
-  default:
-    - Fail
-
-GenerateAtmDayCMIP:Ready:
-  default:
-    - GenerateAtmDayCMIP:Engaged
-GenerateAtmDayCMIP:Pass:
-  default:
-    - Pass
-GenerateAtmDayCMIP:Fail:
-  default:
-    - Fail
-
-GenerateAtm3hrCMIP:Ready:
-  default:
-    - GenerateAtm3hrCMIP:Engaged
-GenerateAtm3hrCMIP:Pass:
-  default:
-    - Pass
-GenerateAtm3hrCMIP:Fail:
-  default:
-    - Fail
-
-GenerateAtmFixedCMIP:Ready:
-  default:
-    - GenerateAtmFixedCMIP:Engaged
-GenerateAtmFixedCMIP:Pass:
-  default:
-    - Pass
-GenerateAtmFixedCMIP:Fail:
+GenerateCMIP:Fail:
   default:
     - Fail
 
@@ -98,65 +67,6 @@ GenerateLndTimeseries:Fail:
   default:
     - Fail
 
-GenerateLndMonCMIP:Ready:
-  default:
-    - GenerateLndMonCMIP:Engaged
-GenerateLndMonCMIP:Pass:
-  default:
-    - Pass
-GenerateLndMonCMIP:Fail:
-  default:
-    - Fail
-
-GenerateOceanCMIP:Ready:
-  default:
-    - GenerateOceanCMIP:Engaged
-GenerateOceanCMIP:Pass:
-  default:
-    - Pass
-GenerateOceanCMIP:Fail:
-  default:
-    - Fail
-
-GenerateOcnFixedCMIP:Ready:
-  default:
-    - GenerateOcnFixedCMIP:Engaged
-GenerateOcnFixedCMIP:Pass:
-  default:
-    - Pass
-GenerateOcnFixedCMIP:Fail:
-  default:
-    - Fail
-
-GenerateOcnAtmCMIP:Ready:
-  default:
-    - GenerateOcnAtmCMIP:Engaged
-GenerateOcnAtmCMIP:Pass:
-  default:
-    - Pass
-GenerateOcnAtmCMIP:Fail:
-  default:
-    - Fail
-
-GenerateSeaIceCMIP:Ready:
-  default:
-    - GenerateSeaIceCMIP:Engaged
-GenerateSeaIceCMIP:Pass:
-  default:
-    - Pass
-GenerateSeaIceCMIP:Fail:
-  default:
-    - Fail
- 
-GenerateIceCMIP:Ready:
-  default:
-    - GenerateIceCMIP:Engaged
-GenerateIceCMIP:Pass:
-  default:
-    - Pass
-GenerateIceCMIP:Fail:
-  default:
-    - Fail
 
 ValidateCMIP:Ready:
   default:
