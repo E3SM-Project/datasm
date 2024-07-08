@@ -135,13 +135,12 @@ class Workflow(object):
             return self.children[state_attrs_curr].next_state(dataset, state, params, idx + 1)  # recurse
 
         else:
-            log_message("error", f"WF_init next_state: target state {test_state} is not present in the transition graph for {self.name}")
-            log_message("error", f"WF_init next_state: (info) idx={idx}, state_attrs_curr = {state_attrs_curr}")
-            log_message("error", f"WF_init next_state: (info) child_keys: {self.children.keys()}")
+            log_message("warning", f"WF_init next_state: target state {test_state} is not present in the transition graph for {self.name}")
+            log_message("warning", f"WF_init next_state: (info) idx={idx}, state_attrs_curr = {state_attrs_curr}")
+            log_message("warning", f"WF_init next_state: (info) child_keys: {self.children.keys()}")
 
-            # import ipdb; ipdb.set_trace()
-            # sys.exit(1)
-            os._exit(1)
+            return tuple(["no_state_change", "no_class", dict()])
+            # os._exit(1) # should not be fatal
 
     def get_job(self, dataset, state, params, scripts_path, slurm_out_path, workflow, job_workers=8, **kwargs):
         state_attrs = state.split(':')

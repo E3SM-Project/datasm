@@ -143,14 +143,14 @@ class AutoDataSM:
             # wait around while jobs run
             while True:
                 if self.should_exit:
-                    exit(0)
+                    sys.exit(0)
                 sleep(10)
 
         except KeyboardInterrupt:
             if listeners := self.listener:
                 for l in listeners:
                     l.stop()
-            exit(1)
+            sys.exit(1)
 
         return 0
 
@@ -195,8 +195,8 @@ class AutoDataSM:
         # log_message("debug", f"No raw E3SM dataset was in the list of datasets provided, seaching the warehouse for one that mathes {job}")
         log_message("info", f"find_e3sm_source_dataset: Seeking raw E3SM dataset for job {job.name} (type(job) = {type(job)})")
 
-        log_message("info", f"job._dataset = {job._dataset}")
-        log_message("info", f"job.dataset = {job.dataset}")
+        log_message("debug", f"job._dataset = {job._dataset}")
+        log_message("debug", f"job.dataset = {job.dataset}")
 
         native_dsid = parent_native_dsid(job.dataset.dataset_id)
         log_message("info", f"{__name__}: find_e3sm_source_dataset: parent_native_dsid() returns {native_dsid}")
@@ -271,14 +271,6 @@ class AutoDataSM:
             )
             for dataset_id in self.dataset_ids
         }
-
-        ''' DBG
-        for dsn, dsv in self.datasets.items():
-            log_message("info", f"setup_datasets: type(dsv) = {type(dsv)}")
-            log_message("info", f"setup_datasets: dsv.warehouse_base = {dsv.warehouse_base}")
-            log_message("info", f"setup_datasets: dsv.warehouse_path = {dsv.warehouse_path}")
-            log_message("info", f"setup_datasets: dsv.pub_base = {dsv.pub_base}")
-        '''
 
         # fill in the start and end year for each dataset
         for dataset_id, dataset in self.datasets.items():
@@ -419,7 +411,6 @@ class AutoDataSM:
         for dataset_id, dataset in datasets.items():
 
             log_message("debug", f"start_datasets: working datasets_id {dataset_id} from datasets.items()")
-            log_message("info", f"start_datasets: dataset = {dataset_id}, status = {dataset.status}")
 
             if "Engaged" in dataset.status:
                 log_message("debug", f"start_datasets: 'Engaged' in dataset.status: continue")
@@ -436,13 +427,14 @@ class AutoDataSM:
             # we keep a reference to the workflow instance, so when
             # we make a job we can reconstruct the parent workflow name
             # for the status file
-            log_message("debug", f"start_datasets: To reconstruct parent workflow name:")
+            log_message("info", f"start_datasets: To reconstruct parent workflow name:")
             params = {}
             if parameters := dataset.status.split(":")[-1].strip():
                 for item in parameters.split(","):
-                    key, value = item.split("=")
-                    params[key] = value.replace("^", ":")
-                    log_message("info", f"start_datasets: params[{key}] = {params[key]}")
+                    if len(item.split("=")) > 1:
+                        key, value = item.split("=")
+                        params[key] = value.replace("^", ":")
+                        log_message("debug", f"start_datasets: params[{key}] = {params[key]}")
 
             state = dataset.status
             workflow = self.workflow
@@ -452,6 +444,9 @@ class AutoDataSM:
 
             if state == DatasetStatus.UNITITIALIZED.value:
                 state = DatasetStatusMessage.WAREHOUSE_READY.value
+
+            log_message("info", f"self.workflow.name.upper() = {self.workflow.name.upper()}")
+            log_message("info", f"dataset.status = {dataset.status}")
 
             # check that the dataset isnt blocked by some other process thats acting on it
             # and that the workflow hasnt either failed or succeeded
@@ -474,8 +469,19 @@ class AutoDataSM:
             # we need to collect them all
             engaged_states = []
             for item in self.workflow.next_state(dataset, state, params):
+
+                log_message("debug",f"type(item) = {type(item)}")
+
                 new_state, workflow, params = item
 
+                log_message("debug",f"  type(new_state) = {type(new_state)}")
+                log_message("debug",f"  type(workflow) = {type(workflow)}")
+                log_message("debug",f"  type(params) = {type(params)}")
+
+                # for spurious/unexpected STAT: messages
+                if new_state == "no_state_change":
+                    continue
+ 
                 # if we have a new state with the "Engaged" keyword
                 # we know its a leaf node that needs to be executed
                 if "Engaged" in new_state:

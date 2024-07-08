@@ -433,14 +433,15 @@ for dsid in `cat $dsidlist`; do
         echo "if [[ \$ret_code -ne 0 ]]; then" >> $escript
         echo "    echo \"\$ts:ERROR:  NCO Process Fail: exit code = \$ret_code\" >> \$the_sublog 2>&1" >> $escript
         if [[ $run_mode == "WORK" ]]; then
-            echo "    echo \"STAT:\$ts:POSTPROCESS:DSM_Generate_CMIP6:NCO:Fail:return_code=\$ret_code\" >> $status_file" >> $escript
+            echo "    echo \"COMM:\$ts:POSTPROCESS:DSM_Generate_CMIP6:NCO:Fail:return_code=\$ret_code\" >> $status_file" >> $escript
+            echo "    echo \"STAT:\$ts:POSTPROCESS:DSM_Generate_CMIP6:Fail:return_code=\$ret_code\" >> $status_file" >> $escript
         fi
         echo "    exit \$ret_code" >> $escript
         echo "fi" >> $escript
         echo "" >> $escript
         echo "echo \"\$ts:NCO Process Pass: Regridding Successful\" >> \$the_sublog 2>&1" >> $escript
         if [[ $run_mode == "WORK" ]]; then
-            echo "echo \"STAT:\$ts:POSTPROCESS:DSM_Generate_CMIP6:NCO:Pass\" >> $status_file" >> $escript
+            echo "echo \"COMM:\$ts:POSTPROCESS:DSM_Generate_CMIP6:NCO:Pass\" >> $status_file" >> $escript
         fi
 
         if [[ $the_var_type == "atm_mon_3d" ]]; then
@@ -498,7 +499,8 @@ for dsid in `cat $dsidlist`; do
         echo "    if [[ \$ret_code -ne 0 ]]; then" >> $escript
         echo "        echo \"\$ts2:ERROR:  E2C Process Fail: exit code = \$ret_code\" >> \$the_sublog 2>&1" >> $escript
         if [[ $run_mode == "WORK" ]]; then
-            echo "        echo \"STAT:\$ts2:POSTPROCESS:DSM_Generate_CMIP6:E2C:Fail:return_code=\$ret_code\" >> $status_file" >> $escript
+            echo "        echo \"COMM:\$ts2:POSTPROCESS:DSM_Generate_CMIP6:E2C:Fail:return_code=\$ret_code\" >> $status_file" >> $escript
+            echo "        echo \"STAT:\$ts2:POSTPROCESS:DSM_Generate_CMIP6:Fail:return_code=\$ret_code\" >> $status_file" >> $escript
         fi
         echo "        exit \$ret_code" >> $escript
         echo "    fi" >> $escript
@@ -515,7 +517,8 @@ for dsid in `cat $dsidlist`; do
         echo "if [[ \$ret_code -ne 0 ]]; then" >> $escript
         echo "    echo \"\$ts:ERROR:  E2C Process Fail: exit code = \$ret_code\" >> \$the_sublog 2>&1" >> $escript
         if [[ $run_mode == "WORK" ]]; then
-            echo "    echo \"STAT:\$ts2:POSTPROCESS:DSM_Generate_CMIP6:E2C:Fail:return_code=\$ret_code\" >> $status_file" >> $escript
+            echo "    echo \"COMM:\$ts2:POSTPROCESS:DSM_Generate_CMIP6:E2C:Fail:return_code=\$ret_code\" >> $status_file" >> $escript
+            echo "    echo \"STAT:\$ts2:POSTPROCESS:DSM_Generate_CMIP6:Fail:return_code=\$ret_code\" >> $status_file" >> $escript
         fi
         echo "    exit \$ret_code" >> $escript
         echo "fi" >> $escript
@@ -523,7 +526,8 @@ for dsid in `cat $dsidlist`; do
 
     echo "echo \"\$ts2:E2C Process Pass: Cmorizing Successful\" >> \$the_sublog 2>&1" >> $escript 
     if [[ $run_mode == "WORK" ]]; then
-        echo "echo \"STAT:\$ts2:POSTPROCESS:DSM_Generate_CMIP6:E2C:Pass\" >> $status_file" >> $escript
+        echo "echo \"COMM:\$ts2:POSTPROCESS:DSM_Generate_CMIP6:E2C:Pass\" >> $status_file" >> $escript
+        echo "echo \"COMM:\$ts2:POSTPROCESS:DSM_Generate_CMIP6:Pass\" >> $status_file" >> $escript
     fi
     echo "" >> $escript
     echo "exit 0" >> $escript
@@ -554,7 +558,8 @@ for dsid in `cat $dsidlist`; do
         echo "ERROR:  Subprocess exit code = $ret_code" >> $logfile 2>&1
         if [[ $run_mode == "WORK" ]]; then
             ts=`date -u +%Y%m%d_%H%M%S_%6N`
-            echo "STAT:$ts:POSTPROCESS:DSM_Generate_CMIP6:Subprocess:Fail:return_code=$ret_code" >> $status_file
+            echo "COMM:$ts:POSTPROCESS:DSM_Generate_CMIP6:Subprocess:Fail:return_code=$ret_code" >> $status_file
+            echo "STAT:$ts:POSTPROCESS:GenerateCMIP:Fail:return_code=$ret_code" >> $status_file
         fi
         continue
     fi
@@ -581,7 +586,9 @@ for dsid in `cat $dsidlist`; do
     ts3=`date -u +%Y%m%d_%H%M%S_%6N`
     echo "$ts3: Completed Processing dataset_id: $dsid" >> $logfile
     if [[ $run_mode == "WORK" ]]; then
-        echo "STAT:$ts3:POSTPROCESS:DSM_Generate_CMIP6:Pass" >> $status_file
+        echo "COMM:$ts3:POSTPROCESS:DSM_Generate_CMIP6:Pass" >> $status_file
+        # echo "COMM:$ts3:POSTPROCESS:GenerateCMIP:Pass" >> $status_file
+        # echo "STAT:$ts3:POSTPROCESS:Pass" >> $status_file
     fi
 
 done
