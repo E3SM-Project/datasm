@@ -389,7 +389,7 @@ def derivative_conf(target_dsid,resource_path):
 
     # create the dc_spec_selection spec
 
-    selspec = f"{realm},{resol},{model}"
+    selspec = f"{realm},{model},{resol}"
     log_message("info", f"DBG: deriv_conf: generated dc_spec_selection spec: {selspec} for resource_path {resource_path}/derivatives.conf")
     
     # load the derivatives configuration
