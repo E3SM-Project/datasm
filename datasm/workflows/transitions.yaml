@@ -9,11 +9,15 @@ WAREHOUSE:Ready:
         - POSTPROCESS:Ready
     atmos-cmip-3hr:
         - POSTPROCESS:Ready
+    atmos-cmip-fixed:
+        - POSTPROCESS:Ready
     land-ts-mon:
         - POSTPROCESS:Ready
     land-cmip-mon:
         - POSTPROCESS:Ready
     ocn-cmip-mon:
+        - POSTPROCESS:Ready
+    ocn-cmip-fixed:
         - POSTPROCESS:Ready
     seaice-cmip-mon:
         - POSTPROCESS:Ready

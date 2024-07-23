@@ -34,7 +34,7 @@ model=`echo $e3sm_dsid | cut -f2 -d.`
 resol=`echo $e3sm_dsid | cut -f4 -d.`
 realm=`echo $e3sm_dsid | cut -f5 -d.`
 
-selspec="$realm,$resol,$model"
+selspec="$realm,$model,$resol"
 
 spec_1="$selspec,REGRID"
 spec_2="$selspec,MASK"

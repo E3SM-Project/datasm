@@ -354,7 +354,7 @@ def prepare_cmip_job_metadata(cmip_dsid, in_meta_path, slurm_out):
     # force dataset output version here
     ds_version = "v" + get_UTC_YMD()
     set_version_in_user_metadata(metadata_path, ds_version)
-    log_message("error", f"FAKE_ERROR: Set metadata dataset version in {metadata_path} to {ds_version}")
+    log_message("debug", f"Set metadata dataset version in {metadata_path} to {ds_version}")
 
     return metadata_path
 
@@ -389,7 +389,7 @@ def derivative_conf(target_dsid,resource_path):
 
     # create the dc_spec_selection spec
 
-    selspec = f"{realm},{resol},{model}"
+    selspec = f"{realm},{model},{resol}"
     log_message("info", f"DBG: deriv_conf: generated dc_spec_selection spec: {selspec} for resource_path {resource_path}/derivatives.conf")
     
     # load the derivatives configuration
@@ -441,12 +441,12 @@ def derivative_conf(target_dsid,resource_path):
 
 def get_e2c_info(cmip_var, freq, realm, data_path, cmip_out, metadata_path, cmip_tables_path):
     workdir = f"{os.getcwd()}"
-    log_message("error",f"FAKE_ERROR:get_e2c_info: PWD = {workdir}")
+    log_message("debug",f"get_e2c_info: PWD = {workdir}")
 
     info_file = NamedTemporaryFile(delete=False)
     log_message("info", f"Obtained temp info file name: {info_file.name}")
     cmd = f"e3sm_to_cmip --info --map none -i {data_path} -o {cmip_out} -u {metadata_path} --freq {freq} -v {cmip_var} -t {cmip_tables_path} --info-out {info_file.name} --realm {realm}"
-    log_message("error", f"FAKE_ERROR: {__name__}:get_e2c_info: issuing variable info cmd: {cmd}")
+    log_message("debug", f"{__name__}:get_e2c_info: issuing variable info cmd: {cmd}")
 
     proc = Popen(cmd.split(), stdout=PIPE, stderr=PIPE)
     _, err = proc.communicate()
@@ -463,7 +463,7 @@ def get_e2c_info(cmip_var, freq, realm, data_path, cmip_out, metadata_path, cmip
     if isinstance(variable_info, list):
         variable_info = variable_info[0]    # expect a single dictionary
 
-    log_message("error", f"FAKE_ERROR: get_e2c_info: type(variable_info from yaml_loader) = {type(variable_info)}")
+    log_message("debug", f"get_e2c_info: type(variable_info from yaml_loader) = {type(variable_info)}")
 
     var_info = dict()
     var_info['mlev'] = False
@@ -484,7 +484,7 @@ def get_e2c_info(cmip_var, freq, realm, data_path, cmip_out, metadata_path, cmip
         var_info['cmip_plev_vars'].append(variable_info['CMIP6 Name'])
     else:
         var_info['mlev'] = True
-        log_message("error", f"FAKE_ERROR: get_e2c_info obtained native_info = {native_info}")
+        log_message("debug", f"get_e2c_info obtained native_info = {native_info}")
         var_info['natv_vars'].extend(native_info)
         var_info['cmip_vars'].append(variable_info['CMIP6 Name'])
 
