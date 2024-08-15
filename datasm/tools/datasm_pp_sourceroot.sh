@@ -9,6 +9,8 @@ cmip6_dsid=$1
 tools=`$DSM_GETPATH STAGING_TOOLS`
 wh_root=`$DSM_GETPATH STAGING_DATA`
 pb_root=`$DSM_GETPATH PUBLICATION_DATA`
+len_wh_root=`echo -n $wh_root | wc -c`
+len_pb_root=`echo -n $pb_root | wc -c`
 
 parent_dsid=`$tools/parent_native_dsid.sh $cmip6_dsid`
 
@@ -26,12 +28,12 @@ fi
 
 # seek in STAGING_DATA or PUBLICATION_DATA
 
-if [ ${parent_path:0:16} == $pb_root ]; then
+if [ ${parent_path:0:$len_pb_root} == $pb_root ]; then
     echo "publication"
     exit 0
 fi
 
-if [ ${parent_path:0:26} == $wh_root ]; then
+if [ ${parent_path:0:$len_wh_root} == $wh_root ]; then
     echo "warehouse"
     exit 0
 fi
