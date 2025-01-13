@@ -5,7 +5,6 @@ import requests
 import argparse
 import configparser as cfg
 from pathlib import Path
-from tqdm import tqdm
 from datasm.util import con_message
 
 
@@ -44,7 +43,7 @@ def main():
         nargs="*",
         help="Space separated key/value pairs for facets to get updated, in the form key=value",
     )
-    parser.add_argument("-c", "--cert", required=True, help="Path to ESGF cert")
+    parser.add_argument("-c", "--cert", required=False, help="Path to ESGF cert [if required by index node]")
     parser.add_argument(
         "-s",
         "--search",
@@ -70,7 +69,11 @@ def main():
 
     args = parser.parse_args()
 
-    cert_path = args.cert
+    if args.cert:
+        cert_path = args.cert
+    else:
+        cert_path = None
+
     search = args.search
     index_node = args.index_node
     data_node = args.data_node
@@ -98,9 +101,10 @@ def main():
         con_message("warning", f"Unable to find records matching search {search}")
         return 1
 
-    con_message("info", "Found the following datasets:")
-    for doc in docs:
-        con_message("info", f"\t{doc['id']}")
+    if verbose:
+        con_message("info", "Found the following datasets:")
+        for doc in docs:
+            con_message("info", f"\t{doc['id']}")
 
     if not args.yes:
         response = input(
@@ -115,16 +119,23 @@ def main():
     warnings.filterwarnings("ignore")
 
     client = publisherClient(cert_path, index_node)
-    for doc in tqdm(docs):
+
+    # for doc in tqdm(docs):
+    rec_count = 0
+    for doc in docs:
         dataset_id = doc["id"]
         update_record = gen_xml(dataset_id, "datasets", facets)
         if verbose:
-            con_message("info", update_record)
+            con_message("info", f"update_record = {update_record}")
         client.update(update_record)
         update_record = gen_xml(dataset_id, "files", facets)
         if verbose:
-            con_message("info", update_record)
+            con_message("info", f"update_record = {update_record}")
         client.update(update_record)
+
+        rec_count += 1
+
+    con_message("info", f"Processed {rec_count} record updates")
 
     return 0
 
