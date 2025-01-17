@@ -58,14 +58,13 @@ def assess_args():
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')
     required.add_argument('-i', '--input', action='store', dest="thedsidlist", type=str, required=True)
+    optional.add_argument('--data_node', action='store', dest="the_data_node", required=False, default="esgf-node.llnl.gov")
     optional.add_argument('--unrestricted', action='store_true', dest="unrestricted", required=False)
     optional.add_argument('--update-status', action='store_true', dest="updatestatus", required=False)
-
 
     args = parser.parse_args()
 
     return args
-
 
 
 def setup_logging(loglevel, logpath):
@@ -300,6 +299,8 @@ def main():
 
     dsid_list = load_file_lines(pargs.thedsidlist)
 
+    the_data_node = pargs.the_data_node
+
     # print(f"Found {len(dsid_list)} dataset ids.  do_stats = {do_stats}")
 
     pub_root = Path(gv_pub_root)
@@ -361,7 +362,7 @@ def main():
         facets = {"project": f"{project}", "master_id": dsid, "replica": "False"}
         facets.update(add_facet)
 
-        docs, numFound = safe_search_esgf(facets, qtype="Dataset", fields="version,data_node,latest")
+        docs, numFound = safe_search_esgf(facets, qtype="Dataset", node=the_data_node, fields="version,data_node,latest")
         if not docs:
             reason = f"Dataset query returned empty docs"
             log_message("error", f"{dsid}: {reason}")
@@ -370,6 +371,7 @@ def main():
         # ENSURE we are examining the highest version of "latest=True" ONLY.
         latest_versions = list()
         for record in docs:
+            log_message("info", f"DEBUG: Dataset Query returned version {record['version']}, {record['data_node']}, latest={record['latest']}")
             if record['latest'] == True:
                 latest_versions.append(record['version'])
         latest_versions.sort()
@@ -384,6 +386,7 @@ def main():
 
         version = f"v{best_record['version']}"
         data_node = best_record['data_node']
+        log_message("info", f"DEBUG: Dataset Query returned data_node {data_node} for best record")
 
         if version != p_ver:    # inconsistent "max" versions
             reason = f"MismatchedVersions:p_ver;s_ver={p_ver};{version}"
