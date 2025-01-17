@@ -55,11 +55,11 @@ for dsid in `cat $inlist`; do
     postproc_log=$user_path/Operations/5_DatasetGeneration/$OpsDir/PostProcess_Log-$ts1-$dsid
 
     datasrc=`$datalocator $dsid`
-    if [ $datasrc == "NONE" ]; then
+    if [[ $datasrc == "NONE" ]]; then
         echo "$ts1: No Data located for $dsid: ... BUMMER !  Need Native data, not current dsid - Argggh!" >> $postproc_log
         continue
     fi
-    if [ $datasrc == "publication" ]; then
+    if [[ $datasrc == "publication" ]]; then
         src_root=$pb_root
     else
         src_root=$wh_root
@@ -84,6 +84,7 @@ for dsid in `cat $inlist`; do
     fi
     # retain the slurm directory
     mv slurm_scripts slurm_scripts-$ts1-$dsid
+    mkdir -p slurm_scripts
     echo "$ts2: Completed PostProcess: $dsid"
     echo "$ts2: Completed PostProcess: $dsid" >> $postproc_log
 done
