@@ -82,7 +82,7 @@ for dsid in `cat $dsid_list`; do
     foundsome=`cat $workdir/tmp_requests/extraction_request-$dsid | wc -l`
     if [ $foundsome -eq 0 ]; then
         mv $workdir/tmp_requests/extraction_request-$dsid $workdir/tmp_requests_failed/extraction_request-$dsid
-        echo "ERROR: Request Ticket FAILED for key: $key"
+        echo "ERROR: Request Ticket FAILED for dsid: $dsid"
     fi
 
 done

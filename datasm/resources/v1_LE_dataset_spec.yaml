@@ -1,0 +1,500 @@
+
+# reference: https://wcrp-cmip.github.io/CMIP6_CVs/docs/CMIP6_experiment_id.html
+#
+tables:
+    3hr:
+        - all
+        - pr
+    AERmon:
+        - abs550aer
+        - all
+        - od550aer
+    Amon:
+        - all
+        - cl
+        - cli
+        - clivi
+        - clt
+        - clw
+        - clwvi
+        - evspsbl
+        - hfls
+        - hfss
+        - hur
+        - hus
+        - huss
+        - o3
+        - pfull
+        - phalf
+        - pr
+        - prc
+        - prsn
+        - prw
+        - ps
+        - psl
+        - rlds
+        - rldscs
+        - rlus
+        - rlut
+        - rlutcs
+        - rsds
+        - rsdscs
+        - rsdt
+        - rsus
+        - rsuscs
+        - rsut
+        - rsutcs
+        - rtmt
+        - sfcWind
+        - ta
+        - tas
+        - tauu
+        - tauv
+        - ts
+        - ua
+        - va
+        - wap
+        - zg
+    CFmon:
+        - albisccp
+        - all
+        - clcalipso
+        - clhcalipso
+        - clisccp
+        - cllcalipso
+        - clmcalipso
+        - cltcalipso
+        - cltisccp
+        - pctisccp
+    day:
+        - all
+        - huss
+        - pr
+        - rlut
+        - tas
+        - tasmax
+        - tasmin
+    fx:
+        - all
+        - areacella
+        - orog
+        - sftlf
+    LImon:
+        - snw
+    Lmon:
+        - all
+        - cLitter
+        - cProduct
+        - cSoilFast
+        - cSoilMedium
+        - cSoilSlow
+        - cVeg
+        - evspsblsoi
+        - evspsblveg
+        - fFire
+        - fHarvest
+        - gpp
+        - lai
+        - mrfso
+        - mrro
+        - mrros
+        - mrso
+        - mrsos
+        - nbp
+        - prveg
+        - ra
+        - rh
+        - tran
+        - tsl
+    Ofx:
+        - all
+        - areacello
+    Omon:
+        - all
+        - fsitherm
+        - hfds
+        - hfsifrazil
+        - masscello
+        - masso
+        - mlotst
+        # - msftmz
+        - pbo
+        - pso
+        - sfdsi
+        - so
+        - sob
+        - soga
+        - sos
+        - sosga
+        - tauuo
+        - tauvo
+        - thetao
+        - thetaoga
+        - thkcello
+        - tob
+        - tos
+        - tosga
+        - uo
+        - vo
+        - volcello
+        - volo
+        - wfo
+        - wo
+        - zhalfo
+        - zos
+    SImon:
+        - all
+        - siconc
+        - simass
+        - sisnmass
+        - sisnthick
+        - sitemptop
+        - sithick
+        - sitimefrac
+        - siu
+        - siv
+time-series:
+    atmos:
+        - CLDHGH
+        - CLDICE
+        - CLDLOW
+        - CLDMED
+        - CLDTOT
+        - CLOUD
+        - FLDS
+        - FLNS
+        - FLNSC
+        - FLNT
+        - FLUT
+        - FLUTC
+        - FSDS
+        - FSDSC
+        - FSNS
+        - FSNSC
+        - FSNT
+        - FSNTOA
+        - FSUTOA
+        - FSUTOAC
+        - LHFLX
+        - LWCF
+        - O3
+        - OMEGA
+        - PHIS
+        - PRECC
+        - PRECL
+        - PRECSC
+        - PRECSL
+        - PS
+        - PSL
+        - Q
+        - QFLX
+        - QREFHT
+        - RELHUM
+        - SHFLX
+        - SOLIN
+        - SWCF
+        - T
+        - TAUX
+        - TAUY
+        - TGCLDCWP
+        - TGCLDIWP
+        - TMQ
+        - TREFHT
+        - TREFMNAV
+        - TREFMXAV
+        - TS
+        - U
+        - U10
+        - V
+        - Z3
+        # - ICEFRAC
+        # - LANDFRAC
+        # - OCNFRAC
+    land:
+        - LAISHA
+        - LAISUN
+        - QINTR
+        - QOVER
+        - QRUNOFF
+        - QSOIL
+        - QVEGE
+        - QVEGT
+        - SOILICE
+        - SOILLIQ
+        - SOILWATER_10CM
+        - TSA
+        - TSOI
+project:
+    CMIP6:
+        test:
+            test:
+                test:
+                    test:
+                        start: 1
+                        end: 2
+                        ens:
+                            - r1i1p1f1
+                        # the test case uses the piControl data
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+        CMIP:
+            UCSB:
+                E3SM-1-0:
+                    historical:
+                        start: 1850
+                        end: 2014
+                        ens:
+                            - r1i2p2f1
+                            - r2i2p2f1
+                            - r3i2p2f1
+                            - r4i2p2f1
+                            - r5i2p2f1
+                            - r6i2p2f1
+                            - r7i2p2f1
+                            - r8i2p2f1
+                            - r9i2p2f1
+                            - r10i2p2f1
+                            - r11i2p2f1
+                            - r12i2p2f1
+                            - r13i2p2f1
+                            - r14i2p2f1
+                            - r15i2p2f1
+                            - r16i2p2f1
+                            - r17i2p2f1
+                            - r18i2p2f1
+                            - r19i2p2f1
+                            - r20i2p2f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+        ScenarioMIP:
+            UCSB:
+                E3SM-1-0:
+                    ssp370:
+                        start: 2015
+                        end: 2100
+                        ens:
+                            - r1i2p2f1
+                            - r2i2p2f1
+                            - r3i2p2f1
+                            - r4i2p2f1
+                            - r5i2p2f1
+                            - r6i2p2f1
+                            - r7i2p2f1
+                            - r8i2p2f1
+                            - r9i2p2f1
+                            - r10i2p2f1
+                            - r11i2p2f1
+                            - r12i2p2f1
+                            - r13i2p2f1
+                            - r14i2p2f1
+                            - r15i2p2f1
+                            - r16i2p2f1
+                            - r17i2p2f1
+                            - r18i2p2f1
+                            - r19i2p2f1
+                            - r20i2p2f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+    E3SM:
+        '1_0_LE':
+            historical:
+                start: 1850
+                end: 2014
+                ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                    - ens4
+                    - ens5
+                    - ens6
+                    - ens7
+                    - ens8
+                    - ens9
+                    - ens10
+                    - ens11
+                    - ens12
+                    - ens13
+                    - ens14
+                    - ens15
+                    - ens16
+                    - ens17
+                    - ens18
+                    - ens19
+                    - ens20
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
+                campaign: DECK-v1
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.UCSB.E3SM-1-0.historical
+                resolution:
+                    1deg_atm_60-30km_ocean:
+                        atmos:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                        land:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.5day_snap
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        sea-ice:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+            ssp370:
+                start: 2015
+                end: 2100
+                ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                    - ens4
+                    - ens5
+                    - ens6
+                    - ens7
+                    - ens8
+                    - ens9
+                    - ens10
+                    - ens11
+                    - ens12
+                    - ens13
+                    - ens14
+                    - ens15
+                    - ens16
+                    - ens17
+                    - ens18
+                    - ens19
+                    - ens20
+                except:
+                    - TREFMNAV
+                    - TREFMXAV
+                campaign: DECK-v1
+                science_driver: Water Cycle
+                cmip_case: CMIP6.ScenarioMIP.UCSB.E3SM-1-0.ssp370
+                resolution:
+                    1deg_atm_60-30km_ocean:
+                        atmos:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.6hr
+                                    - model-output.6hr_snap
+                                    - model-output.day
+                                    - model-output.day_cosp
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - climo.mon
+                                    - time-series.mon
+                        land:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                            - 
+                                grid: 180x360
+                                data_types:
+                                    - time-series.mon
+                        ocean:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.5day_snap
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed
+                        river:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        sea-ice:
+                            - 
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                                    - streams.fixed

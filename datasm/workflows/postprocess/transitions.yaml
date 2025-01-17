@@ -52,7 +52,6 @@ GenerateCMIP:Ready:
 GenerateCMIP:Pass:
   default:
     - ValidateCMIP:Ready
-    # - Pass
 GenerateCMIP:Fail:
   default:
     - Fail

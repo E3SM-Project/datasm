@@ -74,6 +74,51 @@ def collision_free_name(apath, abase):
 
 # -----------------------------------------------
 
+DSM_ROOT_PATHS = dict()
+
+def get_dsm_paths():
+    global DSM_ROOT_PATHS
+
+    if len(DSM_ROOT_PATHS) > 0:
+        return DSM_ROOT_PATHS
+
+    gp = os.environ['DSM_GETPATH']
+    path_lines = subprocess.run([gp, "ALL"],stdout=subprocess.PIPE,text=True).stdout.strip()
+    path_lines = path_lines.split('\n')
+
+    for aline in path_lines:
+        path_key, path_val = aline.split(':')
+        DSM_ROOT_PATHS[path_key] = path_val
+
+    return DSM_ROOT_PATHS
+
+def ensure_status_file_for_dsid(dsid):
+    dsm_paths = get_dsm_paths()
+    sf_root1 = dsm_paths['STAGING_STATUS']
+    staging = dsm_paths['DSM_STAGING']
+    sf_root2 = os.path.join(staging, "status_ext")
+
+    facets = dsid.split('.')
+    project = facets[0]
+    if project == "CMIP6":
+        instid = facets[2];
+        if instid == "E3SM-Project" or instid == "UCSB":
+            sf_root = sf_root1
+        else:
+            sf_root = sf_root2
+
+    sf_name = f"{dsid}.status"
+    sf_path = os.path.join(sf_root, sf_name)
+    if os.path.exists(sf_path):
+        return sf_path
+
+    # new status file
+    with open(sf_path, 'w') as afile:
+        afile.write(f"DATASETID={dsid}")
+
+    return sf_path
+    
+
 def get_last_status_line(file_path):
     with open(file_path, "r") as instream:
         last_line = None
@@ -590,25 +635,6 @@ def parent_native_dsid(target_dsid):
 
 def is_vdir_pattern(str):
     return len(str) > 1 and str[0] == 'v' and str[1:2].isdigit() and str[1:].replace('.','',1).isdigit()
-
-
-DSM_ROOT_PATHS = dict()
-
-def get_dsm_paths():
-    global DSM_ROOT_PATHS
-
-    if len(DSM_ROOT_PATHS) > 0:
-        return DSM_ROOT_PATHS
-
-    gp = os.environ['DSM_GETPATH']
-    path_lines = subprocess.run([gp, "ALL"],stdout=subprocess.PIPE,text=True).stdout.strip()
-    path_lines = path_lines.split('\n')
-
-    for aline in path_lines:
-        path_key, path_val = aline.split(':')
-        DSM_ROOT_PATHS[path_key] = path_val
-
-    return DSM_ROOT_PATHS
 
 
 def latest_data_vdir(dsid):
