@@ -149,6 +149,31 @@ def get_last_status_line(file_path):
                 last_line = line
         return last_line
 
+def dsid_to_dict(dtyp: str, dsid: str):
+    ret = dict()
+    ds_list = dsid.split('.')
+    if dtyp == "NATIVE":
+        ret["project"] = ds_list[0]
+        ret["model"] = ds_list[1]
+        ret["experiment"] = ds_list[2]
+        ret["resolution"] = ds_list[3]
+        ret["realm"] = ds_list[4]
+        ret["grid"] = ds_list[5]
+        ret["datatype"] = ds_list[6]
+        ret["freq"] = ds_list[7]
+        ret["ensemble"] = ds_list[8]
+    elif dtyp == "CMIP6":
+        ret["project"] = ds_list[0]
+        ret["activity"] = ds_list[1]
+        ret["institution"] = ds_list[2]
+        ret["source_id"] = ds_list[3]
+        ret["experiment"] = ds_list[4]
+        ret["variant_label"] = ds_list[5]
+        ret["table"] = ds_list[6]
+        ret["cmip6var"] = ds_list[7]
+        ret["grid"] = ds_list[8]
+    return ret
+
 # -----------------------------------------------
 # unify status case values
 
