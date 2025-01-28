@@ -25,6 +25,23 @@ def get_UTC_TS():
 def get_UTC_YMD():
    return datetime.now(timezone.utc).strftime("%Y%m%d")
 
+def dirlist(directory):
+    retlist = list()
+    try:
+        for entry in os.listdir(directory):
+            path = os.path.join(directory, entry)
+            if os.path.isfile(path):  # Check if it's a regular file
+                retlist.append(path)
+    except FileNotFoundError:
+        print(f"The directory '{directory}' does not exist.")
+    except PermissionError:
+        print(f"Permission denied to access '{directory}'.")
+    retlist.sort()
+    return retlist
+
+def dircount(directory):
+    return len(dirlist(directory))
+
 
 def load_file_lines(file_path):
     if not file_path:
@@ -41,6 +58,11 @@ def load_file_lines(file_path):
             if x[:-1]
         ]
     return retlist
+
+def fappend(afile: str, amsg: str):
+    with open(afile, 'a') as file:
+        file.write(amsg + "\n")
+
 
 
 # -----------------------------------------------
@@ -191,7 +213,6 @@ def print_debug(e):
 
 
 def setup_logging(loglevel, logpath):
-    logname = logpath + "-" + get_UTC_TS()
     if loglevel == "debug":
         level = logging.DEBUG
     elif loglevel == "error":
@@ -201,7 +222,7 @@ def setup_logging(loglevel, logpath):
     else:
         level = logging.INFO
     logging.basicConfig(
-        filename=logname,
+        filename=logpath,
         # format="%(asctime)s:%(levelname)s:%(module)s:%(message)s",
         format="%(asctime)s_%(msecs)03d:%(levelname)s:%(message)s",
         datefmt="%Y%m%d_%H%M%S",
@@ -241,6 +262,7 @@ def con_message(level, message):  # message ONLY to console (in color)
 
 def log_message(level, message, user_level='INFO'):  # message BOTH to log file and to console (in color)
 
+    """
     process_stack = inspect.stack()[1]
     parent_module = inspect.getmodule(process_stack[0])
     
@@ -248,6 +270,7 @@ def log_message(level, message, user_level='INFO'):  # message BOTH to log file 
     if parent_name == "__MAIN__":
         parent_name = process_stack[1].split(".")[0].upper()
     message = f"{parent_name}:{message}"
+    """
 
     level = level.upper()
     colors = {"INFO": "white", "WARNING": "yellow", "ERROR": "red", "DEBUG": "cyan"}
@@ -265,12 +288,14 @@ def log_message(level, message, user_level='INFO'):  # message BOTH to log file 
     else:
         print(f"ERROR: {level} is not a valid log level")
 
+    """
     if level == 'DEBUG' and user_level != level:
         pass
     else:
         # now to the console
         msg = f"{tstamp}:{level}:{message}"
         cprint(msg, color)
+    """
 
 
 # -----------------------------------------------
