@@ -159,3 +159,11 @@ config\.json
 \.vscode/*
 .coverage*
 dask-worker-space
+
+# Project specific
+
+clean_jobs.sh
+datasm/tools/EXPIRED/
+datasm/workflows/TRANS_LAYOUT
+datasm/workflows/TRANS_PROCESSING
+v2_PLAN/
