@@ -3,8 +3,10 @@
 # Import necessary modules
 import sys
 import os
+import glob
 import shutil
 import argparse
+import json
 import yaml
 import fnmatch
 import subprocess
@@ -16,6 +18,7 @@ from datasm.util import dircount
 from datasm.util import get_dsm_paths
 from datasm.util import load_file_lines
 from datasm.util import fappend
+from datasm.util import dsid_to_dict
 from datasm.util import parent_native_dsid
 from datasm.util import latest_data_vdir
 from datasm.util import get_first_nc_file
@@ -134,6 +137,19 @@ def copy_file(source, destination):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+def glob_move(src_pattern, dest_dir):
+    os.makedirs(dest_dir, exist_ok=True)
+
+    # Use glob to find all files matching the pattern
+    files_to_move = glob.glob(src_pattern)
+
+    # Move each file to the destination directory
+    for file_path in files_to_move:
+        try:
+            shutil.move(file_path, dest_dir)
+        except Exception as e:
+            print(f"An error occurred while moving '{file_path}': {e}")
+
 def force_symlink(target, link_name):
     if os.path.islink(link_name):
         os.unlink(link_name)
@@ -238,42 +254,13 @@ def suggested_ypf(vartypecode: str):
 dsm_paths = get_dsm_paths()
 resource_path = dsm_paths['STAGING_RESOURCE']
 staging_tools = dsm_paths['STAGING_TOOLS']
-wh_root = dsm_paths['STAGING_DATA']
+staging_data = dsm_paths['STAGING_DATA']
 maps_path = os.path.join(resource_path, "maps")
 cmor_tables = os.path.join(resource_path, "cmor/cmip6-cmor-tables/Tables")
 derive_conf = os.path.join(resource_path, "derivatives.conf")
 metadata_version = os.path.join(staging_tools, "metadata_version.py")
 
 vrt_remap_plev19=os.path.join(f"{resource_path}", "grids", "vrt_remap_plev19.nc")
-
-# metadata_version=$tools/metadata_version.py
-
-# CMIP6.CMIP.E3SM-Project.E3SM-2-1.historical.r1i1p1f1.fx.areacella.gr
-
-def dsid_to_dict(dtyp: str, dsid: str):
-    ret = dict()
-    ds_list = dsid.split('.')
-    if dtyp == "NATIVE":
-        ret["project"] = ds_list[0]
-        ret["model"] = ds_list[1]
-        ret["experiment"] = ds_list[2]
-        ret["resolution"] = ds_list[3]
-        ret["realm"] = ds_list[4]
-        ret["grid"] = ds_list[5]
-        ret["datatype"] = ds_list[6]
-        ret["freq"] = ds_list[7]
-        ret["ensemble"] = ds_list[8]
-    elif dtyp == "CMIP6":
-        ret["project"] = ds_list[0]
-        ret["activity"] = ds_list[1]
-        ret["institution"] = ds_list[2]
-        ret["source_id"] = ds_list[3]
-        ret["experiment"] = ds_list[4]
-        ret["variant_label"] = ds_list[5]
-        ret["table"] = ds_list[6]
-        ret["cmip6var"] = ds_list[7]
-        ret["grid"] = ds_list[8]
-    return ret
 
 
 # NOTE: caseid is typically the first 3 fields of the native dataset_id, which
@@ -287,6 +274,13 @@ def get_caseid(nat_src):
     caseid = '.'.join(selected)
     return caseid
 
+def get_metadata_file_version(metadata):
+    with open(metadata, "r") as file_content:
+        json_in = json.load(file_content)
+            return json_in["version"]
+
+
+    with open(filename, "r") as file_content:
 def get_sim_years(dsid: str, altspec: str):
     dsm_paths = get_dsm_paths()
     if altspec:
@@ -427,9 +421,10 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         cmd = ["e3sm_to_cmip", "--info", "-v", dsd['cmip6var'], "--freq", freq, "--realm", realm, "-t", cmor_tables, "--map", "no_map", "--info-out", e2c_info_yaml]
         cmd_result = subprocess.run(cmd, capture_output=True, text=True)
         if cmd_result.returncode != 0:
-            print(f"ERROR: E2C INFO CMD FAILED: cmd = {cmd}")
-            print(f"STDERR: {cmd_result.stderr}")
-            sys.exit(cmd_result.returncode)
+            log_message("error", f"E2C INFO CMD FAILED: cmd = {cmd}")
+            log_message("error", f"STDERR: {cmd_result.stderr}")
+            continue
+
         nat_vars = linex(e2c_info_yaml,"E3SM Variables",':',1)
         nat_vars = ''.join(nat_vars.split(' ')) # remove whitespace
         namefile = get_namefile(nat_dsid)
@@ -480,8 +475,9 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         cmd = ["python", metadata_version, "-i", metadata_file, "-m", "set"]
         cmd_result = subprocess.run(cmd, capture_output=True, text=True)
         if cmd_result.returncode != 0:
-            print(f"ERROR: Metadata Versioning CMD FAILED: cmd = {cmd}")
-            print(f"STDERR: {cmd_result.stderr}")
+            log_message("error", f"Metadata Versioning CMD FAILED: cmd = {cmd}")
+            log_message("error", f"STDERR: {cmd_result.stderr}")
+            continue
 
         log_message("info", f"        ISSUED: {pargs.run_mode} {pargs.input_dsids}")
         log_message("info", f"      run_mode: {pargs.run_mode}")
@@ -764,9 +760,43 @@ exit 0
     # SECTION:  Subscript Execution ==========================================================
     #
 
+        log_message("info", f"Begin processing dataset_id {dsid} (the_var_type = {the_var_type}")
+
+        if pargs.run_mode == "WORK":
+            ts = get_UTC_TS()
+            fappend(status_file, f"STAT:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Engaged")
+
+
+        cmd = [escript]
+        cmd_result = subprocess.run(cmd, capture_output=True, text=True)
+        if cmd_result.returncode != 0:
+            log_message("error", f"Generate CMIP6 CMD FAILED: cmd = {cmd}")
+            log_message("error", f"STDERR: {cmd_result.stderr}")
+            if pargs.run_mode == "WORK":
+                ts = get_UTC_TS()
+                fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Subprocess:Fail:return_code={cmd_result.returncode}")
+                fappend(status_file, f"STAT:{ts}:POSTPROCESS:GenerateCMIP6:Fail:return_code={cmd_result.returncode}")
+            continue
+
     #
-    # WORK IN PROGRESS:  ~90% Completed.  Codes to auto-launch subordinate script(s) remain
+    # SECTION:  Product Disposition ==========================================================
     #
+
+        product_dst = ""
+        if pargs.run_mode == "WORK":
+            facet_path = dsid.replace('.', '/')
+            ds_version = get_metadata_file_version(metadata_dst)
+            product_src = os.path.join(result_dir, facet_path, ds_version)
+            product_dst = os.path.join(staging_data, facet_path, ds_version)
+            os.makedirs(product_dst, exist_ok=True)
+            pattern_src = os.path.join(product_src, "*.nc")
+            glob_move(pattern_src, product_dst)
+            log_message("info", f"Completed move of CMIP6 dataset to Staging Data ({product_dst})")
+
+        log_message("info", "Completed Processing dataset_id: {dsid}")
+        if pargs.run_mode == "WORK":
+            ts = get_UTC_TS()
+            fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
 
 
 def main():

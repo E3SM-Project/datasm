@@ -265,9 +265,7 @@ def con_message(level, message):  # message ONLY to console (in color)
 
     process_stack = inspect.stack()[1]
     # for item in process_stack:
-    #     print(f'DEBUG UTIL: process_stack item = {item}')
     parent_module = inspect.getmodule(process_stack[0])
-    # print(f'DEBUG UTIL: (from getmodule(process_stack[0]): parent_module.__name__ = {parent_module.__name__}')
     parent_name = parent_module.__name__.split(".")[-1].upper()
     if parent_name == "__MAIN__":
         parent_name = process_stack[1].split(".")[0].upper()
@@ -454,7 +452,6 @@ def prepare_cmip_job_metadata(cmip_dsid, in_meta_path, slurm_out):
     return metadata_path
 
 def dc_spec_selection(alist,spec):
-    # print(f"DEBUG - Selection for : {spec}")
     speclist = spec.split(',')
 
     for spec_val in speclist:
@@ -679,7 +676,7 @@ def parent_native_dsid(target_dsid):
 
     native_dsid = ('.').join([ "E3SM", model, experiment, resol, realm, grid, otype, freq, ens ])
 
-    log_message("info", f"DEBUG_TEST: parent_native_dsid: returns native dsid {native_dsid}")
+    # log_message("info", f"DEBUG_TEST: parent_native_dsid: returns native dsid {native_dsid}")
 
     return native_dsid
 

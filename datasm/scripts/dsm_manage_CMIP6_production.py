@@ -339,12 +339,20 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
                     log_message("info", f"Cannot retrieve remote archive for native data {nat_dsid}")
                     log_message("info", f"Cannot process CMIP6 dataset (dsid)")
                     continue
+                log_message("info", f"Proceeding to extract from local archives")
             if not extract_from_local_archive(nat_dsid):
                 log_message("info", f"Cannot extract native dataset {nat_dsid} from local archive")
                 log_message("info", f"Cannot process CMIP6 dataset (dsid)")
                 continue
+            log_message("info", f"Proceeding to generate CMIP6")
         
-        cmd = ["python", f"{dsmgenCMIP6}", "--runmode", f"{pargs.runmode}", "-i", f"dsidfile", "--info-out", e2c_info_yaml]
+        dsidfile = os.path.join(gv_workdir, "curr_dsid")
+        fappend(dsidfile, f"{dsid}")
+        dsmgenCMIP6 = os.path.join(staging_tools, "dsm_generate_CMIP6.py")
+        cmd = ["python", f"{dsmgenCMIP6}", "--runmode", f"{pargs.run_mode}", "-i", f"{dsidfile}"]
+        log_message("info", f"CMD = {cmd}")
+        sys.exit(0)
+
         cmd_result = subprocess.run(cmd, capture_output=True, text=True)
         if cmd_result.returncode != 0:
             log_message("info", f"ERROR: {dsmgenCMIP6} FAIL to generate CMIP dataset {dsid}")
