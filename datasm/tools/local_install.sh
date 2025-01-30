@@ -10,6 +10,7 @@ cp ../resource/derivatives.conf $resource/derivatives.conf
 cp ../resource/Archive_Locator $resource/archive/Archive_Locator
 cp ../resource/Archive_Map $resource/archive/Archive_Map
 cp ../resource/Archive_Map_headers $resource/archive/Archive_Map_headers
+cp ../resource/NERSC_Archive_Map $resource/archive/NERSC_Archive_Map
 cp ../resource/Standard_Datatype_Extraction_Patterns $resource/archive/Standard_Datatype_Extraction_Patterns
 
 for afile in `cat MANIFEST`; do
