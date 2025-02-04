@@ -105,18 +105,19 @@ def linex(path: str, keyv: str, delim: chr, pos: int):
                     return aline.split(delim)[pos].rstrip()
     return ""
 
-def linex_list(path: str, keyv: str, delim: chr, pos: int):
+def lines_match(path: str, keyv: str, delim: chr, pos: int):
     retlist = list()
     if not os.path.exists(path):
         print(f"ERROR: linex: no path {path}")
         return retlist
     with open(path, 'r') as thefile:
         for aline in thefile:
+            aline = aline.rstrip()
             if keyv in aline:
                 if delim == "":
-                    retlist.append(aline.rstrip())
-                else:
-                    retlist.append(aline.split(delim)[pos].rstrip())
+                    retlist.append(aline)
+                elif aline.split(delim)[pos] == keyv:
+                    retlist.append(aline)
     return retlist
 
 def quiet_remove(afile):
@@ -215,7 +216,7 @@ def retrieve_remote_archives(native_dsid):
     e3sm_arch_map = os.path.join(archive_manage, "Archive_Map")
     NERSC_arch_map = os.path.join(archive_manage, "NERSC_Archive_Map")
 
-    e3sm_map_lines = linex_list(e3sm_arch_map, native_dsid, ',', 1)
+    e3sm_map_lines = lines_match(e3sm_arch_map, native_dsid, ',', 1)
     if len(e3sm_map_lines) == 0:
         log_message("info", f"No entries for {native_dsid} in {e3sm_arch_map}")
         return False
@@ -226,7 +227,7 @@ def retrieve_remote_archives(native_dsid):
     for aline in e3sm_map_lines:
         arch_path = aline.split(',')[2]
         arch_name = os.path.basename(arch_path)
-        NERSC_map_line = linex_list(e3sm_arch_map, arch_name, ',', 1)[0]
+        NERSC_map_line = lines_match(e3sm_arch_map, arch_name, ',', 1)[0]
         remote_arch_size += int(NERSC_map_line.split(',')[2])
         remote_arch_path = NERSC_map_line.split(',')[5]
         remote_arch_paths.append(remote_arch_path )
@@ -238,7 +239,7 @@ def retrieve_remote_archives(native_dsid):
         log_message("info", f"Archive extraction would exceed disk free space {free // (2**30)} GB.")
         return False
 
-    # Condust zstash globust transfer (or globus_sdk-based transfer) here.
+    # Condust zstash/globus transfer (or globus_sdk-based transfer) here.
 
 
 
@@ -249,7 +250,7 @@ def support_in_local_archive(native_dsid):
     # test that native_dsid appears in local (E3SM) Archive_Map
 
     e3sm_arch_map = os.path.join(archive_manage, "Archive_Map")
-    map_lines = linex_list(e3sm_arch_map, native_dsid, ',', 1)
+    map_lines = lines_match(e3sm_arch_map, native_dsid, ',', 1)
     if len(map_lines) == 0:
         log_message("info", f"No entries for {native_dsid} in {e3sm_arch_map}")
         return False
@@ -261,7 +262,7 @@ def extract_from_local_archive(native_dsid):
     # use zstash to extract native dataset to the warehouse
 
     e3sm_arch_map = os.path.join(archive_manage, "Archive_Map")
-    map_lines = linex_list(e3sm_arch_map, native_dsid, ',', 1)
+    map_lines = lines_match(e3sm_arch_map, native_dsid, ',', 1)
     if len(map_lines) == 0:
         log_message("info", f"No entries for {native_dsid} in {e3sm_arch_map}")
         return False
@@ -337,12 +338,12 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
             if not support_in_local_archive(nat_dsid):
                 if not retrieve_remote_archives(nat_dsid):
                     log_message("info", f"Cannot retrieve remote archive for native data {nat_dsid}")
-                    log_message("info", f"Cannot process CMIP6 dataset (dsid)")
+                    log_message("info", f"Cannot process CMIP6 dataset {dsid}")
                     continue
                 log_message("info", f"Proceeding to extract from local archives")
             if not extract_from_local_archive(nat_dsid):
                 log_message("info", f"Cannot extract native dataset {nat_dsid} from local archive")
-                log_message("info", f"Cannot process CMIP6 dataset (dsid)")
+                log_message("info", f"Cannot process CMIP6 dataset {dsid}")
                 continue
             log_message("info", f"Proceeding to generate CMIP6")
         
