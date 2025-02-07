@@ -159,12 +159,17 @@ def glob_move(src_pattern, dest_dir):
     # Use glob to find all files matching the pattern
     files_to_move = glob.glob(src_pattern)
 
+    errors = 0
     # Move each file to the destination directory
     for file_path in files_to_move:
         try:
             shutil.move(file_path, dest_dir)
         except Exception as e:
             print(f"An error occurred while moving '{file_path}': {e}")
+            errors += 1
+    if errors > 0:
+        return False
+    return True
 
 def force_symlink(target, link_name):
     if os.path.islink(link_name):
@@ -239,7 +244,7 @@ def retrieve_remote_archives(native_dsid):
         log_message("info", f"Archive extraction would exceed disk free space {free // (2**30)} GB.")
         return False
 
-    # Condust zstash/globus transfer (or globus_sdk-based transfer) here.
+    # Conduct zstash globus transfer (or globus_sdk-based transfer) here.
 
 
 
@@ -263,6 +268,10 @@ def extract_from_local_archive(native_dsid):
 
     e3sm_arch_map = os.path.join(archive_manage, "Archive_Map")
     map_lines = lines_match(e3sm_arch_map, native_dsid, ',', 1)
+
+    # log_message("debug", f"map_lines = {map_lines}")
+    # print(f"DEBUG: map_lines = {map_lines}", flush=True)
+
     if len(map_lines) == 0:
         log_message("info", f"No entries for {native_dsid} in {e3sm_arch_map}")
         return False
@@ -271,7 +280,7 @@ def extract_from_local_archive(native_dsid):
     for aline in map_lines:
         arch_path = aline.split(',')[2]
         if os.path.exists(arch_path):
-            asize += get_directory_content_size(arch_path)
+            asize = get_directory_content_size(arch_path)
             if asize == 0:
                 log_message("info", f"Archive path {arch_path} has no files")
                 return False
@@ -299,14 +308,19 @@ def extract_from_local_archive(native_dsid):
     for aline in map_lines:
         arch_path = aline.split(',')[2]
         arch_patt = aline.split(',')[3]
-        full_patt = os.path.join(arch_path, arch_patt)
-        cmd = ['zstash', 'extract', '--hpss=none', f'{full_patt}']
+        log_message("info", f"Attempting zstash extract from archive {arch_path} the files {arch_patt}")
+        full_patt = os.path.join(os.getcwd(), arch_patt)
+        precount = len(glob.glob(full_patt))
+        if precount > 0:
+            log_message("info", f"NOTE: Extraction output target {arch_patt} already contains {precount} files.")
+        cmd = ['zstash', 'extract', '--hpss=none', "--cache", f'{arch_path}', f"{arch_patt}"]
         cmd_result = subprocess.run(cmd, capture_output=True, text=True)
         if cmd_result.returncode != 0:
-            log_message("info", f"ERROR: zstash FAIL to extract local dataset {inative_dsid}")
+            log_message("info", f"ERROR: zstash FAIL to extract local dataset {native_dsid}")
             log_message("info", f"STDERR: {cmd_result.stderr}")
             return False
-        glob_move(full_patt, warehouse_dest)
+        if not glob_move(full_patt, warehouse_dest):
+            return False
         
     return True
 
@@ -314,7 +328,8 @@ def support_in_warehouse(native_dsid):
 
     native_src = latest_data_vdir(native_dsid)
     if os.path.exists(native_src):
-        return True
+        if get_directory_content_size(native_src) > 0:
+            return True
     return False
     
 
@@ -331,6 +346,8 @@ dryrun = True
 
 def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
 
+    task_count = len(dsids)
+    tasks_done = 0
     for dsid in dsids:
         log_message("info", f"Attempting CMIP6 generation for dataset {dsid}")
         nat_dsid = parent_native_dsid(dsid)
@@ -342,25 +359,28 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
                     continue
                 log_message("info", f"Proceeding to extract from local archives")
             if not extract_from_local_archive(nat_dsid):
-                log_message("info", f"Cannot extract native dataset {nat_dsid} from local archive")
+                log_message("info", f"Cannot extract native dataset {nat_dsid} from local archive to warehouse")
                 log_message("info", f"Cannot process CMIP6 dataset {dsid}")
                 continue
             log_message("info", f"Proceeding to generate CMIP6")
         
         dsidfile = os.path.join(gv_workdir, "curr_dsid")
+        quiet_remove(dsidfile)
         fappend(dsidfile, f"{dsid}")
         dsmgenCMIP6 = os.path.join(staging_tools, "dsm_generate_CMIP6.py")
         cmd = ["python", f"{dsmgenCMIP6}", "--runmode", f"{pargs.run_mode}", "-i", f"{dsidfile}"]
         log_message("info", f"CMD = {cmd}")
-        sys.exit(0)
 
         cmd_result = subprocess.run(cmd, capture_output=True, text=True)
         if cmd_result.returncode != 0:
             log_message("info", f"ERROR: {dsmgenCMIP6} FAIL to generate CMIP dataset {dsid}")
             log_message("info", f"STDERR: {cmd_result.stderr}")
             continue
-                
+        else:
+            tasks_done += 1
+            log_message("info", f"Successful generation of CMIP dataset {dsid} ({tasks_done} of {task_count})")
 
+    log_message("info", f"Processed {task_count} dataset_ids")
 
 
 def main():
