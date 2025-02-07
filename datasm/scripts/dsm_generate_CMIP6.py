@@ -26,13 +26,15 @@ from datasm.util import ensure_status_file_for_dsid
 from datasm.util import get_UTC_TS
 
 helptext = '''
-    Usage: dsmgen_cmip <runmode> <file_of_cmip6_dataset_ids> [alternate_dataset_spec.yaml]
-           <runmode> must be either "TEST" or "WORK".
-           In TEST mode, only the first year of data will be processed,
-           and the E3SM dataset status files are not updated."
-           In WORK mode, all years given in the dataset_spec are applied,
-           and the E3SM dataset status files are updated, and the cmorized
-           results are moved to staging data (the warehouse).
+    Usage: dsmgen_cmip <runmode> <file_of_cmip6_dataset_ids> [--dryrun] [alternate_dataset_spec.yaml]
+        <runmode> must be either "TEST" or "WORK".
+        In TEST mode, only the first year of data will be processed,
+        and the E3SM dataset status files are not updated."
+        In WORK mode, all years given in the dataset_spec are applied,
+        and the E3SM dataset status files are updated, and the cmorized
+        results are moved to staging data (the warehouse).
+
+        if "--dryrun" is given, the subordinate python run-script is created but not executed.
 
     Note: The runtime environment must include the following items:
 
@@ -58,6 +60,7 @@ def assess_args():
     optional = parser.add_argument_group('optional arguments')
     required.add_argument('-i', '--input_dsid_list', action='store', dest="input_dsids", type=str, help="file list of CMIP dataset_ids", required=True)
     required.add_argument('--runmode', action='store', dest="run_mode", type=str, help="\"TEST\" or \"WORK\"", required=True)
+    required.add_argument('--dryrun', action='store_true', dest="dryrun", help="(do not run created subscript)", required=False)
     optional.add_argument('--ds_spec', action='store', dest="alt_ds_spec", type=str, help="alternative dataset spec", required=False)
 
     args = parser.parse_args()
@@ -277,10 +280,8 @@ def get_caseid(nat_src):
 def get_metadata_file_version(metadata):
     with open(metadata, "r") as file_content:
         json_in = json.load(file_content)
-            return json_in["version"]
+        return json_in["version"]
 
-
-    with open(filename, "r") as file_content:
 def get_sim_years(dsid: str, altspec: str):
     dsm_paths = get_dsm_paths()
     if altspec:
@@ -388,11 +389,13 @@ os.makedirs(gv_tmp_dir, exist_ok=True)
 os.makedirs(gv_yml_dir, exist_ok=True)
 mainlog = ""
 
-dryrun = True
-
 def process_dsids(dsids: list, pargs: argparse.Namespace):
 
+    dsids_processed = 0
+    dsids_failed = 0
+
     for dsid in dsids:
+        dsids_processed += 1
         dsd = dsid_to_dict("CMIP6",dsid)
         freq = table_freq(dsd["table"])
         realm = table_realm(dsd["table"])
@@ -423,6 +426,7 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         if cmd_result.returncode != 0:
             log_message("error", f"E2C INFO CMD FAILED: cmd = {cmd}")
             log_message("error", f"STDERR: {cmd_result.stderr}")
+            dsids_failed += 1
             continue
 
         nat_vars = linex(e2c_info_yaml,"E3SM Variables",':',1)
@@ -477,6 +481,7 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         if cmd_result.returncode != 0:
             log_message("error", f"Metadata Versioning CMD FAILED: cmd = {cmd}")
             log_message("error", f"STDERR: {cmd_result.stderr}")
+            dsids_failed += 1
             continue
 
         log_message("info", f"        ISSUED: {pargs.run_mode} {pargs.input_dsids}")
@@ -513,29 +518,29 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         flags = ["-7", "--dfl_lvl=1", "--no_cll_msr", "--no_stdin"]
         cmd_1 = cmd_1b = cmd_2 = []
         if the_var_type == "atm_mon_2d": 
-            cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"ypf={ypf}", "--split", "-c", f"{caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
+            cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_mon_fx": 
             cmd_1 = ["ncremap", f"--map={map_file}", "-v", f"{nat_vars}", "-I", f"{native_data}", "-O", f"{rgr_dir_fixed}", "--no_stdin"]
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir_fixed}", "--realm", "fx"]
         elif the_var_type == "atm_mon_3d": 
-            cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"ypf={ypf}", "--split", "-c", f"{caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir_vert}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
+            cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir_vert}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
             cmd_1b = ["ncks", "--rgr", "xtr_mth=mss_val", f"--vrt_fl={vrt_remap_plev19}", f"""{rgr_dir_vert}/f"{{afile}}" """, f"""{rgr_dir}/f"{{afile}}" """]
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_day": 
             flags.extend(["--clm_md=hfs"])
-            cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"ypf={ypf}", "--split", "-c", f"{caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
+            cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--freq", "day"]
         elif the_var_type == "atm_3hr": 
             flags.extend(["--clm_md=hfs"])
-            cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"ypf={ypf}", "--split", "-c", f"{caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
+            cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--freq", "3hr"]
         elif the_var_type in ["lnd_mon", "lnd_ice_mon"]:            
-            cmd_1 = ["ncclimo", "-P", "elm", "-j", "1", "--var_xtr=landfrac", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"ypf={ypf}", "--split", "-c", f"{caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
+            cmd_1 = ["ncclimo", "-P", "elm", "-j", "1", "--var_xtr=landfrac", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "mpaso_mon": 
@@ -584,6 +589,8 @@ from datasm.util import log_message
 slogname = "{dsid}.sublog"
 slog = os.path.join("{sublogs}", f"{{slogname}}")
 
+print(f"DEBUG: sublog = {{slog}}", flush=True)
+
 setup_logging("info", f"{{slog}}")
 
 run_mode = "{pargs.run_mode}"
@@ -607,9 +614,6 @@ log_message("info", f"NATIVE_SOURCE_COUNT = {{in_count}} files ({{int(in_count/1
             DynaCode_2 = f"""
 cmd_1 = {cmd_1}
 log_message("info", f"cmd_1 = {{cmd_1}}")
-
-# DEBUG_ONLY
-sys.exit(0)
 
 cmd_result = subprocess.run(cmd_1, capture_output=True, text=True)
 if cmd_result.returncode != 0:
@@ -725,7 +729,7 @@ for segdex in range(range_segs):
 
         else:   # Currently, non-looping one-pass form
             DynaCode_5 = f"""
-cmd_2 = f"{{cmd_2}}
+cmd_2 = f"{{cmd_2}}"
 cmd_result = subprocess.run(cmd_2, capture_output=True, text=True)
 if cmd_result.returncode != 0:
     log_message("info", f"ERROR: E2C Process Fail: exit code = {{cmd_result.returncode}}")
@@ -746,14 +750,14 @@ ts = f"{{get_UTC_TS()}}"
 fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:E2C:Pass")
 fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
 
-exit 0
+sys.exit(0)
 """
         fappend(escript, f"{DynaCode_6}")
         log_message("info", "wrote DynaCode_6")
 
         log_message("info", f"Produced subordinate script for subprocessing: {escript}")
 
-        if dryrun:
+        if pargs.dryrun:
             continue
 
     #
@@ -767,7 +771,7 @@ exit 0
             fappend(status_file, f"STAT:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Engaged")
 
 
-        cmd = [escript]
+        cmd = ["python", escript]
         cmd_result = subprocess.run(cmd, capture_output=True, text=True)
         if cmd_result.returncode != 0:
             log_message("error", f"Generate CMIP6 CMD FAILED: cmd = {cmd}")
@@ -776,6 +780,7 @@ exit 0
                 ts = get_UTC_TS()
                 fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Subprocess:Fail:return_code={cmd_result.returncode}")
                 fappend(status_file, f"STAT:{ts}:POSTPROCESS:GenerateCMIP6:Fail:return_code={cmd_result.returncode}")
+            dsids_failed += 1
             continue
 
     #
@@ -798,6 +803,8 @@ exit 0
             ts = get_UTC_TS()
             fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
 
+    return dsids_failed, dsids_processed
+
 
 def main():
     global mainlog
@@ -813,11 +820,14 @@ def main():
     ts = get_UTC_TS()
     mainlog = os.path.join(gv_log_dir, f"{targ_list}.log-{ts}")
     setup_logging("info", mainlog)
-    print(f"DEBUG: mainlog = {mainlog}", flush=True)
+    print(f"DEBUG: DGC: mainlog = {mainlog}", flush=True)
 
     dsid_list = load_file_lines(pargs.input_dsids)
 
-    process_dsids(dsid_list, pargs)
+    failcount, totcount = process_dsids(dsid_list, pargs)
+
+    log_message("info", f"DSM_MANAGE_CMIP: {totcount - failcount} out of {totcount} datasets completed successfully")
+    print(f"INFO: DGC: {totcount - failcount} out of {totcount} datasets completed successfully")
     
 
 # Entry point of the program
