@@ -391,11 +391,7 @@ mainlog = ""
 
 def process_dsids(dsids: list, pargs: argparse.Namespace):
 
-    dsids_processed = 0
-    dsids_failed = 0
-
     for dsid in dsids:
-        dsids_processed += 1
         dsd = dsid_to_dict("CMIP6",dsid)
         freq = table_freq(dsd["table"])
         realm = table_realm(dsd["table"])
@@ -426,7 +422,6 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         if cmd_result.returncode != 0:
             log_message("error", f"E2C INFO CMD FAILED: cmd = {cmd}")
             log_message("error", f"STDERR: {cmd_result.stderr}")
-            dsids_failed += 1
             continue
 
         nat_vars = linex(e2c_info_yaml,"E3SM Variables",':',1)
@@ -481,7 +476,6 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         if cmd_result.returncode != 0:
             log_message("error", f"Metadata Versioning CMD FAILED: cmd = {cmd}")
             log_message("error", f"STDERR: {cmd_result.stderr}")
-            dsids_failed += 1
             continue
 
         log_message("info", f"        ISSUED: {pargs.run_mode} {pargs.input_dsids}")
@@ -504,7 +498,7 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         log_message("info", f"      restartf: {restartf}")
         log_message("info", f"      map_file: {map_file}")
         log_message("info", f"      region_f: {region_f}")
-        log_message("info", f"      metadata: {metadata_dst}")
+        log_message("info", f"      metadata: {metadata_file}")
         log_message("info", f"   cmor_tables: {cmor_tables}")
 
         # produce symlinks to native source in native_data
@@ -520,33 +514,33 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         if the_var_type == "atm_mon_2d": 
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_mon_fx": 
             cmd_1 = ["ncremap", f"--map={map_file}", "-v", f"{nat_vars}", "-I", f"{native_data}", "-O", f"{rgr_dir_fixed}", "--no_stdin"]
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir_fixed}", "--realm", "fx"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir_fixed}", "--realm", "fx"]
         elif the_var_type == "atm_mon_3d": 
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir_vert}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
             cmd_1b = ["ncks", "--rgr", "xtr_mth=mss_val", f"--vrt_fl={vrt_remap_plev19}", f"""{rgr_dir_vert}/f"{{afile}}" """, f"""{rgr_dir}/f"{{afile}}" """]
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_day": 
             flags.extend(["--clm_md=hfs"])
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--freq", "day"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--freq", "day"]
         elif the_var_type == "atm_3hr": 
             flags.extend(["--clm_md=hfs"])
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--freq", "3hr"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--freq", "3hr"]
         elif the_var_type in ["lnd_mon", "lnd_ice_mon"]:            
             cmd_1 = ["ncclimo", "-P", "elm", "-j", "1", "--var_xtr=landfrac", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "mpaso_mon": 
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "-s", "--realm", "Omon", "--map", f"{map_file}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "-s", "--realm", "Omon", "--map", f"{map_file}"]
         elif the_var_type == "mpassi_mon": 
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_dst}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "-s", "--realm", "SImon", "--map", f"{map_file}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "-s", "--realm", "SImon", "--map", f"{map_file}"]
         else: 
             log_nmessage("error", f"ERROR: var_type() returned {the_var_type} for cmip dataset_id {dsid}")
             continue
@@ -638,6 +632,7 @@ if cmd_result.returncode != 0:
             DynaCode_3 = f"""
 rgr_dir_vert = {rgr_dir_vert}
 cmd_1b = {cmd_1b}
+log_message("info", f"cmd_1b = {{cmd_1b}}")
 
 for afile in dirlist(rgr_dir_vert):
     cmd_result = subprocess.run(cmd_1b, capture_output=True, text=True)
@@ -664,6 +659,9 @@ for afile in dirlist(rgr_dir_vert):
 
         if the_var_type == "mpaso_mon" and pargs.run_mode == "WORK":
             DynaCode_4 = f"""
+
+cmd_2 = {cmd_2}
+log_message("info", f"cmd_2 = {{cmd_2}}")
 # engineer codes to loop on ypf years here
 
 native_src = os.path.join("{native_src}")
@@ -729,7 +727,8 @@ for segdex in range(range_segs):
 
         else:   # Currently, non-looping one-pass form
             DynaCode_5 = f"""
-cmd_2 = f"{{cmd_2}}"
+cmd_2 = {cmd_2}
+log_message("info", f"cmd_2 = {{cmd_2}}")
 cmd_result = subprocess.run(cmd_2, capture_output=True, text=True)
 if cmd_result.returncode != 0:
     log_message("info", f"ERROR: E2C Process Fail: exit code = {{cmd_result.returncode}}")
@@ -780,7 +779,6 @@ sys.exit(0)
                 ts = get_UTC_TS()
                 fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Subprocess:Fail:return_code={cmd_result.returncode}")
                 fappend(status_file, f"STAT:{ts}:POSTPROCESS:GenerateCMIP6:Fail:return_code={cmd_result.returncode}")
-            dsids_failed += 1
             continue
 
     #
@@ -790,7 +788,7 @@ sys.exit(0)
         product_dst = ""
         if pargs.run_mode == "WORK":
             facet_path = dsid.replace('.', '/')
-            ds_version = get_metadata_file_version(metadata_dst)
+            ds_version = get_metadata_file_version(metadata_file)
             product_src = os.path.join(result_dir, facet_path, ds_version)
             product_dst = os.path.join(staging_data, facet_path, ds_version)
             os.makedirs(product_dst, exist_ok=True)
@@ -802,8 +800,6 @@ sys.exit(0)
         if pargs.run_mode == "WORK":
             ts = get_UTC_TS()
             fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
-
-    return dsids_failed, dsids_processed
 
 
 def main():
@@ -824,10 +820,7 @@ def main():
 
     dsid_list = load_file_lines(pargs.input_dsids)
 
-    failcount, totcount = process_dsids(dsid_list, pargs)
-
-    log_message("info", f"DSM_MANAGE_CMIP: {totcount - failcount} out of {totcount} datasets completed successfully")
-    print(f"INFO: DGC: {totcount - failcount} out of {totcount} datasets completed successfully")
+    process_dsids(dsid_list, pargs)
     
 
 # Entry point of the program
