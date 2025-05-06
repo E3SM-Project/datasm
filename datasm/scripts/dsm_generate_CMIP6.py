@@ -18,12 +18,14 @@ from datasm.util import dircount
 from datasm.util import get_dsm_paths
 from datasm.util import load_file_lines
 from datasm.util import fappend
+from datasm.util import force_symlink
 from datasm.util import dsid_to_dict
 from datasm.util import parent_native_dsid
 from datasm.util import latest_data_vdir
 from datasm.util import get_first_nc_file
 from datasm.util import ensure_status_file_for_dsid
 from datasm.util import get_UTC_TS
+from datasm.util import tss
 
 helptext = '''
     Usage: dsmgen_cmip <runmode> <file_of_cmip6_dataset_ids> [--dryrun] [alternate_dataset_spec.yaml]
@@ -43,8 +45,9 @@ helptext = '''
         2. pip install datasm (ensures that datasm.utils are available along with configs)
 
         3. Place the line
-               export DSM_GETPATH=/p/user_pub/e3sm/staging/Relocation/.dsm_get_root_path.sh
+               export DSM_GETPATH=<path_to_DSM_STAGING>/Relocation/.dsm_get_root_path.sh
            into your .bashrc file, so that configs, mapfiles, metadata can be located.
+           (on Chrysalis, DSM_STAGING = /lcrc/group/e3sm2/DSM/Staging)
 
         4. pip install e3sm_to_cmip
 
@@ -71,6 +74,11 @@ def assess_args():
 # -----------------------------------------------------------
 # A Simple Utility
 # -----------------------------------------------------------
+
+def tss():
+    # timestamp in epoch seconds
+    return int(datetime.now().timestamp())
+
 
 def first_regular_file(directory):
     """Return the first regular file in the specified directory or None."""
@@ -153,11 +161,6 @@ def glob_move(src_pattern, dest_dir):
         except Exception as e:
             print(f"An error occurred while moving '{file_path}': {e}")
 
-def force_symlink(target, link_name):
-    if os.path.islink(link_name):
-        os.unlink(link_name)
-    os.symlink(target, link_name)
-
 # -----------------------------------------------------------
 # Convenient Function Definitions
 # -----------------------------------------------------------
@@ -201,7 +204,7 @@ CVatmdy = ["tasmin", "tasmax", "tas", "huss", "rlut", "pr"]
 CVatm3h = ["pr"]
 CVlnd = ["mrsos", "mrso", "mrfso", "mrros", "mrro", "prveg", "evspsblveg", "evspsblsoi", "tran", "tsl", "lai"]
 CVmpaso = ["areacello", "fsitherm", "hfds", "masso", "mlotst", "sfdsi", "sob", "soga", "sos", "sosga", "tauuo", "tauvo", "thetaoga", "tob", "tos", "tosga", "volo", "wfo", "zos", "thetaoga", "hfsifrazil", "masscello", "so", "thetao", "thkcello", "uo", "vo", "volcello", "wo", "zhalfo"]
-CVmapssi = ["siconc", "sitemptop", "sisnmass", "sitimefrac", "siu", "siv", "sithick", "sisnthick", "simass"]
+CVmpassi = ["siconc", "sitemptop", "sisnmass", "sitimefrac", "siu", "siv", "sithick", "sisnthick", "simass"]
 
 def var_type_code(var: str, realm: str, freq: str):
 
@@ -301,13 +304,17 @@ def get_namefile(dsid: str):
     headpart = dsid.split('.')[0:6]
     tailpart = dsid.split('.')[8:9]
     namedsid = '.'.join(headpart + ["namefile", "fixed"] + tailpart)
+    # log_message("info", f"DEBUG: get_namefile(): namedsid = {namedsid}")
     namevdir = latest_data_vdir(namedsid)
-    return first_regular_file(namevdir)
+    if os.path.exists(namevdir):
+        return first_regular_file(namevdir)
+    return "NONE"
 
 def get_restfile(dsid: str):
     headpart = dsid.split('.')[0:6]
     tailpart = dsid.split('.')[8:9]
     restdsid = '.'.join(headpart + ["restart", "fixed"] + tailpart)
+    # log_message("info", f"DEBUG: get_restfile(): restdsid = {restdsid}")
     restvdir = latest_data_vdir(restdsid)
     if os.path.exists(restvdir):
         # if sea-ice, use the ocena restart
@@ -412,7 +419,7 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         elif pargs.run_mode == "WORK":
             ypf = suggested_ypf(the_var_type)
             status_file = ensure_status_file_for_dsid(dsid)
-            print(f"DEBUG: status_file = {status_file}", flush=True)
+            # print(f"DEBUG: status_file = {status_file}", flush=True)
 
         print(f"StartYear = {year_start}, EndYear = {year_final}, YPF = {ypf}")
         e2c_info_yaml = f"{gv_yml_dir}/{dsd['table']}_{dsd['cmip6var']}.yaml"
@@ -501,10 +508,6 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         log_message("info", f"      metadata: {metadata_file}")
         log_message("info", f"   cmor_tables: {cmor_tables}")
 
-        # produce symlinks to native source in native_data
-            
-        setup_target_symlinks(pargs.run_mode, the_var_type, native_src, native_data, realm, restartf, namefile, region_f)
-
         #
         # Create the var-type specific command lines ============================================
         #
@@ -542,12 +545,16 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         elif the_var_type == "mpassi_mon": 
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "-s", "--realm", "SImon", "--map", f"{map_file}"]
         else: 
-            log_nmessage("error", f"ERROR: var_type() returned {the_var_type} for cmip dataset_id {dsid}")
+            log_message("error", f"ERROR: var_type() returned {the_var_type} for cmip dataset_id {dsid}")
             continue
 
         log_message("info", f"CMD_1:   {cmd_1}")
         log_message("info", f"CMD_1b:  {cmd_1b}")
         log_message("info", f"CMD_2:   {cmd_2}")
+
+        # produce symlinks to native source in native_data
+            
+        setup_target_symlinks(pargs.run_mode, the_var_type, native_src, native_data, realm, restartf, namefile, region_f)
 
         # confirm presence of data (symlinks) in native_data
         in_count = dircount(native_data)
@@ -562,6 +569,8 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         escript = os.path.join(subscripts, f"{dsid}-gen_CMIP6.py")
         quiet_remove(escript)
 
+        log_message("info", f"   gen escript: {escript}")
+
         DynaCode_1 = f"""
 #!/usr/bin/env python3
 # Generating {dsid}:
@@ -573,13 +582,20 @@ import sys
 import os
 import subprocess
 import fnmatch
+import shutil
+import time
 from datasm.util import get_UTC_TS
+from datasm.util import tss
 from datasm.util import dirlist
 from datasm.util import dircount
 from datasm.util import fappend
+from datasm.util import force_symlink
+from datasm.util import get_srun_status
+from datasm.util import force_srun_scancel
 from datasm.util import setup_logging
 from datasm.util import log_message
 
+dsid = "{dsid}"
 slogname = "{dsid}.sublog"
 slog = os.path.join("{sublogs}", f"{{slogname}}")
 
@@ -596,6 +612,8 @@ ypf = {ypf}
 
 # confirm presence of data (symlinks) in native_data
 
+log_message("info", f"-")
+log_message("info", f"======== Generate dataset: {{dsid}} ========")
 in_count = dircount(native_data)
 log_message("info", f"NATIVE_SOURCE_COUNT = {{in_count}} files ({{int(in_count/12)}} years)")
 """
@@ -664,6 +682,10 @@ cmd_2 = {cmd_2}
 log_message("info", f"cmd_2 = {{cmd_2}}")
 # engineer codes to loop on ypf years here
 
+restartf = "{restartf}"
+namefile = "{namefile}"
+region_f = "{region_f}"
+
 native_src = os.path.join("{native_src}")
 range_years = int(year_final) - int(year_start) + 1
 range_segs = int(range_years/int(ypf))
@@ -676,51 +698,207 @@ log_message("info", f"range_years = {{range_years}}, ypf = {{ypf}}, range_segs =
 log_message("info", f"native_src = {{native_src}}")
 log_message("info", f"Begin processing {{range_years}} at {{ypf}} years per segment.  Total segments = {{range_segs}}")
 
-for segdex in range(range_segs):
-    # wipe existing native_data datafile symlinks, create new range of same
-    # then create the next segment of symlinks, and call the e3sm_to_cmip
-    pattern = "*mpaso.hist.am.timeSeriesStatsMonthly*.nc"
-    matches = [s for s in os.listdir(native_data) if fnmatch.fnmatch(s, pattern)]               
-    for amatch in matches:
-        fullmatch = os.path.join(native_data, amatch)
-        if os.path.islink(fullmatch):
-            os.unlink(fullmatch)
 
-    log_message("info", f"Processing segment {{segment}}: ({{ypf}} years)")
+# remove and recreate native_data directory
+shutil.rmtree(native_data)
+os.makedirs(native_data)
+
+filepattern = "*mpaso.hist.am.timeSeriesStatsMonthly*.nc"
+
+# Create native_data subdirs for each segment and populate with year-range of symlinks to native_src
+# Create custom cmd_2 for each segment and store in cmd_2_group list
+
+cmd_2_group = []
+
+for segdex in range(range_segs):
+    yrA = int(year_start) + segdex*ypf
+    yrB = f"{{yrA:04}}"
+    segname = f"seg-{{yrB}}"
+    segpath = os.path.join(native_data, segname)
+    os.makedirs(segpath)
+    the_var_name = "{dsd['cmip6var']}"
+    
     for yrdex in range(ypf):
-        yrA = int(year_start) + segdex*ypf
-        yrB = f"{{yrA:04}}"
-        pattern = str(f"*{{yrB}}-*.nc")
+        the_year = yrA + yrdex
+        pat_year = f"{{the_year:04}}"
+        pattern = str(f"*{{pat_year}}-*.nc")
         matches = [s for s in os.listdir(native_src) if fnmatch.fnmatch(s, pattern)]
         for amatch in matches:
             bfile = os.path.basename(amatch)
             target = os.path.join(native_src, bfile)
-            linknm = os.path.join(native_data, bfile)
-            # force_symlink(target, linknm)
-            # log_message("info", f"RELINK: force_symlink({{target}}, {{linknm}})")
+            linknm = os.path.join(segpath, bfile)
+            force_symlink(target, linknm)
 
-    cmd_result = subprocess.run(cmd_2, capture_output=True, text=True)
+    if restartf != "NONE":
+        restart_base = os.path.basename(restartf)
+        force_symlink(restartf, os.path.join(segpath, restart_base))
+    if namefile != "NONE":
+        namefile_base = os.path.basename(namefile)
+        force_symlink(namefile, os.path.join(segpath, namefile_base))
+    if region_f != "NONE":
+        region_f_base = os.path.basename(region_f)
+        force_symlink(region_f, os.path.join(segpath, region_f_base))
 
-    if cmd_result.returncode != 0:
-        log_message("info", f"ERROR: E2C Process Fail: exit code = {{cmd_result.returncode}}")
-        log_message("info", f"STDERR: {{cmd_result.stderr}}")
-        log_message("info", f"STDOUT: {{cmd_result.stdout}}")
-        if run_mode == "WORK":
-            ts = f"{{get_UTC_TS()}}"
-            fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:E2C:Fail:return_code={{cmd_result.returncode}}")
-            fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Fail:return_code={{cmd_result.returncode}}")
-        sys.exit(cmd_result.returncode)
+    cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "-s", "--realm", "Omon", "--map", f"{map_file}"]
+    seg_spec = dict()
+    seg_spec['segname'] = segname
+    seg_spec['seg_cmd'] = cmd_2
+    cmd_2_group.append(seg_spec)
 
+# This loop of segment processing must submit each segment job to slurm/srun =============================
 
-    log_message("info", f"Completed years to {{yrB}}")
+runstat_records = []
 
+# Launch each command with srun
+for seg_spec in cmd_2_group:
+    segname = seg_spec['segname']
+    job_name = f"e2c_{{the_var_name}}_{{segname}}"
 
+    srun_stat = dict()
+    srun_stat['job_id'] = "UNKNOWN"
+    srun_stat['job_name'] = job_name
+    srun_stat['process'] = None
+    srun_stat['status'] = "UNKNOWN"
+    srun_stat['target'] = str(dsid)
+    srun_stat['start_sec'] = tss()
+    srun_stat['elapse'] = 0
+    srun_stat['ignore'] = False
+    
+    seg_cmd = ["srun", "--exclusive", "--job-name", f"{{job_name}}"]
+    seg_cmd.extend(seg_spec['seg_cmd'])
+    # log_message("info", f"DEBUG: seg_cmd = {{seg_cmd}}")
+    # log_message("info", f"Launching segment job: {{segname}} ({{ypf}} years): cmd={{seg_cmd}}")
+    process = subprocess.Popen(
+        seg_cmd,
+        shell=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    srun_stat['process'] = process
+    runstat_records.append(srun_stat)
+    time.sleep(10)
+    if not get_srun_status(srun_stat):
+        log_message("info", f"FAIL to obtain initial srun_status for job_name {{job_name}}")
+        continue
+    log_message("info", f"Obtained Job_ID {{srun_stat['job_id']}} for job {{job_name}}")
+        
+# Wait for all runstat_records to complete, kill any that take too long
 
-    log_message("info", f"E2C Process Pass")
+MINWAIT = 300
+MAXWAIT = 7200
+
+still_trying = True
+while still_trying:
+    cancelled = 0
+    completed = 0
+    failed = 0
+    pending = 0
+    running = 0
+    other = 0
+    stat_fail = 0
+    mean_et = 0.0
+    sum_comp_et = 0.0
+
+    # Pass 1:  Tally status values
+
+    job_count = len(runstat_records)
+    log_message("info", f"LOOPING on {{job_count}} runstat_records")
+    for i, rsrec in enumerate(runstat_records):
+        job_name = rsrec['job_name']
+        # log_message("info", f"DEBUG_LOOP: Processing runstat_record {{i}}: jobname = {{job_name}}")
+        if not get_srun_status(rsrec):
+            log_message("info", f"FAIL to obtain srun_status for job_name {{job_name}}")
+            stat_fail += 1
+            continue
+        job_stat = rsrec['status']
+        # log_message("info", f"DEBUG_LOOP: got job_stat {{job_stat}} for job_name {{job_name}}")
+        if job_stat == "FAILED":
+            if not rsrec['ignore']:
+                log_message("info", f"FAILED job_name {{job_name}}, et={{rsrec['elapse']}}")
+                rsrec['ignore'] = True
+            failed += 1
+        elif job_stat == "PENDING":
+            pending += 1
+            log_message("info", f"PENDING job_name {{job_name}}")
+        elif job_stat == "COMPLETED":
+            completed += 1
+            sum_comp_et += int(rsrec['elapse'])
+            if not rsrec['ignore']:
+                log_message("info", f"COMPLETED job_name {{job_name}}, et={{rsrec['elapse']}}")
+                rsrec['ignore'] = True
+        elif job_stat == "RUNNING":
+            running += 1
+            et = int(rsrec['elapse'])
+            log_message("info", f"RUNNING job_name {{job_name}} (et={{et}})")
+        elif job_stat == "CANCELLED":
+            cancelled += 1
+            sum_comp_et += int(rsrec['elapse'])
+            if not rsrec['ignore']:
+                log_message("info", f"CANCELLED job_name {{job_name}}, et={{rsrec['elapse']}}")
+                rsrec['ignore'] = True
+        else:
+            other += 1
+            log_message("info", f"Unexpected srun_status {{job_stat}} for job_name {{job_name}}")
+
+    log_message("info", f"Completed pass of {{job_count}} jobs")
+    log_message("info", f"    COMPLETED={{completed}}, FAILED={{failed}}, PENDING={{pending}}, CANCELLED={{cancelled}}, RUNNING={{running}}, StatFail={{stat_fail}}")
+
+    # Pass 2:  Determine Loop Status
+
+    if completed > 0:
+        mean_et = sum_comp_et/completed
+
+    for i, rsrec in enumerate(runstat_records):
+        job_name = rsrec['job_name']
+        job_stat = rsrec['status']
+        if job_stat == "RUNNING":
+            et = int(rsrec['elapse'])
+            log_message("info", f"RUNNING job_name {{job_name}} (et={{et}}, mean_et={{int(mean_et)}} for {{completed}} jobs)")
+            running += 1
+            if et > MINWAIT and et < MAXWAIT and completed > 2:
+                if et > 5*mean_et:
+                    log_message("info", f"Issuing SCANCEL on extended relative runtime: job_name = {{job_name}}")
+                    force_srun_scancel(rsrec)
+            elif et > MAXWAIT:
+                log_message("info", f"Issuing SCANCEL on extended absolute runtime: job_name = {{job_name}}")
+                force_srun_scancel(rsrec)
+
+    if not (running or stat_fail or pending):
+        log_message("info", f"DEBUG_LOOP: Stop Trying (post sleep): running={{running}}, stat_fail={{stat_fail}}, pending={{pending}}")
+        still_trying = False
+        break   # save a sleep
+    log_message("info", f"SLEEPing 300")
+    time.sleep(300)
+
+all_pass = True
+for i, rsrec in enumerate(runstat_records):
+    process = rsrec['process']
+    stdout, stderr = process.communicate()
+    if process.returncode == 0:
+        print(f"Job {{i+1}} completed successfully.")
+        print(f"Output:\\n{{stdout.decode('utf-8')}}")
+    else:
+        print(f"Job {{i+1}} failed with return code {{process.returncode}}.")
+        print(f"Error:\\n{{stderr.decode('utf-8')}}")
+        all_pass = False
+
+if all_pass == False:
+    log_message("info", f"ERROR: E2C Process Fail: dsid = {dsid}")
     if run_mode == "WORK":
         ts = f"{{get_UTC_TS()}}"
-        fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:E2C:Pass")
-        fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
+        fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:E2C:Fail")
+        fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Fail")
+    sys.exit(1)
+
+# log_message("info", f"Completed years to {{yrB}}")
+
+log_message("info", f"E2C Process Pass")
+if run_mode == "WORK":
+    ts = f"{{get_UTC_TS()}}"
+    fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:E2C:Pass")
+    fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
+
+sys.exit(0)
 """
             fappend(escript, f"{DynaCode_4}")
             log_message("info", "wrote DynaCode_4")
@@ -745,9 +923,11 @@ if cmd_result.returncode != 0:
 
         DynaCode_6 = """
 log_message("info", "E2C Process Pass: Cmorizing Successful")
-ts = f"{{get_UTC_TS()}}"
-fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:E2C:Pass")
-fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
+
+if run_mode == "WORK":
+    ts = f"{{get_UTC_TS()}}"
+    fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:E2C:Pass")
+    fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
 
 sys.exit(0)
 """
@@ -763,7 +943,7 @@ sys.exit(0)
     # SECTION:  Subscript Execution ==========================================================
     #
 
-        log_message("info", f"Begin processing dataset_id {dsid} (the_var_type = {the_var_type}")
+        log_message("info", f"Begin processing dataset_id {dsid} (the_var_type = {the_var_type})")
 
         if pargs.run_mode == "WORK":
             ts = get_UTC_TS()
@@ -796,7 +976,7 @@ sys.exit(0)
             glob_move(pattern_src, product_dst)
             log_message("info", f"Completed move of CMIP6 dataset to Staging Data ({product_dst})")
 
-        log_message("info", "Completed Processing dataset_id: {dsid}")
+        log_message("info", f"Completed Processing dataset_id: {dsid}")
         if pargs.run_mode == "WORK":
             ts = get_UTC_TS()
             fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Pass")

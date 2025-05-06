@@ -4,14 +4,15 @@ from argparse import RawTextHelpFormatter
 
 
 helptext = '''
-    Usage:  python expand_dsspec_branches.py  -i dataset_spec_contracted.yaml -o dataset_spec_expanded.yaml
+    Usage:  python dsspec_contract.py  -i dataset_spec_expanded.yaml -o dataset_spec_contracted.yaml
 
-    Reads in the E3SM dataset_spec (example: [ARCHIVE_MANAGEMENT]/dataset_spec.yaml).
-    (Assumes the dataset_spec is in contracted form, and has a "CASE_EXTENSIONS:" section.)
-    For each Project=E3SM Model_Version and Experiment, it locates the branch labeled "resolution"
-    and uses the "Extension_ID" found there to locate that branch in the CASE_EXTENSIONS table,
-    replacing the Extension_ID with the actual branch content.  The CASE_EXTENSIONS table is then
-    removed, and the resulting "expanded" dataset_spec is output to the indicated output file.
+    Reads in the E3SM dataset_spec (example: [STAGING_RESOURCE]/dataset_spec.yaml).
+    (Assumes the dataset_spec is in ordinary expanded form, and has no "CASE_EXTENSIONS:" section.)
+    For each Project=E3SM Model_Version and Experiment, it locates the branch(es) labeled "resolution",
+    and determines the unique set of these, to be labeled "CASE_EXTENSION_01", "CASE_EXTENSION_02", etc.
+    These extensions are made a separate "CASE_EXTENSIONS" table in the contracted dataset_spec, and
+    for each project:E3SM:model_version:experiment, the appropriate extn_id "CASE_EXTENSION_nn" replaces
+    the actual extension.
 '''
 
 def assess_args():
@@ -108,40 +109,67 @@ def yaml_write(adict, tsize, outfile):
             gv_indent -= tsize
 
 
-def expand_dataset_spec(dataset_spec):
-    global gv_outfile
+def contract_dsspec_branches(dataset_spec):
 
-    Extn_Table = dataset_spec['CASE_EXTENSIONS']
+    # Phase 1:  walk the E3SM cases to generate case_branches[case_id] = branch, case_id_list[n] = case_id
+    case_branches = dict()
+    case_id_list = list()
 
     for model_version in dataset_spec['project']['E3SM']:
         for experiment, experimentinfo in dataset_spec['project']['E3SM'][model_version].items():
-            extn_id = experimentinfo['resolution']
-            if not extn_id in Extn_Table:
-                print(f"ERROR: extension ID {extn_id} not found in extension table for {model_version} {experiment}")
-                sys.exit(1)
-            experimentinfo['resolution'] = Extn_Table[extn_id]
+            case_id = f"E3SM.{model_version}.{experiment}"
+            case_branches[case_id] = experimentinfo['resolution']
+            case_id_list.append(case_id)
+
+    # phase 2: create unique "case_extensions[extn_id] = dict()" and "extension_members[extn_id] = list(case_ids)"
+    extn_num = 0
+    case_extensions = dict()
+    extension_members = dict()
+    while len(case_id_list) > 0:
+        extn_num += 1
+        extn_id = f"CASE_EXTENSION_{extn_num:02d}"
+        case_id = case_id_list.pop(0)
+        case_extensions[extn_id] = case_branches[case_id]       # first is unique
+        extension_members[extn_id] = list()
+        extension_members[extn_id].append(case_id)
+        case_id_residue = list()
+        while len(case_id_list) > 0:
+            a_case_id = case_id_list.pop(0)
+            if case_branches[a_case_id] == case_extensions[extn_id]:
+                extension_members[extn_id].append(a_case_id)
+            else:
+                case_id_residue.append(a_case_id)
+        case_id_list = case_id_residue
         
+    # phase 3: for each extn_id in extension_members, use each member to find the E3SM case and set its "resolution" to the extn_id
+    # then, add the "case_extensions" to the dataset_spec['CASE_EXTENSIONS']
+    for extn_id in extension_members:
+        for a_member in extension_members[extn_id]:
+            _, model_version, experiment = a_member.split('.')
+            dataset_spec['project']['E3SM'][model_version][experiment]['resolution'] = extn_id
+    dataset_spec['CASE_EXTENSIONS'] = case_extensions
 
-def load_yaml_spec(yaml_spec_path):
-    with open(yaml_spec_path, 'r') as instream:
-        yaml_spec = yaml.load(instream, Loader=yaml.SafeLoader)
+    # DEBUG
+    # yaml_write(case_extensions,4,"Case_Extensions")
+    # yaml_write(extension_members,4,"Extension_Members")
 
-    return yaml_spec
+        
+def load_yaml(yaml_path):
+    with open(yaml_path, 'r') as instream:
+        in_yaml = yaml.load(instream, Loader=yaml.SafeLoader)
+
+    return in_yaml
 
 
 def main():
 
     pargs = assess_args()
 
-    ds_spec = load_yaml_spec(pargs.in_dsspec)
+    ds_spec = load_yaml(pargs.in_dsspec)
 
-    if 'CASE_EXTENSIONS' in ds_spec.keys():
-        expand_dataset_spec(ds_spec)
-        del ds_spec['CASE_EXTENSIONS']
-        yaml_write(ds_spec,4,pargs.out_dsspec)   
-    else:
-        print(f"ERROR: Cannot expand dataset - no CASE_EXTENSIONS table found: {pargs.in_dsspec}")
+    contract_dsspec_branches(ds_spec)
 
+    yaml_write(ds_spec,4,pargs.out_dsspec)
 
     sys.exit(0)
 

@@ -19,6 +19,9 @@ from datetime import datetime, timezone
 from termcolor import colored, cprint
 
 
+def tss():
+    return int(datetime.now().timestamp())
+
 def get_UTC_TS():
     return datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
 
@@ -59,12 +62,56 @@ def load_file_lines(file_path):
         ]
     return retlist
 
+def write_file_list(file_path, outlist):
+    with open(file_path, "w") as outstream:
+        for item in outlist:
+            outstream.write(str(item) + "\n")
+
 def fappend(afile: str, amsg: str):
     with open(afile, 'a') as file:
         file.write(amsg + "\n")
 
+def force_symlink(target, link_name):
+    if os.path.islink(link_name):
+        os.unlink(link_name)
+    os.symlink(target, link_name)
 
+# srun_stat is a dictinoary that must contain at least "job_name" as an attribute
+# it will set "job_id", "status" and "elapse" if possible
 
+def get_srun_status(srun_stat):
+    job_name = srun_stat['job_name']
+    # log_message("info", f"DEBUG: dsm util: srun_status gets job_name {job_name}")
+    cmd = ['sacct', f'--name={job_name}',  '-P', '--delimiter=,', '--format=jobid,state,elapsedraw']
+    # log_message("info", f"DEBUG_UTIL: dsm util: srun_status issues {cmd}")
+    cmd_result = subprocess.run(cmd, capture_output=True, text=True)
+    if cmd_result.returncode != 0:
+        log_message("info", f"ERROR: get_srun_status() FAIL to obtain sacct info for job {job_name}")
+        log_message("info", f"STDERR: {cmd_result.stderr}")
+        return False
+    linelist = cmd_result.stdout.rsplit('\n',1)
+    lastline = cmd_result.stdout.strip().splitlines()[-1]
+    if not lastline:
+        log_message("info", f"get_srun_status(): No sacct record found for job {job_name}")
+        return False
+    # log_message("info", f"DEBUG_UTIL: dsm util: srun_status returned {lastline}")
+    statlist = lastline.split(',')
+    srun_stat['job_id'] = statlist[0]
+    srun_stat['status'] = statlist[1]
+    srun_stat['elapse'] = statlist[2]
+    if "CANCELLED" in srun_stat['status']:
+        srun_stat['status'] = "CANCELLED"
+    return True
+
+def force_srun_scancel(srun_stat):
+    job_id = srun_stat['job_id']
+    cmd = ['scancel', f"{job_id}"]
+    # log_message("info", f"DEBUG util: force_srun_cancel: cmd = {cmd}")
+    cmd_result = subprocess.run(cmd, capture_output=True, text=True)
+    # log_message("info", f"DEBUG util: force_srun_cancel: cmd_result.returncode = {cmd_result.returncode}")
+    # log_message("info", f"DEBUG util: force_srun_cancel: cmd_result.stdout = {cmd_result.stdout}")
+    # log_message("info", f"DEBUG util: force_srun_cancel: cmd_result.stderr = {cmd_result.stderr}")
+    
 # -----------------------------------------------
 
 def collision_free_name(apath, abase):
@@ -625,7 +672,12 @@ def parent_native_dsid(target_dsid):
 
     if project == "E3SM":       # for climo and timeseries, e.g. E3SM.2_0.amip.LR.atmos.180x360.climo.mon.ens1
         # log_message("info", f"parent_native_dsid: received target dsid {target_dsid}")
-        project, model, exper, resol, realm, grid, out_type, freq, ensem = target_dsid.split('.')
+        try:
+            project, model, exper, resol, realm, grid, out_type, freq, ensem = target_dsid.split('.')
+        except ValueError:
+            print(f"Error: invalid dataset_id {target_dsid}")
+            return "None"
+
         if out_type not in [ "climo", "time-series" ] and grid == "native":
             return "None"
 
@@ -635,7 +687,12 @@ def parent_native_dsid(target_dsid):
     # Project not E3SM 
     allowed_institutions = [ "E3SM-Project", "UCSB" ]
 
-    project, activ, inst, source, cmip_exp, variant, cmip_realm, _, _ = target_dsid.split('.')
+    try:
+        project, activ, inst, source, cmip_exp, variant, cmip_realm, _, _ = target_dsid.split('.')
+    except ValueError:
+        print(f"Error: invalid dataset_id {target_dsid}")
+        return "None"
+
     if project != "CMIP6":
         return "NONE"
     if inst not in allowed_institutions:
