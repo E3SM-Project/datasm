@@ -802,6 +802,7 @@ for afile in rgr_files:
     seg_spec = dict()
     seg_spec['segname'] = segname
     seg_spec['seg_cmd'] = cmd_2
+    seg_spec['jobname'] = f"e2c_{{the_var_name}}_{{segname}}"
     cmd_2_group.append(seg_spec)
 """
             fappend(escript, f"{DynaCode_4_NON_MPAS}")
