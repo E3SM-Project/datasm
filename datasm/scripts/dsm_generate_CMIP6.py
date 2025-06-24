@@ -598,6 +598,7 @@ from datasm.util import fappend
 from datasm.util import force_symlink
 from datasm.util import get_srun_status
 from datasm.util import force_srun_scancel
+from datasm.util import slurm_srun_manager
 from datasm.util import setup_logging
 from datasm.util import log_message
 
@@ -757,6 +758,7 @@ for segdex in range(range_segs):
     seg_spec = dict()
     seg_spec['segname'] = segname
     seg_spec['seg_cmd'] = cmd_2
+    seg_spec['jobname'] = f"e2c_{{the_var_name}}_{{segname}}"
     cmd_2_group.append(seg_spec)
 """
 
@@ -812,7 +814,7 @@ for afile in rgr_files:
 
         DynaCode_5 = f"""
 
-passed, failed = slurm_segment_manager(cmd_2_group)
+passed, failed = slurm_srun_manager(cmd_2_group)
 total = passed + failed
 
 log_message("info", f"Slurm Processing Completed: {{passed}} of {{total}} segments passed ({{failed}} failed.)")
