@@ -121,7 +121,7 @@ def force_srun_scancel(srun_stat):
   returns #Segments_Passed, #Segments_Failed
 """
 
-def slurm_srun_manager(list: seg_list):
+def slurm_srun_manager(seg_list: list):
 
     runstat_records = []
 
