@@ -193,7 +193,7 @@ def table_freq(table: str):
 
     if table in ["3hr", "day", "6hrLev", "6hrPlev", "6hrPlevPt", "1hr"]:
         return table
-    else:
+    else:   # Amon, CFmon, Lmon, Omon, SImon, etc
         return "mon"
 
 # Distinguished variable types
@@ -314,11 +314,11 @@ def get_restfile(dsid: str):
     headpart = dsid.split('.')[0:6]
     tailpart = dsid.split('.')[8:9]
     restdsid = '.'.join(headpart + ["restart", "fixed"] + tailpart)
+    # if sea-ice, use the ocean restart
+    restdsid = restdsid.replace("sea-ice", "ocean")
     # log_message("info", f"DEBUG: get_restfile(): restdsid = {restdsid}")
     restvdir = latest_data_vdir(restdsid)
     if os.path.exists(restvdir):
-        # if sea-ice, use the ocena restart
-        restvdir.replace("sea-ice", "ocean")
         return first_regular_file(restvdir)
     return "NONE"
 
@@ -450,6 +450,12 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         rgr_dir_vert = os.path.join(casedir, "rgr_vert")
         result_dir = os.path.join(casedir, "product")
 
+        delete_dir(native_data)
+        delete_dir(native_out)
+        delete_dir(rgr_dir)
+        delete_dir(rgr_dir_fixed)
+        delete_dir(rgr_dir_vert)
+
         os.makedirs(casedir, exist_ok=True)
         os.makedirs(subscripts, exist_ok=True)
         os.makedirs(sublogs, exist_ok=True)
@@ -517,7 +523,7 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         if the_var_type == "atm_mon_2d": 
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_mon_fx": 
             cmd_1 = ["ncremap", f"--map={map_file}", "-v", f"{nat_vars}", "-I", f"{native_data}", "-O", f"{rgr_dir_fixed}", "--no_stdin"]
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir_fixed}", "--realm", "fx"]
@@ -525,25 +531,25 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir_vert}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
             cmd_1b = ["ncks", "--rgr", "xtr_mth=mss_val", f"--vrt_fl={vrt_remap_plev19}", f"""{rgr_dir_vert}/f"{{afile}}" """, f"""{rgr_dir}/f"{{afile}}" """]
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_day": 
             flags.extend(["--clm_md=hfs"])
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--freq", "day"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_3hr": 
             flags.extend(["--clm_md=hfs"])
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--freq", "3hr"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type in ["lnd_mon", "lnd_ice_mon"]:            
             cmd_1 = ["ncclimo", "-P", "elm", "-j", "1", "--var_xtr=landfrac", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(flags)
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "mpaso_mon": 
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "-s", "--realm", "Omon", "--map", f"{map_file}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "-s", "--realm", "mpaso", "--map", f"{map_file}"]
         elif the_var_type == "mpassi_mon": 
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "-s", "--realm", "SImon", "--map", f"{map_file}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "-s", "--realm", "mpassi", "--map", f"{map_file}"]
         else: 
             log_message("error", f"ERROR: var_type() returned {the_var_type} for cmip dataset_id {dsid}")
             continue
@@ -598,13 +604,15 @@ from datasm.util import log_message
 dsid = "{dsid}"
 slogname = "{dsid}.sublog"
 slog = os.path.join("{sublogs}", f"{{slogname}}")
-
 print(f"DEBUG: sublog = {{slog}}", flush=True)
-
 setup_logging("info", f"{{slog}}")
+
+freq = "{freq}"
 
 run_mode = "{pargs.run_mode}"
 native_data = os.path.join("{native_data}")
+rgr_dir = os.path.join("{rgr_dir}")
+rgr_dir_vert = os.path.join("{rgr_dir_vert}")
 status_file = os.path.join("{status_file}")
 year_start = {year_start}
 year_final = {year_final}
@@ -625,9 +633,10 @@ log_message("info", f"NATIVE_SOURCE_COUNT = {{in_count}} files ({{int(in_count/1
         if the_var_type not in ["mpaso_mon", "mpassi_mon"]:
             DynaCode_2 = f"""
 cmd_1 = {cmd_1}
-log_message("info", f"cmd_1 = {{cmd_1}}")
-
+log_message("info", f"LAUNCHED cmd_1 = {{cmd_1}}")
 cmd_result = subprocess.run(cmd_1, capture_output=True, text=True)
+log_message("info", f"RETURNED cmd_1 = {{cmd_1}}")
+
 if cmd_result.returncode != 0:
     log_message("info", f"ERROR: NCO Process Fail: exit code = {{cmd_result.returncode}}")
     log_message("info", f"STDERR: {{cmd_result.stderr}}")
@@ -642,17 +651,24 @@ if cmd_result.returncode != 0:
     if run_mode == "WORK":
         ts = f"{{get_UTC_TS()}}"
         fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:NCO:Pass")
+else:
+    log_message("info", f"SUCCESS: NCO Process Pass")
+
 """
             fappend(escript, f"{DynaCode_2}")
             log_message("info", "wrote DynaCode_2")
 
         if the_var_type == "atm_mon_3d":
             DynaCode_3 = f"""
-rgr_dir_vert = {rgr_dir_vert}
-cmd_1b = {cmd_1b}
-log_message("info", f"cmd_1b = {{cmd_1b}}")
+log_message("info", f"Entered code section for atmos vertical regridding (atm_mon_3D)")
 
 for afile in dirlist(rgr_dir_vert):
+    log_message("info", f"DEBUG: From rgr_dir_vert obtained file {{afile}}")
+    log_message("info", f"DEBUG: Attempting basename")
+    bfile = os.path.basename(afile)
+    log_message("info", f"DEBUG: Obtained basename {{bfile}}")
+    cmd_1b = ["ncks", "--rgr", "xtr_mth=mss_val", f"--vrt_fl={vrt_remap_plev19}", f"{rgr_dir_vert}/{{bfile}}", f"{rgr_dir}/{{bfile}}"]
+    log_message("info", f"LAUNCHING cmd_1b = {{cmd_1b}} file={{bfile}}")
     cmd_result = subprocess.run(cmd_1b, capture_output=True, text=True)
     if cmd_result.returncode != 0:
         log_message("info", f"ERROR: NCO Process (vert regrid) Fail: exit code = {{cmd_result.returncode}}")
@@ -663,7 +679,7 @@ for afile in dirlist(rgr_dir_vert):
             fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:NCO(vert_regrid):Fail:return_code={{cmd_result.returncode}}")
             fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Fail:return_code={{cmd_result.returncode}}")
         sys.exit(cmd_result.returncode)
-    log_message("info", f"NCO Process (vert regrid) Pass")
+    log_message("info", f"NCO Process (vert regrid) Pass: file={{bfile}}")
     if run_mode == "WORK":
         ts = f"{{get_UTC_TS()}}"
         fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:NCO(vert_regrid):Pass")
@@ -673,14 +689,13 @@ for afile in dirlist(rgr_dir_vert):
             log_message("info", "wrote DynaCode_3")
 
     # ==== Call E2C stuff now, if we are still here ====================================
-    # if mpaso, must loop on decades
+    # if mpaso or mpassi, must loop on ypf-segmentation of "native_data" symlinks
+    # if non-MPAS, must loop on ypf-segmentation of the rgr NCO output directory.
 
-        if the_var_type == "mpaso_mon" and pargs.run_mode == "WORK":
-            DynaCode_4 = f"""
+        if pargs.run_mode == "WORK" and the_var_type in ["mpaso_mon", "mpassi_mon"]:
+            DynaCode_4_for_MPAS = f"""
 
-cmd_2 = {cmd_2}
-log_message("info", f"cmd_2 = {{cmd_2}}")
-# engineer codes to loop on ypf years here
+# engineer codes to loop native_data symlinks on ypf years here
 
 restartf = "{restartf}"
 namefile = "{namefile}"
@@ -703,8 +718,6 @@ log_message("info", f"Begin processing {{range_years}} at {{ypf}} years per segm
 shutil.rmtree(native_data)
 os.makedirs(native_data)
 
-filepattern = "*mpaso.hist.am.timeSeriesStatsMonthly*.nc"
-
 # Create native_data subdirs for each segment and populate with year-range of symlinks to native_src
 # Create custom cmd_2 for each segment and store in cmd_2_group list
 
@@ -715,7 +728,7 @@ for segdex in range(range_segs):
     yrB = f"{{yrA:04}}"
     segname = f"seg-{{yrB}}"
     segpath = os.path.join(native_data, segname)
-    os.makedirs(segpath)
+    os.makedirs(segpath, exist_ok=True)
     the_var_name = "{dsd['cmip6var']}"
     
     for yrdex in range(ypf):
@@ -739,158 +752,77 @@ for segdex in range(range_segs):
         region_f_base = os.path.basename(region_f)
         force_symlink(region_f, os.path.join(segpath, region_f_base))
 
-    cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "-s", "--realm", "Omon", "--map", f"{map_file}"]
+    cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "-s", "--realm", f"{realm}", "--map", f"{map_file}"]
+    log_message("info", f"cmd_2 = {{cmd_2}}")
     seg_spec = dict()
     seg_spec['segname'] = segname
     seg_spec['seg_cmd'] = cmd_2
     cmd_2_group.append(seg_spec)
+"""
+
+            fappend(escript, f"{DynaCode_4_for_MPAS}")
+            log_message("info", "wrote DynaCode_4_for_MPAS")
+
+        else:
+            DynaCode_4_NON_MPAS = f"""
+# engineer codes to loop rgr/seg directories on ypf years here
+
+range_years = int(year_final) - int(year_start) + 1
+range_segs = int(range_years/int(ypf))
+if range_segs*ypf < range_years:
+    range_segs += 1
+ts2 = get_UTC_TS()
+
+log_message("info", f"range_years = {{range_years}}, ypf = {{ypf}}, range_segs = {{range_segs}}")
+log_message("info", f"Begin processing {{range_years}} at {{ypf}} years per segment.  Total segments = {{range_segs}}")
+
+# Create rgr subdirs for each segment and populate with a year-range file from rgr
+# Create custom cmd_2 for each segment and store in cmd_2_group list
+
+cmd_2_group = []
+
+rgr_files = [f for f in os.listdir(rgr_dir) if os.path.isfile(os.path.join(rgr_dir, f))]
+for afile in rgr_files:
+    log_message("info", f"DEBUG: Processing rgr file {{afile}}")
+    comps = afile.split('_')
+    yrA = comps[1]
+    yrB = yrA[0:4]
+    segname = f"seg-{{yrB}}"
+    segpath = os.path.join(rgr_dir, segname)
+    os.makedirs(segpath, exist_ok=True)
+    the_var_name = "{dsd['cmip6var']}"
+    srcfile = os.path.join(rgr_dir,afile)
+    dstfile = os.path.join(segpath,afile)
+    if os.path.exists(dstfile):
+        os.remove(dstfile)
+    shutil.move(srcfile,segpath)
+    
+    cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "--freq", f"{{freq}}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}"]
+    log_message("info", f"cmd_2 = {{cmd_2}}")
+    seg_spec = dict()
+    seg_spec['segname'] = segname
+    seg_spec['seg_cmd'] = cmd_2
+    cmd_2_group.append(seg_spec)
+"""
+            fappend(escript, f"{DynaCode_4_NON_MPAS}")
+            log_message("info", "wrote DynaCode_4_NON_MPAS")
 
 # This loop of segment processing must submit each segment job to slurm/srun =============================
 
-runstat_records = []
+        DynaCode_5 = f"""
 
-# Launch each command with srun
-for seg_spec in cmd_2_group:
-    segname = seg_spec['segname']
-    job_name = f"e2c_{{the_var_name}}_{{segname}}"
+passed, failed = slurm_segment_manager(cmd_2_group)
+total = passed + failed
 
-    srun_stat = dict()
-    srun_stat['job_id'] = "UNKNOWN"
-    srun_stat['job_name'] = job_name
-    srun_stat['process'] = None
-    srun_stat['status'] = "UNKNOWN"
-    srun_stat['target'] = str(dsid)
-    srun_stat['start_sec'] = tss()
-    srun_stat['elapse'] = 0
-    srun_stat['ignore'] = False
-    
-    seg_cmd = ["srun", "--exclusive", "--job-name", f"{{job_name}}"]
-    seg_cmd.extend(seg_spec['seg_cmd'])
-    # log_message("info", f"DEBUG: seg_cmd = {{seg_cmd}}")
-    # log_message("info", f"Launching segment job: {{segname}} ({{ypf}} years): cmd={{seg_cmd}}")
-    process = subprocess.Popen(
-        seg_cmd,
-        shell=False,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    srun_stat['process'] = process
-    runstat_records.append(srun_stat)
-    time.sleep(10)
-    if not get_srun_status(srun_stat):
-        log_message("info", f"FAIL to obtain initial srun_status for job_name {{job_name}}")
-        continue
-    log_message("info", f"Obtained Job_ID {{srun_stat['job_id']}} for job {{job_name}}")
-        
-# Wait for all runstat_records to complete, kill any that take too long
+log_message("info", f"Slurm Processing Completed: {{passed}} of {{total}} segments passed ({{failed}} failed.)")
 
-MINWAIT = 300
-MAXWAIT = 7200
-
-still_trying = True
-while still_trying:
-    cancelled = 0
-    completed = 0
-    failed = 0
-    pending = 0
-    running = 0
-    other = 0
-    stat_fail = 0
-    mean_et = 0.0
-    sum_comp_et = 0.0
-
-    # Pass 1:  Tally status values
-
-    job_count = len(runstat_records)
-    log_message("info", f"LOOPING on {{job_count}} runstat_records")
-    for i, rsrec in enumerate(runstat_records):
-        job_name = rsrec['job_name']
-        # log_message("info", f"DEBUG_LOOP: Processing runstat_record {{i}}: jobname = {{job_name}}")
-        if not get_srun_status(rsrec):
-            log_message("info", f"FAIL to obtain srun_status for job_name {{job_name}}")
-            stat_fail += 1
-            continue
-        job_stat = rsrec['status']
-        # log_message("info", f"DEBUG_LOOP: got job_stat {{job_stat}} for job_name {{job_name}}")
-        if job_stat == "FAILED":
-            if not rsrec['ignore']:
-                log_message("info", f"FAILED job_name {{job_name}}, et={{rsrec['elapse']}}")
-                rsrec['ignore'] = True
-            failed += 1
-        elif job_stat == "PENDING":
-            pending += 1
-            log_message("info", f"PENDING job_name {{job_name}}")
-        elif job_stat == "COMPLETED":
-            completed += 1
-            sum_comp_et += int(rsrec['elapse'])
-            if not rsrec['ignore']:
-                log_message("info", f"COMPLETED job_name {{job_name}}, et={{rsrec['elapse']}}")
-                rsrec['ignore'] = True
-        elif job_stat == "RUNNING":
-            running += 1
-            et = int(rsrec['elapse'])
-            log_message("info", f"RUNNING job_name {{job_name}} (et={{et}})")
-        elif job_stat == "CANCELLED":
-            cancelled += 1
-            sum_comp_et += int(rsrec['elapse'])
-            if not rsrec['ignore']:
-                log_message("info", f"CANCELLED job_name {{job_name}}, et={{rsrec['elapse']}}")
-                rsrec['ignore'] = True
-        else:
-            other += 1
-            log_message("info", f"Unexpected srun_status {{job_stat}} for job_name {{job_name}}")
-
-    log_message("info", f"Completed pass of {{job_count}} jobs")
-    log_message("info", f"    COMPLETED={{completed}}, FAILED={{failed}}, PENDING={{pending}}, CANCELLED={{cancelled}}, RUNNING={{running}}, StatFail={{stat_fail}}")
-
-    # Pass 2:  Determine Loop Status
-
-    if completed > 0:
-        mean_et = sum_comp_et/completed
-
-    for i, rsrec in enumerate(runstat_records):
-        job_name = rsrec['job_name']
-        job_stat = rsrec['status']
-        if job_stat == "RUNNING":
-            et = int(rsrec['elapse'])
-            log_message("info", f"RUNNING job_name {{job_name}} (et={{et}}, mean_et={{int(mean_et)}} for {{completed}} jobs)")
-            running += 1
-            if et > MINWAIT and et < MAXWAIT and completed > 2:
-                if et > 5*mean_et:
-                    log_message("info", f"Issuing SCANCEL on extended relative runtime: job_name = {{job_name}}")
-                    force_srun_scancel(rsrec)
-            elif et > MAXWAIT:
-                log_message("info", f"Issuing SCANCEL on extended absolute runtime: job_name = {{job_name}}")
-                force_srun_scancel(rsrec)
-
-    if not (running or stat_fail or pending):
-        log_message("info", f"DEBUG_LOOP: Stop Trying (post sleep): running={{running}}, stat_fail={{stat_fail}}, pending={{pending}}")
-        still_trying = False
-        break   # save a sleep
-    log_message("info", f"SLEEPing 300")
-    time.sleep(300)
-
-all_pass = True
-for i, rsrec in enumerate(runstat_records):
-    process = rsrec['process']
-    stdout, stderr = process.communicate()
-    if process.returncode == 0:
-        print(f"Job {{i+1}} completed successfully.")
-        print(f"Output:\\n{{stdout.decode('utf-8')}}")
-    else:
-        print(f"Job {{i+1}} failed with return code {{process.returncode}}.")
-        print(f"Error:\\n{{stderr.decode('utf-8')}}")
-        all_pass = False
-
-if all_pass == False:
+if failed > 0:
     log_message("info", f"ERROR: E2C Process Fail: dsid = {dsid}")
     if run_mode == "WORK":
         ts = f"{{get_UTC_TS()}}"
         fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:E2C:Fail")
         fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Fail")
     sys.exit(1)
-
-# log_message("info", f"Completed years to {{yrB}}")
 
 log_message("info", f"E2C Process Pass")
 if run_mode == "WORK":
@@ -900,28 +832,11 @@ if run_mode == "WORK":
 
 sys.exit(0)
 """
-            fappend(escript, f"{DynaCode_4}")
-            log_message("info", "wrote DynaCode_4")
+        fappend(escript, f"{DynaCode_5}")
+        log_message("info", "wrote DynaCode_5")
 
-        else:   # Currently, non-looping one-pass form
-            DynaCode_5 = f"""
-cmd_2 = {cmd_2}
-log_message("info", f"cmd_2 = {{cmd_2}}")
-cmd_result = subprocess.run(cmd_2, capture_output=True, text=True)
-if cmd_result.returncode != 0:
-    log_message("info", f"ERROR: E2C Process Fail: exit code = {{cmd_result.returncode}}")
-    log_message("info", f"STDERR: {{cmd_result.stderr}}")
-    log_message("info", f"STDOUT: {{cmd_result.stdout}}")
-    if run_mode == "WORK":
-        ts = f"{{get_UTC_TS()}}"
-        fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:E2C:Fail:return_code={{cmd_result.returncode}}")
-        fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Fail:return_code={{cmd_result.returncode}}")
-    sys.exit(cmd_result.returncode)
-"""
-            fappend(escript, f"{DynaCode_5}")
-            log_message("info", "wrote DynaCode_5")
 
-        DynaCode_6 = """
+        DynaCode_6 = f"""
 log_message("info", "E2C Process Pass: Cmorizing Successful")
 
 if run_mode == "WORK":
@@ -973,13 +888,24 @@ sys.exit(0)
             product_dst = os.path.join(staging_data, facet_path, ds_version)
             os.makedirs(product_dst, exist_ok=True)
             pattern_src = os.path.join(product_src, "*.nc")
-            glob_move(pattern_src, product_dst)
-            log_message("info", f"Completed move of CMIP6 dataset to Staging Data ({product_dst})")
+
+            log_message("info", f"DEBUG: Attempting product transfer FROM: {product_src}")
+            log_message("info", f"DEBUG: Attempting product transfer INTO: {product_dst}")
+            # DEBUG is there output?
+            outtest = dirlist(product_src)
+            for afile in outtest:
+                log_message("info", f"DEBUG: Product facet-path holds {afile}")
+
+            ts = get_UTC_TS()
+            if len(outtest) == 0:
+                log_message("info", f"ERROR: No output files produced in product directory {product_src}")
+                fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Fail")
+            else:    
+                glob_move(pattern_src, product_dst)
+                log_message("info", f"Completed move of CMIP6 dataset to Staging Data ({product_dst})")
+                fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
 
         log_message("info", f"Completed Processing dataset_id: {dsid}")
-        if pargs.run_mode == "WORK":
-            ts = get_UTC_TS()
-            fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
 
 
 def main():

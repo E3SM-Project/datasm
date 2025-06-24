@@ -17,7 +17,7 @@ if [ $project == "E3SM" ]; then
     sf_root=$sf_root1
     wh_root=$wh_root1
 fi
-if [ $project == "CMIP6" ]; then
+if [ ${project:0:5} == "CMIP6" ]; then
     instid=`echo $dsid | cut -f3 -d.`
     if [[ $instid == "E3SM-Project" || $instid == "UCSB" ]]; then
         sf_root=$sf_root1

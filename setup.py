@@ -35,7 +35,7 @@ class CleanCommand(distutils.cmd.Command):
 
 setup(
     author="datasm developers",
-    python_requires=">=3.9,<=3.13",
+    python_requires=">=3.9",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",

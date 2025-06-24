@@ -16,7 +16,7 @@ dsid=$1
 
 project=`echo $dsid | cut -f1 -d.`
 
-if [ $project != "CMIP6" ]; then
+if [ ${project:0:5} != "CMIP6" ]; then
     if [ $project == "E3SM" ]; then
 
         headpart=`echo $dsid | cut -f1-5 -d.`
@@ -31,7 +31,7 @@ if [ $project != "CMIP6" ]; then
 
 fi
 
-# project is CMIP6
+# project is CMIP6 or CMIP6-E3SM-Ext
 
 # First, split CMIP6 dataset_id to extract key values
 

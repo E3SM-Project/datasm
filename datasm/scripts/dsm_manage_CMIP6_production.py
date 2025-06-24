@@ -465,7 +465,7 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
             log_message("info", f"Proceeding to generate CMIP6")
         
         log_message("info", f"DEBUG: Found support in warehouse for {nat_dsid}")
-        dsidfile = os.path.join(gv_workdir, "curr_dsid")
+        dsidfile = os.path.join(gv_workdir, f"dsm_gen-{dsid}")
         quiet_remove(dsidfile)
         fappend(dsidfile, f"{dsid}")
         dsmgenCMIP6 = os.path.join(staging_tools, "dsm_generate_CMIP6.py")

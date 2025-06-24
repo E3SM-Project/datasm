@@ -76,7 +76,7 @@ def force_symlink(target, link_name):
         os.unlink(link_name)
     os.symlink(target, link_name)
 
-# srun_stat is a dictinoary that must contain at least "job_name" as an attribute
+# srun_stat is a dictionary that must contain at least "job_name" as an attribute
 # it will set "job_id", "status" and "elapse" if possible
 
 def get_srun_status(srun_stat):
@@ -106,12 +106,167 @@ def get_srun_status(srun_stat):
 def force_srun_scancel(srun_stat):
     job_id = srun_stat['job_id']
     cmd = ['scancel', f"{job_id}"]
-    # log_message("info", f"DEBUG util: force_srun_cancel: cmd = {cmd}")
     cmd_result = subprocess.run(cmd, capture_output=True, text=True)
-    # log_message("info", f"DEBUG util: force_srun_cancel: cmd_result.returncode = {cmd_result.returncode}")
-    # log_message("info", f"DEBUG util: force_srun_cancel: cmd_result.stdout = {cmd_result.stdout}")
-    # log_message("info", f"DEBUG util: force_srun_cancel: cmd_result.stderr = {cmd_result.stderr}")
     
+"""
+  Supplied "seg_list" must be a list of dictionaries, each providing
+    segname:  A string uniquely identifying the segment
+    seg_cmd:  A command-list ([ "app", "parm1", "parm2", ...]) to exec
+              for each segment
+    jobname:  Typically <app>_<tag>_<segname>
+  
+  NOTE:  This function will not return until all jobs are completed,
+    failed, or auto-cancelled.
+
+  returns #Segments_Passed, #Segments_Failed
+"""
+
+def slurm_srun_manager(list: seg_list):
+
+    runstat_records = []
+
+    # Launch each command with srun
+    for seg_spec in seg_list:
+        segname = seg_spec['segname']
+        job_name = seg_spec["jobname"]
+
+        srun_stat = dict()
+        srun_stat['job_id'] = "UNKNOWN"
+        srun_stat['job_name'] = job_name
+        srun_stat['process'] = None
+        srun_stat['status'] = "UNKNOWN"
+        srun_stat['start_sec'] = tss()
+        srun_stat['elapse'] = 0
+        srun_stat['ignore'] = False
+
+        seg_cmd = ["srun", "--exclusive", "--job-name", f"{job_name}"]
+        seg_cmd.extend(seg_spec['seg_cmd'])
+        # log_message("info", f"DEBUG: seg_cmd = {seg_cmd}")
+        # log_message("info", f"Launching segment job: {segname} ({ypf} years): cmd={seg_cmd}")
+        process = subprocess.Popen(
+            seg_cmd,
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        srun_stat['process'] = process
+        runstat_records.append(srun_stat)
+        time.sleep(5)
+        if not get_srun_status(srun_stat):
+            log_message("info", f"FAIL to obtain initial srun_status for job_name {job_name}")
+            continue
+        log_message("info", f"Obtained Job_ID {srun_stat['job_id']} for job {job_name}")
+
+    # Wait for all runstat_records to complete, kill any that take too long
+
+    MINWAIT = 300
+    MAXWAIT = 7200
+
+    still_trying = True
+    while still_trying:
+        cancelled = 0
+        completed = 0
+        failed = 0
+        pending = 0
+        running = 0
+        other = 0
+        stat_fail = 0
+        mean_et = 0.0
+        sum_comp_et = 0.0
+
+        # Pass 1:  Tally status values
+
+        job_count = len(runstat_records)
+        log_message("info", f"LOOPING on {job_count} runstat_records")
+        for i, rsrec in enumerate(runstat_records):
+            job_name = rsrec['job_name']
+            # log_message("info", f"DEBUG_LOOP: Processing runstat_record {i}: jobname = {job_name}")
+            if not get_srun_status(rsrec):
+                log_message("info", f"FAIL to obtain srun_status for job_name {job_name}")
+                stat_fail += 1
+                continue
+            job_stat = rsrec['status']
+            # log_message("info", f"DEBUG_LOOP: got job_stat {job_stat} for job_name {job_name}")
+            if job_stat == "FAILED":
+                if not rsrec['ignore']:
+                    log_message("info", f"FAILED job_name {job_name}, et={rsrec['elapse']}")
+                    rsrec['ignore'] = True
+                failed += 1
+            elif job_stat == "PENDING":
+                pending += 1
+                log_message("info", f"PENDING job_name {job_name}")
+            elif job_stat == "COMPLETED":
+                completed += 1
+                sum_comp_et += int(rsrec['elapse'])
+                if not rsrec['ignore']:
+                    log_message("info", f"COMPLETED job_name {job_name}, et={rsrec['elapse']}")
+                    rsrec['ignore'] = True
+            elif job_stat == "RUNNING":
+                running += 1
+                et = int(rsrec['elapse'])
+                log_message("info", f"RUNNING job_name {job_name} (et={et})")
+            elif job_stat == "CANCELLED":
+                cancelled += 1
+                sum_comp_et += int(rsrec['elapse'])
+                if not rsrec['ignore']:
+                    log_message("info", f"CANCELLED job_name {job_name}, et={rsrec['elapse']}")
+                    rsrec['ignore'] = True
+            else:
+                other += 1
+                log_message("info", f"Unexpected srun_status {job_stat} for job_name {job_name}")
+
+        log_message("info", f"Completed pass of {job_count} jobs")
+        log_message("info", f"    COMPLETED={completed}, FAILED={failed}, PENDING={pending}, CANCELLED={cancelled}, RUNNING={running}, StatFail={stat_fail}")
+
+        # Pass 2:  Determine Loop Status
+
+        if completed > 0:
+            mean_et = sum_comp_et/completed
+
+        for i, rsrec in enumerate(runstat_records):
+            job_name = rsrec['job_name']
+            job_stat = rsrec['status']
+            if job_stat == "RUNNING":
+                et = int(rsrec['elapse'])
+                log_message("info", f"RUNNING job_name {job_name} (et={et}, mean_et={int(mean_et)} for {completed} jobs)")
+                running += 1
+                if et > MINWAIT and et < MAXWAIT and completed > 2:
+                    if et > 5*mean_et:
+                        log_message("info", f"Issuing SCANCEL on extended relative runtime: job_name = {job_name}")
+                        force_srun_scancel(rsrec)
+                elif et > MAXWAIT:
+                    log_message("info", f"Issuing SCANCEL on extended absolute runtime: job_name = {job_name}")
+                    force_srun_scancel(rsrec)
+
+        if not (running or stat_fail or pending):
+            log_message("info", f"DEBUG_LOOP: Stop Trying (post sleep): running={running}, stat_fail={stat_fail}, pending={pending}")
+            still_trying = False
+            break   # save a sleep
+        log_message("info", f"SLEEPing 300")
+        time.sleep(300)
+
+    # Nothing left to wait on
+
+    passed = 0
+    failed = 0
+    all_pass = True
+    for i, rsrec in enumerate(runstat_records):
+        process = rsrec['process']
+        stdout, stderr = process.communicate()
+        if process.returncode == 0:
+            passed += 1
+            print(f"Job {i+1} completed successfully.")
+            print(f"Output:\n{stdout.decode('utf-8')}")
+        else:
+            failed += 1
+            print(f"Job {i+1} failed with return code {process.returncode}.")
+            print(f"Error:\n{stderr.decode('utf-8')}")
+            all_pass = False
+
+    return passed, failed
+
+
+
 # -----------------------------------------------
 
 def collision_free_name(apath, abase):
@@ -169,7 +324,7 @@ def ensure_status_file_for_dsid(dsid):
 
     facets = dsid.split('.')
     project = facets[0]
-    if project == "CMIP6":
+    if project[0:5] == "CMIP6":
         instid = facets[2];
         if instid == "E3SM-Project" or instid == "UCSB":
             sf_root = sf_root1
@@ -209,7 +364,7 @@ def dsid_to_dict(dtyp: str, dsid: str):
         ret["datatype"] = ds_list[6]
         ret["freq"] = ds_list[7]
         ret["ensemble"] = ds_list[8]
-    elif dtyp == "CMIP6":
+    elif dtyp[0:5] == "CMIP6":
         ret["project"] = ds_list[0]
         ret["activity"] = ds_list[1]
         ret["institution"] = ds_list[2]
@@ -645,11 +800,9 @@ def set_e3sm_model_resolution_ensemble(sourceid,institution,experiment,variant):
     ens = f"ens{rdex}"
 
     # HACK for NARRM - only options for now
-    if src_model == "2_0":
-        resol = "LR"
-    elif src_model == "2_0_NARRM":
+    if src_model == "2_0_NARRM":
         resol = "LR-NARRM"
-    elif src_model == "2_1":
+    elif src_model[0:1] in ["2", "3"]:
         resol = "LR"
     else:
         resol = "1deg_atm_60-30km_ocean"
@@ -693,7 +846,7 @@ def parent_native_dsid(target_dsid):
         print(f"Error: invalid dataset_id {target_dsid}")
         return "None"
 
-    if project != "CMIP6":
+    if project[0:5] != "CMIP6":
         return "NONE"
     if inst not in allowed_institutions:
         return "NONE"
@@ -759,7 +912,7 @@ def latest_data_vdir(dsid):
     else:
         return "NONE"
 
-    # print(f"TEST_DEBUG: STAGE_1: the_enspath = {the_enspath}")
+    print(f"TEST_DEBUG: STAGE_1: the_enspath = {the_enspath}")
 
     if the_enspath != "BOTH":
         vdirs = [ f.path for f in os.scandir(the_enspath) if f.is_dir() ]
@@ -786,7 +939,7 @@ def latest_data_vdir(dsid):
     else:
         the_vdirs = "BOTH"
 
-    # print(f"TEST_DEBUG: STAGE_2: the_vdirs = {the_vdirs}")
+    print(f"TEST_DEBUG: STAGE_2: the_vdirs = {the_vdirs}")
 
     if the_vdirs != "BOTH":
         latest_vdir = the_vdirs[-1]
@@ -804,6 +957,8 @@ def latest_data_vdir(dsid):
     vcount1 = len([item for item in os.listdir(latest_vdir1) if os.path.isfile(os.path.join(latest_vdir1, item))])
     vcount2 = len([item for item in os.listdir(latest_vdir2) if os.path.isfile(os.path.join(latest_vdir2, item))])
 
+    print(f"TEST_DEBUG: STAGE_3: vcount1 = {vcount1}, vcount2 = {vcount2}")
+
     if vcount1 == 0:
         if vcount2 == 0:
             return "NONE"
@@ -814,6 +969,8 @@ def latest_data_vdir(dsid):
     # compare the tails
     vtail1 = latest_vdir1.split('/')[-1]
     vtail2 = latest_vdir2.split('/')[-1]
+
+    print(f"TEST_DEBUG: STAGE_4: vtail1 = {vtail1}, vtail2 = {vtail2}")
 
     if vtail1 > vtail2:
         return latest_vdir1

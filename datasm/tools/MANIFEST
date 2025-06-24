@@ -10,7 +10,6 @@ assess_pub_volume_by_experiment_CMIP6.sh
 assess_pub_volume_by_experiment_E3SM.sh
 case_id_for_e3sm_dsid.sh
 cmip6_parameters.sh
-contract_dataset_spec.py
 datasm_extract_from_archive.sh
 datasm_pp_sourceroot.sh
 datasm_verify_publication.py
@@ -21,9 +20,10 @@ ds_paths_info_compact.sh
 ds_paths_info_dsid_list_compact.sh
 ds_paths_info_dsid_list.sh
 ds_paths_info.sh
+dsspec_contract.py
+dsspec_expand.py
 ensure_status_file_for_dsid.sh
 esgf_assess_publication.py
-expand_dataset_spec.py
 first_file_for_latest_by_dsid_list.sh
 first_file_for_latest_by_dsid.sh
 first_file_fullpath_for_latest_by_dsid.sh
@@ -43,12 +43,12 @@ run_datasm_LocalEnv_publish_dsid_list_serially.sh
 run_datasm_LocalEnv_validation_dsid_list_serially.sh
 run_esgunpublish.sh
 rw_yaml.py
+../scripts/dsm_generate_CMIP6.py
+../scripts/dsm_generate_CMIP6.sh
+../scripts/dsm_manage_CMIP6_production.py
 set_datafile_metadata_textvalue.sh
 tell_years_dsid.py
 trisect.py
 ts_utc.py
 update_json_value.py
 update_latest_files_for_metadata_references_by_dsid_list.sh
-../scripts/dsm_generate_CMIP6.sh
-../scripts/dsm_generate_CMIP6.py
-../scripts/dsm_manage_CMIP6_production.py

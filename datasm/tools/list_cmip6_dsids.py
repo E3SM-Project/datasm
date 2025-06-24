@@ -52,19 +52,21 @@ def load_yaml(inpath):
 # CMIP6: Project.Activity.Institution.SourceID.Experiment.VariantLabel.RealmFreq.VarName.Grid
 
 def collect_cmip_datasets(dataset_spec):
-    for activity_name, activity_val in dataset_spec["project"]["CMIP6"].items():
-        if activity_name == "test":
-            continue
-        for institution_id, institution_branch in activity_val.items():
-            for version_name, version_value in institution_branch.items():    # version_name is CMIP6 Source_ID
-                for experimentname, experimentvalue in version_value.items():
-                    for ensemble in experimentvalue["ens"]:
-                        for table_name, table_value in dataset_spec["tables"].items():
-                            for variable in table_value:
-                                if ( variable in experimentvalue["except"] or table_name in experimentvalue["except"] or variable == "all"):
-                                    continue
-                                dataset_id = f"CMIP6.{activity_name}.{institution_id}.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr"
-                                yield dataset_id
+    for target_project in ["CMIP6", "CMIP6-E3SM-Ext"]:
+        for activity_name, activity_val in dataset_spec["project"][target_project].items():
+            if activity_name == "test":
+                continue
+            for institution_id, institution_branch in activity_val.items():
+                for version_name, version_value in institution_branch.items():    # version_name is CMIP6 Source_ID
+                    for experimentname, experimentvalue in version_value.items():
+                        for ensemble in experimentvalue["ens"]:
+                            for table_name, table_value in dataset_spec["tables"].items():
+                                for variable in table_value:
+                                    if ( variable in experimentvalue["except"] or table_name in experimentvalue["except"] or variable == "all"):
+                                        continue
+                                    dataset_id = f"{target_project}.{activity_name}.{institution_id}.{version_name}.{experimentname}.{ensemble}.{table_name}.{variable}.gr"
+                                    yield dataset_id
+
 
 # E3SM: Project.ModelVersion.Experiment.Resolution.Realm.Grid.OutputType.Freq.Ensemble
 
