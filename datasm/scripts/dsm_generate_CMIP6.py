@@ -11,6 +11,7 @@ import yaml
 import fnmatch
 import subprocess
 from argparse import RawTextHelpFormatter
+from time import sleep
 from datasm.util import setup_logging
 from datasm.util import log_message
 from datasm.util import dirlist
@@ -899,12 +900,12 @@ sys.exit(0)
             os.makedirs(product_dst, exist_ok=True)
             pattern_src = os.path.join(product_src, "*.nc")
 
-            log_message("info", f"DEBUG: Attempting product transfer FROM: {product_src}")
-            log_message("info", f"DEBUG: Attempting product transfer INTO: {product_dst}")
+            log_message("info", f"DEBUG: Conducting product transfer FROM: {product_src}")
+            log_message("info", f"DEBUG: Conducting product transfer INTO: {product_dst}")
             # DEBUG is there output?
             outtest = dirlist(product_src)
-            for afile in outtest:
-                log_message("info", f"DEBUG: Product facet-path holds {afile}")
+            # for afile in outtest:
+            #     log_message("info", f"DEBUG: Product facet-path holds {afile}")
 
             ts = get_UTC_TS()
             if len(outtest) == 0:
@@ -918,12 +919,15 @@ sys.exit(0)
         log_message("info", f"Completed Processing dataset_id: {dsid}")
 
         cmd = [f"{run_reporter}", f"{case_id}", f"{dsid}"]
+        log_message("info", f"Invoking Report Generator: cmd = {cmd}")
+        sleep(5)       
         cmd_result = subprocess.run(cmd, capture_output=True, text=True)
+        ts = get_UTC_TS()
         if cmd_result.returncode != 0:
-            log_message("error", f"Report Generator FAILED: cmd = {cmd}")
-            log_message("error", f"STDERR: {cmd_result.stderr}")
+            print(f"{ts}:WARNING: Report Generator FAILED: cmd = {cmd}")
+            print(f"{ts}:WARNING: cmd_result.stderr = {cmd_result.stderr}")
         else:
-            log_message("info", f"Run Reporter Completed")
+            print(f"{ts}:INFO: Report Generator Completed.")
 
 def main():
     global mainlog
