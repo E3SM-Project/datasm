@@ -2,6 +2,7 @@ import sys
 import os
 import subprocess
 import re
+import fnmatch
 import shutil
 import json
 import yaml
@@ -101,7 +102,16 @@ def get_srun_status(srun_stat):
     srun_stat['elapse'] = statlist[2]
     if "CANCELLED" in srun_stat['status']:
         srun_stat['status'] = "CANCELLED"
+    if "FAILED" in srun_stat['status']:
+        job_id = srun_stat['job_id']
+        cmd = ['sacct', '-j', f'{job_id}', '--format=ExitCode,Reason']
+        cmd_result = subprocess.run(cmd, capture_output=True, text=True)
+        linelist = cmd_result.stdout.rsplit('\n',1)
+        lastline = cmd_result.stdout.strip().splitlines()[-1]
+        srun_stat['reason'] = f"ExitCode={lastline}"
+        
     return True
+
 
 def force_srun_scancel(srun_stat):
     job_id = srun_stat['job_id']
@@ -135,6 +145,7 @@ def slurm_srun_manager(seg_list: list):
         srun_stat['job_name'] = job_name
         srun_stat['process'] = None
         srun_stat['status'] = "UNKNOWN"
+        srun_stat['reason'] = "UNKNOWN"
         srun_stat['start_sec'] = tss()
         srun_stat['elapse'] = 0
         srun_stat['ignore'] = False
@@ -190,8 +201,10 @@ def slurm_srun_manager(seg_list: list):
             if job_stat == "FAILED":
                 if not rsrec['ignore']:
                     log_message("info", f"FAILED job_name {job_name}, et={rsrec['elapse']}")
+                    log_message("info", f"FAILED job_name {job_name}, Reason: {rsrec['reason']}")
                     rsrec['ignore'] = True
                 failed += 1
+                # need to call code that elicidates the reason for the failure here
             elif job_stat == "PENDING":
                 pending += 1
                 log_message("info", f"PENDING job_name {job_name}")
@@ -265,6 +278,183 @@ def slurm_srun_manager(seg_list: list):
 
     return passed, failed
 
+"""
+Given a "srcdir" of actual files, create subdirectories under a "parent" dir.
+
+    This function directly supports slurm-parallelization of applications
+    that insist upon "process-everything-in-a-directory" operation, by
+    automating the division of a "parent" target directory into a set of
+    subdirectories, each receiving a portion of the contents of a "source"
+    directory (which may or may not be the parent itself).
+
+    Return value:  A list of fully-provisioned subdirectories of parent.
+
+    NOTE: Any existing subdirectories of "parent" will be removed.
+
+The provided dir_spec must be a dictionary with the following elements:
+
+    srcdir:  Contains files to be either sym-linked or distributed.
+    parent:  The target directory below which subdirectories will be created.
+    method:  Must be either YPD_LINKS or PER_FILES
+    extras:  A list [] of other files for linking to each subdirectory.
+
+    If method is YPD_LINKS, the following additional elements must appear:
+
+        opt_yr1:  The first year of the year_group ("1850" or "0001", etc).
+        opt_ypd:  Years per directory created
+        opt_yrs:  Total number of years to process.
+
+    Example, with opt_yr1 = "1850", opt_ypd = 10, and opt_yrs = 50, the
+    subdirectories "seg-1850", "seg-1860", ... "seg-1890" will be created.
+
+    For each subdirectory, symlinks will be created to the files in "srcdir"
+    that begin with the given directory year, for all years-per-directory.
+
+    If method is "PER_FILES", the files in "src_dir" are examined, and for
+    each year that appears in the file-name, a subdirectory is created under
+    the given parent directory with the name "seg-<year>", and the files in
+    src_dir matching that year are moved into the matching subdirectory
+
+    OPTIONAL files to link:
+
+    Under either method, if the spec "extras" is not an empty list, each
+    new subdirectory receives a (basename) symlink to each full-path file
+    listed in extras.
+
+    OPTIONAL extdir directory
+
+    if a directory (similar to "parent" above) is specified by 'extdir',
+    that directory will also receive the "seg-<year>" named subdirectories,
+    but they will remain unpopulated.
+"""
+
+def slurm_dirs_prep(dirspec: dict):
+
+    seg_specs = []
+
+    srcdir = dirspec['srcdir']
+    parent = dirspec['parent']
+    method = dirspec['method']
+    extras = dirspec['extras']
+
+    # clean parent of sibdirectories
+    for item in os.listdir(parent):
+        fullpath = os.path.join(parent, item)
+        if os.path.isdir(fullpath):
+            shutil.rmtree(fullpath)
+
+    if method == "YPD_LINKS":
+        opt_yr1 = dirspec['opt_yr1']
+        opt_ypd = dirspec['opt_ypd']
+        opt_yrs = dirspec['opt_yrs']
+
+        range_segs = int(opt_yrs/opt_ypd)
+        if range_segs*opt_ypd < opt_yrs:
+            range_segs += 1
+
+        final_year = int(opt_yr1) + int(opt_yrs) - 1
+
+        ts2 = get_UTC_TS()
+        log_message("info", f"DSM util: Slurm_dirs_prep: Begin processing {opt_yrs} years at {opt_ypd} years per segment.  Total segments = {range_segs}")
+
+        # Create native_data subdirs for each segment and populate with year-range of symlinks to native_src
+
+        for segdex in range(range_segs):
+            yr_start_int = int(opt_yr1) + segdex*opt_ypd
+            yr_start_str = f"{yr_start_int:04}"
+            yr_final_int = int(opt_yr1) + (segdex+1)*opt_ypd - 1
+            if yr_final_int > final_year:
+                yr_final_int = final_year
+                opt_ypd = yr_final_int - yr_start_int + 1
+            yr_final_str = f"{yr_final_int:04}"
+            segname = f"seg-{yr_start_str}"
+            segpath = os.path.join(parent, segname)
+            os.makedirs(segpath, exist_ok=True)
+            segspec = dict()
+            segspec['start'] = yr_start_str
+            segspec['final'] = yr_final_str
+            segspec['ypd'] = opt_ypd
+            segspec['segname'] = segname
+            segspec['segpath'] = segpath
+            for yrdex in range(opt_ypd):
+                the_year = yr_start_int + yrdex
+                pat_year = f"{the_year:04}"
+                pattern = str(f"*{pat_year}-*.nc")
+                matches = [s for s in os.listdir(srcdir) if fnmatch.fnmatch(s, pattern)]
+                for amatch in matches:
+                    bfile = os.path.basename(amatch)
+                    target = os.path.join(srcdir, bfile)
+                    linknm = os.path.join(segpath, bfile)
+                    force_symlink(target, linknm)
+
+            # typically pick up restart, namefile, region_mask
+            for extra in extras:
+                bfile = os.path.basename(extra)
+                linknm = os.path.join(segpath, bfile)
+                force_symlink(extra, linknm)
+
+            if 'extdir' in dirspec and os.path.isdir(dirspec['extdir']):
+                extpath = os.path.join(dirspec['extdir'],segname)
+                segspec['extpath'] = extpath
+
+            seg_specs.append(segspec)
+
+    if method == "PER_FILES":
+
+        src_files = [f for f in os.listdir(srcdir) if os.path.isfile(os.path.join(srcdir, f))]
+        src_files.sort()
+
+        # first, create sorted list of file start-years
+        yearlist = []
+        for afile in src_files:
+            match = re.search(r'\d{4}', afile)
+            if not match:
+                log_message("info", f"ERROR: No 4-digit year found in src file {afile}")
+                return []
+            comps = afile.split('_')
+            yr_start_str = match.group()
+            yearlist.append(yr_start_str)
+        # cross your fingers
+        yearlist.sort()
+        opt_ypd = int(yearlist[1]) - int(yearlist[0])
+        final_year = int(yearlist[-1])
+ 
+        for afile in src_files:
+            # log_message("info", f"DEBUG: Employing src file {afile}")
+            match = re.search(r'\d{4}', afile)
+            yr_start_str = match.group()
+            yr_final_int = int(yr_start_str) + opt_ypd - 1
+            if yr_final_int > final_year:
+                yr_final_int = final_year
+                opt_ypd = yr_final_int - int(yr_start_str) + 1
+            yr_final_str = f"{yr_final_int:04}"
+            segname = f"seg-{yr_start_str}"
+            segpath = os.path.join(parent, segname)
+            os.makedirs(segpath, exist_ok=True)
+            srcfile = os.path.join(srcdir,afile)
+            dstfile = os.path.join(segpath,afile)
+            if os.path.exists(dstfile):
+                os.remove(dstfile)
+            # log_message("info", f"DEBUG: moving srcfile {srcfile} to dstfile {dstfile}")
+            shutil.move(srcfile,segpath)
+            segspec = dict()
+            segspec['start'] = yr_start_str
+            segspec['final'] = yr_final_str
+            segspec['ypd'] = opt_ypd
+            segspec['segname'] = segname
+            segspec['segpath'] = segpath
+
+            if 'extdir' in dirspec and os.path.isdir(dirspec['extdir']):
+                extpath = os.path.join(dirspec['extdir'],segname)
+                segspec['extpath'] = extpath
+
+            seg_specs.append(segspec)
+
+    if len(seg_specs) == 0:
+        log_message("info", f"ERROR: util: slurm_dirs_prep produced no seg_specs")
+        return []
+
+    return seg_specs
 
 
 # -----------------------------------------------

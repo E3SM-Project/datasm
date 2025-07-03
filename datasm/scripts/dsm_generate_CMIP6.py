@@ -254,7 +254,8 @@ def var_type_code(var: str, realm: str, freq: str):
 
 def suggested_ypf(vartypecode: str):
     if vartypecode in ["lnd_mon", "atm_mon_2d", "atm_mon_3d", "atm_mon_fx"]:
-        return 50
+        return 10
+        # return 50
     return 10
 
 dsm_paths = get_dsm_paths()
@@ -265,6 +266,7 @@ maps_path = os.path.join(resource_path, "maps")
 cmor_tables = os.path.join(resource_path, "cmor/cmip6-cmor-tables/Tables")
 derive_conf = os.path.join(resource_path, "derivatives.conf")
 metadata_version = os.path.join(staging_tools, "metadata_version.py")
+run_reporter = os.path.join(staging_tools, "produce_dsid_run_record.sh")
 
 vrt_remap_plev19=os.path.join(f"{resource_path}", "grids", "vrt_remap_plev19.nc")
 
@@ -396,6 +398,9 @@ os.makedirs(gv_tmp_dir, exist_ok=True)
 os.makedirs(gv_yml_dir, exist_ok=True)
 mainlog = ""
 
+gv_Reports = f"{gv_workdir}/CMIP6_RUN_REPORTS"
+os.makedirs(gv_Reports, exist_ok=True)
+
 def process_dsids(dsids: list, pargs: argparse.Namespace):
 
     for dsid in dsids:
@@ -446,14 +451,12 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         native_data = os.path.join(casedir, "native_data")
         native_out = os.path.join(casedir, "native_out")
         rgr_dir = os.path.join(casedir, "rgr")
-        rgr_dir_fixed = os.path.join(casedir, "rgr_fixed_vars")
         rgr_dir_vert = os.path.join(casedir, "rgr_vert")
         result_dir = os.path.join(casedir, "product")
 
         delete_dir(native_data)
         delete_dir(native_out)
         delete_dir(rgr_dir)
-        delete_dir(rgr_dir_fixed)
         delete_dir(rgr_dir_vert)
 
         os.makedirs(casedir, exist_ok=True)
@@ -462,14 +465,12 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         os.makedirs(native_data, exist_ok=True)
         os.makedirs(native_out, exist_ok=True)
         os.makedirs(rgr_dir, exist_ok=True)
-        os.makedirs(rgr_dir_fixed, exist_ok=True)
         os.makedirs(rgr_dir_vert, exist_ok=True)
         os.makedirs(result_dir, exist_ok=True)
 
         clear_files(native_data)
         clear_files(native_out)
         clear_files(rgr_dir)
-        clear_files(rgr_dir_fixed)
         clear_files(rgr_dir_vert)
 
         if pargs.run_mode == "WORK":
@@ -518,33 +519,33 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         # Create the var-type specific command lines ============================================
         #
 
-        flags = ["-7", "--dfl_lvl=1", "--no_cll_msr", "--no_stdin"]
+        cmdflags = ["-7", "--dfl_lvl=1", "--no_cll_msr", "--no_stdin"]
         cmd_1 = cmd_1b = cmd_2 = []
         if the_var_type == "atm_mon_2d": 
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
-            cmd_1.extend(flags)
+            cmd_1.extend(cmdflags)
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_mon_fx": 
-            cmd_1 = ["ncremap", f"--map={map_file}", "-v", f"{nat_vars}", "-I", f"{native_data}", "-O", f"{rgr_dir_fixed}", "--no_stdin"]
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir_fixed}", "--realm", "fx"]
+            cmd_1 = ["ncremap", f"--map={map_file}", "-v", f"{nat_vars}", "-I", f"{native_data}", "-O", f"{rgr_dir}", "--no_stdin"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--realm", "fx"]
         elif the_var_type == "atm_mon_3d": 
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir_vert}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
-            cmd_1.extend(flags)
+            cmd_1.extend(cmdflags)
             cmd_1b = ["ncks", "--rgr", "xtr_mth=mss_val", f"--vrt_fl={vrt_remap_plev19}", f"""{rgr_dir_vert}/f"{{afile}}" """, f"""{rgr_dir}/f"{{afile}}" """]
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_day": 
-            flags.extend(["--clm_md=hfs"])
+            cmdflags.extend(["--clm_md=hfs"])
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
-            cmd_1.extend(flags)
+            cmd_1.extend(cmdflags)
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_3hr": 
-            flags.extend(["--clm_md=hfs"])
+            cmdflags.extend(["--clm_md=hfs"])
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
-            cmd_1.extend(flags)
+            cmd_1.extend(cmdflags)
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type in ["lnd_mon", "lnd_ice_mon"]:            
             cmd_1 = ["ncclimo", "-P", "elm", "-j", "1", "--var_xtr=landfrac", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
-            cmd_1.extend(flags)
+            cmd_1.extend(cmdflags)
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "mpaso_mon": 
             cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "-s", "--realm", "mpaso", "--map", f"{map_file}"]
@@ -599,6 +600,7 @@ from datasm.util import force_symlink
 from datasm.util import get_srun_status
 from datasm.util import force_srun_scancel
 from datasm.util import slurm_srun_manager
+from datasm.util import slurm_dirs_prep
 from datasm.util import setup_logging
 from datasm.util import log_message
 
@@ -606,18 +608,25 @@ dsid = "{dsid}"
 slogname = "{dsid}.sublog"
 slog = os.path.join("{sublogs}", f"{{slogname}}")
 print(f"DEBUG: sublog = {{slog}}", flush=True)
+if os.path.isfile(slog):
+    os.remove(slog)
 setup_logging("info", f"{{slog}}")
 
 freq = "{freq}"
 
 run_mode = "{pargs.run_mode}"
 native_data = os.path.join("{native_data}")
+native_out = os.path.join("{native_out}")
 rgr_dir = os.path.join("{rgr_dir}")
 rgr_dir_vert = os.path.join("{rgr_dir_vert}")
 status_file = os.path.join("{status_file}")
 year_start = {year_start}
 year_final = {year_final}
 ypf = {ypf}
+cmdflags = {cmdflags}
+
+the_var_name = "{dsd['cmip6var']}"
+the_var_type = "{the_var_type}"
 
 # confirm presence of data (symlinks) in native_data
 
@@ -633,27 +642,73 @@ log_message("info", f"NATIVE_SOURCE_COUNT = {{in_count}} files ({{int(in_count/1
 
         if the_var_type not in ["mpaso_mon", "mpassi_mon"]:
             DynaCode_2 = f"""
-cmd_1 = {cmd_1}
-log_message("info", f"LAUNCHED cmd_1 = {{cmd_1}}")
-cmd_result = subprocess.run(cmd_1, capture_output=True, text=True)
-log_message("info", f"RETURNED cmd_1 = {{cmd_1}}")
 
-if cmd_result.returncode != 0:
-    log_message("info", f"ERROR: NCO Process Fail: exit code = {{cmd_result.returncode}}")
-    log_message("info", f"STDERR: {{cmd_result.stderr}}")
-    log_message("info", f"STDOUT: {{cmd_result.stdout}}")
+# Populate a dir_spec dictionary to split input data by year-segments with "slurm_dirs_prep()"
+
+dir_spec = {{}}
+dir_spec['method'] = "YPD_LINKS"
+dir_spec['srcdir'] = os.path.join("{native_src}")
+dir_spec['parent'] = native_data
+dir_spec['opt_yr1'] = year_start
+dir_spec['opt_ypd'] = int(ypf)
+dir_spec['opt_yrs'] = int(year_final) - int(year_start) + 1
+dir_spec['extras'] = []
+if the_var_type != "atm_mon_fx":
+    dir_spec['extdir'] = native_out
+
+segment_specs = slurm_dirs_prep(dir_spec)
+
+ts2 = get_UTC_TS()
+log_message("info", f"slurm_dirs_prep() returned {{len(segment_specs)}} segments")
+
+# Create parallel slurm commands to execute the ncclimo calls
+
+cmd_1_group = []
+
+if the_var_type in ['atm_day', 'atm_3hr']:
+    cmdflags.extend(["--clm_md=hfs"])
+
+for segspec in segment_specs:
+    start_yr = segspec['start']
+    final_yr = segspec['final']
+    opt_ypd  = segspec['ypd']
+    segname  = segspec['segname']
+    segpath  = segspec['segpath']
+    extpath  = segspec['extpath']
+    if the_var_type == "atm_mon_3d":
+        cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={{start_yr}}", f"--end={{final_yr}}", f"--ypf={{opt_ypd}}", "--split", f"--caseid={caseid}", "-o", f"{{extpath}}", "-O", f"{rgr_dir_vert}", "-v", f"{nat_vars}", "-i", f"{{segpath}}"]
+        cmd_1.extend(cmdflags)
+    elif the_var_type != "atm_mon_fx":
+        cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={{start_yr}}", f"--end={{final_yr}}", f"--ypf={{opt_ypd}}", "--split", f"--caseid={caseid}", "-o", f"{{extpath}}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{{segpath}}"]
+        cmd_1.extend(cmdflags)
+    else:
+        cmd_1 = ["ncremap", f"--map={map_file}", "-v", f"{nat_vars}", "-I", f"{{segpath}}", "-O", f"{rgr_dir}", "--no_stdin"]
+
+    log_message("info", f"cmd_1 = {{cmd_1}}")
+    seg_spec = dict()
+    seg_spec['segname'] = segname
+    seg_spec['seg_cmd'] = cmd_1
+    seg_spec['jobname'] = f"nco_{{the_var_name}}_{{segname}}"
+    cmd_1_group.append(seg_spec)
+
+passed, failed = slurm_srun_manager(cmd_1_group)
+total = passed + failed
+
+log_message("info", f"Slurm NCO (cmd_1) Processing Completed: {{passed}} of {{total}} segments passed ({{failed}} failed.)")
+
+if failed > 0:
+    log_message("info", f"ERROR: NCO (cmd_1) Process Fail: dsid = {{dsid}}")
     if run_mode == "WORK":
         ts = f"{{get_UTC_TS()}}"
-        fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:NCO:Fail:return_code={{cmd_result.returncode}}")
-        fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Fail:return_code={{cmd_result.returncode}}")
-    sys.exit(cmd_result.returncode)
-    # all ok
-    log_message("info", f"NCO Process Pass: Regridding Successful")
-    if run_mode == "WORK":
-        ts = f"{{get_UTC_TS()}}"
-        fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:NCO:Pass")
-else:
-    log_message("info", f"SUCCESS: NCO Process Pass")
+        fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:NCO:Fail")
+        fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Fail")
+    sys.exit(1)
+
+log_message("info", f"SUCCESS: NCO (cmd_1) Process Pass")
+if run_mode == "WORK":
+    ts = f"{{get_UTC_TS()}}"
+    fappend(status_file, f"COMM:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:NCO:Pass")
+    fappend(status_file, f"STAT:{{ts}}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
 
 """
             fappend(escript, f"{DynaCode_2}")
@@ -664,10 +719,7 @@ else:
 log_message("info", f"Entered code section for atmos vertical regridding (atm_mon_3D)")
 
 for afile in dirlist(rgr_dir_vert):
-    log_message("info", f"DEBUG: From rgr_dir_vert obtained file {{afile}}")
-    log_message("info", f"DEBUG: Attempting basename")
     bfile = os.path.basename(afile)
-    log_message("info", f"DEBUG: Obtained basename {{bfile}}")
     cmd_1b = ["ncks", "--rgr", "xtr_mth=mss_val", f"--vrt_fl={vrt_remap_plev19}", f"{rgr_dir_vert}/{{bfile}}", f"{rgr_dir}/{{bfile}}"]
     log_message("info", f"LAUNCHING cmd_1b = {{cmd_1b}} file={{bfile}}")
     cmd_result = subprocess.run(cmd_1b, capture_output=True, text=True)
@@ -693,73 +745,37 @@ for afile in dirlist(rgr_dir_vert):
     # if mpaso or mpassi, must loop on ypf-segmentation of "native_data" symlinks
     # if non-MPAS, must loop on ypf-segmentation of the rgr NCO output directory.
 
-        if pargs.run_mode == "WORK" and the_var_type in ["mpaso_mon", "mpassi_mon"]:
+        if the_var_type in ["mpaso_mon", "mpassi_mon"]:
             DynaCode_4_for_MPAS = f"""
 
-# engineer codes to loop native_data symlinks on ypf years here
+# Populate a dir_spec dictionary to split input data by year-segments with "slurm_dirs_prep()"
 
-restartf = "{restartf}"
-namefile = "{namefile}"
-region_f = "{region_f}"
+dir_spec = {{}}
+dir_spec['method'] = "YPD_LINKS"
+dir_spec['srcdir'] = os.path.join("{native_src}")
+dir_spec['parent'] = native_data
+dir_spec['opt_yr1'] = year_start
+dir_spec['opt_ypd'] = int(ypf)
+dir_spec['opt_yrs'] = int(year_final) - int(year_start) + 1
+dir_spec['extras'] = [ "{restartf}", "{namefile}", "{region_f}" ]
 
-native_src = os.path.join("{native_src}")
-range_years = int(year_final) - int(year_start) + 1
-range_segs = int(range_years/int(ypf))
-if range_segs*ypf < range_years:
-    range_segs += 1
-native_data = "{native_data}"
+segment_specs = slurm_dirs_prep(dir_spec)
+
 ts2 = get_UTC_TS() 
-
-log_message("info", f"range_years = {{range_years}}, ypf = {{ypf}}, range_segs = {{range_segs}}")
-log_message("info", f"native_src = {{native_src}}")
-log_message("info", f"Begin processing {{range_years}} at {{ypf}} years per segment.  Total segments = {{range_segs}}")
-
-
-# remove and recreate native_data directory
-shutil.rmtree(native_data)
-os.makedirs(native_data)
-
-# Create native_data subdirs for each segment and populate with year-range of symlinks to native_src
-# Create custom cmd_2 for each segment and store in cmd_2_group list
+log_message("info", f"slurm_dirs_prep() returned {{len(segment_specs)}} segment specs")
 
 cmd_2_group = []
 
-for segdex in range(range_segs):
-    yrA = int(year_start) + segdex*ypf
-    yrB = f"{{yrA:04}}"
-    segname = f"seg-{{yrB}}"
-    segpath = os.path.join(native_data, segname)
-    os.makedirs(segpath, exist_ok=True)
-    the_var_name = "{dsd['cmip6var']}"
-    
-    for yrdex in range(ypf):
-        the_year = yrA + yrdex
-        pat_year = f"{{the_year:04}}"
-        pattern = str(f"*{{pat_year}}-*.nc")
-        matches = [s for s in os.listdir(native_src) if fnmatch.fnmatch(s, pattern)]
-        for amatch in matches:
-            bfile = os.path.basename(amatch)
-            target = os.path.join(native_src, bfile)
-            linknm = os.path.join(segpath, bfile)
-            force_symlink(target, linknm)
-
-    if restartf != "NONE":
-        restart_base = os.path.basename(restartf)
-        force_symlink(restartf, os.path.join(segpath, restart_base))
-    if namefile != "NONE":
-        namefile_base = os.path.basename(namefile)
-        force_symlink(namefile, os.path.join(segpath, namefile_base))
-    if region_f != "NONE":
-        region_f_base = os.path.basename(region_f)
-        force_symlink(region_f, os.path.join(segpath, region_f_base))
-
+for segspec in segment_specs:
+    segname = segspec['segname']
+    segpath = segspec['segpath']
     cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "-s", "--realm", f"{realm}", "--map", f"{map_file}"]
     log_message("info", f"cmd_2 = {{cmd_2}}")
-    seg_spec = dict()
-    seg_spec['segname'] = segname
-    seg_spec['seg_cmd'] = cmd_2
-    seg_spec['jobname'] = f"e2c_{{the_var_name}}_{{segname}}"
-    cmd_2_group.append(seg_spec)
+    seg_cmdspec = dict()
+    seg_cmdspec['segname'] = segname
+    seg_cmdspec['seg_cmd'] = cmd_2
+    seg_cmdspec['jobname'] = f"e2c_{{the_var_name}}_{{segname}}"
+    cmd_2_group.append(seg_cmdspec)
 """
 
             fappend(escript, f"{DynaCode_4_for_MPAS}")
@@ -767,57 +783,48 @@ for segdex in range(range_segs):
 
         else:
             DynaCode_4_NON_MPAS = f"""
-# engineer codes to loop rgr/seg directories on ypf years here
 
-range_years = int(year_final) - int(year_start) + 1
-range_segs = int(range_years/int(ypf))
-if range_segs*ypf < range_years:
-    range_segs += 1
-ts2 = get_UTC_TS()
+# Populate a dir_spec dictionary to split input data by year-segments with "slurm_dirs_prep()"
 
-log_message("info", f"range_years = {{range_years}}, ypf = {{ypf}}, range_segs = {{range_segs}}")
-log_message("info", f"Begin processing {{range_years}} at {{ypf}} years per segment.  Total segments = {{range_segs}}")
+log_message("info", f"Begin NON-MPAS E2C Preparation.  Create slurn-dirs and segment commands")
 
-# Create rgr subdirs for each segment and populate with a year-range file from rgr
-# Create custom cmd_2 for each segment and store in cmd_2_group list
+dir_spec = {{}}
+dir_spec['method'] = "PER_FILES"
+dir_spec['srcdir'] = rgr_dir
+dir_spec['parent'] = rgr_dir
+dir_spec['extras'] = []
+
+segment_specs = slurm_dirs_prep(dir_spec)
+
+ts2 = get_UTC_TS() 
+log_message("info", f"slurm_dirs_prep() returned {{len(segment_specs)}} segment specs")
 
 cmd_2_group = []
 
-rgr_files = [f for f in os.listdir(rgr_dir) if os.path.isfile(os.path.join(rgr_dir, f))]
-for afile in rgr_files:
-    log_message("info", f"DEBUG: Processing rgr file {{afile}}")
-    comps = afile.split('_')
-    yrA = comps[1]
-    yrB = yrA[0:4]
-    segname = f"seg-{{yrB}}"
-    segpath = os.path.join(rgr_dir, segname)
-    os.makedirs(segpath, exist_ok=True)
-    the_var_name = "{dsd['cmip6var']}"
-    srcfile = os.path.join(rgr_dir,afile)
-    dstfile = os.path.join(segpath,afile)
-    if os.path.exists(dstfile):
-        os.remove(dstfile)
-    shutil.move(srcfile,segpath)
-    
+# loop rgr/seg directories on ypf years here
+
+for segspec in segment_specs:
+    segname = segspec['segname']
+    segpath = segspec['segpath']
     cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "--freq", f"{{freq}}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}"]
     log_message("info", f"cmd_2 = {{cmd_2}}")
-    seg_spec = dict()
-    seg_spec['segname'] = segname
-    seg_spec['seg_cmd'] = cmd_2
-    seg_spec['jobname'] = f"e2c_{{the_var_name}}_{{segname}}"
-    cmd_2_group.append(seg_spec)
+    seg_cmdspec = dict()
+    seg_cmdspec['segname'] = segname
+    seg_cmdspec['seg_cmd'] = cmd_2
+    seg_cmdspec['jobname'] = f"e2c_{{the_var_name}}_{{segname}}"
+    cmd_2_group.append(seg_cmdspec)
 """
             fappend(escript, f"{DynaCode_4_NON_MPAS}")
             log_message("info", "wrote DynaCode_4_NON_MPAS")
 
 # This loop of segment processing must submit each segment job to slurm/srun =============================
 
-        DynaCode_5 = f"""
+        DynaCode_5_srun_e2c = f"""
 
 passed, failed = slurm_srun_manager(cmd_2_group)
 total = passed + failed
 
-log_message("info", f"Slurm Processing Completed: {{passed}} of {{total}} segments passed ({{failed}} failed.)")
+log_message("info", f"Slurm E2C Processing Completed: {{passed}} of {{total}} segments passed ({{failed}} failed.)")
 
 if failed > 0:
     log_message("info", f"ERROR: E2C Process Fail: dsid = {dsid}")
@@ -835,8 +842,8 @@ if run_mode == "WORK":
 
 sys.exit(0)
 """
-        fappend(escript, f"{DynaCode_5}")
-        log_message("info", "wrote DynaCode_5")
+        fappend(escript, f"{DynaCode_5_srun_e2c}")
+        log_message("info", "wrote DynaCode_5_srun_e2c")
 
 
         DynaCode_6 = f"""
@@ -910,6 +917,13 @@ sys.exit(0)
 
         log_message("info", f"Completed Processing dataset_id: {dsid}")
 
+        cmd = [f"{run_reporter}", f"{case_id}", f"{dsid}"]
+        cmd_result = subprocess.run(cmd, capture_output=True, text=True)
+        if cmd_result.returncode != 0:
+            log_message("error", f"Report Generator FAILED: cmd = {cmd}")
+            log_message("error", f"STDERR: {cmd_result.stderr}")
+        else:
+            log_message("info", f"Run Reporter Completed")
 
 def main():
     global mainlog
