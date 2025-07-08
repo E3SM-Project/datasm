@@ -52,7 +52,7 @@ def load_yaml(inpath):
 # CMIP6: Project.Activity.Institution.SourceID.Experiment.VariantLabel.RealmFreq.VarName.Grid
 
 def collect_cmip_datasets(dataset_spec):
-    for target_project in ["CMIP6", "CMIP6-E3SM-Ext"]:
+    for target_project in ["CMIP6"]:
         for activity_name, activity_val in dataset_spec["project"][target_project].items():
             if activity_name == "test":
                 continue

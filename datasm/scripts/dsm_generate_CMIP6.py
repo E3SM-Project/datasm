@@ -399,6 +399,7 @@ os.makedirs(gv_tmp_dir, exist_ok=True)
 os.makedirs(gv_yml_dir, exist_ok=True)
 mainlog = ""
 
+gv_wtf_log = os.path.join(gv_workdir,"WTF")
 gv_Reports = f"{gv_workdir}/CMIP6_RUN_REPORTS"
 os.makedirs(gv_Reports, exist_ok=True)
 
@@ -900,12 +901,12 @@ sys.exit(0)
             os.makedirs(product_dst, exist_ok=True)
             pattern_src = os.path.join(product_src, "*.nc")
 
-            log_message("info", f"DEBUG: Conducting product transfer FROM: {product_src}")
-            log_message("info", f"DEBUG: Conducting product transfer INTO: {product_dst}")
             # DEBUG is there output?
             outtest = dirlist(product_src)
-            # for afile in outtest:
-            #     log_message("info", f"DEBUG: Product facet-path holds {afile}")
+            for afile in outtest:
+                log_message("info", f"DEBUG: Product facet-path holds {afile}")
+            log_message("info", f"DEBUG: Conducting product transfer FROM: {product_src}")
+            log_message("info", f"DEBUG: Conducting product transfer INTO: {product_dst}")
 
             ts = get_UTC_TS()
             if len(outtest) == 0:
@@ -918,16 +919,17 @@ sys.exit(0)
 
         log_message("info", f"Completed Processing dataset_id: {dsid}")
 
-        cmd = [f"{run_reporter}", f"{case_id}", f"{dsid}"]
-        log_message("info", f"Invoking Report Generator: cmd = {cmd}")
+        cmdr = [f"{run_reporter}", f"{caseid}", f"{dsid}"]
+        log_message("info", f"Invoking Report Generator: cmd = {cmdr}")
+        fappend(gv_wtf_log, f"Invoking Report Generator: cmd = {cmdr}")
         sleep(5)       
-        cmd_result = subprocess.run(cmd, capture_output=True, text=True)
+        cmd_result = subprocess.run(cmdr, capture_output=True, text=True)
         ts = get_UTC_TS()
         if cmd_result.returncode != 0:
-            print(f"{ts}:WARNING: Report Generator FAILED: cmd = {cmd}")
-            print(f"{ts}:WARNING: cmd_result.stderr = {cmd_result.stderr}")
+            fappend(gv_wtf_log, f"{ts}:WARNING: Report Generator FAILED: cmd = {cmdr}")
+            fappend(gv_wtf_log, f"{ts}:WARNING: cmd_result.stderr = {cmd_result.stderr}")
         else:
-            print(f"{ts}:INFO: Report Generator Completed.")
+            fappend(gv_wtf_log, f"{ts}:INFO: Report Generator Completed.")
 
 def main():
     global mainlog

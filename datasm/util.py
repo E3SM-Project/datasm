@@ -506,6 +506,19 @@ def get_dsm_paths():
 
     return DSM_ROOT_PATHS
 
+def get_dsspec_year_range(nat_dsid):
+    dsm_paths = get_dsm_paths()
+    resource_path = dsm_paths['STAGING_RESOURCE']
+    DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
+
+    dc = nat_dsid.split(".")        # E3SM:  0=project, 1=model, 2=exper, 3=resol, 4=realm, 5=
+
+    with open(DEFAULT_SPEC_PATH, 'r') as instream:
+        dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
+
+    the_experiment_record = dataset_spec['project'][dc[0]][dc[1]][dc[2]]
+    return the_experiment_record['start'],the_experiment_record['end']
+
 def ensure_status_file_for_dsid(dsid):
     dsm_paths = get_dsm_paths()
     sf_root1 = dsm_paths['STAGING_STATUS']
@@ -1102,7 +1115,7 @@ def latest_data_vdir(dsid):
     else:
         return "NONE"
 
-    print(f"TEST_DEBUG: STAGE_1: the_enspath = {the_enspath}")
+    # print(f"TEST_DEBUG: STAGE_1: the_enspath = {the_enspath}")
 
     if the_enspath != "BOTH":
         vdirs = [ f.path for f in os.scandir(the_enspath) if f.is_dir() ]
@@ -1129,7 +1142,7 @@ def latest_data_vdir(dsid):
     else:
         the_vdirs = "BOTH"
 
-    print(f"TEST_DEBUG: STAGE_2: the_vdirs = {the_vdirs}")
+    # print(f"TEST_DEBUG: STAGE_2: the_vdirs = {the_vdirs}")
 
     if the_vdirs != "BOTH":
         latest_vdir = the_vdirs[-1]
@@ -1147,7 +1160,7 @@ def latest_data_vdir(dsid):
     vcount1 = len([item for item in os.listdir(latest_vdir1) if os.path.isfile(os.path.join(latest_vdir1, item))])
     vcount2 = len([item for item in os.listdir(latest_vdir2) if os.path.isfile(os.path.join(latest_vdir2, item))])
 
-    print(f"TEST_DEBUG: STAGE_3: vcount1 = {vcount1}, vcount2 = {vcount2}")
+    # print(f"TEST_DEBUG: STAGE_3: vcount1 = {vcount1}, vcount2 = {vcount2}")
 
     if vcount1 == 0:
         if vcount2 == 0:
@@ -1160,7 +1173,7 @@ def latest_data_vdir(dsid):
     vtail1 = latest_vdir1.split('/')[-1]
     vtail2 = latest_vdir2.split('/')[-1]
 
-    print(f"TEST_DEBUG: STAGE_4: vtail1 = {vtail1}, vtail2 = {vtail2}")
+    # print(f"TEST_DEBUG: STAGE_4: vtail1 = {vtail1}, vtail2 = {vtail2}")
 
     if vtail1 > vtail2:
         return latest_vdir1
