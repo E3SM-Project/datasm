@@ -886,7 +886,7 @@ sys.exit(0)
                 ts = get_UTC_TS()
                 fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Subprocess:Fail:return_code={cmd_result.returncode}")
                 fappend(status_file, f"STAT:{ts}:POSTPROCESS:GenerateCMIP6:Fail:return_code={cmd_result.returncode}")
-            continue
+            # continue
 
     #
     # SECTION:  Product Disposition ==========================================================
@@ -903,6 +903,7 @@ sys.exit(0)
 
             # DEBUG is there output?
             outtest = dirlist(product_src)
+            log_message("info", f"DEBUG: product_src holds the following {len(outtest)} output files:")
             for afile in outtest:
                 log_message("info", f"DEBUG: Product facet-path holds {afile}")
             log_message("info", f"DEBUG: Conducting product transfer FROM: {product_src}")

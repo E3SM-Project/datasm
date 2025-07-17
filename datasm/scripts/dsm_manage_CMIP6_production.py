@@ -414,8 +414,8 @@ class ManageRunstatus():
     def update(self, status="UNKNOWN", dsid=None):
         dsid = self.stat_pending.popleft()
         if status == "SUCCESS":
-            self.stat_failure.append(dsid)
-            write_file_list(self.stat_failure_file, list(self.stat_failure))
+            self.stat_success.append(dsid)
+            write_file_list(self.stat_success_file, list(self.stat_success))
         if status == "FAILURE":
             self.stat_failure.append(dsid)
             write_file_list(self.stat_failure_file, list(self.stat_failure))
@@ -435,7 +435,7 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
             map_lines = list()
             if not support_in_local_archive_map(nat_dsid, map_lines):
                 log_message("info", f"DEBUG: NO support in local archive map for {nat_dsid}")
-                runstatus.update("FAILURE", list(dsid))
+                runstatus.update("FAILURE", dsid)
                 continue
 
             if len(map_lines) == 0:
@@ -449,18 +449,18 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
                 remote_map_lines = list()
                 if not support_in_remote_archive_map(nat_dsid, map_lines, remote_map_lines):
                     log_message("info", f"DEBUG: NO support in remote archive map for {nat_dsid}")
-                    runstatus.update("FAILURE", list(dsid))
+                    runstatus.update("FAILURE", dsid)
                     continue
                 if not retrieve_remote_archives(remote_map_lines):
                     log_message("info", f"Cannot retrieve remote archive for native data {nat_dsid}")
                     log_message("info", f"Cannot process CMIP6 dataset {dsid}")
-                    runstatus.update("FAILURE", list(dsid))
+                    runstatus.update("FAILURE", dsid)
                     continue
             log_message("info", f"Proceeding to extract from local archives")
             if not extract_from_local_archive(nat_dsid):
                 log_message("info", f"Cannot extract native dataset {nat_dsid} from local archive to warehouse")
                 log_message("info", f"Cannot process CMIP6 dataset {dsid}")
-                runstatus.update("FAILURE", list(dsid))
+                runstatus.update("FAILURE", dsid)
                 continue
             log_message("info", f"Proceeding to generate CMIP6")
         
@@ -476,12 +476,12 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
         if cmd_result.returncode != 0:
             log_message("info", f"ERROR: {dsmgenCMIP6} FAIL to generate CMIP dataset {dsid}")
             log_message("info", f"STDERR: {cmd_result.stderr}")
-            runstatus.update("FAILURE", list(dsid))
+            runstatus.update("FAILURE", dsid)
             continue
         else:
             tasks_done += 1
             log_message("info", f"Successful generation of CMIP dataset {dsid} ({tasks_done} of {task_count})")
-            runstatus.update("SUCCESS", list(dsid))
+            runstatus.update("SUCCESS", dsid)
 
     log_message("info", f"Processed {task_count} dataset_ids")
 

@@ -36,7 +36,8 @@ echo "TOOL INSTALLATIONS"
 for atool in `cat MANIFEST`; do
     echo "======================================================================================================"
     echo "$atool:"
-    diff $atool $tools/$atool
+    btool=`basename $atool`
+    diff $atool $tools/$btool
 done
 
 

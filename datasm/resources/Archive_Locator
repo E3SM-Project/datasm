@@ -61,7 +61,7 @@ DECK-v1,1_0,ssp585-GHG,1deg_atm_60-30km_ocean,ens3,/p/user_pub/e3sm/archive/1_0/
 DECK-v2,2_0,1pctCO2,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.1pctCO2_0101
 DECK-v2,2_0,abrupt-4xCO2,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0101
 DECK-v2,2_0,abrupt-4xCO2,LR,ens2,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301
-DECK-v2,2_0,amip,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.amip_0101
+DECK-v2,2_0,amip,LR,ens1,/lcrc/group/e3sm2/DSM/Archive/Data/2_0/DECK-v2/v2.LR.amip_0101
 DECK-v2,2_0,amip,LR,ens2,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.amip_0201
 DECK-v2,2_0,amip,LR,ens3,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.amip_0301
 DECK-v2,2_0,hist-aer,LR,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.LR.hist-aer_0101
@@ -90,7 +90,7 @@ DECK-v2,2_0_NARRM,amip,LR-NARRM,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.NAR
 DECK-v2,2_0_NARRM,amip,LR-NARRM,ens2,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.NARRM.amip_0201
 DECK-v2,2_0_NARRM,amip,LR-NARRM,ens3,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.NARRM.amip_0301
 DECK-v2,2_0_NARRM,historical,LR-NARRM,ens1,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.NARRM.historical_0101
-DECK-v2,2_0_NARRM,historical,LR-NARRM,ens2,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.NARRM.historical_0151
+DECK-v2,2_0_NARRM,historical,LR-NARRM,ens2,/lcrc/group/e3sm2/DSM/Archive/Data/2_0/DECK-v2/v2.NARRM.historical_0151
 DECK-v2,2_0_NARRM,historical,LR-NARRM,ens3,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.NARRM.historical_0201
 DECK-v2,2_0_NARRM,historical,LR-NARRM,ens4,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.NARRM.historical_0251
 DECK-v2,2_0_NARRM,historical,LR-NARRM,ens5,/p/user_pub/e3sm/archive/2_0/DECK-v2/v2.NARRM.historical_0301
@@ -108,11 +108,13 @@ DECK-v2,2_1,1pctCO2,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.1pctCO2_0101
 DECK-v2,2_1,abrupt-4xCO2,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.abrupt-4xCO2_0101
 DECK-v2,2_1,amip,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.amip_0101
 DECK-v2,2_1,historical,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0101
-DECK-v2,2_1,historical,LR,ens2,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0151
+DECK-v2,2_1,historical,LR,ens2,/lcrc/group/e3sm2/DSM/Archive/Data/2_0/DECK-v2/v2.NARRM.historical_0151
 DECK-v2,2_1,historical,LR,ens3,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0201
 DECK-v2,2_1,historical,LR,ens4,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0251
 DECK-v2,2_1,historical,LR,ens5,/p/user_pub/e3sm/archive/2_1/v2_1.LR.historical_0301
 DECK-v2,2_1,piControl,LR,ens1,/p/user_pub/e3sm/archive/2_1/v2_1.LR.piControl
+DECK-v3,3_0,piControl,LR,ens1,/lcrc/group/e3sm2/DSM/Archive/Data/3_0/DECK-v3/v3.LR.piControl
+DECK-v3,3_0,historical,LR,ens1,/lcrc/group/e3sm2/DSM/Archive/Data/3_0/DECK-v3/v3.LR.historical_0051
 HR-v1,1_0,1950-1970-Transient-HR,0_25deg_atm_18-6km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/HR-v1/20200517-maint-1.0-tro.A_WCYCL20TRS_CMIP6_HR.ne120_oRRS18v3_ICG.unc11-20years
 HR-v1,1_0,1950-Control,0_25deg_atm_18-6km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/HR-v1/theta.20180906.branch_noCNT.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG
 HR-v1,1_0,1950-Control-21yrContHiVol-HR,0_25deg_atm_18-6km_ocean,ens1,/p/user_pub/e3sm/archive/1_0/HR-v1/theta.20190910.branch_noCNT.n438b.unc03.A_WCYCL1950S_CMIP6_HR.ne120_oRRS18v3_ICG

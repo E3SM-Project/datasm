@@ -67,13 +67,23 @@ if [[ $log_count -gt 0 ]]; then
     echo "    Content of e2c log $typical_e2c_log" >> $Report_Name
     echo "" >> $Report_Name
 
-    cat $typical_e2c_log | head -20 > junk_typic
+    cat $typical_e2c_log > junk_typic
 
     for aline in `cat junk_typic`; do
         echo "        $aline" >> $Report_Name
     done
     rm junk_typic
     echo "" >> $Report_Name
+fi
+
+mkdir -p $Report_Path/e2c_logs
+
+for e2c_log in `ls $opdir/tmp/$case_id/product/*.log`; do
+    mv $e2c_log $Report_Path/e2c_logs
+done
+
+if [[ -d $opdir/tmp/$case_id/product/cmor_logs ]]; then
+    mv $opdir/tmp/$case_id/product/cmor_logs $Report_Path
 fi
 
 dsm_gen_log=`ls $opdir/tmp/mainlogs | grep dsm_gen-$cmip_dsid | tail -1`
