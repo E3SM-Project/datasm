@@ -27,13 +27,21 @@ from datasm.util import ensure_status_file_for_dsid
 from datasm.util import get_UTC_TS
 
 helptext = '''
-    Usage: dsm_man_cmip --runmode <runmode> -i <file_of_cmip6_dataset_ids> [--ds_spec alternate_dataset_spec.yaml]
+    Usage: dsm_manage_CMIP6_production --runmode <runmode> -i <file_of_cmip6_dataset_ids> [--lockdir workspace_directory] [--ds_spec alternate_dataset_spec.yaml]
            <runmode> must be either "TEST" or "WORK".
            In TEST mode, only the first year of data will be processed,
            and the E3SM dataset status files are not updated."
            In WORK mode, all years given in the dataset_spec are applied,
            and the E3SM dataset status files are updated, and the cmorized
            results are moved to staging data (the warehouse).
+
+    By default, a workspace directory "LOCK-yyyymmdd" will be created in your current working directory
+    (with yyyymmdd being the current UTC date), and all operations for this run (aside from some
+    reporting) will be conducted therein.  Any attempt to re-invoke dsm_manage with the same workspace
+    will exit with a warning.  To override and re-run dsm_manage, you must either terminate the
+    the existing run and destroy (or rename) the workspace directory, or use "--lockdir" to name
+    another workspace.  This prevents multiple invocations of dsm_manage from clobbering each others
+    input and outpou subdirectories.
 
     Note: The runtime environment must include the following items:
 
@@ -62,6 +70,7 @@ def assess_args():
     optional = parser.add_argument_group('optional arguments')
     required.add_argument('-i', '--input_dsid_list', action='store', dest="input_dsids", type=str, help="file list of CMIP dataset_ids", required=True)
     required.add_argument('--runmode', action='store', dest="run_mode", type=str, help="\"TEST\" or \"WORK\"", required=True)
+    optional.add_argument('--lockdir', action='store', dest="alt_lockdir", type=str, help="alternative workspace dir", required=False)
     optional.add_argument('--ds_spec', action='store', dest="alt_ds_spec", type=str, help="alternative dataset spec", required=False)
 
     args = parser.parse_args()
@@ -177,7 +186,7 @@ def derive_namefile_and_restart_dsids(native_dsid):
 # Management Support Functions
 # -----------------------------------------------------------
 
-mainlog = ""
+gv_mainlog = ""
 
 def dump_transfer_spec(nat_dsid: str, spec: list):
     log_message("info", f"    Transfer_spec for dsid: {nat_dsid}")
@@ -335,7 +344,7 @@ def extract_from_local_archive(native_dsid):
             log_message("info", f"Archive path {arch_path} does not exist")
             return False
     
-    # NOTE: We could be smarer here, and parse "zstash ls -l" to see if the 
+    # NOTE: We could be smarter here, and parse "zstash ls -l" to see if the 
     # extracted dataset alone would put us over-the-line, space-wise, as
     # opposed to using the entire archive size.
 
@@ -381,19 +390,36 @@ def support_in_warehouse(native_dsid):
             return True
     return False
     
-
-
 # Setup Global Vars and Paths
 
 the_pwd = os.getcwd()
 gv_workdir = os.path.realpath(the_pwd)
-gv_tmp_dir = os.path.join(f"{gv_workdir}", "tmp")
-gv_tmp_statdir = os.path.join(f"{gv_tmp_dir}", "stat")
-os.makedirs(gv_tmp_dir, exist_ok=True)
-os.makedirs(gv_tmp_statdir, exist_ok=True)
+gv_lockdir = ""
+gv_lock_statdir = ""
+
+def get_system_lockdir(workdir,lockdir):
+    global gv_lockdir
+    global gv_lock_statdir
+
+    if lockdir:
+        lockname = os.path.basename(lockdir)
+    else:
+        ts = get_UTC_TS()
+        tsd = ts[0:8]
+        lockname = f"LOCK_{tsd}"
+    lockpath = os.path.join(workdir,lockname)
+    if os.path.exists(lockpath):
+        log_message("info", f"ERROR: Cannot initiate operations in existing Lock_Dir {lockpath}")
+        log_message("info", f"ERROR: Remove or rename existing Lock_Dir before proceeding.")
+        sys.exit(1)
+    os.makedirs(lockpath, exist_ok=False)
+    gv_lockdir = lockpath
+    gv_lock_statdir = os.path.join(lockpath,"stat")
+    os.makedirs(gv_lock_statdir, exist_ok=False)
+    return lockpath
 
 spacemode = "LARGE"
-dryrun = True
+# dryrun = True
 
 # Maintain 3 queues and output files: stat_pending, stat_success, stat_failure.
 
@@ -404,9 +430,9 @@ class ManageRunstatus():
         self.stat_pending = deque(dsidlist)
         self.stat_success = deque()
         self.stat_failure = deque()
-        self.stat_pending_file = os.path.join(gv_tmp_statdir, f"stat-{ts}-pending")
-        self.stat_success_file = os.path.join(gv_tmp_statdir, f"stat-{ts}-success")
-        self.stat_failure_file = os.path.join(gv_tmp_statdir, f"stat-{ts}-failure")
+        self.stat_pending_file = os.path.join(gv_lock_statdir, f"stat-{ts}-pending")
+        self.stat_success_file = os.path.join(gv_lock_statdir, f"stat-{ts}-success")
+        self.stat_failure_file = os.path.join(gv_lock_statdir, f"stat-{ts}-failure")
         write_file_list(self.stat_pending_file, list(self.stat_pending))
         write_file_list(self.stat_success_file, list(self.stat_success))
         write_file_list(self.stat_failure_file, list(self.stat_failure))
@@ -469,8 +495,8 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
         quiet_remove(dsidfile)
         fappend(dsidfile, f"{dsid}")
         dsmgenCMIP6 = os.path.join(staging_tools, "dsm_generate_CMIP6.py")
-        cmd = ["python", f"{dsmgenCMIP6}", "--runmode", f"{pargs.run_mode}", "-i", f"{dsidfile}"]
-        log_message("info", f"CMD = {cmd}")
+        cmd = ["python", f"{dsmgenCMIP6}", "--workspace", f"{gv_lockdir}", "--runmode", f"{pargs.run_mode}", "-i", f"{dsidfile}"]
+        log_message("info", f"DSM_GEN CMD = {cmd}")
 
         cmd_result = subprocess.run(cmd, capture_output=True, text=True)
         if cmd_result.returncode != 0:
@@ -487,20 +513,25 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
 
 
 def main():
-    global mainlog
+    global gv_mainlog
+    global gv_lockdir
+    global gv_logdir
 
     pargs = assess_args()
 
     print(f"DEBUG: pargs = {pargs}")
 
+    this_lockdir = get_system_lockdir(gv_workdir,pargs.alt_lockdir)
+    gv_lockdir = this_lockdir
+
     targ_list = os.path.basename(pargs.input_dsids)
-    gv_log_dir = os.path.join(gv_tmp_dir, "mainlogs")
-    os.makedirs(gv_log_dir, exist_ok=True)
+    gv_log_dir = os.path.join(this_lockdir, "dsmman_logs")
+    os.makedirs(gv_log_dir, exist_ok=False)
 
     ts = get_UTC_TS()
-    mainlog = os.path.join(gv_log_dir, f"{targ_list}.log-{ts}")
-    setup_logging("info", mainlog)
-    print(f"DEBUG: mainlog = {mainlog}", flush=True)
+    gv_mainlog = os.path.join(gv_log_dir, f"{targ_list}.log-{ts}")
+    setup_logging("info", gv_mainlog)
+    print(f"DEBUG: gv_mainlog = {gv_mainlog}", flush=True)
 
     dsid_list = load_file_lines(pargs.input_dsids)
 

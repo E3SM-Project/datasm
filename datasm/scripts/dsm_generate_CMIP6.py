@@ -62,6 +62,7 @@ def assess_args():
     parser._action_groups.pop()
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')
+    required.add_argument('-w', '--workspace', action='store', dest="workspace", type=str, help="name of directory in pwd", required=True)
     required.add_argument('-i', '--input_dsid_list', action='store', dest="input_dsids", type=str, help="file list of CMIP dataset_ids", required=True)
     required.add_argument('--runmode', action='store', dest="run_mode", type=str, help="\"TEST\" or \"WORK\"", required=True)
     required.add_argument('--dryrun', action='store_true', dest="dryrun", help="(do not run created subscript)", required=False)
@@ -393,14 +394,11 @@ def setup_target_symlinks(runmode, the_var_type, native_src, native_data, realm,
 
 the_pwd = os.getcwd()
 gv_workdir = os.path.realpath(the_pwd)
-gv_tmp_dir = f"{gv_workdir}/tmp"
-gv_yml_dir = f"{gv_tmp_dir}/info_yaml"
-os.makedirs(gv_tmp_dir, exist_ok=True)
-os.makedirs(gv_yml_dir, exist_ok=True)
-mainlog = ""
+gv_lockdir = ""
+gv_yml_dir = ""
+gv_mainlog = ""
 
-gv_wtf_log = os.path.join(gv_workdir,"WTF")
-gv_Reports = f"{gv_workdir}/CMIP6_RUN_REPORTS"
+gv_Reports = f"{gv_workdir}/RUN_REPORTS"
 os.makedirs(gv_Reports, exist_ok=True)
 
 def process_dsids(dsids: list, pargs: argparse.Namespace):
@@ -447,7 +445,7 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
 
         # begin persistent storage across cases.
 
-        casedir = os.path.join(gv_workdir, "tmp", caseid)
+        casedir = os.path.join(gv_lockdir, caseid)
         subscripts = os.path.join(casedir, "scripts")
         sublogs = os.path.join(casedir, "caselogs")
         native_data = os.path.join(casedir, "native_data")
@@ -526,33 +524,33 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         if the_var_type == "atm_mon_2d": 
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(cmdflags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_mon_fx": 
             cmd_1 = ["ncremap", f"--map={map_file}", "-v", f"{nat_vars}", "-I", f"{native_data}", "-O", f"{rgr_dir}", "--no_stdin"]
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--realm", "fx"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--realm", "fx"]
         elif the_var_type == "atm_mon_3d": 
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir_vert}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(cmdflags)
             cmd_1b = ["ncks", "--rgr", "xtr_mth=mss_val", f"--vrt_fl={vrt_remap_plev19}", f"""{rgr_dir_vert}/f"{{afile}}" """, f"""{rgr_dir}/f"{{afile}}" """]
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_day": 
             cmdflags.extend(["--clm_md=hfs"])
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(cmdflags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_3hr": 
             cmdflags.extend(["--clm_md=hfs"])
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(cmdflags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type in ["lnd_mon", "lnd_ice_mon"]:            
             cmd_1 = ["ncclimo", "-P", "elm", "-j", "1", "--var_xtr=landfrac", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(cmdflags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "mpaso_mon": 
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "-s", "--realm", "mpaso", "--map", f"{map_file}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "--realm", "mpaso", "--map", f"{map_file}"]
         elif the_var_type == "mpassi_mon": 
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "-s", "--realm", "mpassi", "--map", f"{map_file}"]
+            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "--realm", "mpassi", "--map", f"{map_file}"]
         else: 
             log_message("error", f"ERROR: var_type() returned {the_var_type} for cmip dataset_id {dsid}")
             continue
@@ -646,17 +644,20 @@ log_message("info", f"NATIVE_SOURCE_COUNT = {{in_count}} files ({{int(in_count/1
             DynaCode_2 = f"""
 
 # Populate a dir_spec dictionary to split input data by year-segments with "slurm_dirs_prep()"
+# (the_var_type in ["atm_mon_2d", "atm_mon_3d", "atm_mon_fx", "atm_day", "atm_3hr", "lnd_mon", "lnd_ice_mon"]
 
 dir_spec = {{}}
 dir_spec['method'] = "YPD_LINKS"
 dir_spec['srcdir'] = os.path.join("{native_src}")
 dir_spec['parent'] = native_data
+dir_spec['opt_yrs'] = int(year_final) - int(year_start) + 1
 dir_spec['opt_yr1'] = year_start
 dir_spec['opt_ypd'] = int(ypf)
-dir_spec['opt_yrs'] = int(year_final) - int(year_start) + 1
+if the_var_type == "atm_mon_fx":
+    dir_spec['opt_yrs'] = 1
+    dir_spec['opt_ypd'] = 1
 dir_spec['extras'] = []
-if the_var_type != "atm_mon_fx":
-    dir_spec['extdir'] = native_out
+dir_spec['extdir'] = native_out
 
 segment_specs = slurm_dirs_prep(dir_spec)
 
@@ -676,15 +677,20 @@ for segspec in segment_specs:
     opt_ypd  = segspec['ypd']
     segname  = segspec['segname']
     segpath  = segspec['segpath']
-    extpath  = segspec['extpath']
-    if the_var_type == "atm_mon_3d":
-        cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={{start_yr}}", f"--end={{final_yr}}", f"--ypf={{opt_ypd}}", "--split", f"--caseid={caseid}", "-o", f"{{extpath}}", "-O", f"{rgr_dir_vert}", "-v", f"{nat_vars}", "-i", f"{{segpath}}"]
-        cmd_1.extend(cmdflags)
-    elif the_var_type != "atm_mon_fx":
+    if 'extpath' in segspec:
+        extpath  = segspec['extpath']
+
+    if the_var_type in ["atm_mon_2d", "atm_day", "atm_3hr"]:
         cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={{start_yr}}", f"--end={{final_yr}}", f"--ypf={{opt_ypd}}", "--split", f"--caseid={caseid}", "-o", f"{{extpath}}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{{segpath}}"]
         cmd_1.extend(cmdflags)
-    else:
+    elif the_var_type == "atm_mon_3d":
+        cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={{start_yr}}", f"--end={{final_yr}}", f"--ypf={{opt_ypd}}", "--split", f"--caseid={caseid}", "-o", f"{{extpath}}", "-O", f"{rgr_dir_vert}", "-v", f"{nat_vars}", "-i", f"{{segpath}}"]
+        cmd_1.extend(cmdflags)
+    elif the_var_type == "atm_mon_fx":
         cmd_1 = ["ncremap", f"--map={map_file}", "-v", f"{nat_vars}", "-I", f"{{segpath}}", "-O", f"{rgr_dir}", "--no_stdin"]
+    else: # ("lnd_mon", "lnd_ice_mon")
+        cmd_1 = ["ncclimo", "-P", "elm", "-j", "1", "--var_xtr=landfrac", f"--map={map_file}", f"--start={{start_yr}}", f"--end={{final_yr}}", f"--ypf={{opt_ypd}}", "--split", f"--caseid={caseid}", "-o", f"{{extpath}}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{{segpath}}"]
+        cmd_1.extend(cmdflags)
 
     log_message("info", f"cmd_1 = {{cmd_1}}")
     seg_spec = dict()
@@ -693,7 +699,7 @@ for segspec in segment_specs:
     seg_spec['jobname'] = f"nco_{{the_var_name}}_{{segname}}"
     cmd_1_group.append(seg_spec)
 
-passed, failed = slurm_srun_manager(cmd_1_group)
+passed, failed = slurm_srun_manager(cmd_1_group,0,0)
 total = passed + failed
 
 log_message("info", f"Slurm NCO (cmd_1) Processing Completed: {{passed}} of {{total}} segments passed ({{failed}} failed.)")
@@ -771,7 +777,7 @@ cmd_2_group = []
 for segspec in segment_specs:
     segname = segspec['segname']
     segpath = segspec['segpath']
-    cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "-s", "--realm", f"{realm}", "--map", f"{map_file}"]
+    cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "--realm", f"{realm}", "--map", f"{map_file}"]
     log_message("info", f"cmd_2 = {{cmd_2}}")
     seg_cmdspec = dict()
     seg_cmdspec['segname'] = segname
@@ -808,7 +814,10 @@ cmd_2_group = []
 for segspec in segment_specs:
     segname = segspec['segname']
     segpath = segspec['segpath']
-    cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "--freq", f"{{freq}}", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}"]
+    cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "--freq", f"{{freq}}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}"]
+    # WORKWORK: do we need a separate cmd_2 for atm_mon_fx?
+    if the_var_type == "atm_mon_fx":
+        cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "--realm", "fx"]
     log_message("info", f"cmd_2 = {{cmd_2}}")
     seg_cmdspec = dict()
     seg_cmdspec['segname'] = segname
@@ -823,7 +832,11 @@ for segspec in segment_specs:
 
         DynaCode_5_srun_e2c = f"""
 
-passed, failed = slurm_srun_manager(cmd_2_group)
+minw = 0
+maxw = 0
+if f"{realm}" == "mpaso":
+    maxw = 14400
+passed, failed = slurm_srun_manager(cmd_2_group, minw, maxw)
 total = passed + failed
 
 log_message("info", f"Slurm E2C Processing Completed: {{passed}} of {{total}} segments passed ({{failed}} failed.)")
@@ -889,6 +902,16 @@ sys.exit(0)
             # continue
 
     #
+    # SECTION:  Process Reporting ==========================================================
+    #
+
+        ds_version = get_metadata_file_version(metadata_file)
+        cmdr = [f"{run_reporter}", f"{gv_lockdir}", f"{caseid}", f"{dsid}", f"{ds_version}" ]
+        log_message("info", f"Invoking Report Generator: cmd = {cmdr}")
+        sleep(5)       
+        cmd_result = subprocess.run(cmdr, capture_output=True, text=True)
+
+    #
     # SECTION:  Product Disposition ==========================================================
     #
 
@@ -920,33 +943,26 @@ sys.exit(0)
 
         log_message("info", f"Completed Processing dataset_id: {dsid}")
 
-        cmdr = [f"{run_reporter}", f"{caseid}", f"{dsid}"]
-        log_message("info", f"Invoking Report Generator: cmd = {cmdr}")
-        fappend(gv_wtf_log, f"Invoking Report Generator: cmd = {cmdr}")
-        sleep(5)       
-        cmd_result = subprocess.run(cmdr, capture_output=True, text=True)
-        ts = get_UTC_TS()
-        if cmd_result.returncode != 0:
-            fappend(gv_wtf_log, f"{ts}:WARNING: Report Generator FAILED: cmd = {cmdr}")
-            fappend(gv_wtf_log, f"{ts}:WARNING: cmd_result.stderr = {cmd_result.stderr}")
-        else:
-            fappend(gv_wtf_log, f"{ts}:INFO: Report Generator Completed.")
-
 def main():
-    global mainlog
+    global gv_lockdir
+    global gv_yml_dir
+    global gv_mainlog
 
     pargs = assess_args()
-
     print(f"DEBUG: pargs = {pargs}")
 
+    gv_lockdir = pargs.workspace
+
+    gv_yml_dir = f"{gv_lockdir}/info_yaml"
+    os.makedirs(gv_yml_dir, exist_ok=True)
     targ_list = os.path.basename(pargs.input_dsids)
-    gv_log_dir = os.path.join(gv_tmp_dir, "mainlogs")
+    gv_log_dir = os.path.join(gv_lockdir, "dsmgen_logs")
     os.makedirs(gv_log_dir, exist_ok=True)
 
     ts = get_UTC_TS()
-    mainlog = os.path.join(gv_log_dir, f"{targ_list}.log-{ts}")
-    setup_logging("info", mainlog)
-    print(f"DEBUG: DGC: mainlog = {mainlog}", flush=True)
+    gv_mainlog = os.path.join(gv_log_dir, f"{targ_list}.log-{ts}")
+    setup_logging("info", gv_mainlog)
+    print(f"DEBUG: DGC: gv_mainlog = {gv_mainlog}", flush=True)
 
     dsid_list = load_file_lines(pargs.input_dsids)
 

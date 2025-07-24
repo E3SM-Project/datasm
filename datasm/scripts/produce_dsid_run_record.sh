@@ -4,8 +4,10 @@
 # POST-RUN list content of logs, output dirs, etc.
 
 
-case_id=$1
-cmip_dsid=$2
+lockdir=$1
+case_id=$2
+cmip_dsid=$3
+dsversion=$4
 
 opdir=`pwd`
 
@@ -16,11 +18,10 @@ parent=$tools/parent_native_dsid.sh
 firstf=$tools/first_file_for_latest_by_dsid.sh
 
 Source_ID=`echo $cmip_dsid | cut -f4 -d.`
-
 native_dsid=`$parent $cmip_dsid`
 
 ts=`date -u +%Y%m%d_%H%M%S`
-Report_Path="$opdir/CMIP6_RUN_REPORTS/run_record-$cmip_dsid-$ts"
+Report_Path="$opdir/RUN_REPORTS/run_record-$cmip_dsid-$ts"
 mkdir -p $Report_Path
 Report_Name="$Report_Path/Report-${cmip_dsid}-$ts"
 
@@ -54,16 +55,16 @@ IFS=$'\n'
 echo "POST-RUN Artifacts -----------------------------------" >> $Report_Name
 echo "" >> $Report_Name
 
-echo "    ls -l $opdir/tmp/$case_id/product" >> $Report_Name
-out_text=`ls -l $opdir/tmp/$case_id/product`
+echo "    ls -l $lockdir/$case_id/product" >> $Report_Name
+out_text=`ls -l $lockdir/$case_id/product`
 for aline in $out_text; do
     echo "        $aline" >> $Report_Name
 done
 echo "" >> $Report_Name
 
-log_count=`ls $opdir/tmp/$case_id/product/*.log | wc -l`
+log_count=`ls $lockdir/$case_id/product/*.log | wc -l`
 if [[ $log_count -gt 0 ]]; then
-    typical_e2c_log=`ls $opdir/tmp/$case_id/product/*.log | head -1`
+    typical_e2c_log=`ls $lockdir/$case_id/product/*.log | head -1`
     echo "    Content of e2c log $typical_e2c_log" >> $Report_Name
     echo "" >> $Report_Name
 
@@ -76,25 +77,35 @@ if [[ $log_count -gt 0 ]]; then
     echo "" >> $Report_Name
 fi
 
-mkdir -p $Report_Path/e2c_logs
+facet_path=`echo $cmip_dsid | tr . /`
+product_out="$lockdir/$case_id/product/$facet_path/$dsversion"
+out_count=`ls $product_out | wc -l`
+echo "Product files produced: $out_count"
+echo "" >> $Report_Name
+out_list=`ls -l $product_out`
+for aline in $out_list; do
+    echo "        $aline" >> $Report_Name
+done
+echo "" >> $Report_Name
 
-for e2c_log in `ls $opdir/tmp/$case_id/product/*.log`; do
+mkdir -p $Report_Path/e2c_logs
+for e2c_log in `ls $lockdir/$case_id/product/*.log`; do
     mv $e2c_log $Report_Path/e2c_logs
 done
 
-if [[ -d $opdir/tmp/$case_id/product/cmor_logs ]]; then
-    mv $opdir/tmp/$case_id/product/cmor_logs $Report_Path
+if [[ -d $lockdir/$case_id/product/cmor_logs ]]; then
+    mv $lockdir/$case_id/product/cmor_logs $Report_Path
 fi
 
-dsm_gen_log=`ls $opdir/tmp/mainlogs | grep dsm_gen-$cmip_dsid | tail -1`
-mv $opdir/tmp/mainlogs/$dsm_gen_log $Report_Path
+dsm_gen_log=`ls $lockdir/dsmgen_logs | grep dsm_gen-$cmip_dsid | tail -1`
+mv $lockdir/dsmgen_logs/$dsm_gen_log $Report_Path
 echo "    EXAMINE dsm_generate_CMIP6 log: $dsm_gen_log" >> $Report_Name
 
-dsm_sub_log="$opdir/tmp/$case_id/caselogs/${cmip_dsid}.sublog"
+dsm_sub_log="$lockdir/$case_id/caselogs/${cmip_dsid}.sublog"
 mv $dsm_sub_log $Report_Path
 echo "    EXAMINE dsm subordinate run log: ${cmip_dsid}.sublog" >> $Report_Name
 
-dsm_sub="$opdir/tmp/$case_id/scripts/${cmip_dsid}-gen_CMIP6.py"
+dsm_sub="$lockdir/$case_id/scripts/${cmip_dsid}-gen_CMIP6.py"
 mv $dsm_sub $Report_Path
 echo "    EXAMINE subordinate run script: ${cmip_dsid}-gen_CMIP6.py"
 
