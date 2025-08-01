@@ -158,7 +158,6 @@ def slurm_srun_manager(seg_list: list, minw: int, maxw: int):
         srun_stat['reason'] = "UNKNOWN"
         srun_stat['start_sec'] = tss()
         srun_stat['elapse'] = 0
-        srun_stat['ignore'] = False
 
         seg_cmd = ["srun", "--exclusive", "-t", f"{slurm_timeout}", "--job-name", f"{job_name}"]
         seg_cmd.extend(seg_spec['seg_cmd'])
@@ -199,44 +198,41 @@ def slurm_srun_manager(seg_list: list, minw: int, maxw: int):
         log_message("info", f"LOOPING on {job_count} runstat_records")
         for i, rsrec in enumerate(runstat_records):
             job_name = rsrec['job_name']
+            job_stat = rsrec['status']
             # log_message("info", f"DEBUG_LOOP: Processing runstat_record {i}: jobname = {job_name}")
+            if rsrec['status'] in ['COMPLETED', 'FAILED', 'CANCELLED']: # terminal state already announced and tallied
+                continue
             if not get_srun_status(rsrec):
                 log_message("info", f"FAIL to obtain srun_status for job_name {job_name}")
                 stat_fail += 1
                 continue
-            job_stat = rsrec['status']
             # log_message("info", f"DEBUG_LOOP: got job_stat {job_stat} for job_name {job_name}")
-            if job_stat == "FAILED":
-                if not rsrec['ignore']:
-                    hist_failed += 1
-                    log_message("info", f"FAILED job_name {job_name}, et={rsrec['elapse']}")
-                    log_message("info", f"FAILED job_name {job_name}, Reason: {rsrec['reason']}")
-                    rsrec['ignore'] = True
+            job_stat = rsrec['status'] # fresh status obtained
+            if job_stat == "COMPLETED":
+                hist_completed += 1
+                sum_comp_et += int(rsrec['elapse'])
+                log_message("info", f"COMPLETED job_name {job_name}, et={rsrec['elapse']}")
+            elif job_stat == "FAILED":
+                hist_failed += 1
+                log_message("info", f"FAILED job_name {job_name}, et={rsrec['elapse']}")
+                log_message("info", f"FAILED job_name {job_name}, Reason: {rsrec['reason']}")
                 # need to call code that elicidates the reason for the failure here
+            elif job_stat == "CANCELLED":
+                hist_cancelled += 1
+                log_message("info", f"CANCELLED job_name {job_name}, et={rsrec['elapse']}")
             elif job_stat == "PENDING":
                 pending += 1
                 log_message("info", f"PENDING job_name {job_name}")
-            elif job_stat == "COMPLETED":
-                if not rsrec['ignore']:
-                    hist_completed += 1
-                    sum_comp_et += int(rsrec['elapse'])
-                    log_message("info", f"COMPLETED job_name {job_name}, et={rsrec['elapse']}")
-                    rsrec['ignore'] = True
             elif job_stat == "RUNNING":
                 running += 1
                 et = int(rsrec['elapse'])
-                log_message("info", f"RUNNING job_name {job_name} (et={et}, mean_et={mean_et} for {hist_completed] completed jobs)")
-            elif job_stat == "CANCELLED":
-                if not rsrec['ignore']:
-                    hist_cancelled += 1
-                    log_message("info", f"CANCELLED job_name {job_name}, et={rsrec['elapse']}")
-                    rsrec['ignore'] = True
+                log_message("info", f"RUNNING job_name {job_name} (et={et}, mean_et={mean_et} for {hist_completed} completed jobs)")
             else:
                 other += 1
                 log_message("info", f"Unexpected srun_status ({job_stat}) for job_name {job_name}")
 
         log_message("info", f"Completed pass of {job_count} jobs")
-        log_message("info", f"LOOP_SUMMARY:  COMPLETED={hist_completed}, FAILED={hist_failed}, PENDING={pending}, CANCELLED={hist_cancelled}, RUNNING={running}, StatFail={stat_fail}")
+        log_message("info", f"LOOP_SUMMARY:  COMPLETED={hist_completed}, FAILED={hist_failed}, CANCELLED={hist_cancelled}, RUNNING={running}, PENDING={pending}, StatFail={stat_fail}")
 
         # Pass 2:  Determine Loop Status
 
@@ -248,8 +244,7 @@ def slurm_srun_manager(seg_list: list, minw: int, maxw: int):
             job_stat = rsrec['status']
             if job_stat == "RUNNING":
                 et = int(rsrec['elapse'])
-                running += 1
-                if et > MINWAIT and et < MAXWAIT and completed > 2:
+                if et > MINWAIT and et < MAXWAIT and hist_completed > 2:
                     if et > 5*mean_et:
                         log_message("info", f"Issuing SCANCEL on extended relative runtime: job_name = {job_name}")
                         force_srun_scancel(rsrec)
@@ -257,9 +252,10 @@ def slurm_srun_manager(seg_list: list, minw: int, maxw: int):
                     log_message("info", f"Issuing SCANCEL on extended absolute runtime: job_name = {job_name}")
                     force_srun_scancel(rsrec)
 
-        if not (running or stat_fail or pending):
-            # Must be COMPLETED, FAILED, or "other"
+        if not (running or pending or stat_fail):
+            # ALL must be COMPLETED, FAILED, or "other"
             log_message("info", f"DEBUG_LOOP: No jobs remain.")
+            log_message("info", f"Completed pass of {job_count} jobs: mean_et={mean_et} for {hist_completed} completed jobs")
             still_trying = False
             break   # save a sleep
         log_message("info", f"SLEEPing 300")

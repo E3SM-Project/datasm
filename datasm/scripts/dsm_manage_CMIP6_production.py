@@ -223,7 +223,7 @@ def support_in_remote_archive_map(nat_dsid: str, local_map_lines: list, remote_t
 
 def retrieve_remote_archives(remote_transfer_specs):
 
-    # if spacemode == "SMALL", tect 2x archive size to disk free-space
+    # if spacemode == "SMALL", test 2x archive size to disk free-space
     # if space-ok, issue zstash (or globus_sdk) commands to retrive archive
 
     transfer_specs = list()
@@ -256,6 +256,12 @@ def retrieve_remote_archives(remote_transfer_specs):
         cache = "/lcrc/group/e3sm/DSM/tmp/cache_test"
         zsrc = f"--hpss=globus://{UUID}/{spec[0]}"
         zdst = f"{spec[1]}"
+
+        # if zdst in gv_bad_archive_list:
+        # This won't work. we need commonality between the local archive path archive name
+        # and the remote (NERSC) archive path archive name.  If we use the path basenames,
+        # they had better not end in "zstash"...
+
         os.makedirs(zdst, exist_ok=True)
 
         cmd = ['zstash', 'check', zsrc, '--tars', '000000-', '--keep', '--cache', zdst]
@@ -301,7 +307,10 @@ def support_in_local_archive(map_lines):
             support = False
     return support
 
+gv_bad_archive_list = []
+
 def extract_from_local_archive(native_dsid):
+    global gv_bad_archive_list
 
     # use local (E3SM) Archive_Map to obtain archive path and search-pattern
     # use zstash to extract native dataset to the warehouse
@@ -309,6 +318,12 @@ def extract_from_local_archive(native_dsid):
     e3sm_arch_map = os.path.join(archive_manage, "Archive_Map")
     map_lines = lines_match(e3sm_arch_map, native_dsid, ',', 1)
 
+    for aline in map_lines:
+        arch_path = aline.split(',')[2]
+        if arch_path in gv_bad_archive_list:
+            log_message("info", f"Required archive {arch_path} is in bad_archive_list")
+            log_message("info", f"Cannot obtain data for native dsid {native_dsid}.")
+            return False
     # only has effect if realm = ocean or sea-ice
     aux_dsids = derive_namefile_and_restart_dsids(native_dsid)
     for a_dsid in aux_dsids:
@@ -318,7 +333,6 @@ def extract_from_local_archive(native_dsid):
     # DEBUGGING
     for aline in map_lines:
         log_message("info", f"DEBUG: Archive_Map line POST-extend: {aline}")
-
 
 
     realm = native_dsid.split('.')[0]
@@ -357,8 +371,18 @@ def extract_from_local_archive(native_dsid):
         
     # Conduct zstash extraction here
 
+    # Ensure output path is cleared first
+
+    for aline in map_lines:
+        log_message("info", f"DEBUG: extract received mapline {aline}.")
+        arch_patt = aline.split(',')[3]
+        output_dir = os.path.dirname(arch_patt)
+        if os.path.exists(output_dir):
+            shutil.rmtree(output_dir)
+
     for aline in map_lines:
         # for MPAS, cannot assume just model-output dsid
+        log_message("info", f"DEBUG: extract processing mapline {aline}.")
         arch_dsid = aline.split(',')[1]
         dsid_path = arch_dsid.replace(".", "/")
         warehouse_dest = os.path.join(warehouse_path, dsid_path, "v0")
@@ -370,13 +394,17 @@ def extract_from_local_archive(native_dsid):
         precount = len(glob.glob(full_patt))
         if precount > 0:
             log_message("info", f"NOTE: Extraction output target {arch_patt} already contains {precount} files.")
-        cmd = ['zstash', 'extract', '--hpss=none', "--cache", f'{arch_path}', f"{arch_patt}"]
+        cmd = ['zstash', 'extract', '-v', '--hpss=none', "--cache", f'{arch_path}', f"{arch_patt}"]
         log_message("info", f"Attempting extraction: {cmd}")
         cmd_result = subprocess.run(cmd, capture_output=True, text=True)
         if cmd_result.returncode != 0:
             log_message("info", f"ERROR: zstash FAIL to extract local dataset {arch_dsid}")
             log_message("info", f"STDERR: {cmd_result.stderr}")
+            gv_bad_archive_list.append(arch_path)
+            log_message("info", f"Added archive {arch_path} to bad_archive_list")
             return False
+        else:
+            log_message("info", f"Extraction completed.")
         if not glob_move(full_patt, warehouse_dest):
             return False
         
@@ -458,6 +486,7 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
         log_message("info", f"============ Attempting CMIP6 generation for dataset {dsid}")
         nat_dsid = parent_native_dsid(dsid)
         if not support_in_warehouse(nat_dsid):
+            log_message("info", f"DEBUG: NO current support in warehouse for {nat_dsid}")
             map_lines = list()
             if not support_in_local_archive_map(nat_dsid, map_lines):
                 log_message("info", f"DEBUG: NO support in local archive map for {nat_dsid}")
@@ -477,6 +506,7 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
                     log_message("info", f"DEBUG: NO support in remote archive map for {nat_dsid}")
                     runstatus.update("FAILURE", dsid)
                     continue
+                log_message("info", f"DEBUG: Found support in remote (NERSC) archive map, attempting remote archive transfer")
                 if not retrieve_remote_archives(remote_map_lines):
                     log_message("info", f"Cannot retrieve remote archive for native data {nat_dsid}")
                     log_message("info", f"Cannot process CMIP6 dataset {dsid}")
@@ -488,9 +518,9 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
                 log_message("info", f"Cannot process CMIP6 dataset {dsid}")
                 runstatus.update("FAILURE", dsid)
                 continue
-            log_message("info", f"Proceeding to generate CMIP6")
         
         log_message("info", f"DEBUG: Found support in warehouse for {nat_dsid}")
+        log_message("info", f"Proceeding to generate CMIP6")
         dsidfile = os.path.join(gv_workdir, f"dsm_gen-{dsid}")
         quiet_remove(dsidfile)
         fappend(dsidfile, f"{dsid}")

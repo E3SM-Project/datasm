@@ -696,7 +696,7 @@ for segspec in segment_specs:
     seg_spec = dict()
     seg_spec['segname'] = segname
     seg_spec['seg_cmd'] = cmd_1
-    seg_spec['jobname'] = f"nco_{{the_var_name}}_{{segname}}"
+    seg_spec['jobname'] = f"nco_{caseid}_{{the_var_name}}_{{segname}}"
     cmd_1_group.append(seg_spec)
 
 passed, failed = slurm_srun_manager(cmd_1_group,0,0)
@@ -782,7 +782,7 @@ for segspec in segment_specs:
     seg_cmdspec = dict()
     seg_cmdspec['segname'] = segname
     seg_cmdspec['seg_cmd'] = cmd_2
-    seg_cmdspec['jobname'] = f"e2c_{{the_var_name}}_{{segname}}"
+    seg_cmdspec['jobname'] = f"e2c_{caseid}_{{the_var_name}}_{{segname}}"
     cmd_2_group.append(seg_cmdspec)
 """
 
@@ -822,7 +822,7 @@ for segspec in segment_specs:
     seg_cmdspec = dict()
     seg_cmdspec['segname'] = segname
     seg_cmdspec['seg_cmd'] = cmd_2
-    seg_cmdspec['jobname'] = f"e2c_{{the_var_name}}_{{segname}}"
+    seg_cmdspec['jobname'] = f"e2c_{caseid}_{{the_var_name}}_{{segname}}"
     cmd_2_group.append(seg_cmdspec)
 """
             fappend(escript, f"{DynaCode_4_NON_MPAS}")
@@ -835,7 +835,7 @@ for segspec in segment_specs:
 minw = 0
 maxw = 0
 if f"{realm}" == "mpaso":
-    maxw = 14400
+    maxw = 21600
 passed, failed = slurm_srun_manager(cmd_2_group, minw, maxw)
 total = passed + failed
 
