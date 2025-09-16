@@ -455,6 +455,22 @@ def slurm_dirs_prep(dirspec: dict):
 
 # -----------------------------------------------
 
+# if archpath directory contains "index.db", return this path.
+# else if it contains a "zstash" subdirectory that contains "index.db"
+# concatenate "archpath" + "zstash" and return this path.  Else "None".
+
+def ensure_archive_path(archpath):
+    if not os.path.isdir(archpath):
+        return None
+    path = os.path.join(archpath, "index.db")
+    if os.path.isfile(path):  # Check if it's a regular file
+        return archpath
+    newpath = os.path.join(archpath, "zstash")
+    path = os.path.join(newpath, "index.db")
+    if os.path.isfile(path):  # Check if it's a regular file
+        return newpath
+    return None
+
 def collision_free_name(apath, abase):
     ''' 
         assuming we must protect a file's extension "filename.ext"

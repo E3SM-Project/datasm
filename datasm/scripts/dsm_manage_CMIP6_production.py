@@ -15,6 +15,7 @@ from datasm.util import setup_logging
 from datasm.util import log_message
 from datasm.util import dirlist
 from datasm.util import dircount
+from datasm.util import ensure_archive_path
 from datasm.util import get_dsm_paths
 from datasm.util import load_file_lines
 from datasm.util import write_file_list
@@ -123,8 +124,10 @@ def glob_move(src_pattern, dest_dir):
     errors = 0
     # Move each file to the destination directory
     for file_path in files_to_move:
+        # full dst_path allows shutil.move ovewrite
+        dest_path = os.path.join(dest_dir, os.path.basename(file_path))
         try:
-            shutil.move(file_path, dest_dir)
+            shutil.move(file_path, dest_path)
         except Exception as e:
             print(f"An error occurred while moving '{file_path}': {e}")
             errors += 1
@@ -348,6 +351,7 @@ def extract_from_local_archive(native_dsid):
     for aline in map_lines:
         log_message("info", f"DEBUG: parsing Archive_Map line: {aline}")
         arch_path = aline.split(',')[2]
+        arch_path = ensure_archive_path(arch_path)
         if os.path.exists(arch_path):
             asize = get_directory_content_size(arch_path)
             if asize == 0:
@@ -389,9 +393,10 @@ def extract_from_local_archive(native_dsid):
 
         arch_path = aline.split(',')[2]
         arch_patt = aline.split(',')[3]
+        arch_path = ensure_archive_path(arch_path)
         log_message("info", f"Attempting zstash extract from archive {arch_path} the files {arch_patt}")
-        full_patt = os.path.join(os.getcwd(), arch_patt)
-        precount = len(glob.glob(full_patt))
+        targ_patt = os.path.join(os.getcwd(), arch_patt)
+        precount = len(glob.glob(targ_patt))
         if precount > 0:
             log_message("info", f"NOTE: Extraction output target {arch_patt} already contains {precount} files.")
         cmd = ['zstash', 'extract', '-v', '--hpss=none', "--cache", f'{arch_path}', f"{arch_patt}"]
@@ -405,7 +410,8 @@ def extract_from_local_archive(native_dsid):
             return False
         else:
             log_message("info", f"Extraction completed.")
-        if not glob_move(full_patt, warehouse_dest):
+        log_message("info", f"Conducting glob_move ({targ_patt}, {warehouse_dest})")
+        if not glob_move(targ_patt, warehouse_dest):
             return False
         
     return True
@@ -486,10 +492,10 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
         log_message("info", f"============ Attempting CMIP6 generation for dataset {dsid}")
         nat_dsid = parent_native_dsid(dsid)
         if not support_in_warehouse(nat_dsid):
-            log_message("info", f"DEBUG: NO current support in warehouse for {nat_dsid}")
+            log_message("info", f"NO current support in warehouse for {nat_dsid}")
             map_lines = list()
             if not support_in_local_archive_map(nat_dsid, map_lines):
-                log_message("info", f"DEBUG: NO support in local archive map for {nat_dsid}")
+                log_message("info", f"NO support in local archive map for {nat_dsid}")
                 runstatus.update("FAILURE", dsid)
                 continue
 
@@ -500,13 +506,13 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
             log_message("info", f"FOUND support in LOCAL archive map: {map_lines[0]}")
 
             if not support_in_local_archive(map_lines):
-                log_message("info", f"DEBUG: NO support in local archive, checking for remote {nat_dsid}")
+                log_message("info", f"NO support in local archive, checking for remote {nat_dsid}")
                 remote_map_lines = list()
                 if not support_in_remote_archive_map(nat_dsid, map_lines, remote_map_lines):
                     log_message("info", f"DEBUG: NO support in remote archive map for {nat_dsid}")
                     runstatus.update("FAILURE", dsid)
                     continue
-                log_message("info", f"DEBUG: Found support in remote (NERSC) archive map, attempting remote archive transfer")
+                log_message("info", f"Found support in remote (NERSC) archive map, attempting remote archive transfer")
                 if not retrieve_remote_archives(remote_map_lines):
                     log_message("info", f"Cannot retrieve remote archive for native data {nat_dsid}")
                     log_message("info", f"Cannot process CMIP6 dataset {dsid}")
@@ -519,7 +525,7 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
                 runstatus.update("FAILURE", dsid)
                 continue
         
-        log_message("info", f"DEBUG: Found support in warehouse for {nat_dsid}")
+        log_message("info", f"Found support in warehouse for {nat_dsid}")
         log_message("info", f"Proceeding to generate CMIP6")
         dsidfile = os.path.join(gv_workdir, f"dsm_gen-{dsid}")
         quiet_remove(dsidfile)
@@ -562,6 +568,7 @@ def main():
     gv_mainlog = os.path.join(gv_log_dir, f"{targ_list}.log-{ts}")
     setup_logging("info", gv_mainlog)
     print(f"DEBUG: gv_mainlog = {gv_mainlog}", flush=True)
+    log_message("info", f"Begin dsm_manager operations: LOCKDIR = {this_lockdir}")
 
     dsid_list = load_file_lines(pargs.input_dsids)
 

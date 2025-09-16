@@ -85,7 +85,9 @@ def tss():
 def first_regular_file(directory):
     """Return the first regular file in the specified directory or None."""
     try:
-        for entry in os.listdir(directory):
+        entries = os.listdir(directory)
+        entries.sort()
+        for entry in entries:
             path = os.path.join(directory, entry)
             if os.path.isfile(path):  # Check if it's a regular file
                 return path  # Return the first regular file found
@@ -777,7 +779,7 @@ cmd_2_group = []
 for segspec in segment_specs:
     segname = segspec['segname']
     segpath = segspec['segpath']
-    cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "--realm", f"{realm}", "--map", f"{map_file}"]
+    cmd_2 = ["e3sm_to_cmip", "--debug", "-v", f"{{the_var_name}}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "--realm", f"{realm}", "--map", f"{map_file}"]
     log_message("info", f"cmd_2 = {{cmd_2}}")
     seg_cmdspec = dict()
     seg_cmdspec['segname'] = segname
