@@ -8,7 +8,15 @@ tables:
     AERmon:
         - abs550aer
         - all
+        - emiso2
         - od550aer
+        - od550bc
+        - od550dust
+        - od550so4
+        - od550soa
+        - od550ss
+        - ptp
+        - so2
     Amon:
         - all
         - cl
@@ -63,6 +71,9 @@ tables:
         - clisccp
         - cllcalipso
         - clmcalipso
+        - clmodis
+        - clmodisice
+        - clmodisliquid
         - cltcalipso
         - cltisccp
         - pctisccp
@@ -154,11 +165,19 @@ tables:
         - siv
 time-series:
     atmos:
+        - AODBC
+        - AODDUST
+        - AODSO4
+        - AODSOA
+        - AODSS
         - CLDHGH
         - CLDICE
         - CLDLOW
         - CLDMED
         - CLDTOT
+        - CLMODIS
+        - CLIMODIS
+        - CLWMODIS
         - CLOUD
         - FLDS
         - FLNS
@@ -189,7 +208,10 @@ time-series:
         - QFLX
         - QREFHT
         - RELHUM
+        - SFSO2
         - SHFLX
+        - SO2
+        - SO2_CLXF
         - SOLIN
         - SWCF
         - T
@@ -201,6 +223,7 @@ time-series:
         - TREFHT
         - TREFMNAV
         - TREFMXAV
+        - TROP_P
         - TS
         - U
         - U10
