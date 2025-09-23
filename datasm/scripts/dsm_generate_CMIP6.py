@@ -432,6 +432,7 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         e2c_info_yaml = f"{gv_yml_dir}/{dsd['table']}_{dsd['cmip6var']}.yaml"
 
         cmd = ["e3sm_to_cmip", "--info", "-v", dsd['cmip6var'], "--freq", freq, "--realm", realm, "-t", cmor_tables, "--map", "no_map", "--info-out", e2c_info_yaml]
+        log_message("info", f"Issuing E2C INFO CMD: {cmd}")
         cmd_result = subprocess.run(cmd, capture_output=True, text=True)
         if cmd_result.returncode != 0:
             log_message("error", f"E2C INFO CMD FAILED: cmd = {cmd}")
@@ -440,6 +441,10 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
 
         nat_vars = linex(e2c_info_yaml,"E3SM Variables",':',1)
         nat_vars = ''.join(nat_vars.split(' ')) # remove whitespace
+        if not nat_vars or len(nat_vars) == 0:
+            log_message("error", f"E2C INFO CMD FAILED: cmd = {cmd}")
+            continue
+
         namefile = get_namefile(nat_dsid)
         restartf = get_restfile(nat_dsid)
         map_file = get_regrid_map(nat_dsid)
@@ -838,6 +843,8 @@ minw = 0
 maxw = 0
 if f"{realm}" == "mpaso":
     maxw = 21600
+if the_var_name == "zhalfo":
+    maxw = 25200
 passed, failed = slurm_srun_manager(cmd_2_group, minw, maxw)
 total = passed + failed
 
