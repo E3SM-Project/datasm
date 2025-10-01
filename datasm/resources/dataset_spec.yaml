@@ -72,8 +72,6 @@ tables:
         - cllcalipso
         - clmcalipso
         - clmodis
-        - clmodisice
-        - clmodisliquid
         - cltcalipso
         - cltisccp
         - pctisccp
@@ -176,8 +174,6 @@ time-series:
         - CLDMED
         - CLDTOT
         - CLMODIS
-        - CLIMODIS
-        - CLWMODIS
         - CLOUD
         - FLDS
         - FLNS
