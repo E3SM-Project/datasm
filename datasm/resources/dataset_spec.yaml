@@ -5667,7 +5667,7 @@ project:
                                     - restart.fixed
             piClim-control:
                 start: 1
-                end: 2024
+                end: 50
                 ens:
                     - ens1
                 campaign: DECK-v3
