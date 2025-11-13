@@ -431,7 +431,8 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         print(f"StartYear = {year_start}, EndYear = {year_final}, YPF = {ypf}")
         e2c_info_yaml = f"{gv_yml_dir}/{dsd['table']}_{dsd['cmip6var']}.yaml"
 
-        cmd = ["e3sm_to_cmip", "--info", "-v", dsd['cmip6var'], "--freq", freq, "--realm", realm, "-t", cmor_tables, "--map", "no_map", "--info-out", e2c_info_yaml]
+        cmd = ["e3sm_to_cmip", "--info", "--on-var-failure", "fail", "-v", dsd['cmip6var'], "--freq", freq, "--realm", realm, "-t", cmor_tables, "--map", "no_map", "--info-out", e2c_info_yaml]
+        log_message("info", f"Issuing E2C INFO CMD: {cmd}")
         cmd_result = subprocess.run(cmd, capture_output=True, text=True)
         if cmd_result.returncode != 0:
             log_message("error", f"E2C INFO CMD FAILED: cmd = {cmd}")
@@ -440,6 +441,10 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
 
         nat_vars = linex(e2c_info_yaml,"E3SM Variables",':',1)
         nat_vars = ''.join(nat_vars.split(' ')) # remove whitespace
+        if not nat_vars or len(nat_vars) == 0:
+            log_message("error", f"E2C INFO CMD FAILED: cmd = {cmd}")
+            continue
+
         namefile = get_namefile(nat_dsid)
         restartf = get_restfile(nat_dsid)
         map_file = get_regrid_map(nat_dsid)
@@ -526,33 +531,33 @@ def process_dsids(dsids: list, pargs: argparse.Namespace):
         if the_var_type == "atm_mon_2d": 
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(cmdflags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "--on-var-failure", "fail", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_mon_fx": 
             cmd_1 = ["ncremap", f"--map={map_file}", "-v", f"{nat_vars}", "-I", f"{native_data}", "-O", f"{rgr_dir}", "--no_stdin"]
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--realm", "fx"]
+            cmd_2 = ["e3sm_to_cmip", "--on-var-failure", "fail", "-v", f"{dsd['cmip6var']}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}", "--realm", "fx"]
         elif the_var_type == "atm_mon_3d": 
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir_vert}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(cmdflags)
             cmd_1b = ["ncks", "--rgr", "xtr_mth=mss_val", f"--vrt_fl={vrt_remap_plev19}", f"""{rgr_dir_vert}/f"{{afile}}" """, f"""{rgr_dir}/f"{{afile}}" """]
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "--on-var-failure", "fail", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_day": 
             cmdflags.extend(["--clm_md=hfs"])
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(cmdflags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "--on-var-failure", "fail", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "atm_3hr": 
             cmdflags.extend(["--clm_md=hfs"])
             cmd_1 = ["ncclimo", "-P", "eam", "-j", "1", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(cmdflags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "--on-var-failure", "fail", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type in ["lnd_mon", "lnd_ice_mon"]:            
             cmd_1 = ["ncclimo", "-P", "elm", "-j", "1", "--var_xtr=landfrac", f"--map={map_file}", f"--start={year_start}", f"--end={year_final}", f"--ypf={ypf}", "--split", f"--caseid={caseid}", "-o", f"{native_out}", "-O", f"{rgr_dir}", "-v", f"{nat_vars}", "-i", f"{native_data}"]
             cmd_1.extend(cmdflags)
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
+            cmd_2 = ["e3sm_to_cmip", "--on-var-failure", "fail", "-v", f"{dsd['cmip6var']}", "--freq", f"{freq}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{rgr_dir}"]
         elif the_var_type == "mpaso_mon": 
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "--realm", "mpaso", "--map", f"{map_file}"]
+            cmd_2 = ["e3sm_to_cmip", "--on-var-failure", "fail", "-v", f"{dsd['cmip6var']}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "--realm", "mpaso", "--map", f"{map_file}"]
         elif the_var_type == "mpassi_mon": 
-            cmd_2 = ["e3sm_to_cmip", "-v", f"{dsd['cmip6var']}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "--realm", "mpassi", "--map", f"{map_file}"]
+            cmd_2 = ["e3sm_to_cmip", "--on-var-failure", "fail", "-v", f"{dsd['cmip6var']}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{native_data}", "--realm", "mpassi", "--map", f"{map_file}"]
         else: 
             log_message("error", f"ERROR: var_type() returned {the_var_type} for cmip dataset_id {dsid}")
             continue
@@ -779,7 +784,7 @@ cmd_2_group = []
 for segspec in segment_specs:
     segname = segspec['segname']
     segpath = segspec['segpath']
-    cmd_2 = ["e3sm_to_cmip", "--debug", "-v", f"{{the_var_name}}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "--realm", f"{realm}", "--map", f"{map_file}"]
+    cmd_2 = ["e3sm_to_cmip", "--debug", "--on-var-failure", "fail", "-v", f"{{the_var_name}}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "--realm", f"{realm}", "--map", f"{map_file}"]
     log_message("info", f"cmd_2 = {{cmd_2}}")
     seg_cmdspec = dict()
     seg_cmdspec['segname'] = segname
@@ -816,10 +821,10 @@ cmd_2_group = []
 for segspec in segment_specs:
     segname = segspec['segname']
     segpath = segspec['segpath']
-    cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "--freq", f"{{freq}}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}"]
+    cmd_2 = ["e3sm_to_cmip", "--on-var-failure", "fail", "-v", f"{{the_var_name}}", "--freq", f"{{freq}}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}"]
     # WORKWORK: do we need a separate cmd_2 for atm_mon_fx?
     if the_var_type == "atm_mon_fx":
-        cmd_2 = ["e3sm_to_cmip", "-v", f"{{the_var_name}}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "--realm", "fx"]
+        cmd_2 = ["e3sm_to_cmip", "--on-var-failure", "fail", "-v", f"{{the_var_name}}", "-s", "-u", f"{metadata_file}", "-t", f"{cmor_tables}", "-o", f"{result_dir}", "-i", f"{{segpath}}", "--realm", "fx"]
     log_message("info", f"cmd_2 = {{cmd_2}}")
     seg_cmdspec = dict()
     seg_cmdspec['segname'] = segname
@@ -838,6 +843,8 @@ minw = 0
 maxw = 0
 if f"{realm}" == "mpaso":
     maxw = 21600
+if the_var_name == "zhalfo":
+    maxw = 25200
 passed, failed = slurm_srun_manager(cmd_2_group, minw, maxw)
 total = passed + failed
 
@@ -891,17 +898,17 @@ sys.exit(0)
             ts = get_UTC_TS()
             fappend(status_file, f"STAT:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Engaged")
 
-
+        cmd_fail = False
         cmd = ["python", escript]
         cmd_result = subprocess.run(cmd, capture_output=True, text=True)
         if cmd_result.returncode != 0:
-            log_message("error", f"Generate CMIP6 CMD FAILED: cmd = {cmd}")
+            cmd_fail = True
+            log_message("error", f"Generate CMIP6: CMD FAILED: cmd = {cmd}")
             log_message("error", f"STDERR: {cmd_result.stderr}")
             if pargs.run_mode == "WORK":
                 ts = get_UTC_TS()
                 fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Subprocess:Fail:return_code={cmd_result.returncode}")
                 fappend(status_file, f"STAT:{ts}:POSTPROCESS:GenerateCMIP6:Fail:return_code={cmd_result.returncode}")
-            # continue
 
     #
     # SECTION:  Process Reporting ==========================================================
@@ -917,31 +924,32 @@ sys.exit(0)
     # SECTION:  Product Disposition ==========================================================
     #
 
-        product_dst = ""
-        if pargs.run_mode == "WORK":
-            facet_path = dsid.replace('.', '/')
-            ds_version = get_metadata_file_version(metadata_file)
-            product_src = os.path.join(result_dir, facet_path, ds_version)
-            product_dst = os.path.join(staging_data, facet_path, ds_version)
-            os.makedirs(product_dst, exist_ok=True)
-            pattern_src = os.path.join(product_src, "*.nc")
+        if not cmd_fail:
+            product_dst = ""
+            if pargs.run_mode == "WORK":
+                facet_path = dsid.replace('.', '/')
+                ds_version = get_metadata_file_version(metadata_file)
+                product_src = os.path.join(result_dir, facet_path, ds_version)
+                product_dst = os.path.join(staging_data, facet_path, ds_version)
+                os.makedirs(product_dst, exist_ok=True)
+                pattern_src = os.path.join(product_src, "*.nc")
 
-            # DEBUG is there output?
-            outtest = dirlist(product_src)
-            log_message("info", f"DEBUG: product_src holds the following {len(outtest)} output files:")
-            for afile in outtest:
-                log_message("info", f"DEBUG: Product facet-path holds {afile}")
-            log_message("info", f"DEBUG: Conducting product transfer FROM: {product_src}")
-            log_message("info", f"DEBUG: Conducting product transfer INTO: {product_dst}")
+                # DEBUG is there output?
+                outtest = dirlist(product_src)
+                log_message("info", f"DEBUG: product_src holds the following {len(outtest)} output files:")
+                for afile in outtest:
+                    log_message("info", f"DEBUG: Product facet-path holds {afile}")
+                log_message("info", f"DEBUG: Conducting product transfer FROM: {product_src}")
+                log_message("info", f"DEBUG: Conducting product transfer INTO: {product_dst}")
 
-            ts = get_UTC_TS()
-            if len(outtest) == 0:
-                log_message("info", f"ERROR: No output files produced in product directory {product_src}")
-                fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Fail")
-            else:    
-                glob_move(pattern_src, product_dst)
-                log_message("info", f"Completed move of CMIP6 dataset to Staging Data ({product_dst})")
-                fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
+                ts = get_UTC_TS()
+                if len(outtest) == 0:
+                    log_message("info", f"ERROR: No output files produced in product directory {product_src}")
+                    fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Fail")
+                else:    
+                    glob_move(pattern_src, product_dst)
+                    log_message("info", f"Completed move of CMIP6 dataset to Staging Data ({product_dst})")
+                    fappend(status_file, f"COMM:{ts}:POSTPROCESS:DSM_Generate_CMIP6:Pass")
 
         log_message("info", f"Completed Processing dataset_id: {dsid}")
 
