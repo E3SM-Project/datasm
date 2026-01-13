@@ -15,7 +15,7 @@ datasm_pp_sourceroot.sh
 datasm_verify_publication.py
 derivative_conf.sh
 dsids_to_archive_map_lines.sh
-dsm_generate_mapfile.py
+dsm_generate_checksum_manifest.py
 ds_paths_info_compact.sh
 ds_paths_info_dsid_list_compact.sh
 ds_paths_info_dsid_list.sh

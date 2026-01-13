@@ -71,7 +71,6 @@ tables:
         - clisccp
         - cllcalipso
         - clmcalipso
-        - clmodis
         - cltcalipso
         - cltisccp
         - pctisccp
@@ -534,6 +533,44 @@ project:
                             - r19i1p1f1
                             - r20i1p1f1
                             - r21i1p1f1
+                        except:
+                            - cLitter
+                            - cProduct
+                            - cSoilFast
+                            - cSoilMedium
+                            - cSoilSlow
+                            - fFire
+                            - fHarvest
+                            - cVeg
+                            - nbp
+                            - gpp
+                            - rh
+                            - ra
+                E3SM-3-0:
+                    ssp245:
+                        start: 2025
+                        end: 2050
+                        ens:
+                            - r6i1p1f1
+                            - r7i1p1f1
+                            - r8i1p1f1
+                            - r9i1p1f1
+                            - r10i1p1f1
+                            - r11i1p1f1
+                            - r12i1p1f1
+                            - r13i1p1f1
+                            - r14i1p1f1
+                            - r15i1p1f1
+                            - r16i1p1f1
+                            - r17i1p1f1
+                            - r18i1p1f1
+                            - r19i1p1f1
+                            - r20i1p1f1
+                            - r21i1p1f1
+                            - r22i1p1f1
+                            - r23i1p1f1
+                            - r24i1p1f1
+                            - r25i1p1f1
                         except:
                             - cLitter
                             - cProduct
@@ -6080,6 +6117,73 @@ project:
                                     - restart.fixed
                         sea-ice:
                             - 
+                                grid: native
+                                data_types:
+                                    - model-output.day
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+            ssp245:
+                start: 1850
+                end: 2024
+                ens:
+                    - ens6
+                    - ens7
+                    - ens8
+                    - ens9
+                    - ens10
+                    - ens11
+                    - ens12
+                    - ens13
+                    - ens14
+                    - ens15
+                    - ens16
+                    - ens17
+                    - ens18
+                    - ens19
+                    - ens20
+                    - ens21
+                    - ens22
+                    - ens23
+                    - ens24
+                    - ens25
+                campaign: DECK-v3
+                science_driver: Water Cycle
+                cmip_case: CMIP6.CMIP.E3SM-Project.E3SM-3-0.ssp245
+                resolution:
+                    LR:
+                        atmos:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.3hr
+                                    - model-output.day
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        land:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        ocean:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        river:
+                            -
+                                grid: native
+                                data_types:
+                                    - model-output.mon
+                                    - namefile.fixed
+                                    - restart.fixed
+                        sea-ice:
+                            -
                                 grid: native
                                 data_types:
                                     - model-output.day
