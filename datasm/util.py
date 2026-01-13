@@ -9,6 +9,7 @@ import yaml
 import traceback
 import inspect
 import logging
+import psutil
 import requests
 import time
 import xarray as xr
@@ -46,6 +47,14 @@ def dirlist(directory):
 def dircount(directory):
     return len(dirlist(directory))
 
+def get_directory_content_size(directory):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(directory):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            # Add the size of each file to the total size
+            total_size += os.path.getsize(filepath)
+    return total_size
 
 def load_file_lines(file_path):
     if not file_path:
@@ -76,6 +85,17 @@ def force_symlink(target, link_name):
     if os.path.islink(link_name):
         os.unlink(link_name)
     os.symlink(target, link_name)
+
+def not_running(process_name):
+    for proc in psutil.process_iter(['cmdline']):
+        try:
+            # proc.info['cmdline'] is a list of command arguments
+            if proc.info['cmdline'] and process_name in ' '.join(proc.info['cmdline']):
+                return False  # Found process, so it IS running
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return True  # Not found, so NOT running
+
 
 # srun_stat is a dictionary that must contain at least "job_name" as an attribute
 # it will set "job_id", "status" and "elapse" if possible
@@ -553,7 +573,7 @@ def ensure_status_file_for_dsid(dsid):
 
     # new status file
     with open(sf_path, 'w') as afile:
-        afile.write(f"DATASETID={dsid}")
+        afile.write(f"DATASETID={dsid}\n")
 
     return sf_path
     

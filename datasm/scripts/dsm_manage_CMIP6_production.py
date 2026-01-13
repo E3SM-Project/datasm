@@ -23,6 +23,7 @@ from datasm.util import fappend
 from datasm.util import dsid_to_dict
 from datasm.util import parent_native_dsid
 from datasm.util import latest_data_vdir
+from datasm.util import get_directory_content_size
 from datasm.util import get_first_nc_file
 from datasm.util import ensure_status_file_for_dsid
 from datasm.util import get_UTC_TS
@@ -134,15 +135,6 @@ def glob_move(src_pattern, dest_dir):
     if errors > 0:
         return False
     return True
-
-def get_directory_content_size(directory):
-    total_size = 0
-    for dirpath, dirnames, filenames in os.walk(directory):
-        for filename in filenames:
-            filepath = os.path.join(dirpath, filename)
-            # Add the size of each file to the total size
-            total_size += os.path.getsize(filepath)
-    return total_size
 
 dsm_paths = get_dsm_paths()
 archive_manage = dsm_paths['ARCHIVE_MANAGEMENT']
@@ -549,9 +541,8 @@ def manage_cmip6_workflow(dsids: list, pargs: argparse.Namespace):
 
 
 def main():
-    global gv_mainlog
     global gv_lockdir
-    global gv_logdir
+    global gv_mainlog
 
     pargs = assess_args()
 
