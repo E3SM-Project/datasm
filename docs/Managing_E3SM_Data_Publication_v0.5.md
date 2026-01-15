@@ -1,3 +1,11 @@
+---
+title: "E3SM CMIP Production Guide"
+subtitle: "Version 1.0"
+author:
+  - "A. Bartoletti"
+date: "January 2026"
+---
+
 # PREFACE
 
 The job of managing E3SM publications is varied, requiring data
