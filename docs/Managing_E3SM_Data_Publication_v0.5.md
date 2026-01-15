@@ -208,17 +208,22 @@ distinguished by the nature of the initial parameters, (resolutions,
 forcings, simulated years, and more). A typical "case_id" will have the
 form
 
+- \<ModelVersion\>.\<Resolution\>.\<experiment\[\_ensemble\]\>
+```
 \<ModelVersion\>.\<Resolution\>.\<experiment\[\_ensemble\]\>
+```
 
-For example
+For example:
 
-> v3.LR.piControl
->
-> v3.LR.historical_0051
->
-> v3.LR.historical_0201
->
-> etc
+```
+    v3.LR.piControl
+
+    v3.LR.historical_0051
+
+    v3.LR.historical_0201
+
+    etc
+```
 
 The modeling operates by dividing the Earth into \~100,000 "cells"
 (precise number depends upon the applied resolution), and for each cell,
