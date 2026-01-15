@@ -402,8 +402,8 @@ These resources, and how they support the data management, CMIP
 generation, and publication processing are detailed in the following
 figures and text.
 
-![ALPHABETA:E3SM CMIP Production Dependencies](media/E3SM_CMIP_Production_dependencies.png){width="6.5in"
-height="3.69in"}
+![: E3SM CMIP Production Dependencies](media/E3SM_CMIP_Production_dependencies.png){width="6.5in" height="3.69in"}
+`    [CAPTION: E3SM CMIP Production Dependencies]`
 
 The maintenance procedures for each of the process configuration
 dependencies depicted in Figure 1 above are detailed in the sections
@@ -448,25 +448,25 @@ that they must be described separately below.
 
 The general structure is given in the following figure:
 
-![:Dataset Spec CMIP Tree Definition](media/dsspec_CMIP_Tree_Definition.png){width="4.09in"
-height="2.15in"}
+![: Dataset Spec CMIP Tree Definition](media/dsspec_CMIP_Tree_Definition.png){width="4.09in" height="2.15in"}
+`    [CAPTION: Dataset Spec CMIP Tree Definition]`
 
 **Example of project CMIP6 tree member:**
 
-![:Dataset Spec CMIP Tree Example](media/dsspec_CMIP_Tree_Example.png){width="4.026in"
-height="4.67in"}
+![: Dataset Spec CMIP Tree Example](media/dsspec_CMIP_Tree_Example.png){width="4.026in" height="4.67in"}
+`    [CAPTION: Dataset Spec CMIP Tree Example]`
 
 **The project E3SM tree:**
 
 The general structure is given in the following figure:
 
-![:Dataset Spec E3SM Tree Definition](media/dsspec_E3SM_Tree_Definition.png){width="5.36in"
-height="3.42in"}
+![: Dataset Spec E3SM Tree Definition](media/dsspec_E3SM_Tree_Definition.png){width="5.36in" height="3.42in"}
+`    [CAPTION: Dataset Spec E3SM Tree Definition]`
 
 **Example of Project E3SM tree member (modelVersion 3.0, experiment=historical):**
 
-![:Dataset Spec E3SM Tree Example](media/dsspec_E3SM_Tree_Example.png){width="5.13in"
-height="7.46in"}
+![: Dataset Spec E3SM Tree Example](media/dsspec_E3SM_Tree_Example.png){width="5.13in" height="7.46in"}
+`    [CAPTION: Dataset Spec E3SM Tree Example]`
 
 Note that the \"cmip_case\" given here
 (CMIP6.CMIP.E3SM-Project.E3SM-3-0.historical) will correspond to a
@@ -505,8 +505,9 @@ specification is moved to a new tree named \"CASE_EXTENSIONS\".
 Here is a sample of the same \"E3SM: \'3_0\':\" section after
 contraction:
 
-![i: Dataset Spec E3SM Tree Contracted Example](media/dsspec_E3SM_Tree_Contracted_Example.png){width="4.91in"
+![: Dataset Spec E3SM Tree Contracted Example](media/dsspec_E3SM_Tree_Contracted_Example.png){width="4.91in"
 height="6.98in"}
+`    [CAPTION: Dataset Spec E3SM Tree Contracted Example]`
 
 **\**
 
@@ -575,61 +576,33 @@ Dataset Type. A few lines of this file are included here to illustrate:
 
 ```
     atmos.native.3hr,model-output,\*cam.h3\*.nc,BGC-v1,
-
     atmos.native.3hr,model-output,\*cam.h4\*.nc,CRYO-v1 DECK-v1 HR-v1,
-
     atmos.native.3hr,model-output,\*eam.h3\*.nc,BGC-v2 DECK-v3,
-
     atmos.native.3hr,model-output,\*eam.h4\*.nc,CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
-
     atmos.native.3hr_snap,model-output,\*cam.h2\*.nc,BGC-v1,
-
     atmos.native.3hr_snap,model-output,\*eam.h2\*.nc,BGC-v2,
-
     atmos.native.6hr,model-output,\*cam.h3\*.nc,CRYO-v1 DECK-v1 HR-v1,
-
     atmos.native.6hr,model-output,\*eam.h2\*.nc,DECK-v3,
-
     atmos.native.6hr,model-output,\*eam.h3\*.nc,CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
-
     atmos.native.6hr_snap,model-output,\*cam.h2\*.nc,CRYO-v1 DECK-v1 HR-v1,
-
     atmos.native.6hr_snap,model-output,\*eam.h2\*.nc,CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
-
     atmos.native.day_cosp,model-output,\*cam.h5\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
-
     atmos.native.day_cosp,model-output,\*eam.h5\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
-
     atmos.native.day,model-output,\*cam.h1\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
-
     atmos.native.day,model-output,\*eam.h1\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
-
     atmos.native.fixed,namefile,run/atm_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,,
-
     atmos.native.mon,model-output,\*cam.h0\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
-
     atmos.native.mon,model-output,\*eam.h0\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
-
     land.native.day,model-output,\*clm2.h1\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
-
     land.native.day,model-output,\*elm.h1\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
-
     land.native.fixed,namefile,run/lnd_in,DECK-v1 DECK-v2 DECK-v2_1 DECK-v3,
-
     land.native.mon,model-output,\*clm2.h0\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
-
     land.native.mon,model-output,\*elm.h0\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
-
     ocean.native.5day_snap,model-output,\*mpaso.hist.am.highFrequencyOutput.\*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
-
     ocean.native.fixed,namefile,run/mpas-o_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
-
     ocean.native.fixed,namefile,run/mpaso_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
-
     ocean.native.fixed,restart,\*mpaso.rst\*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
-
     ocean.native.fixed,streams,run/streams.ocean,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
-
     ocean.native.mon,model-output,\*mpaso.hist.am.timeSeriesStatsMonthly.\*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
 ```
 
@@ -654,22 +627,21 @@ as follows:
 
 3.  Ply each "run.\<case_id\>.sh" script to obtain the sequence of
     values for
-
-> aveflag_pertape
->
-> nhtfrq
->
-> mfilt
+```
+    aveflag_pertape
+    nhtfrq
+    mfilt
+```
 
 and process into corresponding (h0, h1, ... h5) CMIP6 "frequency values"
 
 EXAMPLE:
 
-> avgflag_pertape = \'A\',\'A\',\'A\',\'A\',\'I\',\'I\'
->
-> nhtfrq = 0,-24,-6,-3,-1,0
->
-> mfilt = 1,30,120,240,720,1
+```
+    avgflag_pertape = \'A\',\'A\',\'A\',\'A\',\'I\',\'I\'
+    nhtfrq = 0,-24,-6,-3,-1,0
+    mfilt = 1,30,120,240,720,1
+```
 
 Assuming these represent h0, h1, h2, h3, h4, h5
 
@@ -681,17 +653,14 @@ and mfilt gives "records per file"
 
 I will deduce:
 
-h0 = mon
-
-h1 = day
-
-h2 = 6hr
-
-h3 = 3hr
-
-h4 = 1hr_snap
-
-h5 = mon_cosp ?
+```
+    h0 = mon
+    h1 = day
+    h2 = 6hr
+    h3 = 3hr
+    h4 = 1hr_snap
+    h5 = mon_cosp ?
+```
 
 These latter terms (mon, day, 6hr, 3hr, 1hr_snap, mon_cosp and other
 variants) only appear in the native dataset_ids (borne of the E3SM
@@ -1071,8 +1040,8 @@ wherein they become available to the user community.
 Two important publication configurations may be employed, depending upon
 site-specifics. These are illustrated below:
 
-![: Alternative E3SM Publication Configurations](media/E3SM_Publication_Configurations.png){width="6.5in"
-height="4.032638888888889in"}
+![: Alternative E3SM Publication Configurations](media/E3SM_Publication_Configurations.png){width="6.5in" height="4.03in"}
+`    [CAPTION: Alternative E3SM Publication Configurations]`
 
 On the left we represent the "Decoupled" publication configuration.
 Here, the datafiles moved to the ESGF Datanode are no longer accessible
