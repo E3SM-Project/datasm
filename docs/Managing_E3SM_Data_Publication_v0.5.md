@@ -1,10 +1,6 @@
----
-title: "E3SM CMIP Production Guide"
-subtitle: "Version 1.0"
-author:
-  - "A. Bartoletti"
-date: "January 2026"
----
+% E3SM CMIP Production Guide
+% A.Bartoletti
+% January 2026
 
 # PREFACE
 
