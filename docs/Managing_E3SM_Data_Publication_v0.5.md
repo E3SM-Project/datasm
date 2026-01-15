@@ -447,20 +447,20 @@ that they must be described separately below.
 
 **The project CMIP6 tree:**
 
-![: Dataset Spec CMIP Tree Definition](media/media/dsspec_CMIP_Tree_Definition.png){width="4.088140857392826in"
+![: Dataset Spec CMIP Tree Definition](media/dsspec_CMIP_Tree_Definition.png){width="4.088140857392826in"
 height="2.151078302712161in"}The general structure is given in the
 following figure:
 
-![: Dataset Spec CMIP Tree Example](media/media/dsspec_CMIP_Tree_Example.png){width="4.025in"
+![: Dataset Spec CMIP Tree Example](media/dsspec_CMIP_Tree_Example.png){width="4.025in"
 height="4.670833333333333in"}**Example of project CMIP6 tree member:**
 
 **The project E3SM tree:**
 
-![: Dataset Spec E3SM Tree Definition](media/media/dsspec_E3SM_Tree_Definition.png){width="5.355555555555555in"
+![: Dataset Spec E3SM Tree Definition](media/dsspec_E3SM_Tree_Definition.png){width="5.355555555555555in"
 height="3.4208333333333334in"}The general structure is given in the
 following figure:
 
-![: Dataset Spec E3SM Tree Example](media/media/dsspec_E3SM_Tree_Example.png){width="5.126912729658793in"
+![: Dataset Spec E3SM Tree Example](media/dsspec_E3SM_Tree_Example.png){width="5.126912729658793in"
 height="7.4640288713910765in"}**Example of Project E3SM tree member
 (modelVersion 3.0, experiment "historical"):**
 
@@ -501,7 +501,7 @@ specification is moved to a new tree named \"CASE_EXTENSIONS\".
 Here is a sample of the same \"E3SM: \'3_0\':\" section after
 contraction:
 
-![i: Dataset Spec E3SM Tree Contracted Example](media/media/dsspec_E3SM_Tree_Contracted_Example.png){width="4.915583989501313in"
+![i: Dataset Spec E3SM Tree Contracted Example](media/dsspec_E3SM_Tree_Contracted_Example.png){width="4.915583989501313in"
 height="6.978417541557305in"}
 
 **\**
@@ -1090,7 +1090,7 @@ wherein they become available to the user community.
 Two important publication configurations may be employed, depending upon
 site-specifics. These are illustrated below:
 
-![: Alternative E3SM Publication Configurations](media/media/E3SM_Publication_Configurations.png){width="6.5in"
+![: Alternative E3SM Publication Configurations](media/E3SM_Publication_Configurations.png){width="6.5in"
 height="4.032638888888889in"}
 
 On the left we represent the "Decoupled" publication configuration.
