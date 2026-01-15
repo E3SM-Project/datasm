@@ -331,30 +331,30 @@ will return just the value `"/lcrc/group/e3sm2/DSM/Staging/Tools"`
 Commands such as these are used extensively in DSM applications and
 tools. In many of the DSM shell scripts, you might see lines like:
 
-`    tools=\`$DSM_GETPATH STAGING_TOOLS\``
 ```
     tools=`$DSM_GETPATH STAGING_TOOLS`
-```
+    path_info=$tools/ds_paths_info.sh
 
-Arch_Map=\`DSM_GETPATH ARCHIVE_MANAGEMENT\`/Archive_Map
+    Arch_Map=`DSM_GETPATH ARCHIVE_MANAGEMENT`/Archive_Map
+```
 
 etc.
 
 IMPORTANTLY, if for some reason you need to move the location of
-\[STAGING_DATA\] or \[ARCHIVE_STORAGE\] or any other DSM resource to
+`[STAGING_DATA]` or `[ARCHIVE_STORAGE]` or any other DSM resource to
 another location, you simply need to edit the file:
 
 `    /lcrc/group/e3sm2/DSM/Staging/Relocation/.dsm_root_paths`
 
 and all applications and tools will continue to work. (If you relocate
-the path to \[DSM_STAGING\]/Relocation/, you will also need to edit user
-\".bashrc\" files for the definition of \"DSM_GETPATH, and the
-\".dsm_get_root_Paths.sh\" script itself).
+the path to `[DSM_STAGING]/Relocation/`, you will also need to edit user
+`".bashrc"` files for the definition of `"DSM_GETPATH`, and the
+`".dsm_get_root_Paths.sh"` script itself).
 
-Throughout this document, the terms \[ARCHIVE_STORAGE\],
-\[ARCHIVE_MANAGEMENT\], \[STAGING_RESOURCE\], \[STAGING_TOOLS\], etc,
+Throughout this document, the terms `[ARCHIVE_STORAGE]`,
+`[ARCHIVE_MANAGEMENT]`, `[STAGING_RESOURCE]`, `[STAGING_TOOLS]`, etc,
 will be used as a shorthand for the corresponding full paths given by
-"\$DSM_GETPATH ALL".
+`"$DSM_GETPATH ALL"`.
 
 **\**
 
@@ -403,7 +403,7 @@ generation, and publication processing are detailed in the following
 figures and text.
 
 ![: E3SM CMIP Production
-Dependencies](media/media/image1.png){width="6.5in"
+Dependencies](media/image1.png){width="6.5in"
 height="3.688888888888889in"}
 
 The maintenance procedures for each of the process configuration
