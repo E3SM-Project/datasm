@@ -413,22 +413,22 @@ below:
 
 ## THE E3SM DATASET_SPEC
 
-This file, \[your_git_repo\]/datasm/datasm/resources/dataset_spec.yaml,
-must be deployed to \[STAGING_RESOURCE\]/dataset_spec.yaml upon updates
+This file, `[your_git_repo]/datasm/datasm/resources/dataset_spec.yaml`,
+must be deployed to `[STAGING_RESOURCE]/dataset_spec.yaml` upon updates
 for operations.
 
-This (enormous) yaml file is essentially the \"dataset_id_tree\". It
+This (enormous) yaml file is essentially the `"dataset_id_tree"`. It
 details, for each major E3SM model-version and campaign, which
 experiments and ensembles are produced, their output year-ranges, and
 which native datasets (Resolutions, Realms and Frequencies) will be
 processed. By "walking" the contained E3SM and CMIP program trees, the
-DSM utilities "list_e3sm_dsids.py" and "list_cmip6_dsids.py" can produce
+DSM utilities `list_e3sm_dsids.py` and `list_cmip6_dsids.py` can produce
 the entire list of both native and CMIP dataset_ids of interest in E3SM
 processing, both past and present. The utility of operating over
 selected subsets of these dataset_ids will be explained in the section
 "The Magical Dataset ID".
 
-The E3SM Dataset Spec (\[STAGING_RESOURCE\]/dataset_spec.yaml) contains
+The E3SM Dataset Spec (`[STAGING_RESOURCE]/dataset_spec.yaml`) contains
 3 trees:
 
 - tables (branches listing CMIP variables by realm and frequency)
@@ -437,31 +437,36 @@ The E3SM Dataset Spec (\[STAGING_RESOURCE\]/dataset_spec.yaml) contains
 
 - project (branches for CMIP6 and E3SM, defining their variations)
 
-The \"time-series\" tree was only employed to generate E3SM datasets
+The `"time-series"` tree was only employed to generate E3SM datasets
 published outside of the CMIP regime, and has largely fallen into
 disuse.
 
-The \"project\" sub-trees CMIP6 and E3SM are so different in structure
+The `"project"` sub-trees CMIP6 and E3SM are so different in structure
 that they must be described separately below.
 
 **The project CMIP6 tree:**
 
+The general structure is given in the following figure:
+
 ![: Dataset Spec CMIP Tree Definition](media/dsspec_CMIP_Tree_Definition.png){width="4.09in"
-height="2.15in"}The general structure is given in the
-following figure:
+height="2.15in"}
+
+**Example of project CMIP6 tree member:**
 
 ![: Dataset Spec CMIP Tree Example](media/dsspec_CMIP_Tree_Example.png){width="4.026in"
-height="4.67in"}**Example of project CMIP6 tree member:**
+height="4.67in"}
 
 **The project E3SM tree:**
 
+The general structure is given in the following figure:
+
 ![: Dataset Spec E3SM Tree Definition](media/dsspec_E3SM_Tree_Definition.png){width="5.36in"
-height="3.42in"}The general structure is given in the
-following figure:
+height="3.42in"}
+
+**Example of Project E3SM tree member (modelVersion 3.0, experiment=historical):**
 
 ![: Dataset Spec E3SM Tree Example](media/dsspec_E3SM_Tree_Example.png){width="5.13in"
-height="7.46in"}**Example of Project E3SM tree member
-(modelVersion 3.0, experiment "historical"):**
+height="7.46in"}
 
 Note that the \"cmip_case\" given here
 (CMIP6.CMIP.E3SM-Project.E3SM-3-0.historical) will correspond to a
