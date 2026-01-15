@@ -208,18 +208,15 @@ distinguished by the nature of the initial parameters, (resolutions,
 forcings, simulated years, and more). A typical "case_id" will have the
 form
 
-- \<ModelVersion\>.\<Resolution\>.\<experiment\[\_ensemble\]\>
 ```
-\<ModelVersion\>.\<Resolution\>.\<experiment\[\_ensemble\]\>
+    <ModelVersion>.<Resolution>.<experiment[_ensemble]>
 ```
 
 For example:
 
 ```
     v3.LR.piControl
-
     v3.LR.historical_0051
-
     v3.LR.historical_0201
 
     etc
@@ -243,17 +240,18 @@ will be referred to as a "native dataset". One such dataset might be the
 "atmos" variables. This set (for v3.LR) is uniquely specified by the
 native dataset_id:
 
-E3SM.3_0.piControl.LR.atmos.native.model-output.mon.ens1
+`    E3SM.3_0.piControl.LR.atmos.native.model-output.mon.ens1`
 
 The files of this dataset look like this (month by month):
 
-> Size Date Filename
->
-> 162501128 Mar 6 2024 v3.LR.piControl.eam.h0.0001-01.nc
->
-> 162501128 Mar 6 2024 v3.LR.piControl.eam.h0.0001-02.nc
->
-> 162501128 Mar 6 2024 v3.LR.piControl.eam.h0.0001-03.nc
+```
+    Size      Date       Filename
+
+    162501128 Mar 6 2024 v3.LR.piControl.eam.h0.0001-01.nc
+    162501128 Mar 6 2024 v3.LR.piControl.eam.h0.0001-02.nc
+    162501128 Mar 6 2024 v3.LR.piControl.eam.h0.0001-03.nc
+    . . .
+```
 
 Here, we see the case_id ("v3.LR.piControl") followed by "eam"
 indicating the atmosphere model, and "h0" indicating monthly output, and
@@ -299,49 +297,44 @@ locations.
 For instance, on Chrysalis:/lcrc, these locations are:
 
 - ARCHIVE_STORAGE:/lcrc/group/e3sm2/DSM/Archive/Data
-
 - ARCHIVE_MANAGEMENT:/lcrc/group/e3sm2/DSM/Archive/Management
-
 - DSM_STAGING:/lcrc/group/e3sm2/DSM/Staging
-
 - STAGING_DATA:/lcrc/group/e3sm2/DSM/Staging/Data
-
 - STAGING_RESOURCE:/lcrc/group/e3sm2/DSM/Staging/Resource
-
 - STAGING_STATUS:/lcrc/group/e3sm2/DSM/Staging/Status
-
 - STAGING_TOOLS:/lcrc/group/e3sm2/DSM/Staging/Tools
-
 - PUBLICATION_DATA:/lcrc/group/e3sm2/DSM/Publication/css03_data
-
 - USER_ROOT:/lcrc/group/e3sm2
 
 These paths are defined in the file:
 
-/lcrc/group/e3sm2/DSM/Staging/Relocation/.dsm_root_paths
+`    /lcrc/group/e3sm2/DSM/Staging/Relocation/.dsm_root_paths`
 
 You need to place the following command in your \".bashrc\" file:
 
-> export
-> DSM_GETPATH=/lcrc/group/e3sm2/DSM/Staging/Relocation/.dsm_get_root_path.sh
->
-> (Don\'t forget to \"source\" your .bashrc, and reactivate your conda
-> env if needed.)
+```
+    export DSM_GETPATH=/lcrc/group/e3sm2/DSM/Staging/Relocation/.dsm_get_root_path.sh
+```
+
+(Don't forget to "source" your .bashrc, and reactivate your conda env if needed.)
 
 Thereafter, the command:
 
-\$DSM_GETPATH ALL
+`    $DSM_GETPATH ALL`
 
 will produce the above listing of dsm root-paths, and a command such as:
 
-\$DSM_GETPATH STAGING_TOOLS
+`    $DSM_GETPATH STAGING_TOOLS`
 
-will return just the value \"/lcrc/group/e3sm2/DSM/Staging/Tools\"
+will return just the value `"/lcrc/group/e3sm2/DSM/Staging/Tools"`
 
 Commands such as these are used extensively in DSM applications and
 tools. In many of the DSM shell scripts, you might see lines like:
 
-tools=\`\$DSM_GETPATH STAGING_TOOLS\`
+`    tools=\`$DSM_GETPATH STAGING_TOOLS\``
+```
+    tools=`$DSM_GETPATH STAGING_TOOLS`
+```
 
 Arch_Map=\`DSM_GETPATH ARCHIVE_MANAGEMENT\`/Archive_Map
 
@@ -351,7 +344,7 @@ IMPORTANTLY, if for some reason you need to move the location of
 \[STAGING_DATA\] or \[ARCHIVE_STORAGE\] or any other DSM resource to
 another location, you simply need to edit the file:
 
-/lcrc/group/e3sm2/DSM/Staging/Relocation/.dsm_root_paths
+`    /lcrc/group/e3sm2/DSM/Staging/Relocation/.dsm_root_paths`
 
 and all applications and tools will continue to work. (If you relocate
 the path to \[DSM_STAGING\]/Relocation/, you will also need to edit user
