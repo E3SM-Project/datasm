@@ -402,8 +402,7 @@ These resources, and how they support the data management, CMIP
 generation, and publication processing are detailed in the following
 figures and text.
 
-![: E3SM CMIP Production
-Dependencies](media/E3SM_CMIP_Production_dependencies.png){width="6.5in"
+![: E3SM CMIP Production Dependencies](media/E3SM_CMIP_Production_dependencies.png){width="6.5in"
 height="3.69in"}
 
 The maintenance procedures for each of the process configuration
@@ -447,21 +446,21 @@ that they must be described separately below.
 
 **The project CMIP6 tree:**
 
-![: Dataset Spec CMIP Tree Definition](media/dsspec_CMIP_Tree_Definition.png){width="4.088140857392826in"
-height="2.151078302712161in"}The general structure is given in the
+![: Dataset Spec CMIP Tree Definition](media/dsspec_CMIP_Tree_Definition.png){width="4.09in"
+height="2.15in"}The general structure is given in the
 following figure:
 
-![: Dataset Spec CMIP Tree Example](media/dsspec_CMIP_Tree_Example.png){width="4.025in"
-height="4.670833333333333in"}**Example of project CMIP6 tree member:**
+![: Dataset Spec CMIP Tree Example](media/dsspec_CMIP_Tree_Example.png){width="4.026in"
+height="4.67in"}**Example of project CMIP6 tree member:**
 
 **The project E3SM tree:**
 
-![: Dataset Spec E3SM Tree Definition](media/dsspec_E3SM_Tree_Definition.png){width="5.355555555555555in"
-height="3.4208333333333334in"}The general structure is given in the
+![: Dataset Spec E3SM Tree Definition](media/dsspec_E3SM_Tree_Definition.png){width="5.36in"
+height="3.42in"}The general structure is given in the
 following figure:
 
-![: Dataset Spec E3SM Tree Example](media/dsspec_E3SM_Tree_Example.png){width="5.126912729658793in"
-height="7.4640288713910765in"}**Example of Project E3SM tree member
+![: Dataset Spec E3SM Tree Example](media/dsspec_E3SM_Tree_Example.png){width="5.13in"
+height="7.46in"}**Example of Project E3SM tree member
 (modelVersion 3.0, experiment "historical"):**
 
 Note that the \"cmip_case\" given here
@@ -501,8 +500,8 @@ specification is moved to a new tree named \"CASE_EXTENSIONS\".
 Here is a sample of the same \"E3SM: \'3_0\':\" section after
 contraction:
 
-![i: Dataset Spec E3SM Tree Contracted Example](media/dsspec_E3SM_Tree_Contracted_Example.png){width="4.915583989501313in"
-height="6.978417541557305in"}
+![i: Dataset Spec E3SM Tree Contracted Example](media/dsspec_E3SM_Tree_Contracted_Example.png){width="4.91in"
+height="6.98in"}
 
 **\**
 
