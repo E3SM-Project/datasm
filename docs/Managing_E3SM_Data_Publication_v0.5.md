@@ -402,7 +402,7 @@ These resources, and how they support the data management, CMIP
 generation, and publication processing are detailed in the following
 figures and text.
 
-![: E3SM CMIP Production Dependencies](media/E3SM_CMIP_Production_dependencies.png){width="6.5in"
+![ALPHABETA:E3SM CMIP Production Dependencies](media/E3SM_CMIP_Production_dependencies.png){width="6.5in"
 height="3.69in"}
 
 The maintenance procedures for each of the process configuration
@@ -448,24 +448,24 @@ that they must be described separately below.
 
 The general structure is given in the following figure:
 
-![: Dataset Spec CMIP Tree Definition](media/dsspec_CMIP_Tree_Definition.png){width="4.09in"
+![:Dataset Spec CMIP Tree Definition](media/dsspec_CMIP_Tree_Definition.png){width="4.09in"
 height="2.15in"}
 
 **Example of project CMIP6 tree member:**
 
-![: Dataset Spec CMIP Tree Example](media/dsspec_CMIP_Tree_Example.png){width="4.026in"
+![:Dataset Spec CMIP Tree Example](media/dsspec_CMIP_Tree_Example.png){width="4.026in"
 height="4.67in"}
 
 **The project E3SM tree:**
 
 The general structure is given in the following figure:
 
-![: Dataset Spec E3SM Tree Definition](media/dsspec_E3SM_Tree_Definition.png){width="5.36in"
+![:Dataset Spec E3SM Tree Definition](media/dsspec_E3SM_Tree_Definition.png){width="5.36in"
 height="3.42in"}
 
 **Example of Project E3SM tree member (modelVersion 3.0, experiment=historical):**
 
-![: Dataset Spec E3SM Tree Example](media/dsspec_E3SM_Tree_Example.png){width="5.13in"
+![:Dataset Spec E3SM Tree Example](media/dsspec_E3SM_Tree_Example.png){width="5.13in"
 height="7.46in"}
 
 Note that the \"cmip_case\" given here
@@ -553,20 +553,17 @@ NOTE: These patterns alone may be insufficient to isolate the desired
 dataset files from a given archive, because different archives place the
 same files under multiple and varied tar-paths. That is, a given dataset
 filename may appear multiple times in an archive under the tar paths
-
-run/filename
-
-rest/filename
-
-archive/atm/hist/filename
-
+```
+    run/filename
+    rest/filename
+    archive/atm/hist/filename
+```
 and across archives from different authors or campaigns, these paths may
 appear as
-
-archive/atm/hist/filename (in one archive)
-
-atm/hist/filename (in a different archive)
-
+```
+    archive/atm/hist/filename (in one archive)
+    atm/hist/filename (in a different archive)
+```
 One must carefully craft the match-pattern to be employed, to ensure
 that only the intended filed are matched by the entry.
 
@@ -576,85 +573,65 @@ The file \[ARCHIVE_MANAGEMENT\]/Standard_Dataset_Extraction_Patterns
 gives the wild-card patterns that isolate dataset filenames according to
 Dataset Type. A few lines of this file are included here to illustrate:
 
-> atmos.native.3hr,model-output,\*cam.h3\*.nc,BGC-v1,
->
-> atmos.native.3hr,model-output,\*cam.h4\*.nc,CRYO-v1 DECK-v1 HR-v1,
->
-> atmos.native.3hr,model-output,\*eam.h3\*.nc,BGC-v2 DECK-v3,
->
-> atmos.native.3hr,model-output,\*eam.h4\*.nc,CRYO-v2 DECK-v2 DECK-v2_1
-> HR-v2,
->
-> atmos.native.3hr_snap,model-output,\*cam.h2\*.nc,BGC-v1,
->
-> atmos.native.3hr_snap,model-output,\*eam.h2\*.nc,BGC-v2,
->
-> atmos.native.6hr,model-output,\*cam.h3\*.nc,CRYO-v1 DECK-v1 HR-v1,
->
-> atmos.native.6hr,model-output,\*eam.h2\*.nc,DECK-v3,
->
-> atmos.native.6hr,model-output,\*eam.h3\*.nc,CRYO-v2 DECK-v2 DECK-v2_1
-> HR-v2,
->
-> atmos.native.6hr_snap,model-output,\*cam.h2\*.nc,CRYO-v1 DECK-v1
-> HR-v1,
->
-> atmos.native.6hr_snap,model-output,\*eam.h2\*.nc,CRYO-v2 DECK-v2
-> DECK-v2_1 HR-v2,
->
-> atmos.native.day_cosp,model-output,\*cam.h5\*.nc,BGC-v1 CRYO-v1
-> DECK-v1 HR-v1,
->
-> atmos.native.day_cosp,model-output,\*eam.h5\*.nc,BGC-v2 CRYO-v2
-> DECK-v2 DECK-v2_1 HR-v2,
->
-> atmos.native.day,model-output,\*cam.h1\*.nc,BGC-v1 CRYO-v1 DECK-v1
-> HR-v1,
->
-> atmos.native.day,model-output,\*eam.h1\*.nc,BGC-v2 CRYO-v2 DECK-v2
-> DECK-v2_1 DECK-v3 HR-v2,
->
-> atmos.native.fixed,namefile,run/atm_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2
-> DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,,
->
-> atmos.native.mon,model-output,\*cam.h0\*.nc,BGC-v1 CRYO-v1 DECK-v1
-> HR-v1,
->
-> atmos.native.mon,model-output,\*eam.h0\*.nc,BGC-v2 CRYO-v2 DECK-v2
-> DECK-v2_1 DECK-v3 HR-v2,
->
-> land.native.day,model-output,\*clm2.h1\*.nc,BGC-v1 CRYO-v1 DECK-v1
-> HR-v1,
->
-> land.native.day,model-output,\*elm.h1\*.nc,BGC-v2 CRYO-v2 DECK-v2
-> DECK-v2_1 DECK-v3 HR-v2,
->
-> land.native.fixed,namefile,run/lnd_in,DECK-v1 DECK-v2 DECK-v2_1
-> DECK-v3,
->
-> land.native.mon,model-output,\*clm2.h0\*.nc,BGC-v1 CRYO-v1 DECK-v1
-> HR-v1,
->
-> land.native.mon,model-output,\*elm.h0\*.nc,BGC-v2 CRYO-v2 DECK-v2
-> DECK-v2_1 DECK-v3 HR-v2,
->
-> ocean.native.5day_snap,model-output,\*mpaso.hist.am.highFrequencyOutput.\*.nc,BGC-v1
-> BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
->
-> ocean.native.fixed,namefile,run/mpas-o_in,BGC-v1 BGC-v2 CRYO-v1
-> CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
->
-> ocean.native.fixed,namefile,run/mpaso_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2
-> DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
->
-> ocean.native.fixed,restart,\*mpaso.rst\*.nc,BGC-v1 BGC-v2 CRYO-v1
-> CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
->
-> ocean.native.fixed,streams,run/streams.ocean,BGC-v1 BGC-v2 CRYO-v1
-> CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
->
-> ocean.native.mon,model-output,\*mpaso.hist.am.timeSeriesStatsMonthly.\*.nc,BGC-v1
-> BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
+```
+    atmos.native.3hr,model-output,\*cam.h3\*.nc,BGC-v1,
+
+    atmos.native.3hr,model-output,\*cam.h4\*.nc,CRYO-v1 DECK-v1 HR-v1,
+
+    atmos.native.3hr,model-output,\*eam.h3\*.nc,BGC-v2 DECK-v3,
+
+    atmos.native.3hr,model-output,\*eam.h4\*.nc,CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
+
+    atmos.native.3hr_snap,model-output,\*cam.h2\*.nc,BGC-v1,
+
+    atmos.native.3hr_snap,model-output,\*eam.h2\*.nc,BGC-v2,
+
+    atmos.native.6hr,model-output,\*cam.h3\*.nc,CRYO-v1 DECK-v1 HR-v1,
+
+    atmos.native.6hr,model-output,\*eam.h2\*.nc,DECK-v3,
+
+    atmos.native.6hr,model-output,\*eam.h3\*.nc,CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
+
+    atmos.native.6hr_snap,model-output,\*cam.h2\*.nc,CRYO-v1 DECK-v1 HR-v1,
+
+    atmos.native.6hr_snap,model-output,\*eam.h2\*.nc,CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
+
+    atmos.native.day_cosp,model-output,\*cam.h5\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
+
+    atmos.native.day_cosp,model-output,\*eam.h5\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
+
+    atmos.native.day,model-output,\*cam.h1\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
+
+    atmos.native.day,model-output,\*eam.h1\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
+
+    atmos.native.fixed,namefile,run/atm_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,,
+
+    atmos.native.mon,model-output,\*cam.h0\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
+
+    atmos.native.mon,model-output,\*eam.h0\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
+
+    land.native.day,model-output,\*clm2.h1\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
+
+    land.native.day,model-output,\*elm.h1\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
+
+    land.native.fixed,namefile,run/lnd_in,DECK-v1 DECK-v2 DECK-v2_1 DECK-v3,
+
+    land.native.mon,model-output,\*clm2.h0\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
+
+    land.native.mon,model-output,\*elm.h0\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
+
+    ocean.native.5day_snap,model-output,\*mpaso.hist.am.highFrequencyOutput.\*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
+
+    ocean.native.fixed,namefile,run/mpas-o_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
+
+    ocean.native.fixed,namefile,run/mpaso_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
+
+    ocean.native.fixed,restart,\*mpaso.rst\*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
+
+    ocean.native.fixed,streams,run/streams.ocean,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
+
+    ocean.native.mon,model-output,\*mpaso.hist.am.timeSeriesStatsMonthly.\*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
+```
 
 Note that there are "h-codes" in many output files (e.g. eam.h0, eam.h1,
 elm.h0, etc) that are used to indicate both realm and frequency (atmos
