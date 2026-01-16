@@ -821,34 +821,31 @@ The DSM Manager (dsm_manage_CMIP6_production.py) invoked via
 
 will take the supplied list of desired CMIP datasets (ids), and for each
 dataset_id will:
+```
+A.  Attempt to secure the corresponding native data (either locate it in the warehouse
+    or seek to have it retrieved and/or extracted).
 
-A.  Attempt to secure the corresponding native data (either locate it in
-    the warehouse, or seek to have it retrieved and/or extracted).
+B.  Call "[STAGING_TOOLS]/dsm_generate_CMIP.py" to:
 
-B.  Call `"[STAGING_TOOLS]/dsm_generate_CMIP.py"` to:
-
-    a.  Fully determine the required configuration materials (regridding
-        files and masks, metadata file, command-line flags) and the
-        sequence of operations (for non-MPAS data, NCO tools such as
-        ncclimo and ncremap for data preparations), and finally
-        determine the proper invocation of "e3sm_to_cmip".
+    a.  Fully determine the required configuration materials (regridding files and
+        masks, metadata file, command-line flags) and the sequence of operations
+        (for non-MPAS data, tools such as ncclimo and ncremap for data preparations),
+        and finally determine the proper invocation of "e3sm_to_cmip".
 
     b.  Produce and execute a fully-configured custom python script:
 
-`        <cmip_dataset_id>.py`
+            <cmip_dataset_id>.py
 
-that will conduct all necessary operations, to include partitioning
-the native and intermediate input files by "per-decade"
-subdirectories and submitting the required operations in
-decade-parallel to slurm/srun.
+        that will conduct all necessary operations, to include partitioning the
+        native and intermediate input files by "per-decade" subdirectories and
+        submitting the required operations in decade-parallel to slurm/srun.
 
-C.  Upon completion, move the resulting CMIP datafiles to their
-    warehouse location, and collect the run-script and various output
-    logs (cmor_logs, e2c_logs, and the dsm_generate log to a
-    `"RUN_RECORDS/<dataset_id>/"` directory for forensic examination
-    if needed.
-
-Having retained the important \"run evidence\", most content of the LOCK
+C.  Upon completion, move the resulting CMIP datafiles to their warehouse location
+    and collect the run-script and various output logs (cmor_logs, e2c_logs, and
+    the dsm_generate log to a "RUN_RECORDS/<dataset_id>/" directory for forensic
+    examination if needed.
+```
+Having retained the important "run evidence", most content of the LOCK
 directory is then wiped, in preparation for processing the next CMIP
 dataset_id of the input.
 
@@ -954,7 +951,7 @@ a dsm_managed run of dataset_ids:
 
 2.  The LOCK_<YYYYMMDD>/dsmman_logs/<logfile> should be moved to
     the current work directory "dsmman_logs" , and eventually the entire
-    lock directory "LOCK_<YYYYMMDD>/" should be removed.
+    lock directory "LOCK_<YYYYMMDD>" should be removed.
 
 3.  The RUN_RECORDS directory will have accumulated a subdirectory for
     each dataset_id where processing was attempted, often irrespective
@@ -992,15 +989,14 @@ Once a suitable \<references_string\> has been obtained in consultation
 with the appropriate simulation team, it can be edited into the metadata
 of all of the dataset files of the prepared CMIP datasets using:
 
-\[STAGING_TOOLS\]/set_datafile_metadata_textvalue_by_dsid_list.sh\
-\<dsid_listfile\> references \<references_string\>
+`    [STAGING_TOOLS]/set_datafile_metadata_textvalue_by_dsid_list.sh <dsid_listfile> references <references_string>`
 
 ### Maintaining the ESGF Publication Configuration File
 
 Another prerequisite to publication is ensuring that the ESGF
 publication configuration file is up-to-date:
 
-\~/.esg/esg\_\<site\>.yaml (currently, esg_anl.yaml is in use. See Appendix)
+`    ~/.esg/esg_<site>.yaml` (currently, 'esg_anl.yaml' is in use. See Appendix)
 
 The details and format of this configuration file tend to change as ESGF
 progresses, and it is best to consult a contact in ESGF to ensure that
@@ -1011,13 +1007,13 @@ it will correctly reflect your site's specific environment. See
 
 Mechanically, publication of the finalized CMIP datasets to ESGF is
 comprised of three component operations:
-
+```
 1.  Placement of dataset datafiles on a suitable ESGF datanode.
 
 2.  Generation of the checksum manifest (map) files for each dataset.
 
 3.  Update of the ESGF Index with publication manifest (map) files.
-
+```
 In essence, once the manifest files for each dataset are produced, an
 "esgpublish" utility employs that manifest to examine and validate each
 dataset file and (via the esg config file) update database tables in an
@@ -1060,7 +1056,7 @@ Simply call the appropriate mapfile generation script with the listfile
 of CMIP dataset_ids. The resulting mapfiles will be stored in the
 warehouse under
 
-\<facet_path\>/.mapfile-\<version\>.map
+`    <facet_path>/.mapfile-<version>.map`
 
 #### Conducting publication to the ESGF Index (search) servers
 
@@ -1074,17 +1070,17 @@ dataset_ids.
 The only real way to test if a publication was successful is to attempt
 actual downloads from the consequent URLs.
 
-- Submission of transfers via \"globus_cli\" will report \"transfer
-  submission request successful\", but not wait around to tell you if
+- Submission of transfers via "globus_cli" will report "transfer
+  submission request successful", but not wait around to tell you if
   the files are actually transferred. (One would need to run a
   subsequent globus_cli test, hours later, to confirm transfer
   completion).
 
-- The esgpublisher allows you to \"successfully publish\" (the metadata
+- The esgpublisher allows you to "successfully publish" (the metadata
   to the index), but has no ability to tell you if the files you state
   are on the data-node are present.
 
-- There is a \"verify_publication\" utility on hand, but it \"verifies\"
+- There is a "verify_publication" utility on hand, but it "verifies"
   by testing if the desired datasets are in the esgf server index
   tables. Again, not a real test.
 
@@ -1101,8 +1097,7 @@ https://acme-climate.atlassian.net/wiki/spaces/DOC/pages/933986549/ATM+Grid+Reso
 
 ## The Magical Dataset ID
 
-> **The utility of dataset IDs to facilitate, configure and track DSM
-> operations.**
+`    `**The utility of dataset IDs to facilitate, configure and track DSM operations.**
 
 There are few things that have simplified and unified operations
 surrounding E3SM data processing than to parameterize processes by lists
