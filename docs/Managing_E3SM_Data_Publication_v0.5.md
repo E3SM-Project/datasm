@@ -524,19 +524,18 @@ native dataset_id.
 
 Each line of the Archive_Map has the format:
 
-> \<Campaign\>,\<native_dataset_id\>,\<local path to archive\>,
-> \<extraction pattern\>
+`    <Campaign>,<native_dataset_id>,<local path to archive>,<extraction pattern>`
 
 This file is used automatically by the zstash call embedded in the
 dsm_manage_CMIP workflow, whereupon the extracted dataset files are
-placed into the "warehouse" (\[STAGING_DATA\]/\*) for subsequent
+placed into the "warehouse" (`[STAGING_DATA]`) for subsequent
 processing. This will be detailed later in the **Operations** section of
-this document.\
-\
+this document.
+
 When a new wave of simulation data processing arrives, one must (having
 updated the "E3SM dataset_spec' described previously), issue
 
-\[STAGING_TOOLS\]/list_e3sm_dsids.py \| grep E3SM.\<version\>
+`    [STAGING_TOOLS]/list_e3sm_dsids.py | grep E3SM.<version>`
 
 to list all of the new native dataset_ids, and ensure each is the key to
 an appropriate archive path and dataset extraction pattern in the
