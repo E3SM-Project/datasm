@@ -1,6 +1,5 @@
-% E3SM CMIP Production Guide
-% A.Bartoletti
-% January 2026
+# E3SM CMIP Production Guide
+# A.Bartoletti, January 2026
 
 # PREFACE
 
