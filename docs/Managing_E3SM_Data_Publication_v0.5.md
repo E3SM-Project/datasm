@@ -902,11 +902,11 @@ routine
 
 will employ these to provide an assessment of output results. (e.g.):
 ```
-    WH_PATH: /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rlutcs/gr: (v20251204: 18 files)
-    WH_PATH: /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rlut/gr: (v20251204: 18 files)
-    WH_PATH: /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rsdscs/gr: (v20251204: 18 files)
-    WH_PATH: /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rsds/gr: (v20251204: 18 files)
-    WH_PATH: /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rsdt/gr: NO_RESULTS
+    WH_PATH: [STAGING_DATA]/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rlutcs/gr: (v20251204: 18 files)
+    WH_PATH: [STAGING_DATA]/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rlut/gr: (v20251204: 18 files)
+    WH_PATH: [STAGING_DATA]/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rsdscs/gr: (v20251204: 18 files)
+    WH_PATH: [STAGING_DATA]/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rsds/gr: (v20251204: 18 files)
+    WH_PATH: [STAGING_DATA]/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rsdt/gr: NO_RESULTS
 ```
 If any line other than the last (currently in progress) report
 "NO_RESULTS", it is an indication of failure, and the RUN_REPORTS
@@ -945,16 +945,16 @@ dataset submissions.
 
 Three important manual activities should be addressed upon completion of
 a dsm_managed run of dataset_ids:
-
+```
 1.  A thorough assessment of successes and failures. Failed datasets
     should be itemized in a list for a subsequent re-run. Often, some
     jobs simply fail randomly due to slurm file-I/O issues, and
     typically succeed on a subsequent run. Others may need data or code
     issues be addressed.
 
-2.  The LOCK\_\<YYYYMMDD\>/dsmman_logs/\<logfile\> should be moved to
+2.  The LOCK_<YYYYMMDD>/dsmman_logs/<logfile> should be moved to
     the current work directory "dsmman_logs" , and eventually the entire
-    lock directory "LOCK\_\<YYYYMMDD\>/" should be removed.
+    lock directory "LOCK_<YYYYMMDD>/" should be removed.
 
 3.  The RUN_RECORDS directory will have accumulated a subdirectory for
     each dataset_id where processing was attempted, often irrespective
@@ -964,16 +964,16 @@ a dsm_managed run of dataset_ids:
     create and store a tarfile archive of these directories (reducing to
     a single inode). Example:
 
-> tar cvf Run_Reports/v3_LR_historical.tar RUN_RECORDS/
-> v3_LR_historical\*
->
-> rm -rf RUN_RECORDS/ v3_LR_historical\*
+        tar cvf Run_Reports/v3_LR_historical.tar RUN_RECORDS/v3_LR_historical*
 
-One can later select and extract the record for any given dataset_id by
+        rm -rf RUN_RECORDS/v3_LR_historical*
 
-tar tvf Run_Reports/v3_LR_historical.tar \| grep \<dataset_id\>
+    One can later select and extract the record for any given dataset_id by
 
-tar xvf \<tar_path_for_dataset_id\> Run_Reports/v3_LR_historical.tar
+        tar tvf Run_Reports/v3_LR_historical.tar | grep <dataset_id>
+
+        tar xvf <tar_path_for_dataset_id> Run_Reports/v3_LR_historical.tar
+```
 
 **\**
 
@@ -1000,8 +1000,7 @@ of all of the dataset files of the prepared CMIP datasets using:
 Another prerequisite to publication is ensuring that the ESGF
 publication configuration file is up-to-date:
 
-\~/.esg/esg\_\<site\>.yaml (currently, esg_anl.yaml is in use. See
-Appendix)
+\~/.esg/esg\_\<site\>.yaml (currently, esg_anl.yaml is in use. See Appendix)
 
 The details and format of this configuration file tend to change as ESGF
 progresses, and it is best to consult a contact in ESGF to ensure that
