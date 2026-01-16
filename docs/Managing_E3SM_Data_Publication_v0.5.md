@@ -674,24 +674,23 @@ infers a corresponding native "parent" dataset_id, indicating which
 specific archive native dataset holds the required native variables.
 
 For instance, when one issues:
+```
+    parent CMIP6.CMIP.E3SM-Project.E3SM-3-0.1pctCO2.r1i1p1f1.Amon.huss.gr
 
-parent CMIP6.CMIP.E3SM-Project.E3SM-3-0.1pctCO2.r1i1p1f1.Amon.huss.gr
-
-(parent=\"/lcrc/group/e3sm2/DSM/Staging/Tools/parent_native_dsid.sh\"):
-
+    (parent=[STAGING_TOOLS]/parent_native_dsid.sh)
+```
 one obtains:
 
-E3SM.3_0.1pctCO2.LR.atmos.native.model-output.mon.ens1
+`    E3SM.3_0.1pctCO2.LR.atmos.native.model-output.mon.ens1`
 
 That "parent native" dataset_id is a key into the Archive_Map table,
 that allows one to automate zstash extraction. Example:
 
-> grep E3SM.3_0.1pctCO2.LR.atmos.native.model-output.mon.ens1
-> /lcrc/group/e3sm2/DSM/Archive/Management/Archive_Map
+`    grep E3SM.3_0.1pctCO2.LR.atmos.native.model-output.mon.ens1 /lcrc/group/e3sm2/DSM/Archive/Management/Archive_Map`
 
 gives
 
-> DECK-v3,E3SM.3_0.1pctCO2.LR.atmos.native.model-output.mon.ens1,/lcrc/group/e3sm2/DSM/Archive/Data/3_0/DECK-v3/v3.LR.1pctCO2_0101_bcdt15m,archive/atm/hist/v3.LR.1pctCO2_0101_bcdt15m.eam.h0.\*.nc
+`    DECK-v3,E3SM.3_0.1pctCO2.LR.atmos.native.model-output.mon.ens1,/lcrc/group/e3sm2/DSM/Archive/Data/3_0/DECK-v3/v3.LR.1pctCO2_0101_bcdt15m,archive/atm/hist/v3.LR.1pctCO2_0101_bcdt15m.eam.h0.*.nc`
 
 (That's "Campaign", "Native_Dataset_ID" (key), "Local Archive Path",
 "Archive Tar-Path/File-Match Pattern"). This allows the construction of
@@ -706,9 +705,9 @@ production, driven by lists of desired CMIP6 dataset_ids.
 
 ## CMIP_CMOR_TABLES
 
-If you cd to \[STAGING_RESOURCE\]/cmor and then issue
+If you cd to `[STAGING_RESOURCE]/cmor` and then issue
 
-git clone <https://github.com/PCMDI/cmip6-cmor-tables>
+`    git clone https://github.com/PCMDI/cmip6-cmor-tables`
 
 you have effectively deployed the cmor tables for e3sm_to_cmip
 operation. However, when you git-clone datasm, there are a number of
@@ -719,28 +718,28 @@ are responsible for maintaining:
 
 # THE DSM APPLICATIONS AND TOOLS
 
-When you \"git clone\" datasm to your git repository, in addition to:
+When you `"git clone"` datasm to your git repository, in addition to:
 
 1.  Using its \"datasm/conda-env/prod.yml to produce your core conda
     environment
 
-conda env create -n \<chosen env-name\> -f conda-env/prod.yml
+`        conda env create -n <chosen env-name> -f conda-env/prod.yml`
 
 2.  Making datasm/util.py functions available for imports from your
     environment with:
 
-pip install .
+`        pip install .`
 
 You must also deploy the suite of datasm applications and tools to
-\[STAGING_TOOLS\]. This deployment can be conducted by issuing:
+`[STAGING_TOOLS]`. This deployment can be conducted by issuing:
 
-\[your git repo\]/datasm/datasm/tools/local_install.sh
+`    [your git repo]/datasm/datasm/tools/local_install.sh`
 
 NOTE: If you have made operational changes to tools or resources in
 their deployed locations, and neglected to reflect those changes in the
 git datasm repository, run:
 
-\[your git repo\]/datasm/datasm/tools/local_diff.sh
+`    [your git repo]/datasm/datasm/tools/local_diff.sh`
 
 to examine the difference between the repo files and the operationally
 deployed files.
