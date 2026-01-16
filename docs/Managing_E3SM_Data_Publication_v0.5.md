@@ -347,7 +347,7 @@ IMPORTANTLY, if for some reason you need to move the location of
 `[STAGING_DATA]` or `[ARCHIVE_STORAGE]` or any other DSM resource to
 another location, you simply need to edit the file:
 
-`    /lcrc/group/e3sm2/DSM/Staging/Relocation/.dsm_root_paths`
+`    [DSM_STAGING]/Relocation/.dsm_root_paths`
 
 and all applications and tools will continue to work. (If you relocate
 the path to `[DSM_STAGING]/Relocation/`, you will also need to edit user
@@ -688,8 +688,9 @@ that allows one to automate zstash extraction. Example:
 `    grep E3SM.3_0.1pctCO2.LR.atmos.native.model-output.mon.ens1 /lcrc/group/e3sm2/DSM/Archive/Management/Archive_Map`
 
 gives
-
-`    DECK-v3,E3SM.3_0.1pctCO2.LR.atmos.native.model-output.mon.ens1,/lcrc/group/e3sm2/DSM/Archive/Data/3_0/DECK-v3/v3.LR.1pctCO2_0101_bcdt15m,archive/atm/hist/v3.LR.1pctCO2_0101_bcdt15m.eam.h0.*.nc`
+```
+    DECK-v3,E3SM.3_0.1pctCO2.LR.atmos.native.model-output.mon.ens1,/lcrc/group/e3sm2/DSM/Archive/Data/3_0/DECK-v3/v3.LR.1pctCO2_0101_bcdt15m,archive/atm/hist/v3.LR.1pctCO2_0101_bcdt15m.eam.h0.*.nc
+```
 
 (That's "Campaign", "Native_Dataset_ID" (key), "Local Archive Path",
 "Archive Tar-Path/File-Match Pattern"). This allows the construction of
@@ -758,21 +759,21 @@ resources.
 Where the required native source datasets are properly located (or
 sym-linked to) their warehouse facet-paths:
 
-\[STAGING_DATA\]/E3SM/\<facets\>/\<version\>/\<datafiles\>.nc
+`    [STAGING_DATA]/E3SM/<facets>/<version>/<datafiles>.nc`
 
 one need only create the list of CMIP dataset_ids one intends to
 produce, using
 
-list_cmip \| \<filters\> \> my_dsid_list
+`    list_cmip | <filters> > my_dsid_list`
 
 and then issue
 
-./run_dsm_manager.sh my_dsid_list &
+`    ./run_dsm_manager.sh my_dsid_list &`
 
 to have the resulting cmorized CMIP datasets produced and moved to the
 warehouse as
 
-\[STAGING_DATA\]/CMIP6/\<facets./\<version\>/\<datafiles\>.nc
+`    [STAGING_DATA]/CMIP6/<facets>/<version>/<datafiles>.nc`
 
 in preparation for publication when authorized.
 
@@ -782,12 +783,12 @@ trigger the extraction of datasets to the expected warehouse locations,
 or else seek such zstash archives from the NERSC HPSS storage facility,
 transferred via zstash/Globus operations.
 
-The script \"./run_dsm_manager.sh\" sets up overflow logging to capture
+The script `"./run_dsm_manager.sh"` sets up overflow logging to capture
 stderr output if needed, and then calls
 
-\[STAGING_TOOLS\]/dsm_manage_CMIP6_production.py
+`    [STAGING_TOOLS]/dsm_manage_CMIP6_production.py`
 
-[]{#_Toc216780797 .anchor}The LOCK Directory:
+### The LOCK Directory
 
 Upon invoking the DSM Manager, a directory named \"LOCK\_\<YYYYMMDD\>\"
 will be created in your current directory, and all subsequent operations
@@ -800,7 +801,7 @@ operational area.
 If you must run another manager in parallel to one that is currently
 running, use
 
-./run_dsm_manager_altlock.sh my_dsid_list \<LOCKDIR_NAME\> &
+`    ./run_dsm_manager_altlock.sh my_dsid_list <LOCKDIR_NAME> &`
 
 providing a LOCKDIR_NAME that does not conflict with any existing lock
 directory.
@@ -809,14 +810,14 @@ directory.
 
 The directory
 
-\[USER_ROOT\]/DSM/Ops/DSM_Manager/
+`    [USER_ROOT]/DSM/Ops/DSM_Manager/`
 
 should be your base of operations when conducting CMIP dataset
 generation.
 
 The DSM Manager (dsm_manage_CMIP6_production.py) invoked via
 
-./run_dsm_manager.sh \<dataset_id_listfile\> &
+`    ./run_dsm_manager.sh <dataset_id_listfile> &`
 
 will take the supplied list of desired CMIP datasets (ids), and for each
 dataset_id will:
@@ -824,27 +825,27 @@ dataset_id will:
 A.  Attempt to secure the corresponding native data (either locate it in
     the warehouse, or seek to have it retrieved and/or extracted).
 
-B.  Call \"\[STAGING_TOOLS\]/dsm_generate_CMIP.py\" to:
+B.  Call `"[STAGING_TOOLS]/dsm_generate_CMIP.py"` to:
 
     a.  Fully determine the required configuration materials (regridding
         files and masks, metadata file, command-line flags) and the
         sequence of operations (for non-MPAS data, NCO tools such as
         ncclimo and ncremap for data preparations), and finally
-        determine the proper invocation of \"e3sm_to_cmip\".
+        determine the proper invocation of "e3sm_to_cmip".
 
     b.  Produce and execute a fully-configured custom python script:
 
-> \<cmip_dataset_id\>.py
->
-> that will conduct all necessary operations, to include partitioning
-> the native and intermediate input files by \"per-decade\"
-> subdirectories and submitting the required operations in
-> decade-parallel to slurm/srun.
+`        <cmip_dataset_id>.py`
+
+that will conduct all necessary operations, to include partitioning
+the native and intermediate input files by "per-decade"
+subdirectories and submitting the required operations in
+decade-parallel to slurm/srun.
 
 C.  Upon completion, move the resulting CMIP datafiles to their
     warehouse location, and collect the run-script and various output
     logs (cmor_logs, e2c_logs, and the dsm_generate log to a
-    \"RUN_RECORDS/\<dataset_id\>/\" directory for forensic examination
+    `"RUN_RECORDS/<dataset_id>/"` directory for forensic examination
     if needed.
 
 Having retained the important \"run evidence\", most content of the LOCK
@@ -854,36 +855,37 @@ dataset_id of the input.
 ### Layout Details:
 
 During operation, the following directories and files should appear:
+```
+    <your_current_directory>/
 
-\<your_currect_directory\>/
+        LOCK_<YYYYMMDD>/
 
-LOCK\_\<YYYYMMDD\>/
+            dsmman_logs/ (log of the dsm_manager, retained across datasets)
 
-dsmman_logs/ (log of the dsm_manager, retained across datasets)
+            dsmgen_logs/ (log of dsm_generate, specific to each dataset)
 
-dsmgen_logs/ (log of dsm_generate, specific to each dataset)
+            info_yaml/ (output of "e3sm_to_cmip --info", per variable)
 
-info_yaml/ (output of \"e3sm_to_cmip \--info\", per variable)
+            <case_id>/ (retained for all datasets of a given case)
 
-\<case_id\>/ (retained for all datasets of a given case)
+            caselogs/ (log of the custom script, one per dataset)
 
-caselogs/ (log of the custom script, one per dataset)
+                metadata/ (one per case/ensemble)
 
-metadata/ (one per case/ensemble)
+                native_data/ (holds decade-subdirectories, each with symlinks)
 
-native_data/ (holds decade-subdirectories, each with symlinks)
+                native_out (holds nco/timeseries output for non-MPAS datasets)
 
-native_out (holds nco/timeseries output for non-MPAS datasets)
+                product/ (holds finished facet-path cmip dataset files)
 
-product/ (holds finished facet-path cmip dataset files)
+                rgr/ (holds nco/ncremap output from native_out, non-MPAS)
 
-rgr/ (holds nco/ncremap output from native_out, non-MPAS)
+                rgr_vert/ (holds vertical regridded for 3D variable, non-MPAS)
 
-rgr_vert/ (holds vertical regridded for 3D variable, non-MPAS)
+                scripts/ (holds the custom-created python script, per dataset)
 
-scripts/ (holds the custom-created python script, per dataset)
-
-RUN_RECORDS/
+        RUN_RECORDS/
+```
 
 ### Monitoring Progress and Assessing Completion
 
@@ -891,44 +893,30 @@ Consequent to CMIP processing, a "job ticket" will appear in your
 current directory for each dataset as it is being processed, and will
 remain until you delete them. They are named:
 
-dsm_gen-\<dataset_id\>
+`    dsm_gen-<dataset_id>`
 
 All but the latest should be completed (pass or fail), and a simple
 routine
 
-./zquickcheck.sh
+`    ./zquickcheck.sh`
 
 will employ these to provide an assessment of output results. (e.g.):
-
-> **WH_PATH:
-> /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rlutcs/gr:
-> (v20251204: 18 files)**
->
-> **WH_PATH:
-> /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rlut/gr:
-> (v20251204: 18 files)**
->
-> **WH_PATH:
-> /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rsdscs/gr:
-> (v20251204: 18 files)**
->
-> **WH_PATH:
-> /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rsds/gr:
-> (v20251204: 18 files)**
->
-> **WH_PATH:
-> /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rsdt/gr:
-> NO_RESULTS**
-
+```
+    WH_PATH: /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rlutcs/gr: (v20251204: 18 files)
+    WH_PATH: /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rlut/gr: (v20251204: 18 files)
+    WH_PATH: /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rsdscs/gr: (v20251204: 18 files)
+    WH_PATH: /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rsds/gr: (v20251204: 18 files)
+    WH_PATH: /lcrc/group/e3sm2/DSM/Staging/Data/CMIP6/CMIP/E3SM-Project/E3SM-3-0/historical/r12i1p1f1/Amon/rsdt/gr: NO_RESULTS
+```
 If any line other than the last (currently in progress) report
-"**NO_RESULTS**", it is an indication of failure, and the RUN_REPORTS
+"NO_RESULTS", it is an indication of failure, and the RUN_REPORTS
 for the dataset_id-named directory should be examined for errors
 reported in the logfiles.
 
 More generally, we can take any list of dataset_ids (typically those
 submitted for CMIP generation, or a subset thereof) and issue:
 
-dspilc \<dsid_list\> \| grep WH_PATH
+`    dspilc <dsid_list> | grep WH_PATH`
 
 to obtain the warehouse dataset file counts for selected datasets.
 
@@ -938,7 +926,7 @@ If you wish to monitor the detailed progress of the dataset currently
 being generated, you can view the running logfile of the custom script
 conducting that processing:
 
-LOCK\_\<YYYYMMDD\>/\<case_id\>/caselogs/\<dataset_id\>.sublog
+`    LOCK_<YYYYMMDD>/<case_id>/caselogs/<dataset_id>.sublog`
 
 Every 5 minutes, it will summarize the progress of each parallel decade
 submitted to slurm/srun, both for the (non-MPAS) nco operations and for
