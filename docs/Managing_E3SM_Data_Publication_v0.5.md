@@ -431,6 +431,14 @@ processing, both past and present. The utility of operating over
 selected subsets of these dataset_ids will be explained in the section
 "The Magical Dataset ID".
 
+**IMPORTANT**
+
+There is an "N to 1" relationship between CMIP datasets (and dataset_ids)
+and the native simulation output datasets (and dataset_ids).  In essense,
+any given CMIP dataset is a "derived child" of a parent native dataset.
+A utility function exists that will provide you the native dataset_id
+that serves as the parent data for a given CMIP6 dataset_id.
+
 The E3SM Dataset Spec (`[STAGING_RESOURCE]/dataset_spec.yaml`) contains
 3 trees:
 
@@ -499,14 +507,13 @@ actually (at present) only 17 uniquely different \"resolution\"
 specifications, with many used repeatedly across different models and
 experiments.
 
-A pair of DSM utility tools, \"dsspec_contract.py\" and
-\"dsspec_expand.py\" can be employed to refactor the \"project: E3SM\"
+A pair of DSM utility tools, "dsspec_contract.py" and
+"dsspec_expand.py" can be employed to refactor the "project: E3SM"
 section of the dataset_spec, replacing each resolution section with an
-extension_id \"CASE_EXTENSION_nn\", and the original resolution
-specification is moved to a new tree named \"CASE_EXTENSIONS\".
+extension_id "CASE_EXTENSION_nn", and the original resolution
+specification is moved to a new tree named "CASE_EXTENSIONS".
 
-Here is a sample of the same \"E3SM: \'3_0\':\" section after
-contraction:
+Here is a sample of the same `"E3SM: '3_0':"` section after contraction:
 
 ![: Dataset Spec E3SM Tree Contracted Example](media/dsspec_E3SM_Tree_Contracted_Example.png){width="4.91in"
 height="6.98in"}
@@ -615,8 +622,8 @@ mon, atmos day, land mon), but for frequencies above "day" (6hr, 3hr,
 codes (h3, h4) to indicate different frequencies. Therefore, the
 campaigns that have employed selected codes for selected frequencies are
 listed in this file for convenience in maintaining and updating the
-extraction patterns used in the aforementioned Archive_Map.\
-\
+extraction patterns used in the aforementioned Archive_Map.
+
 With each new simulation "wave" one must ensure that the correct
 "h-codes" are being applied, and summarized in the
 Standard_Dataset_Extraction_Patterns file. The procedure (at present) is
@@ -666,7 +673,7 @@ I will deduce:
 
 These latter terms (mon, day, 6hr, 3hr, 1hr_snap, mon_cosp and other
 variants) only appear in the native dataset_ids (borne of the E3SM
-dataset_spec.yaml\[\*\]).
+dataset_spec.yaml).
 
 While they are not part of the CMIP6 dataset_ids, each CMIP6 dataset_id
 infers a corresponding native "parent" dataset_id, indicating which
@@ -701,7 +708,68 @@ generating the CMIP dataset for "Amon.huss".
 These configs and functions are KEY to the automation of CMIP6
 production, driven by lists of desired CMIP6 dataset_ids.
 
+## The NERSC Archive Locator File
+
+Earlier, we noted that the E3SM Archive_Map lines have 4 fields, the third field being
+
+`    <local path to archive>`  (zstash case archive location, if present)
+
+Whether or not that archive is present locally, the "basename" (tail directory) of that
+path represents the archive CaseID, and serves as a key into the file:
+
+`    [ARCHIVE_MANAGEMENT]/NERSC_Archive_Locator`
+
+This file gives the "NERSC_HPSS" (NERSC High Performance Tape Storage System) path to
+the long term archive storage for the case archive in question, serving to automate
+the Globus (or zstash/globus) transfer of such archive to local space for processing.
+
+The NERSC Archive Locator lines have the form:
+
+`    MajorCategory,CaseID,DataSize,CMIP_link,NATV_link,Archive_Path`
+
+For example:
+```
+    LR:DECK,v2.LR.piControl,39,CMIP,Native,/home/projects/e3sm/www/WaterCycle/E3SMv2/LR/v2.LR.piControl
+    LR:DECK,v2.LR.piControl_land,na,na,na,na
+    LR:DECK,v2.LR.abrupt-4xCO2_0101,12,CMIP,Native,/home/projects/e3sm/www/WaterCycle/E3SMv2/LR/v2.LR.abrupt-4xCO2_0101
+    LR:DECK,v2.LR.abrupt-4xCO2_0301,13,CMIP,Native,/home/projects/e3sm/www/WaterCycle/E3SMv2/LR/v2.LR.abrupt-4xCO2_0301
+    LR:DECK,v2.LR.1pctCO2_0101,12,CMIP,Native,/home/projects/e3sm/www/WaterCycle/E3SMv2/LR/v2.LR.1pctCO2_0101
+    LR:Historical,v2.LR.historical_0101,13,CMIP,Native,/home/projects/e3sm/www/WaterCycle/E3SMv2/LR/v2.LR.historical_0101
+    LR:Historical,v2.LR.historical_0151,13,CMIP,Native,/home/projects/e3sm/www/WaterCycle/E3SMv2/LR/v2.LR.historical_0151
+    . . .
+```
+
+The "Datasize" (in TB) serves to avoid initiating a transfer when insufficient local space
+would exist to receive the data.
+
+NOTE:  The field "NATV_LINK" is a placeholder employed only in the HTML version of this table.
+
+Under intended circumstance, when the CMIP6 generation process is active, each desired CMIP6
+dataset_id is translated to its parent native dataset_id, whose data in then sought in the
+E3SM warehouse (`[STAGING_DATA]`).  If not present, the parent dataset_id is sought in the
+Archive_Map to obtain its local path and pattern for zstash extraction.  If that archive is
+not locally available, the basename of the archive path is used as a key into the NERSC
+Archive Locator file, ideally to automate the globus transfer and eventual dataset extraction.
+
+**IMPORTANT**
+
+At present, this sequence of "fetch archive", "extract native dataset", "conduct CMIP generation"
+occurs sequentially - meaning that during the days (and sometimes weeks) it takes to transfer
+and extract the necessary native data, all other processing is suspended.  This should be
+remedied by making these three operations asynchronous, with request tickets passed between
+them, so that no hang-ups or delays incurred by one aspect of the processing can interfere
+with the other functions.
+
 **\**
+
+In \[STAGING_RESOURCE\]/cmor:
+
+Grid Comparisons:
+
+https://acme-climate.atlassian.net/wiki/spaces/DOC/pages/933986549/ATM+Grid+Resolution+Summary
+
+
+## The NERSC Archive Locator File
 
 ## CMIP_CMOR_TABLES
 
@@ -1087,13 +1155,6 @@ actual downloads from the consequent URLs.
 One should attempt to download at least 1 file from each publication
 (dataset, or case) to verify success.
 
-\- - -
-
-In \[STAGING_RESOURCE\]/cmor:
-
-Grid Comparisons:
-
-https://acme-climate.atlassian.net/wiki/spaces/DOC/pages/933986549/ATM+Grid+Resolution+Summary
 
 ## The Magical Dataset ID
 
