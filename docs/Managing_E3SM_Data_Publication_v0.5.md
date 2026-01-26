@@ -739,7 +739,7 @@ For example:
     . . .
 ```
 
-The "Datasize" (in TB) serves to avoid initiating a transfer when insufficient local space
+The "DataSize" (in TB) serves to avoid initiating a transfer when insufficient local space
 would exist to receive the data.
 
 NOTE:  The field "NATV_LINK" is a placeholder employed only in the HTML version of this table.
@@ -758,9 +758,13 @@ occurs sequentially - meaning that during the days (and sometimes weeks) it take
 and extract the necessary native data, all other processing is suspended.  This should be
 remedied by making these three operations asynchronous, with request tickets passed between
 them, so that no hang-ups or delays incurred by one aspect of the processing can interfere
-with the other functions.
+with the other functions. Each dependent process can conduct "lookahead" of its request tickets
+to determine whether it will be able to service the request directly, or will need to issue
+a ticket to another process to establish the required data.
 
 **\**
+
+## The Derivatives Configuration File
 
 In \[STAGING_RESOURCE\]/cmor:
 
@@ -768,8 +772,6 @@ Grid Comparisons:
 
 https://acme-climate.atlassian.net/wiki/spaces/DOC/pages/933986549/ATM+Grid+Resolution+Summary
 
-
-## The NERSC Archive Locator File
 
 ## CMIP_CMOR_TABLES
 
@@ -1162,13 +1164,16 @@ One should attempt to download at least 1 file from each publication
 
 There are few things that have simplified and unified operations
 surrounding E3SM data processing than to parameterize processes by lists
-of dataset_ids.\
-\
+of dataset_ids.  it is both a unique dataset identifier, and a "structure"
+easily parsed into informative components.  Certain objects (status files,
+process log files) specific to a dataset can be given the dataset_id as
+part of the object name.
+
 Throughout E3SM data processing, the common currency for object status
 (extracted, validated, generated, published) are the dataset_ids. Tools
 such as \"list_e3sm_dsids\" and \"list_cmip_dsids\" will produce the
-listings of all defined dataset_ids by walking the YAML tree
-\[STAGING_RESOURCE\]/dataset_spec.yaml.
+listings of all defined dataset_ids by walking the defining YAML tree
+`[STAGING_RESOURCE]/dataset_spec.yaml`.
 
 For native datasets, the format for the dataset_id (e3sm_dsid) is:
 
@@ -1203,19 +1208,16 @@ distinguished by Grid and DataType:
 
 In contrast to the native datasets output by the simulations, CMIP6
 datasets are produced by post-processing the native datasets. These
-datasets are one-per-(CMIP6)-variable\" and the files have a different
+datasets are "one-per-(CMIP6)-variable" and the files have a different
 internal format, metadata, etc. Moreover, the CMIP6 variables are
-sometimes not \"one-to-one\" with the native variables and may be
+sometimes not "one-to-one" with the native variables and may be
 defined in terms of formulas involving multiple native variables. The
-application \"e3sm_to_cmip\" is responsible for deriving CMIP6 datasets
+application "e3sm_to_cmip" is responsible for deriving CMIP6 datasets
 from the native datasets.
 
 These CMIP6 datasets have dataset_ids (cmip_dsid) of the form:
 
 - Project.Activity.Institution.SourceID.Experiment.VariantLabel.Table.Variable.grid
-
-NOTE: The \"r-value\" in the VariantLabel corresponds to the native
-Ensemble number.
 
 NOTE: \"Table\" is often a combo of Realm+Freq (Amon = atmos mon), but
 not always.
@@ -1228,39 +1230,41 @@ not always.
 
 - CMIP6.CMIP.E3SM-Project.E3SM-2-0.historical.r3i1p1f1.3hr.pr.gr
 
+NOTE: The \"r-value\" in the VariantLabel corresponds to the native
+Ensemble number.
+
 IMPORTANT:
 
 A great deal of our processing is configured in terms of lists of
 dataset_ids. They are often a component field of a table, so a simple
 command like
 
-- cat TheTable \| grep TheDatasetID
+`    cat TheTable | grep <TheDatasetID>`
 
 provides you with the table information regarding that dataset. For
 instance:
 
-- cat \[ARCHIVE_MANAGEMENT\]/Archive_Map \| grep
-  E3SM.2_0.abrupt-4xCO2.LR.atmos.native.model-output.day.ens2
+`    cat `[ARCHIVE_MANAGEMENT]/Archive_Map`| grep E3SM.2_0.abrupt-4xCO2.LR.atmos.native.model-output.day.ens2`
 
 will yield this row of the E3SM Archive_Map, providing the archive-path
 and zstash extraction pattern for the corresponding data:
 
-- DECK-v2,E3SM.2_0.abrupt-4xCO2.LR.atmos.native.model-output.day.ens2,\[ARCHIVE_DATA\]/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301,archive/atm/hist/v2.LR.abrupt-4xCO2_0301.eam.h1.\*.nc
+`    DECK-v2,E3SM.2_0.abrupt-4xCO2.LR.atmos.native.model-output.day.ens2,[ARCHIVE_DATA]/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301,archive/atm/hist/v2.LR.abrupt-4xCO2_0301.eam.h1.*.nc`
 
 IMPORTANT:
 
 A variety of tools \[STAGING_TOOLS\] exist for manipulating dataset_ids.
 For instance:
 
-- \[STAGING_TOOLS\]/parent_native_dsid \<cmip_dsid\>
+`    [STAGING_TOOLS]/parent_native_dsid <cmip_dsid>`
 
-returns the native \<e3sm_dsid\> that identifies the native dataset from
+returns the native `<e3sm_dsid>` that identifies the native dataset from
 which the CMIP6 dataset is produced.
 
-- \[STAGING_TOOLS\]/latest_data_by_dsid \<any_dsid\>
+`    [STAGING_TOOLS]/latest_data_by_dsid <any_dsid>`
 
 returns the full warehouse path to the latest version of the indicated
-dataset files (else \"NONE\").
+dataset files (else "NONE").
 
 ## Dataset Status Files:
 
