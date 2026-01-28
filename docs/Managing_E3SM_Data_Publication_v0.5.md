@@ -1248,8 +1248,9 @@ instance:
 
 will yield this row of the E3SM Archive_Map, providing the archive-path
 and zstash extraction pattern for the corresponding data:
-
-`    DECK-v2,E3SM.2_0.abrupt-4xCO2.LR.atmos.native.model-output.day.ens2,[ARCHIVE_DATA]/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301,archive/atm/hist/v2.LR.abrupt-4xCO2_0301.eam.h1.*.nc`
+```
+    DECK-v2,E3SM.2_0.abrupt-4xCO2.LR.atmos.native.model-output.day.ens2,[ARCHIVE_DATA]/2_0/DECK-v2/v2.LR.abrupt-4xCO2_0301,archive/atm/hist/v2.LR.abrupt-4xCO2_0301.eam.h1.*.nc
+```
 
 IMPORTANT:
 
@@ -1270,62 +1271,61 @@ dataset files (else "NONE").
 
 Every native (e3sm) or CMIP6 dataset has a corresponding \"StatusFile\",
 intended to record the status and history of actions taken with respect
-to that dataset. For a given dataset_id \<dsid\>, that status file is
+to that dataset. Noreover, the status values (sorted chronologically) 
+serve to condition potential operations according to preparedness.
+For a given dataset_id `<dsid>`, that status file is
 located at
 
-\[STAGING_STATUS\]/\<dsid\>.status
+`    [STAGING_STATUS]/<dsid>.status`
+
 
 SUGGESTION:
 
-Determine the path on your system to the DataSM \"DSM_STAGING\" and
-\"STAGING_TOOLS\" directories. I will use
+Determine the path on your system to the DataSM `"DSM_STAGING"` and
+`"STAGING_TOOLS"` directories. I will use
 
-\"/p/user_pub/e3sm/staging/\" and \"/p/user_pub/e3sm/staging/tools\" to
-illustrate.
+`    "/p/user_pub/e3sm/staging/"`
+and
+`    "/p/user_pub/e3sm/staging/tools"`
+to illustrate.`
 
-In your .bashrc file, place the following lines
-
-export DSM_GETPATH=/p/user_pub/e3sm/staging/.dsm_get_root_path.sh
-
-alias llt=\"ls -lrt\"
-
-alias list_e3sm=\"python
-/p/user_pub/e3sm/staging/tools/list_e3sm_dsids.py\"
-
-alias list_cmip=\"python
-/p/user_pub/e3sm/staging/tools/list_cmip6_dsids.py\"
-
-alias dspi=\"/p/user_pub/e3sm/staging/tools/ds_paths_info.sh\"
-
-alias
-dspilc=\"/p/user_pub/e3sm/staging/tools/ds_paths_info_dsid_list_compact.sh\"
+In your .bashrc file, place the following lines:
+```
+    export DSM_GETPATH="/p/user_pub/e3sm/staging/.dsm_get_root_path.sh"
+    alias llt="ls -lrt"
+    alias list_e3sm="python/p/user_pub/e3sm/staging/tools/list_e3sm_dsids.py"
+    alias list_cmip="python/p/user_pub/e3sm/staging/tools/list_cmip6_dsids.py"
+    alias dspi="/p/user_pub/e3sm/staging/tools/ds_paths_info.sh"
+    alias dspilc="/p/user_pub/e3sm/staging/tools/ds_paths_info_dsid_list_compact.sh"
+```
 
 Also, add this link to your home directory:
 
 issue the command:
 
-ln -s /p/user_pub/e3sm/staging/tools \~/.tools
+`    ln -s /p/user_pub/e3sm/staging/tools ~/.tools`
 
-Then, when you issue \"ls -al\" in your home directory you should see:
+Then, when you issue `"ls -al"` in your home directory you should see:
 
-/home/\<your_oun\>/.tools -\> /p/user_pub/e3sm/staging/tools
+`    /home/<your_oun>/.tools -> /p/user_pub/e3sm/staging/tools`
 
 Thereafter, wherever you are, you can issue
 
-ls \~/.tools
+`    is ~/.tools`
 
 to see the list of exposed datasm tools, and issue
 
-\~./tools/\<selected_tool\> (to run it)
+`    ~./tools/<selected_tool>` (to run it)
 
-view \~./tools/\<selected_tool\> (to review the content)
+`    view ~./tools/<selected_tool>` (to review the content)
 
-cp \~./tools/\<selected_tool\> (to make a copy)
+`    cp ~./tools/<selected_tool>` (to make a copy)
 
 etc.
 
 Thereafter, a variety of tools become available, and many employ either
 a dataset_id, or a file list of dataset_ids, as input.
+
 
 # Appendix: DSM Tools
 
@@ -1334,52 +1334,49 @@ a dataset_id, or a file list of dataset_ids, as input.
 The utilities or tools contained herein are not strictly necessary for
 datasm operation, and are not called upon by the datasm system. They are
 nonetheless essential for user management of ancillary datasm operation,
-status determination, and related tasks that support E3SM data
-operations. Their functions are briefly described below:
+status determination, and related tasks that support E3SM data operations.
+Their functions are briefly described below:
 
-NOTE: These tools are \"installed\" to /p/user_pub/e3sm/staging/tools,
-and many rely upon definition files (Archive_Map, dataset_spec.yam) in
-/p/user_pub/e3sm/staging/resource.
+NOTE: These tools are `"installed"` to `[STAGING_TOOLS]`, and many rely
+upon definition files (Archive_Map, dataset_spec.yam) in
+`[STAGING_RESOURCE]`.
 
 NOTE: To employ these tools, you must add the following to your .bashrc
 file:
 
-export DSM_GETPATH=/p/user_pub/e3sm/staging/.dsm_get_root_path.sh
+`    export DSM_GETPATH=/p/user_pub/e3sm/staging/.dsm_get_root_path.sh`
 
 Many of these scripts call upon other scripts, and rather than have the
 paths to these scripts hard-coded into each script (making then
-non-relocatable), the above \"dsm_get_root_path.sh\" reads a table
-(/p/user_pub/e3sm/staging/.dsm_root_paths) to resolve keywords used to
+non-relocatable), the above `"dsm_get_root_path.sh"` reads a table
+(`[STAGING]/Relocation/.dsm_root_paths`) to resolve keywords used to
 specify important datasm root paths.
 
-NOTE: Much of E3SM data operations involve \"datasets\", and in that
-regard, dataset_ids are ubiquitous and employed as \"tokens\" for many
+NOTE: Much of E3SM data operations involve `"datasets"`, and in that
+regard, dataset_ids are ubiquitous and employed as `"tokens"` for many
 operations. Single dataset_ids, or files containing lists of
 dataset_ids, are often among the parameters given to a tool to
-accomplish a given task. Hence the utilities \"list_e3sm_dsids\" and
-\"list_cmip_dsids\", each of which employ the dataset-defining
-\"dataset_spec.yaml\" are often filtered down to an appropriate list of
-dataset_ids as a first step in condicting operations.
+accomplish a given task. Hence the utilities `"list_e3sm_dsids"` and
+`"list_cmip_dsids"`, each of which employ the dataset-defining
+`[STAGING_RESOURCE]/dataset_spec.yaml"` are often filtered down to an
+appropriate list of dataset_ids as a first step in condicting operations.
 
 IMPORTANT CONFIGURATION FILES:
+```
+    [STAGING]/Relocation/.dsm_root_paths
 
-/p/user_pub/e3sm/staging/.dsm_root_paths
+    [ARCHIVE_MANAGEMENT]/Archive_Map
 
-/p/user_pub/e3sm/archive/.cfg/Archive_Locator
+    [ARCHIVE_MANAGEMENT]/Standard_Datatype_Extraction_Patterns
 
-/p/user_pub/e3sm/archive/.cfg/Archive_Map
-
-/p/user_pub/e3sm/archive/.cfg/Standard_Datatype_Extraction_Patterns
-
-/p/user_pub/e3sm/staging/resource/dataset_spec.yaml
-
-/p/user_pub/e3sm/staging/resource/table_cmip_var_to_e3sm
+    [STAGING_RESOURCE]/dataset_spec.yaml
+```
 
 ## ALPHABETIC LISTING OF TOOLS:
 
 ### archive_dataset_extractor.sh:
 
-> archive_dataset_extractor.sh infile \[dest_directory\]
+`    archive_dataset_extractor.sh infile [dest_directory]`
 
 Accepts a file of ONE line from the Archive_Map, and will extract the
 corresponding datasets to the dest_directory (or just list them, if no
@@ -1387,96 +1384,84 @@ directory is given.)
 
 ### archive_dataset_extractor.py:
 
-> python archive_dataset_extractor.py -a am_specfile \[-d dest_dir\]
-> \[-O\]
+`    python archive_dataset_extractor.py -a am_specfile [-d dest_dir] [-O]`
 
-Similar to the bash script \"archive_dataset_extractor.sh\". Use
-\"\--help\" for details
+Similar to the bash script `"archive_dataset_extractor.sh"`. Use
+`"--help"` for details.
 
 ### archive_extraction_service.py:
 
-> nohup python archive_extraction_service.py &
+`    nohup python archive_extraction_service.py &`
 
 Runs much as a background daemon to service \"extraction request
 tickets\" placed in
 
-> /p/user_pub/e3sm/archive/.extraction_requests_pending/
->
-> /p/user_pub/e3sm/archive/.extraction_requests_processed/ (when done)
+`    /p/user_pub/e3sm/archive/.extraction_requests_pending/`
+
+`    /p/user_pub/e3sm/archive/.extraction_requests_processed/ (when done)`
 
 These tickets are automatically generated by
-\"datasm_extract_from_archive.sh\", which is designed to restart the
+`"datasm_extract_from_archive.sh"`, which is designed to restart the
 archive_extraction_service if it is not running. Corresponding datasets
 are extracted to the warehouse (/p/user_pub/e3sm/warehouse).
 
 ### archive_path_mapper.py
 
-archive_path_mapper -a al_listfile \[-s sdepfile\]
+`    archive_path_mapper -a al_listfile [-s sdepfile]`
 
-Accepts a selected list of lines (from
-/p/user_pub/e3sm/archive/.cfg/Archive_Locator) and for each line,
-creates a cross-product with each datatype matching pattern found in the
-(archive/.cfg/) Standard_Datatype_Extraction_Patterns (or a supplied
-subset).
+Accepts a selected list of lines (from `[ARCHIVE_MANAGEMENT]/Archive_Locator`)
+and for each line, creates a cross-product with each datatype matching pattern
+found in the `[ARCHIVE_MANAGEMENT]/Standard_Datatype_Extraction_Patterns`
+ (or a supplied subset).
 
 Each pattern is applied to the indicated zstash archive to produce all
 fund lists of pattern-matched files. A body of preliminary
-\"Archive_Map\" lines are generated, each of which must be reviewed and
+`"Archive_Map"` lines are generated, each of which must be reviewed and
 manually completed in order to upda the Archive_Map.
-
-### arch_loc_from_arch_map.sh
-
-arch_loc_from_arch_map.sh am_lines
-
-Accepts a selection of Archive_Map lines, and gives the set of
-Archive_Locator lines that correspond The dataset types (realm, grid,
-frequency) are lost. Good for the setup of \"zstash holodeck\" symlinks
-in the manual exploration of archives.
 
 ### datasm_extract_from_archive.sh
 
-datasm_extract_from_archive.sh \<file of native dataset_ids\>
+`    datasm_extract_from_archive.sh <file of native dataset_ids>`
 
-This script will create \"archive extraction request tickets\" that can
-be read by the \"archive_extraction_service\" to pull datasets from
+This script will create "archive extraction request tickets" that can
+be read by the "archive_extraction_service" to pull datasets from
 archive to warehouse.
 
-This routine is a stand-in for \"datasm extract\", which has yet to be
+This routine is a stand-in for "datasm extract", which has yet to be
 coded into the Data State Machine as a built-in feature.
 
 ### datasm_pp_sourceroot.sh
 
 Given a dataset_id (E3SM or CMIP6), this script will return the root of
 the path to the best (latest-version) of the corresponding dataset, of
-else return \"NONE\". If found, it will return
-\"/p/user_pub/e3sm/warehouse\" or \"/p/user_pub/work\", whichever has
-the latest data. This utility is a \"temporary fix\" for some datasm
-operation command-line elements, to override the \"smart but incorrect\"
-internal behavior regarding the desired source and destination of
-generated data.
+else return "NONE". If found, it will return the resolution of either
+`[STAGING_DATA]` or `[PUBLICATION_DATA]`, whichever has the latest data.
+
+NOTE:  The resolution to `[PUBLICATION_DATA]` is only possible at those
+locations where the designated ESGF publication datanode disk is able
+to be accessed fromn the DataSM execution path. See
 
 ### datasm_verify_publication.py
 
-datasm_verify_publication -i listfile_of_dsids \[-u \|
-\--update-status\]
+`    datasm_verify_publication -i listfile_of_dsids [-u | --update-status]`
 
 Given a file containing one or more dataset_ids (E3SM or CMIP6), this
 utility will contact the ESGF search server and return the publication
-status of each dataset. If published, it will check also that the latest
-published version matches the latest dated version in the
-/p/user_pub/work publication directory. It will return either
+status of each dataset. If published, and the ESGF publication directory
+is accessible, it will check also that the latest published version
+matches the latest dated version in the `[PUBLICATION_DATA]` directory/
+It will return either
 
-\<dataset_id\>:PUBLICATION:Verified
+`    <dataset_id>:PUBLICATION:Verified`
+or
+`    <dataset_id>:PUBLICATION:Verification_Fail:<reason>`
 
-or \<dataset_id\>:PUBLICATION:Verification_Fail:\<reason\>
-
-if \[-u \| \--update-status\] is specified, the corresponding status
-file for the given dataset if updated to reflect this status, unless the
-dataset is not found in the publication directory.
+If `[-u | --update-status]` is specified, the corresponding status
+file for the given dataset if updated to reflect this status.
 
 ### df_util.py
 
-python df_util.py \[directory\]
+`    python df_util.py [directory]`
 
 Returns the Total, Used, and Free disk space and inode counts for the
 disk partition to wich the supplied directory belongs, or else of the
