@@ -1470,7 +1470,7 @@ current directory if none is supplied.
 ### ds_paths_info_dsid_list_compact.sh
 
 Given a file containing a list of dataset_ids, this script will output
-for each dataset_id the values given by \"ds_paths_info.sh\", with the
+for each dataset_id the values given by "ds_paths_info.sh", with the
 additional benefit that each version directory and file count is listed
 parenthetically on the same line as the corresponding warehouse or
 publication path.
@@ -1478,22 +1478,22 @@ publication path.
 ### ds_paths_info_dsid_list.sh
 
 Given a file containing a list of dataset_ids, this script will output
-for each dataset_id the values given by \"ds_paths_info.sh\"
+for each dataset_id the values given by "ds_paths_info.sh"
 
 ### ds_paths_info.sh
 
 Given a dataset_id (E3SM or CMIP6), this script will:
+```
+    a.  Print the full path to the dataset's status file, if it exists.
 
-a.  Print the full path to the dataset\'s ststus file, if it exists.
+    b.  Print the last status value in the status file, if it exists.
 
-b.  Print the last status value in the status file, if it exists.
+    c.  Print the full path to warehouse ensemble directory, and below it
+        the list of versions and their file counts.
 
-c.  Print the full path to warehouse ensemble directory, and below it
-    the list of versions and their file counts.
-
-d.  Print the full path to publication ensemble directory, and below it
-    the list of versions and their file counts.
-
+    d.  Print the full path to publication ensemble directory, and below it
+        the list of versions and their file counts.
+```
 This provide a very rapid way to confirm the status of archive
 extraction, of dataset validation, of publication, and of the generation
 of derivative climos, time-series and CMIP6 variable datasets.
@@ -1501,94 +1501,77 @@ of derivative climos, time-series and CMIP6 variable datasets.
 One may select any of the components above by seeking the keywords
 SF_PATH, STATUS, WH_PATH, or PB_PATH.
 
-### dsids_to_archive_map_keys.sh
-
-Given a file containing one or more native dataset_ids, this script will
-return the set of key strings identifying the Archive_Map lines for
-these datasets.
-
-### dsids_to_archive_map_lines.sh
-
-Given a file containing one or more native dataset_ids, this script will
-return the set of Archive_Map entries enabling the archive extraction of
-the datasets.
-
 ### dsm_generate_checksum_manifest.py
-
-> dsm_generate_checksum_manifest.py \[-h\] \[\--outpath OUTPATH\] \[-p
-> PROCESSES\] \[\--quiet\] input dataset_id version_number
-
+```
+    dsm_generate_checksum_manifest.py [-h] [--outpath OUTPATH] [-p PROCESSES] [--quiet] input dataset_id version_number
+```
 Given (typically) an input directory of CMIP output files for a specific
 variable, this routing creates the manifiest (aka "mapfile") required by
 esgpublish.
 
 positional arguments:
+```
+    input: Path to a directory full of netCDF files
 
-> input: Path to a directory full of netCDF files
->
-> dataset_id: The ESGF dataset id
->
-> version_number: The version number of the dataset, should be an int
-> and not include the \'v\' prefix
+    dataset_id: The ESGF dataset id
 
+    version_number: The version number of the dataset, should be an int
+    and not include the 'v' prefix
+```
 options:
+```
+    -h, --help: show this help message and exit
 
-> -h, \--help: show this help message and exit
->
-> \--outpath OUTPATH: Output path for the mapfile including the file
-> name, by default it will be named \<dataset_id\>.map and be placed in
-> the current working directory.
->
-> -p, \--processes PROCESSES: Number of parallel jobs, default is 8
->
-> \--quiet: Suppress progress-bar output
+    --outpath OUTPATH: Output path for the mapfile including the file
+    name, by default it will be named <dataset_id>.map and be placed in
+    the current working directory.
+
+    -p, --processes PROCESSES: Number of parallel jobs, default is 8
+
+    --quiet: Suppress progress-bar output
+```
 
 ### dsm_generate_CMIP6.py
-
-> (python) dsm_generate_CMIP6.py \[-h\] -w WORKSPACE --runmode RUN_MODE
-> -i INPUT_DSIDS \[\--dryrun\] \[\--ds_spec ALT_DS_SPEC\]
-
+```
+    (python) dsm_generate_CMIP6.py [-h] -w WORKSPACE --runmode RUN_MODE -i INPUT_DSIDS [--dryrun] [--ds_spec ALT_DS_SPEC]
+```
 WORKSPACE must be a subdirectory of your current working directory.
 RUN_MODE must be either "TEST" or "WORK". In TEST mode, only the first
 year of data will be processed, and the E3SM dataset status files are
 not updated. In WORK mode, all years given in the dataset_spec are
 applied, and the E3SM dataset status files are updated, and the cmorized
-results are moved to staging data (the warehouse).
+results are moved to [STAGIUNG_DATA] (the warehouse).
 
 INPUT_DSIDS must be a listfile or CMIP dataset_ids for which CMIP
 generation is desired.
 
-If \"\--dryrun\" is given, the subordinate python run-script is created
+If "--dryrun" is given, the subordinate python run-script is created
 but not executed.
 
 ALT_DS_SPEC can be supplied to override the DSM default
-\[STAGING_RESOURCE\]/dataset_spec.yaml dataset definition file.
+[STAGING_RESOURCE]/dataset_spec.yaml dataset definition file.
 
 Note: The runtime environment must include the following items:
+```
+    1.  (suggestion) Use "conda create env -n <name> -f
+        (gitrepo)datasm/conda-env/prod.yaml" to create the runtime
+        environment.
 
-1.  (suggestion) Use "conda create env -n \<name\> -f
-    (gitrepo)datasm/conda-env/prod.yaml" to create the runtime
-    environment.
+    2.  pip install datasm (ensures that datasm.utils are available along
+        with configs)
 
-2.  pip install datasm (ensures that datasm.utils are available along
-    with configs)
+    3.  Place the line
 
-3.  Place the line
+        export DSM_GETPATH=<path_to_DSM_STAGING>/Relocation/.dsm_get_root_path.sh
 
-export
-DSM_GETPATH=\<path_to_DSM_STAGING\>/Relocation/.dsm_get_root_path.sh
+        into your .bashrc file, so that configs, mapfiles, metadata can be located.
 
-into your .bashrc file, so that configs, mapfiles, metadata can be
-located.
+    (on Chrysalis, DSM_STAGING = /lcrc/group/e3sm2/DSM/Staging)
 
-(on Chrysalis, DSM_STAGING = /lcrc/group/e3sm2/DSM/Staging)
+    4.  [optional] pip install e3sm_to_cmip (if using a locally modified version)
 
-4.  \[optional\] pip install e3sm_to_cmip (if using a locally modified
-    version)
-
-5.  The NCO tools \"ncclimo\" and \"ncremap\" must exist in the
-    environment.
-
+    5.  The NCO tools "ncclimo" and "ncremap" must exist in the environment.
+```
 Note: The configuration and operation of dsm_generate_CMIP6.py is
 provided automatically when running "dsm_manage_CMIP_production.py",
 itself launched when conducting the operations outlined in the section
@@ -1598,26 +1581,26 @@ itself launched when conducting the operations outlined in the section
 
 This utility, whose parameters nearly match those of
 "dsm_generate_CMIP.py", will additionally attempt to employ zstash (and
-\[ARCHIVE_MANAGEMENT\]/Archive_Map) to extract necessary native data
-from local zstash archives to \[STAGING_DATA\] (aka the "warehouse"), in
+[ARCHIVE_MANAGEMENT]/Archive_Map) to extract necessary native data
+from local zstash archives to [STAGING_DATA] (aka the "warehouse"), in
 preparation for use by the CMIP generation process. Moreover, if no such
 local archive is found, but the Archive_Map has been prepared to specify
 its case_name, that name will be sought as a key in
-\[ARCHIVE_MANAGEMENT\]/NERSC_Archive_Map, and an attempt to launch a
+[ARCHIVE_MANAGEMENT]/NERSC_Archive_Map, and an attempt to launch a
 Globus transfer process (via "zstash check") will be conducted. If
 successful, the afore-mentioned zstash extract to warehouse of
 appropriate native data will be conducted, and finally the command-line
 for dsm_generate_CMIP6.py will be issued, passing down all other given
-command-line parameters.\
-\
-If "---lockdir ALT_LOCKDIR" is not supplied, a workspace directory
-\"LOCK-yyyymmdd\" will be created in your current working directory
+command-line parameters.
+
+If "--lockdir ALT_LOCKDIR" is not supplied, a workspace directory
+"LOCK-yyyymmdd" will be created in your current working directory
 (with yyyymmdd being the current UTC date), and all operations for this
 run (aside from some reporting) will be conducted therein. Any attempt
 to re-invoke dsm_manage with the same workspace will exit with a
 warning. To override and re-run dsm_manage, you must either terminate
 the existing run and destroy (or rename) the workspace directory, or use
-\"\--lockdir\" to name another workspace. This prevents multiple
+"--lockdir" to name another workspace. This prevents multiple
 invocations of dsm_manage from clobbering each other's input and output
 subdirectories.
 
