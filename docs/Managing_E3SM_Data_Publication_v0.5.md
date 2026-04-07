@@ -25,8 +25,8 @@ not output by E3SM simulations directly but are defined in terms of
 formulaic combinations of raw simulation variables. This transformation
 to CMIP specification is handled by an application ``"e3sm_to_cmip"``, and a
 large part of the work of CMIP data generation involves managing the
-varied configurations of regridding, masking, and other parameters for
-different classes of native simulation data.
+varied configurations of regridding, masking, and other parameters required
+for processing different classes of native simulation data.
 
 But independent of domain, several activities will be required,
 routinely or infrequently.
@@ -1115,6 +1115,45 @@ Publication) can operate upon the files at the datanode itself.
 
 Currently, Argonne employs the Decoupled configuration.
 
+#### Special Note for CMIP Publication Post-2025
+
+Due to the (ESGF) closure of CMIP6 as a "mip_era", we have created a new Project (mip_era):
+
+    CMIP6-E3SM-Ext
+
+However, this designation only needs to appear during certain publication operations.
+Internally, our local (E3SM) CMIP6 dataset_ids will still read
+
+    CMIP6.<activity>.<institution_id>.<source_id>.<experiment>.<member>.<table>.<variable).<grid>
+
+so that location lookups, Archive_Map entry lookups, and status-file names will remain intact.
+
+Lists of these dataset_ids will still suffice to represent input-lists for various DSM processing.
+
+Likewise, the warehouse paths will remain
+
+    CMIP6/<activity>/<institution_id>/<source_id>/<experiment>/<member>/<table>/<variable)/<grid>
+
+HOWEVER, Prior to publication, the warehouse source paths must be made to appear (via symlink?) as
+
+    CMIP6-E3SM-Ext/<activity>/<institution_id>/<source_id>/<experiment>/<member>/<table>/<variable)/<grid>
+
+This will facilitate the globus transfer to the Eagle Data Node (ALCF ESGF Data Node) under
+
+    "user_pub_work/CMIP6-E3SM-Ext/" (or possibly "css03_data/CMIP6-E3SM-Ext/")
+
+This will also facilitate the pre-publication mapfile (checksum manifest) generation, as the warehouse
+source paths and generated ESGF dataset_ids will reflect the new Project/mip-era component.
+
+NOTE that all dsm tools relevent to these publication activities (globus transfers, mapfile generation,
+and esg-publication) must be cognizant of the presence of v3 data, and apply either "CMIP6" or the new
+"CMIP6-E3SM-Ext" as appropriate, to update status files, etc.
+
+To date, this have been accomplished by creating a symlink "CMIP6-E3SM-Ext" in the [STAGING_DATA] 
+directory, that points to the actual "CMIP6" directory.  Thereafter, whan a publication-related
+script processes "CMIP6" dataset IDs, it replaces that dsid with one where the project reads
+"CMIP6-E3SM-Ext", and subsequent processing proceeds as normal.
+
 #### Dataset Transfers to ESGF Datanode
 
 (Must describe details of Globus transfers and destination directory
@@ -1451,11 +1490,11 @@ status of each dataset. If published, and the ESGF publication directory
 is accessible, it will check also that the latest published version
 matches the latest dated version in the `[PUBLICATION_DATA]` directory/
 It will return either
-
-`    <dataset_id>:PUBLICATION:Verified`
+```
+    <dataset_id>:PUBLICATION:Verified
 or
-`    <dataset_id>:PUBLICATION:Verification_Fail:<reason>`
-
+    <dataset_id>:PUBLICATION:Verification_Fail:<reason>
+```
 If `[-u | --update-status]` is specified, the corresponding status
 file for the given dataset if updated to reflect this status.
 
@@ -1540,7 +1579,7 @@ RUN_MODE must be either "TEST" or "WORK". In TEST mode, only the first
 year of data will be processed, and the E3SM dataset status files are
 not updated. In WORK mode, all years given in the dataset_spec are
 applied, and the E3SM dataset status files are updated, and the cmorized
-results are moved to [STAGIUNG_DATA] (the warehouse).
+results are moved to [STAGING_DATA] (the warehouse).
 
 INPUT_DSIDS must be a listfile or CMIP dataset_ids for which CMIP
 generation is desired.
@@ -1553,16 +1592,14 @@ ALT_DS_SPEC can be supplied to override the DSM default
 
 Note: The runtime environment must include the following items:
 ```
-    1.  (suggestion) Use "conda create env -n <name> -f
-        (gitrepo)datasm/conda-env/prod.yaml" to create the runtime
-        environment.
+    1.  (suggestion) Use "conda create env -n <name> -f (gitrepo)datasm/conda-env/prod.yaml"
+        to create the runtime environment.
 
-    2.  pip install datasm (ensures that datasm.utils are available along
-        with configs)
+    2.  pip install datasm (ensures that datasm.utils are available along with configs)
 
     3.  Place the line
 
-        export DSM_GETPATH=<path_to_DSM_STAGING>/Relocation/.dsm_get_root_path.sh
+            export DSM_GETPATH=<path_to_DSM_STAGING>/Relocation/.dsm_get_root_path.sh
 
         into your .bashrc file, so that configs, mapfiles, metadata can be located.
 
