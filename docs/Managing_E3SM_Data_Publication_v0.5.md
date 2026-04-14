@@ -293,11 +293,36 @@ datasm-supported publication activities.
 
 A major factor in the successful automation of publication-related
 operations is the establishment of stable file system locations for key
-resources and tools. A key component of datasm package installation at
-any new file system involves the definition of these \"root path\"
-locations.
+resources and tools.
 
-For instance, on Chrysalis:/lcrc, these locations are:
+## The DataSM Root Paths System
+
+The DataSM System involves scores of ancillary bash and python scripts, as well
+as the major application packages (datasm, e3sm_to_cmip, etc).  These ancillary
+scripts often rely upon one another.  To avoid having hundreds of hard-coded
+paths to subordinate scripts and configuration files, the DataSM Root Paths
+System allows these scripts to be moved, per site installation, and still be
+located automatically.  Two files, and one (per user) export are required.
+
+A hidden file, ".dsm_root_paths" contains lines of the form
+
+`    <RootTag>:<RootPath>`
+
+and together with a hidden script ".dsm_get_root_path.sh" must be placed in a
+system directory readable and executable by all DSM system users.  The script
+will need to be edited to hard-code the location of the dsm_root_paths file,
+and each user will need to add the line
+
+`    export DSM_GETPATH=/<path-to-the-script>/.dsm_get_root_path.sh`
+
+Once this is done, all of the DataSM system scripts and paths will operate.
+
+NOTE:  In particular, the ".dsm_root_paths" file is used by the DatsSM
+relocation "Manifest_Generator" to convert the user-defined Manifest_Spec
+into the full manifest that will be used to collect and form the relocation
+tar file.
+
+As example, on Chrysalis, these Root Paths are given as
 
 - ARCHIVE_STORAGE:/lcrc/group/e3sm2/DSM/Archive/Data
 - ARCHIVE_MANAGEMENT:/lcrc/group/e3sm2/DSM/Archive/Management
@@ -309,7 +334,7 @@ For instance, on Chrysalis:/lcrc, these locations are:
 - PUBLICATION_DATA:/lcrc/group/e3sm2/DSM/Publication/css03_data
 - USER_ROOT:/lcrc/group/e3sm2
 
-These paths are defined in the file:
+and are defined in the file:
 
 `    /lcrc/group/e3sm2/DSM/Staging/Relocation/.dsm_root_paths`
 
@@ -332,15 +357,19 @@ will produce the above listing of dsm root-paths, and a command such as:
 will return just the value `"/lcrc/group/e3sm2/DSM/Staging/Tools"`
 
 Commands such as these are used extensively in DSM applications and
-tools. In many of the DSM shell scripts, you might see lines like:
+tools. Here are some bash and python examples.
 
+USAGE in BASH
+
+`    warehouse_root=$($DSM_GETPATH STAGING_DATA)`
+
+USAGE in PYTHON
 ```
-    tools=`$DSM_GETPATH STAGING_TOOLS`
-    path_info=$tools/ds_paths_info.sh
+    import datasm.util
 
-    Arch_Map=`DSM_GETPATH ARCHIVE_MANAGEMENT`/Archive_Map
+    dsm_paths = get_dsm_paths()
+    warehouse_root = dsm_paths["STAGING_DATA"]
 ```
-
 etc.
 
 IMPORTANTLY, if for some reason you need to move the location of
@@ -1820,3 +1849,67 @@ Given two files, \"F1\" and \"F2\", each assumed to be lists of items
 > test: false
 >
 > verbose: true
+
+# Appendix: DSM System Migration Procedures:
+
+Beyond merely conducting a "git clone" of the datasm repository, a full-blown and
+established operational environment encompasses scores of user-specific operational
+setups and layouts that address evolving demands of the simulation community.  The
+need to capture and reproduce these late-developing practices is addressed in this
+section on DSM System Migration. When new procedures initially developed to deal
+with one-off issues become routine, they can be absorbed into the datasm repository.
+Until then, one would want to capture the latest scripts and directory layouts
+"as if", so to be able to pick up where one left off at a new location.
+
+The directory [STAGING]/Relocation is the home of the DataSM (DSM) Relocation System.
+it is deployed from the local github repository folder "datasm/datasm/Relocation".
+
+sIn terms of routine operation, it holds:
+
+1.  The "hidden" .dsm_root_paths file and .dsm_get_root_paths.sh script
+    that enables all DSM system tools to find one another, configs, etc.
+
+2.  The tools specific to defining, collecting, migrating and deploying
+    the DSM System to other sites.
+
+## The DataSM_System_Local_Manifest_Spec
+
+This file provides a facile way to specify your evolved routine layout and support
+scripts, that a full manifest can be auto-generated and used to direct the creation
+of a tar file of relocatable assets.
+
+The lines of the Manifest_Spec take one of these 8 forms:
+
+
+The DSM Operator(s) must maintain the DataSM_System_Local_Manifest_Spec
+which details all elements of the system that support common operations.
+
+Unlike elements of the DataSM application proper, which are installed as
+part of a given conda operational environment (thus, the modules remain
+within the cloned git repository and are detectible as having changed),
+many extended elements of the DSM system (common resources such as the
+dataset_spec.yaml and scores of commonly employed scripting tools, as
+well as the user/operator's local work area layout and scripts) are
+scattered well beyond the git repository, and must be tracked and accounted
+for so that they may be routinely collected to the DataSM repository, and
+moreover identified as to their deployment locations for operational use.
+
+The DataSM_System_Local_Manifest_Spec serves to concisely identify these
+disparate elements of the DataSM System.  It can be expanded to a full
+manifest with
+
+    Manifest_Generate.sh
+
+and all content collected to a flat directory for tar-file migration by
+
+    Relocation_Collection.sh
+
+Independently, the deployed elements can be copied to the DataSM repo by
+
+    Gitstore_Common_Elements.sh
+    Gitstore_UserOp_Elements.sh
+
+
+
+
+
