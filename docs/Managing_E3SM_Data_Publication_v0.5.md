@@ -315,7 +315,8 @@ and each user will need to add the line
 
 `    export DSM_GETPATH=/<path-to-the-script>/.dsm_get_root_path.sh`
 
-Once this is done, all of the DataSM system scripts and paths will operate.
+Once this is done, all of the DataSM system scripts and paths will operate
+for this user.
 
 NOTE:  In particular, the ".dsm_root_paths" file is used by the DatsSM
 relocation "Manifest_Generator" to convert the user-defined Manifest_Spec
@@ -323,17 +324,17 @@ into the full manifest that will be used to collect and form the relocation
 tar file.
 
 As example, on Chrysalis, these Root Paths are given as
-
-- ARCHIVE_STORAGE:/lcrc/group/e3sm2/DSM/Archive/Data
-- ARCHIVE_MANAGEMENT:/lcrc/group/e3sm2/DSM/Archive/Management
-- DSM_STAGING:/lcrc/group/e3sm2/DSM/Staging
-- STAGING_DATA:/lcrc/group/e3sm2/DSM/Staging/Data
-- STAGING_RESOURCE:/lcrc/group/e3sm2/DSM/Staging/Resource
-- STAGING_STATUS:/lcrc/group/e3sm2/DSM/Staging/Status
-- STAGING_TOOLS:/lcrc/group/e3sm2/DSM/Staging/Tools
-- PUBLICATION_DATA:/lcrc/group/e3sm2/DSM/Publication/css03_data
-- USER_ROOT:/lcrc/group/e3sm2
-
+```
+    ARCHIVE_STORAGE:/lcrc/group/e3sm2/DSM/Archive/Data
+    ARCHIVE_MANAGEMENT:/lcrc/group/e3sm2/DSM/Archive/Management
+    DSM_STAGING:/lcrc/group/e3sm2/DSM/Staging
+    STAGING_DATA:/lcrc/group/e3sm2/DSM/Staging/Data
+    STAGING_RESOURCE:/lcrc/group/e3sm2/DSM/Staging/Resource
+    STAGING_STATUS:/lcrc/group/e3sm2/DSM/Staging/Status
+    STAGING_TOOLS:/lcrc/group/e3sm2/DSM/Staging/Tools
+    PUBLICATION_DATA:/lcrc/group/e3sm2/DSM/Publication/css03_data
+    USER_ROOT:/lcrc/group/e3sm2
+```
 and are defined in the file:
 
 `    /lcrc/group/e3sm2/DSM/Staging/Relocation/.dsm_root_paths`
@@ -388,7 +389,6 @@ Throughout this document, the terms `[ARCHIVE_STORAGE]`,
 will be used as a shorthand for the corresponding full paths given by
 `"$DSM_GETPATH ALL"`.
 
-**\**
 
 # Process Automation Support - Maintaining the DSM Infrastructure
 
@@ -1859,9 +1859,9 @@ need to capture and reproduce these late-developing practices is addressed in th
 section on DSM System Migration. When new procedures initially developed to deal
 with one-off issues become routine, they can be absorbed into the datasm repository.
 Until then, one would want to capture the latest scripts and directory layouts
-"as if", so to be able to pick up where one left off at a new location.
+"as is", so to be able to pick up where one left off at a new location.
 
-The directory [STAGING]/Relocation is the home of the DataSM (DSM) Relocation System.
+The directory `[STAGING]/Relocation` is the home of the DataSM (DSM) Relocation System.
 it is deployed from the local github repository folder "datasm/datasm/Relocation".
 
 sIn terms of routine operation, it holds:
@@ -1872,33 +1872,136 @@ sIn terms of routine operation, it holds:
 2.  The tools specific to defining, collecting, migrating and deploying
     the DSM System to other sites.
 
+```
+===============================================================================
+Producing the DataSM Relocation Package - Overview
+===============================================================================
+```
+
+In order to produce a manifest of relocatable files and paths, the full path to
+a given resource is logically defined in two parts:
+
+    The local portion of the path (not to be included in the relocation).
+    These are referred to as the DataSM "root_paths". These paths will be
+    redefined by the recipient organization/site.
+
+    The relocatable portion (files, directories, or extended structure.)
+    These elements are defined with respect to the various root-paths.
+
+This demands a multi-step process of manifest generation and packaging.
+
+1.  A "manifest_spec" is written that compactly characterizes all content
+    to be relocated.
+
+    Product:    DataSM_System_Local_Manifest_Spec
+                [see Manifest_Spec Definition below]
+
+2.  A "manifest_generator.sh" script to read the manifest_spec, and explore
+    the filesystem to expand the entries into a full listing of elements.
+    Each element distinguishes its "local" path part from its "relocatable"
+    part.
+
+    Product:    manifest_generator.sh
+    Product:    DataSM_System_Local_Manifest
+
+3.  A "Collector.sh" script that reads and interprets the local_manifest to
+    collect those items to the flat Relocation_Package directory.  This latter
+    directory is what is tarred up to be the relocatatable system content.
+
+    Product:    DataSM_Relocation_Package      (directory)
+    Product:    DataSM_Relocation_Package.tar  (tar file)
+
+4.  Upon delivery to the relocation recipient, the relocation package is
+    untarred, and a final script "Relocation_Deployment.sh" will accept the
+    recipient's choice of destination root_paths, and move the appropriate
+    content to its final locations.
+
+
 ## The DataSM_System_Local_Manifest_Spec
 
 This file provides a facile way to specify your evolved routine layout and support
 scripts, that a full manifest can be auto-generated and used to direct the creation
 of a tar file of relocatable assets.
 
-The lines of the Manifest_Spec take one of these 8 forms:
+### Manifest_Spec Definition
 
+The "Manifest_Spec" has entries of the form:
+```
+    Section,RootTag,ContentClass,[RootPath],ContentSpec
+```
+The two Sections are "COMMON" (user-independent) and "USEROP".  The USEROP
+section will employ the user's designated account-path, plus "Operations"
+and the actual RootTag value as the derived root path for content.
 
-The DSM Operator(s) must maintain the DataSM_System_Local_Manifest_Spec
-which details all elements of the system that support common operations.
+The value for "RootPath" can be left empty, as it will be derived from the
+system ".dsm_root_paths" file.  If not left empty, the supplied value will
+be used.
 
-Unlike elements of the DataSM application proper, which are installed as
-part of a given conda operational environment (thus, the modules remain
-within the cloned git repository and are detectible as having changed),
-many extended elements of the DSM system (common resources such as the
-dataset_spec.yaml and scores of commonly employed scripting tools, as
-well as the user/operator's local work area layout and scripts) are
-scattered well beyond the git repository, and must be tracked and accounted
-for so that they may be routinely collected to the DataSM repository, and
-moreover identified as to their deployment locations for operational use.
+The allowed ContentClass and ContentSpec combinations are:
+```
+    ContentClass        ContentSpec
+    ============================================================
+    FILE                <a_single_file>
+    DIRNAME             <a_single_dirname>
+    TYPE                ("REGFILES" or "DIRNAMES")
+    GLOB                <wildcard expression for files or dirnames>
+    PATHTO_FILE         <extended_path>/<a_single_file>
+    PATHTO_DIRNAME      <extended_path>/<a_single_dirname>
+    PATHTO_TYPE         <extended_path>/("REGFILES" or "DIRNAMES")
+    PATHTO_GLOB         <extended_path>/<wildcard for files or dirnames>
+```
+The "TYPE" and "GLOB" forma allow one to specify multiple objects of a
+given class (files or directories), or by a wildcard expression.
 
-The DataSM_System_Local_Manifest_Spec serves to concisely identify these
-disparate elements of the DataSM System.  It can be expanded to a full
-manifest with
+### Full Manifest Generation
 
-    Manifest_Generate.sh
+When it comes to expanding these entries into a full manifest, the supplied script
+
+`    Manifest_Generator.sh <manifest_spec>`
+
+will employ each combined path
+
+`    RootPath/<extended_path>`
+
+to find the actual content, or enumerate directory names, but the ContentClass
+will be reduced to only one of these <Type>,<Path> forms:
+```
+    FILE                <a_single_file>
+    DIRNAME             <a_single_dirname>
+    PATHTO_FILE         <extended_path>/<a_single_file>
+    PATHTO_DIRNAME      <extended_path>/<a_single_dirname>
+```
+since all "TYPE"s and GLOB-style wildcards will have been expanded to individual
+entries.  The full manifest entries will have the form:
+
+`    <Section>,<RootTag>,<Type>,<local_path_part>,<transfer_path_part>`
+
+These entries are directed to stdout, but the supplied control script
+
+`    0_mk_package.sh`
+
+will redirect the output to a manifest file named
+
+`    DataSM_System_Local_Manifest-<current_timestamp>`
+
+### Collection and Tarfile Creation
+
+The expanded manifest file, detailing every item to be included, is copied into
+a single location "<your current directory>/RELOC/" by the above "0_mk_package.sh"
+control script with
+
+`    Relocation_Collection.sh <manifest_file> <relocdir>`
+
+The paths under "RELOC/" will appear as
+```
+    RELOC/<RootTag>/<a_single_file>
+    RELOC/<RootTag>/<a_single_dirname>
+    RELOC/<RootTag>/<extended_path>/<a_single_file>
+    RELOC/<RootTag>/<extended_path>/<a_single_dirname>
+```
+
+The control script will produce a tar file from this RELOC directory.
+
 
 and all content collected to a flat directory for tar-file migration by
 
