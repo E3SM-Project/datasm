@@ -1876,18 +1876,18 @@ In terms of routine operation, it holds:
 
 ### IMPORTANT "Step 0"
 
-In capturing local files and layouts structuring various DMS operations, these
+In capturing local files and layouts structuring various DSM operations, these
 migration procedures will also capture the designated "DSM Tools" deployment
 ([STAGING_TOOLS]). Post migration, these same tools can be clobbered when a
 "git cloned" datasm repository tools "Local_Deployment" script is activated.
 
 To prevent conflicts, prior to executing the DSM Migration steps, ensure to
 reconcile to datasm repository tools and resources with any changes that may
-have  been made to the local deployment by running
+have been made to the local deployment by running
 
 `    <your_git_repo>/datasm/datasm/tools/Local_Deployment_Diff.sh`
 
-and then ensuing that differences are resolved, and any changes to the
+and then ensuring that differences are resolved, and any changes to the
 intended content of "tools" are reflected in the tools MANIFEST file
 
 `    <your_git_repo>/datasm/datasm/tools/MANIFEST`
@@ -2040,7 +2040,7 @@ Briefly, the major steps of new site deployment consist of
 
 `    RELOC/STAGING/Relocation/Relocation_Deployment.sh`
 
-    This will move all of the `RELOC/<RootTag>/" contents to the corresponding
+    This will move all of the `RELOC/<RootTag>/` contents to the corresponding
     directories named in the .dsm_root_paths file, as well as edit the resulting
     `[STAGING]/Relocation/.dsm_root_paths` path into the corresponding script
     `[STAGING]/Relocation/.dsm_get_root_path.sh`.
