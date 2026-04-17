@@ -832,7 +832,7 @@ When you `"git clone"` datasm to your git repository, in addition to:
 You must also deploy the suite of datasm applications and tools to
 `[STAGING_TOOLS]`. This deployment can be conducted by issuing:
 
-`    [your git repo]/datasm/datasm/tools/local_install.sh`
+`    [your git repo]/datasm/datasm/tools/Local_Deployment.sh`
 
 NOTE: If you have made operational changes to tools or resources in
 their deployed locations, and neglected to reflect those changes in the
@@ -1864,7 +1864,7 @@ Until then, one would want to capture the latest scripts and directory layouts
 The directory `[STAGING]/Relocation` is the home of the DataSM (DSM) Relocation System.
 it is deployed from the local github repository folder "datasm/datasm/Relocation".
 
-sIn terms of routine operation, it holds:
+In terms of routine operation, it holds:
 
 1.  The "hidden" .dsm_root_paths file and .dsm_get_root_paths.sh script
     that enables all DSM system tools to find one another, configs, etc.
@@ -1872,11 +1872,28 @@ sIn terms of routine operation, it holds:
 2.  The tools specific to defining, collecting, migrating and deploying
     the DSM System to other sites.
 
-```
-===============================================================================
-Producing the DataSM Relocation Package - Overview
-===============================================================================
-```
+## Producing the DataSM Relocation Package - Overview
+
+### IMPORTANT "Step 0"
+
+In capturing local files and layouts structuring various DMS operations, these
+migration procedures will also capture the designated "DSM Tools" deployment
+([STAGING_TOOLS]). Post migration, these same tools can be clobbered when a
+"git cloned" datasm repository tools "Local_Deployment" script is activated.
+
+To prevent conflicts, prior to executing the DSM Migration steps, ensure to
+reconcile to datasm repository tools and resources with any changes that may
+have  been made to the local deployment by running
+
+`    <your_git_repo>/datasm/datasm/tools/Local_Deployment_Diff.sh`
+
+and then ensuing that differences are resolved, and any changes to the
+intended content of "tools" are reflected in the tools MANIFEST file
+
+`    <your_git_repo>/datasm/datasm/tools/MANIFEST`
+
+### Overview
+
 
 In order to produce a manifest of relocatable files and paths, the full path to
 a given resource is logically defined in two parts:
@@ -1950,7 +1967,7 @@ The allowed ContentClass and ContentSpec combinations are:
     PATHTO_TYPE         <extended_path>/("REGFILES" or "DIRNAMES")
     PATHTO_GLOB         <extended_path>/<wildcard for files or dirnames>
 ```
-The "TYPE" and "GLOB" forma allow one to specify multiple objects of a
+The "TYPE" and "GLOB" forms allow one to specify multiple objects of a
 given class (files or directories), or by a wildcard expression.
 
 ### Full Manifest Generation
@@ -1986,9 +2003,9 @@ will redirect the output to a manifest file named
 
 ### Collection and Tarfile Creation
 
-The expanded manifest file, detailing every item to be included, is copied into
-a single location "<your current directory>/RELOC/" by the above "0_mk_package.sh"
-control script with
+The expanded manifest file, individually detailing every item to be included,
+is copied into a single location `"<your current directory>/RELOC/"` by the
+above "0_mk_package.sh" control script with
 
 `    Relocation_Collection.sh <manifest_file> <relocdir>`
 
@@ -1999,19 +2016,39 @@ The paths under "RELOC/" will appear as
     RELOC/<RootTag>/<extended_path>/<a_single_file>
     RELOC/<RootTag>/<extended_path>/<a_single_dirname>
 ```
+representing only the `<RootTag>` and `<transfer_path_part>` from the full
+manifest.
 
-The control script will produce a tar file from this RELOC directory.
+The control script will produce a tar file "DSM_RELOC.tar.gz" from this
+RELOC directory.  The resulting tar file can then be transferred to a new
+file system or site.
+
+## New Site Deployment
+
+Briefly, the major steps of new site deployment consist of
 
 
-and all content collected to a flat directory for tar-file migration by
 
-    Relocation_Collection.sh
+
+
+
+
 
 Independently, the deployed elements can be copied to the DataSM repo by
 
     Gitstore_Common_Elements.sh
     Gitstore_UserOp_Elements.sh
 
+
+
+
+# IMPORTANT NOTE TO DEVELOPER - MISSING RELOCATION STEP
+
+A "Step 0" must be described as prerequisite to the DSM Package generation.
+We must run a "smart diff" process, comparing the gitrepo/datasm Tools and
+Resources to the deployed values, reconciling until they match.  This will
+prevent the "git clone datasm" and its own deployment scripts from writing
+over the late-evolved Relocation-deployed materials.
 
 
 
