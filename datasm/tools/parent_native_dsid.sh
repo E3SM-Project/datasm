@@ -130,6 +130,8 @@ fi
 
 # setup experiment
 
+experiment=$cmip_exp
+
 if [ ${modelversion:0:3} == "1_1" ]; then
     if [ $cmip_exp == "hist-bgc" ]; then
         experiment="hist-BDRC"
@@ -139,11 +141,12 @@ if [ ${modelversion:0:3} == "1_1" ]; then
         experiment="ssp585-BDRC"
     elif [ $cmip_exp == "ssp585" ]; then
         experiment="ssp585-BDRD"
-    else
-        experiment=$cmip_exp
     fi
-else
-    experiment=$cmip_exp
+elif [ ${modelversion:0:3} == "3_0" ]; then
+    if [ $cmip_exp == "ssp245" ]; then
+        # accommodate Wuyin Lin
+        experiment="historical"
+    fi
 fi
 
 # we must forge  E3SM.modelversion.resolution.realm.grid.output_type.freq.ensemble

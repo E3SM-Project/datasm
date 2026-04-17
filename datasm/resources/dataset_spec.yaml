@@ -548,9 +548,14 @@ project:
                             - ra
                 E3SM-3-0:
                     ssp245:
-                        start: 2025
+                        start: 2015
                         end: 2050
                         ens:
+                            - r1i1p1f1
+                            - r2i1p1f1
+                            - r3i1p1f1
+                            - r4i1p1f1
+                            - r5i1p1f1
                             - r6i1p1f1
                             - r7i1p1f1
                             - r8i1p1f1
@@ -6124,9 +6129,14 @@ project:
                                     - namefile.fixed
                                     - restart.fixed
             ssp245:
-                start: 1850
-                end: 2024
+                start: 2015
+                end: 2050
                 ens:
+                    - ens1
+                    - ens2
+                    - ens3
+                    - ens4
+                    - ens5
                     - ens6
                     - ens7
                     - ens8

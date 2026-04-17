@@ -538,17 +538,25 @@ def get_dsm_paths():
 
     return DSM_ROOT_PATHS
 
-def get_dsspec_year_range(nat_dsid):
+def get_dsspec_year_range(dsid):
     dsm_paths = get_dsm_paths()
     resource_path = dsm_paths['STAGING_RESOURCE']
     DEFAULT_SPEC_PATH = os.path.join(resource_path, 'dataset_spec.yaml')
 
-    dc = nat_dsid.split(".")        # E3SM:  0=project, 1=model, 2=exper, 3=resol, 4=realm, 5=
-
     with open(DEFAULT_SPEC_PATH, 'r') as instream:
         dataset_spec = yaml.load(instream, Loader=yaml.SafeLoader)
 
-    the_experiment_record = dataset_spec['project'][dc[0]][dc[1]][dc[2]]
+    dc = dsid.split(".")    # E3SM:   0=project, 1=model, 2=exper, 3=resol, 4=realm, 5=
+                            # CMIP6:  0=project, 1=Activity, 2=Institution, 3=SourceID, 4=Experiment
+
+    if dc[0] == "E3SM":  # native dsid
+        the_experiment_record = dataset_spec['project'][dc[0]][dc[1]][dc[2]]
+    elif dc[0] == "CMIP6":  # cmip dsid
+        the_experiment_record = dataset_spec['project'][dc[0]][dc[1]][dc[2]][dc[3]][dc[4]]
+    else:
+        log_message("error", f"Unknown project {dc[0]}")
+        return 0,0
+    
     return the_experiment_record['start'],the_experiment_record['end']
 
 def ensure_status_file_for_dsid(dsid):

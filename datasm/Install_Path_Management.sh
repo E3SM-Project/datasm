@@ -36,6 +36,7 @@ cp Relocation/dsm_get_root_path.sh $path_mgmt/.dsm_get_root_path.sh
 
 chmod 750 $path_mgmt/.dsm_get_root_path.sh
 
-
+echo "Ensure your .bashrc file contains the line:"
+echo "    export DSM_GETPATH=$path_mgmt/.dsm_get_root_path.sh"
 
 
