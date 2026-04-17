@@ -2034,27 +2034,27 @@ Briefly, the major steps of new site deployment consist of
 
 `    RELOC/DSM_STAGING/Relocation/.dsm_root_paths`
 
-    to reflect the path changes needed to operate in the new location filesystem.
+to reflect the path changes needed to operate in the new location filesystem.
 
 3.  Run the deployment script:
 
 `    RELOC/STAGING/Relocation/Relocation_Deployment.sh`
 
-    This will move all of the `RELOC/<RootTag>/` contents to the corresponding
-    directories named in the .dsm_root_paths file, as well as edit the resulting
-    `[STAGING]/Relocation/.dsm_root_paths` path into the corresponding script
-    `[STAGING]/Relocation/.dsm_get_root_path.sh`.
+This will move all of the `RELOC/<RootTag>/` contents to the corresponding
+directories named in the .dsm_root_paths file, as well as edit the resulting
+`[STAGING]/Relocation/.dsm_root_paths` path into the corresponding script
+`[STAGING]/Relocation/.dsm_get_root_path.sh`.
 
-    Upon completion, it wil prompt you to edit your ".bashrc" file to add
+Upon completion, it wil prompt you to edit your ".bashrc" file to add
 
 `    export DSM_GETPATH=$new_dsm_stp/Relocation/.dsm_get_root_path.sh`
 
-    Test for successful deployment by issuing
+Test for successful deployment by issuing
 ```
     source ~/.bashrc
     $DSM_GETPATH ALL
 ```
-    and see that all of the newly-defined RootPath locations appear.
+and see that all of the newly-defined RootPath locations appear.
 
 4.  Obtain a local copy of the datasm repository into your git repo with
 
