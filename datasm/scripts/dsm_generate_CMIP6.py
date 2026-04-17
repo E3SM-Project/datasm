@@ -278,6 +278,8 @@ vrt_remap_plev19=os.path.join(f"{resource_path}", "grids", "vrt_remap_plev19.nc"
 # NOTE: caseid is typically the first 3 fields of the native dataset_id, which
 # usually corresponds to the first 3 fields of the datafile name.  It is not
 # known which should take precedence if they differ.
+# NOTE: for v3 LE ssp245, this "works" because the symlinks in the warehouse
+# have "ssp245" in the caseid-part, despite being symlinks to "historical" files.
 
 def get_caseid(nat_src):
     anyfile = get_first_nc_file(nat_src)
@@ -844,7 +846,7 @@ maxw = 0
 if f"{realm}" == "mpaso":
     maxw = 21600
 if the_var_name == "zhalfo":
-    maxw = 25200
+    maxw = 36000
 passed, failed = slurm_srun_manager(cmd_2_group, minw, maxw)
 total = passed + failed
 
