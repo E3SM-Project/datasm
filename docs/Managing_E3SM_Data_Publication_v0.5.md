@@ -2027,7 +2027,57 @@ file system or site.
 
 Briefly, the major steps of new site deployment consist of
 
+1.  Untarring the transferred "DSM_RELOC.tar.gz" file into any temp location.
+    This will reveal the new RELOC directory.
 
+2.  Obtain and update the "Root Paths" file
+
+`    RELOC/DSM_STAGING/Relocation/.dsm_root_paths`
+
+    to reflect the path changes needed to operate in the new location filesystem.
+
+3.  Run the deployment script:
+
+`    RELOC/STAGING/Relocation/Relocation_Deployment.sh`
+
+    This will move all of the `RELOC/<RootTag>/" contents to the corresponding
+    directories named in the .dsm_root_paths file, as well as edit the resulting
+    `[STAGING]/Relocation/.dsm_root_paths` path into the corresponding script
+    `[STAGING]/Relocation/.dsm_get_root_path.sh`.
+
+    Upon completion, it wil prompt you to edit your ".bashrc" file to add
+
+`    export DSM_GETPATH=$new_dsm_stp/Relocation/.dsm_get_root_path.sh`
+
+    Test for successful deployment by issuing
+```
+    source ~/.bashrc
+    $DSM_GETPATH ALL
+```
+    and see that all of the newly-defined RootPath locations appear.
+
+4.  Obtain a local copy of the datasm repository into your git repo with
+
+```
+    cd <your git repo>
+    git clone https://github.com/E3SM-Project/datasm.git
+```
+
+5.  Create a suitable conda environment and install datasm by
+
+```
+    cd datasm
+    conda env create -n <suitable_dsm_name> -f conda-env/prod.yaml
+    activate <suitable_dsm_name>
+    pip install .
+```
+    Likewise (if developing on e3sm_to_cmip) install e3sm_to_cmip with
+```
+    cd <your git repo>
+    git clone https://github.com/E3SM-Project/e3sm_to_cmip
+    cd e3sm_to_cmip
+    pip install .
+```
 
 
 
@@ -2040,15 +2090,6 @@ Independently, the deployed elements can be copied to the DataSM repo by
     Gitstore_UserOp_Elements.sh
 
 
-
-
-# IMPORTANT NOTE TO DEVELOPER - MISSING RELOCATION STEP
-
-A "Step 0" must be described as prerequisite to the DSM Package generation.
-We must run a "smart diff" process, comparing the gitrepo/datasm Tools and
-Resources to the deployed values, reconciling until they match.  This will
-prevent the "git clone datasm" and its own deployment scripts from writing
-over the late-evolved Relocation-deployed materials.
 
 
 
