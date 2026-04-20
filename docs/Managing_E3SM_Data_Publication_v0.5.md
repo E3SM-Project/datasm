@@ -441,7 +441,6 @@ The maintenance procedures for each of the process configuration
 dependencies depicted in Figure 1 above are detailed in the sections
 below:
 
-**\**
 
 ## THE E3SM DATASET_SPEC
 
@@ -548,7 +547,6 @@ Here is a sample of the same `"E3SM: '3_0':"` section after contraction:
 height="6.98in"}
 `    [CAPTION: Dataset Spec E3SM Tree Contracted Example]`
 
-**\**
 
 ## The E3SM Archive Map
 
@@ -613,35 +611,35 @@ gives the wild-card patterns that isolate dataset filenames according to
 Dataset Type. A few lines of this file are included here to illustrate:
 
 ```
-    atmos.native.3hr,model-output,\*cam.h3\*.nc,BGC-v1,
-    atmos.native.3hr,model-output,\*cam.h4\*.nc,CRYO-v1 DECK-v1 HR-v1,
-    atmos.native.3hr,model-output,\*eam.h3\*.nc,BGC-v2 DECK-v3,
-    atmos.native.3hr,model-output,\*eam.h4\*.nc,CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
-    atmos.native.3hr_snap,model-output,\*cam.h2\*.nc,BGC-v1,
-    atmos.native.3hr_snap,model-output,\*eam.h2\*.nc,BGC-v2,
-    atmos.native.6hr,model-output,\*cam.h3\*.nc,CRYO-v1 DECK-v1 HR-v1,
-    atmos.native.6hr,model-output,\*eam.h2\*.nc,DECK-v3,
-    atmos.native.6hr,model-output,\*eam.h3\*.nc,CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
-    atmos.native.6hr_snap,model-output,\*cam.h2\*.nc,CRYO-v1 DECK-v1 HR-v1,
-    atmos.native.6hr_snap,model-output,\*eam.h2\*.nc,CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
-    atmos.native.day_cosp,model-output,\*cam.h5\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
-    atmos.native.day_cosp,model-output,\*eam.h5\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
-    atmos.native.day,model-output,\*cam.h1\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
-    atmos.native.day,model-output,\*eam.h1\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
+    atmos.native.3hr,model-output,*cam.h3*.nc,BGC-v1,
+    atmos.native.3hr,model-output,*cam.h4*.nc,CRYO-v1 DECK-v1 HR-v1,
+    atmos.native.3hr,model-output,*eam.h3*.nc,BGC-v2 DECK-v3,
+    atmos.native.3hr,model-output,*eam.h4*.nc,CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
+    atmos.native.3hr_snap,model-output,*cam.h2*.nc,BGC-v1,
+    atmos.native.3hr_snap,model-output,*eam.h2*.nc,BGC-v2,
+    atmos.native.6hr,model-output,*cam.h3*.nc,CRYO-v1 DECK-v1 HR-v1,
+    atmos.native.6hr,model-output,*eam.h2*.nc,DECK-v3,
+    atmos.native.6hr,model-output,*eam.h3*.nc,CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
+    atmos.native.6hr_snap,model-output,*cam.h2*.nc,CRYO-v1 DECK-v1 HR-v1,
+    atmos.native.6hr_snap,model-output,*eam.h2*.nc,CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
+    atmos.native.day_cosp,model-output,*cam.h5*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
+    atmos.native.day_cosp,model-output,*eam.h5*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 HR-v2,
+    atmos.native.day,model-output,*cam.h1*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
+    atmos.native.day,model-output,*eam.h1*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
     atmos.native.fixed,namefile,run/atm_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,,
-    atmos.native.mon,model-output,\*cam.h0\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
-    atmos.native.mon,model-output,\*eam.h0\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
-    land.native.day,model-output,\*clm2.h1\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
-    land.native.day,model-output,\*elm.h1\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
+    atmos.native.mon,model-output,*cam.h0*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
+    atmos.native.mon,model-output,*eam.h0*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
+    land.native.day,model-output,*clm2.h1*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
+    land.native.day,model-output,*elm.h1*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
     land.native.fixed,namefile,run/lnd_in,DECK-v1 DECK-v2 DECK-v2_1 DECK-v3,
-    land.native.mon,model-output,\*clm2.h0\*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
-    land.native.mon,model-output,\*elm.h0\*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
-    ocean.native.5day_snap,model-output,\*mpaso.hist.am.highFrequencyOutput.\*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
+    land.native.mon,model-output,*clm2.h0*.nc,BGC-v1 CRYO-v1 DECK-v1 HR-v1,
+    land.native.mon,model-output,*elm.h0*.nc,BGC-v2 CRYO-v2 DECK-v2 DECK-v2_1 DECK-v3 HR-v2,
+    ocean.native.5day_snap,model-output,*mpaso.hist.am.highFrequencyOutput.*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
     ocean.native.fixed,namefile,run/mpas-o_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
     ocean.native.fixed,namefile,run/mpaso_in,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
-    ocean.native.fixed,restart,\*mpaso.rst\*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
+    ocean.native.fixed,restart,*mpaso.rst*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
     ocean.native.fixed,streams,run/streams.ocean,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 HR-v1 HR-v2,
-    ocean.native.mon,model-output,\*mpaso.hist.am.timeSeriesStatsMonthly.\*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
+    ocean.native.mon,model-output,*mpaso.hist.am.timeSeriesStatsMonthly.*.nc,BGC-v1 BGC-v2 CRYO-v1 CRYO-v2 DECK-v1 DECK-v2 DECK-v2_1 DECK-v3 HR-v1 HR-v2,
 ```
 
 Note that there are "h-codes" in many output files (e.g. eam.h0, eam.h1,
@@ -676,7 +674,7 @@ and process into corresponding (h0, h1, ... h5) CMIP6 "frequency values"
 EXAMPLE:
 
 ```
-    avgflag_pertape = \'A\',\'A\',\'A\',\'A\',\'I\',\'I\'
+    avgflag_pertape = 'A','A','A','A','I','I'
     nhtfrq = 0,-24,-6,-3,-1,0
     mfilt = 1,30,120,240,720,1
 ```
@@ -791,15 +789,36 @@ with the other functions. Each dependent process can conduct "lookahead" of its 
 to determine whether it will be able to service the request directly, or will need to issue
 a ticket to another process to establish the required data.
 
-**\**
 
 ## The Derivatives Configuration File
 
-In \[STAGING_RESOURCE\]/cmor:
+This configuration file:
 
-Grid Comparisons:
+`    [STAGING_RESOURCE]/derivatives.conf`
 
-https://acme-climate.atlassian.net/wiki/spaces/DOC/pages/933986549/ATM+Grid+Resolution+Summary
+is used by `dsm_generate_CMIP6.py` to select regridding and region mapping/masking files
+when calling NCO tools (ncclimo, et al) and e3sm_to_cmip, in the process of generating
+CMIP6 datasets.  Each line consist of 5 CSV fields, the first 3 of which identify the
+realm, model, and resolution. For each such triple, there are multiple parameter types,
+and so the remaining 2 fields are the type and value.  Hence, each line has the form:
+
+`    <realm>,<model_version>,<resolution>,<param_type>,<param_value>`
+
+For example, the full complement of entries for model 3_0 low res (LR) are:
+```
+    atmos,3_0,LR,CASE_FINDER,\.eam\.h\d\.
+    atmos,3_0,LR,FILE_SELECTOR,.eam.h
+    atmos,3_0,LR,REGRID,map_ne30pg2_to_cmip6_180x360_traave.20231201.nc
+    land,3_0,LR,CASE_FINDER,\.elm\.h\d\.
+    land,3_0,LR,FILE_SELECTOR,.elm.h
+    land,3_0,LR,REGRID,map_r05_to_cmip6_180x360_traave.20231110.nc
+    ocean,3_0,LR,MASK,IcoswISC30E3r5_mocBasinsAndTransects20210623.nc
+    ocean,3_0,LR,REGRID,map_IcoswISC30E3r5_to_cmip6_180x360_traave.20240221.nc
+    sea-ice,3_0,LR,REGRID,map_IcoswISC30E3r5_to_cmip6_180x360_traave.20240221.nc
+```
+Note:  For the Argonne deployment, the maps:
+`    /lcrc/group/e3sm/public_html/diagnostics/maps` is a resource for regridding maps
+and region masking files.
 
 
 ## CMIP_CMOR_TABLES
@@ -813,7 +832,6 @@ operation. However, when you git-clone datasm, there are a number of
 resources that must be (presently) deployed manually, and for which you
 are responsible for maintaining:
 
-**\**
 
 # THE DSM APPLICATIONS AND TOOLS
 
@@ -838,12 +856,11 @@ NOTE: If you have made operational changes to tools or resources in
 their deployed locations, and neglected to reflect those changes in the
 git datasm repository, run:
 
-`    [your git repo]/datasm/datasm/tools/local_diff.sh`
+`    [your git repo]/datasm/datasm/tools/Local_Deployment_Diff.sh`
 
 to examine the difference between the repo files and the operationally
 deployed files.
 
-**\**
 
 # DSM Operations
 
@@ -1071,7 +1088,6 @@ a dsm_managed run of dataset_ids:
         tar xvf <tar_path_for_dataset_id> Run_Reports/v3_LR_historical.tar
 ```
 
-**\**
 
 ## Managing the Publication of CMIP Datasets
 
@@ -1910,7 +1926,7 @@ This demands a multi-step process of manifest generation and packaging.
 1.  A "manifest_spec" is written that compactly characterizes all content
     to be relocated.
 
-    Product:    DataSM_System_Local_Manifest_Spec
+    i    DataSM_System_Local_Manifest_Spec
                 (see Manifest_Spec Definition below)
 
 2.  A "manifest_generator.sh" script to read the manifest_spec, and explore
