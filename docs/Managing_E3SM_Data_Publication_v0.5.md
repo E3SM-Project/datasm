@@ -1,5 +1,5 @@
 # E3SM CMIP Production Guide
-# A.Bartoletti, January 2026
+# A.Bartoletti, April 2026
 
 # PREFACE
 
@@ -23,7 +23,7 @@ specifications, with the effective time-series of each CMIP variable
 published as an individual dataset. Moreover, many CMIP variables are
 not output by E3SM simulations directly but are defined in terms of
 formulaic combinations of raw simulation variables. This transformation
-to CMIP specification is handled by an application ``"e3sm_to_cmip"``, and a
+to CMIP specification is handled by an application "e3sm_to_cmip", and a
 large part of the work of CMIP data generation involves managing the
 varied configurations of regridding, masking, and other parameters required
 for processing different classes of native simulation data.
@@ -1911,7 +1911,7 @@ This demands a multi-step process of manifest generation and packaging.
     to be relocated.
 
     Product:    DataSM_System_Local_Manifest_Spec
-                [see Manifest_Spec Definition below]
+                (see Manifest_Spec Definition below)
 
 2.  A "manifest_generator.sh" script to read the manifest_spec, and explore
     the filesystem to expand the entries into a full listing of elements.
@@ -2071,7 +2071,10 @@ and see that all of the newly-defined RootPath locations appear.
     activate <suitable_dsm_name>
     pip install .
 ```
-    Likewise (if developing on e3sm_to_cmip) install e3sm_to_cmip with
+
+Likewise (if developing on e3sm_to_cmip) install e3sm_to_cmip into the
+same activated conda environment with
+
 ```
     cd <your git repo>
     git clone https://github.com/E3SM-Project/e3sm_to_cmip
@@ -2086,7 +2089,6 @@ and see that all of the newly-defined RootPath locations appear.
 
 Independently, the deployed elements can be copied to the DataSM repo by
 
-    Gitstore_Common_Elements.sh
     Gitstore_UserOp_Elements.sh
 
 
