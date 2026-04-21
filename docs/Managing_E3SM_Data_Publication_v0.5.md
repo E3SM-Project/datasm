@@ -832,6 +832,27 @@ operation. However, when you git-clone datasm, there are a number of
 resources that must be (presently) deployed manually, and for which you
 are responsible for maintaining:
 
+## The CMIP6 Metadata Files
+
+Also referred to as the "User Metadata" files, the information from these files
+is embedded into the generated CMIP6 dataset files as part of the e3sm_to_cmip 
+"CMORizing" process.  The metadata files are installed in
+
+`    [STAGING_RESOURCE]/CMIP6-Metadata/`
+
+by issuing the command `https://github.com/E3SM-Project/CMIP6-Metadata`. The
+maintenance of this repository is one of the duties associated with this job.
+Whenever a new "wave" of simulation data arrives, it will consist of several
+"experiment-ensembles", identified by a unique "case_id", such as "v3.LR.amip",
+"v3.LR.historical_0101", etc. Each such case will require its own metadata file
+
+### Metadata Content and Format
+
+```
+MUST EXPAND on format and content of metadata files here, including the 
+"branch_time_in_parent" calculations and other parent/child relationships.
+```
+
 
 # THE DSM APPLICATIONS AND TOOLS
 
