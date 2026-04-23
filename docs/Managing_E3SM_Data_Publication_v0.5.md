@@ -1482,6 +1482,7 @@ IMPORTANT CONFIGURATION FILES:
 ```
     archive_dataset_extractor.sh infile [dest_directory]
 ```
+
     Accepts a file of ONE line from the Archive_Map, and will extract the
     corresponding datasets to the dest_directory (or just list them, if no
     directory is given.)
@@ -1491,6 +1492,7 @@ IMPORTANT CONFIGURATION FILES:
 ```
     python archive_dataset_extractor.py -a am_specfile [-d dest_dir] [-O]
 ```
+
     Similar to the bash script `"archive_dataset_extractor.sh"`. Use
     `"--help"` for details.
 
@@ -1499,6 +1501,7 @@ IMPORTANT CONFIGURATION FILES:
 ```
     nohup python archive_extraction_service.py &
 ```
+
     Runs much as a background daemon to service "extraction request
     tickets" placed in
 
@@ -1516,6 +1519,7 @@ IMPORTANT CONFIGURATION FILES:
 ```
     usage:  (python) archive_holodeck_setup.py [-H holodeck] -A full_path_to_a_leaf_archive_directory
 ```
+
     Creates a "Holodeck" directory in your current directory, with symlinks to a zstash archive.
     In the Holodeck, you can issue "zstash ls" or "zstash extract" commands and not disturb actual archives.
 
@@ -1536,6 +1540,7 @@ IMPORTANT CONFIGURATION FILES:
 ```
     archive_path_mapper -a al_listfile [-s sdepfile]
 ```
+
     Accepts a selected list of lines (from `[ARCHIVE_MANAGEMENT]/Archive_Locator`)
     and for each line, creates a cross-product with each datatype matching pattern
     found in the `[ARCHIVE_MANAGEMENT]/Standard_Datatype_Extraction_Patterns`
@@ -1551,6 +1556,7 @@ IMPORTANT CONFIGURATION FILES:
 ```
     usage: create_checksum_manifest_for_dsid.sh <dsid>
 ```
+
     Given a dataset id `<dsid>`, the latest warehouse version directory
     `<dataset_directory>/<version>` is identified, and a publication checksum
     manifest file (aka "mapfile") is produced in
@@ -1558,6 +1564,7 @@ IMPORTANT CONFIGURATION FILES:
 ```
     <dataset_directory>/.mapfile-<version>.map
 ```
+
     The publication system expects to find the manifest file in this location,
     the directory parent to the version directory.
 
@@ -1577,6 +1584,7 @@ IMPORTANT CONFIGURATION FILES:
 ```
     datasm_verify_publication -i listfile_of_dsids [-u | --update-status]
 ```
+
     Given a file containing one or more dataset_ids (E3SM or CMIP6), this
     utility will contact the ESGF search server and return the publication
     status of each dataset. If published, and the ESGF publication directory
@@ -1590,6 +1598,7 @@ or
 ```
     <dataset_id>:PUBLICATION:Verification_Fail:<reason>
 ```
+
     If `[-u | --update-status]` is specified, the corresponding status
     file for the given dataset if updated to reflect this status.
 
@@ -1598,6 +1607,7 @@ or
 ```
     python df_util.py [directory]
 ```
+
     Returns the Total, Used, and Free disk space and inode counts for the
     disk partition to wich the supplied directory belongs, or else of the
     current directory if none is supplied.
@@ -1618,6 +1628,7 @@ for each dataset_id the values given by "ds_paths_info.sh"
 **ds_paths_info.sh**
 
 Given a dataset_id (E3SM or CMIP6), this script will:
+
 ```
     a.  Print the full path to the dataset's status file, if it exists.
 
@@ -1629,6 +1640,7 @@ Given a dataset_id (E3SM or CMIP6), this script will:
     d.  Print the full path to publication ensemble directory, and below it
         the list of versions and their file counts.
 ```
+
 This provide a very rapid way to confirm the status of archive
 extraction, of dataset validation, of publication, and of the generation
 of derivative climos, time-series and CMIP6 variable datasets.
@@ -1637,14 +1649,17 @@ One may select any of the components above by seeking the keywords
 SF_PATH, STATUS, WH_PATH, or PB_PATH.
 
 **dsm_generate_checksum_manifest.py**
+
 ```
     dsm_generate_checksum_manifest.py [-h] [--outpath OUTPATH] [-p PROCESSES] [--quiet] input dataset_id version_number
 ```
+
 Given (typically) an input directory of CMIP output files for a specific
 variable, this routing creates the manifiest (aka "mapfile") required by
 esgpublish.
 
 positional arguments:
+
 ```
     input: Path to a directory full of netCDF files
 
@@ -1653,7 +1668,9 @@ positional arguments:
     version_number: The version number of the dataset, should be an int
     and not include the 'v' prefix
 ```
+
 options:
+
 ```
     -h, --help: show this help message and exit
 
@@ -1671,6 +1688,7 @@ options:
 ```
     (python) dsm_generate_CMIP6.py [-h] -w WORKSPACE --runmode RUN_MODE -i INPUT_DSIDS [--dryrun] [--ds_spec ALT_DS_SPEC]
 ```
+
     WORKSPACE must be a subdirectory of your current working directory.
     RUN_MODE must be either "TEST" or "WORK". In TEST mode, only the first
     year of data will be processed, and the E3SM dataset status files are
@@ -1707,6 +1725,7 @@ options:
 
     5.  The NCO tools "ncclimo" and "ncremap" must exist in the environment.
 ```
+
     Note: The configuration and operation of dsm_generate_CMIP6.py is
     provided automatically when running "dsm_manage_CMIP6_production.py",
     itself launched when conducting the operations outlined in the section
@@ -1758,6 +1777,7 @@ options:
 ```
     dsspec_contract -i expanded_dataset_spec -o contracted_dataset_spec
 ```
+
     Accepts a standard form of the dataset_spec (aka "expanded") and will
     take each dataset specification "tree", isolate the
     "case_extensions" branch (where the resolution-specific dataset reams
@@ -1775,6 +1795,7 @@ options:
 ```
     dsspec_expand -i contracted_dataset_spec -o expanded_dataset_spec
 ```
+
     This utility will turn a contracted form of the E3SM dataset_spec.yaml
     file back its original expanded form, by replacing each
     "Case_Extension_ID" with the actual case extension branch found in the
@@ -1830,6 +1851,7 @@ options:
 ```
     Usage: metadata_version.py -i <full_path_to_metadata.json file> --mode [get|set]
 ```
+
     If mode is "get", the value of the variable "version" (or "NONE") is returned.
     If mode is "set", then "version" is set to vYYYYMMDD (current UTC date) in the
     giv en metadata file..
@@ -1863,55 +1885,58 @@ evidence from the current "LOCK" directory to a local directory
 
 rw_yaml -i yaml_in -o yaml_out \[-s\] \[-t tabsize\]
 
-This utility will read an arbitrary yaml-format file as a python
-\"dictionary\" of arbitrary depth for processing, and then write the
-dictionary out to yaml file format. Optionally, dictionary entries are
-sorted, and the tab-size may be changed. Blank lines and comments are
-lost.
+    This utility will read an arbitrary yaml-format file as a python "dictionary"
+    of arbitrary depth for processing, and then write the dictionary out to yaml
+    file format. Optionally, dictionary entries are sorted, and the tab-size may
+    be changed. Blank lines and comments are lost.
 
 **set_datafile_metadata_textvalue.sh**
 
 ```
     usage: set_datafile_metadata_textvalue.sh <datafile> <att_name> <att_text>
 ```
-Employs NCO "ncatted" (nc attribute editor) to set a metadata attribute
-without updating the metadata "history" attribute.
+
+    Employs NCO "ncatted" (nc attribute editor) to set a metadata attribute
+    without updating the metadata "history" attribute.
 
 **tar_integrity.sh**
 
 ```
     usage: tar_integrity <directory_of_tar_files>
 ```
-Outputs a line `"ERROR: <tarfile_name> <reason>"` for any tar file where
-the system `file` command does not return text containing the string
-"POSIC tar archive".
+
+    Outputs a line `"ERROR: <tarfile_name> <reason>"` for any tar file where
+    the system `file` command does not return text containing the string
+    "POSIC tar archive".
 
 **tell_years_dsid.py**
 
-For the given dataset_id, consults the dataset_spec.yaml file to return
-the official `"start_year,end_year"` for dataset publication.
+    For the given dataset_id, consults the dataset_spec.yaml file to return
+    the official `"start_year,end_year"` for dataset publication.
 
 **trisect.py**
 
 ```
     usage: trisect <listfile1> <listfile2>
 ```
-Given two files, "F1" and "F2", each assumed to be lists of items
-(files, dataset_ids, variables, etc), this routine will output 3 files:
 
-- only-F1: items found only in list F1
+    Given two files, "F1" and "F2", each assumed to be lists of items
+    (files, dataset_ids, variables, etc), this routine will output 3 files:
 
-- only-F2: items found only in list F2
+    - only-F1: items found only in list F1
 
-- both-F1_and_f2: items common to both lists
+    - only-F2: items found only in list F2
+
+    - both-F1_and_f2: items common to both lists
 
 **ts_utc.py**
 
 ```
     usage: ts=$(python ts_utc.py)
 ```
-Returns UTC timestamp string in YYYYMMDD.hhmmss.msecs format.
-Equivalent to bash ts=$(date -u +%Y%m%d_%H%M%S_%6N)
+
+    Returns UTC timestamp string in YYYYMMDD.hhmmss.msecs format.
+    Equivalent to bash `ts=$(date -u +%Y%m%d_%H%M%S_%6N)`
 
 **update_json_value.py**
 
@@ -1919,16 +1944,18 @@ Equivalent to bash ts=$(date -u +%Y%m%d_%H%M%S_%6N)
 usage: python update_json_value.py -i <json_file> -m get -k <key_name>
 usage: python update_json_value.py -i <json_file> -m set -k <key_name> -v <key_value>
 ```
-Get or set a simply (top-level) string value to a json key.
+
+    Get or set a simple (top-level) string value to a json key.
 
 **update_latest_files_for_metadata_references_by_dsid_list.sh**
 
 ```
     usage: update_latest_files_for_metadata_references_by_dsid_list.sh <file_of_CMIP_dsids> <file_of_ref_text_line>
 ```
-For each CMIP dataset_id listed in the file, locate the latest version of that dataset
-in the warehouse `([STAGING_DATA])` and update each datafile's metadata references to
-the line of text found in the second supplied file. 
+
+    For each CMIP dataset_id listed in the file, locate the latest version of that dataset
+    in the warehouse `([STAGING_DATA])` and update each datafile's metadata references to
+    the line of text found in the second supplied file. 
 
 
 
