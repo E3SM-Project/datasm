@@ -1475,10 +1475,12 @@ IMPORTANT CONFIGURATION FILES:
     [STAGING_RESOURCE]/dataset_spec.yaml
 ```
 
-## ALPHABETIC LISTING OF TOOLS:
+## ALPHABETIC LISTING OF TOOLS ##
 
 **archive_dataset_extractor.sh**
-: ```
+: Usage
+
+  ```
     archive_dataset_extractor.sh infile [dest_directory]
   ```
 
@@ -1487,7 +1489,9 @@ IMPORTANT CONFIGURATION FILES:
   directory is given.)
 
 **archive_dataset_extractor.py**
-:   ```
+:   Usage
+
+    ```
     python archive_dataset_extractor.py -a am_specfile [-d dest_dir] [-O]
     ```
 
@@ -1496,6 +1500,7 @@ IMPORTANT CONFIGURATION FILES:
 
 **archive_extraction_service.py**
 :
+    Usage
     ```
         nohup python archive_extraction_service.py &
     ```
