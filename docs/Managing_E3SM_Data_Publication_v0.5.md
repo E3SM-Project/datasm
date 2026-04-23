@@ -1477,7 +1477,7 @@ IMPORTANT CONFIGURATION FILES:
 
 ## ALPHABETIC LISTING OF TOOLS:
 
-**archive_dataset_extractor.sh:**
+:**archive_dataset_extractor.sh:**
 
 ```
     archive_dataset_extractor.sh infile [dest_directory]
@@ -1487,7 +1487,7 @@ IMPORTANT CONFIGURATION FILES:
     corresponding datasets to the dest_directory (or just list them, if no
     directory is given.)
 
-**archive_dataset_extractor.py:**
+:**archive_dataset_extractor.py:**
 
 ```
     python archive_dataset_extractor.py -a am_specfile [-d dest_dir] [-O]
@@ -1496,7 +1496,7 @@ IMPORTANT CONFIGURATION FILES:
     Similar to the bash script `"archive_dataset_extractor.sh"`. Use
     `"--help"` for details.
 
-**archive_extraction_service.py:**
+: **archive_extraction_service.py:**
 
 ```
     nohup python archive_extraction_service.py &
