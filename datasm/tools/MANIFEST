@@ -13,7 +13,6 @@ assess_pub_volume_by_experiment_E3SM.sh
 case_id_for_e3sm_dsid.sh
 cmip6_parameters.sh
 create_checksum_manifest_for_dsid.sh
-datasm_extract_from_archive.sh
 datasm_pp_sourceroot.sh
 datasm_verify_publication.py
 derivative_conf.sh
@@ -31,7 +30,6 @@ ensure_status_file_for_dsid.sh
 esgf_assess_publication.py
 first_file_for_latest_by_dsid_list.sh
 first_file_for_latest_by_dsid.sh
-first_file_fullpath_for_latest_by_dsid.sh
 get_e3sm_vars_for_cmip.sh
 get_file_metadata_version.py
 has_mapfiles.sh
@@ -45,16 +43,11 @@ nc_file_splitter.sh
 optional_v3_cmip6_dsid.sh
 parent_native_dsid.sh
 produce_dsid_run_record.sh
-restart_services.sh
 run_CMIP6_MPAS_manual.sh
-run_datasm_LocalEnv_postprocess_dsid_list_serially.sh
-run_datasm_LocalEnv_publish_dsid_list_serially.sh
-run_datasm_LocalEnv_validation_dsid_list_serially.sh
 run_esgunpublish.sh
 rw_yaml.py
 ../scripts/dsm_generate_CMIP6.py
 ../scripts/dsm_manage_CMIP6_production.py
-set_datafile_metadata_textvalue_by_dsid_list.sh
 set_datafile_metadata_textvalue.sh
 tar_integrity.sh
 tell_years_dsid.py
