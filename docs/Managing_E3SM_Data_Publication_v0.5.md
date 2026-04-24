@@ -1494,7 +1494,7 @@ IMPORTANT CONFIGURATION FILES:
   Usage
 
   ```
-  python archive_dataset_extractor.py -a am_specfile [-d dest_dir] [-O]
+      python archive_dataset_extractor.py -a am_specfile [-d dest_dir] [-O]
   ```
 
   Similar to the bash script `"archive_dataset_extractor.sh"`. Use
@@ -1561,12 +1561,88 @@ IMPORTANT CONFIGURATION FILES:
   `"Archive_Map"` lines are generated, each of which must be reviewed and
   manually completed in order to update the Archive_Map.
 
-- **create_checksum_manifest_for_dsid.sh:**
+- **assess_native_data_status.sh**
 
   Usage
 
   ```
-    usage: create_checksum_manifest_for_dsid.sh <dsid>
+      assess_native_data_status.sh native_dataset_id year-range local_path
+      (year-yange must be supplied as YYYY,YYYY inclusive)
+  ```
+
+  This is designed to support hybrid "maybe local"/"maybe NERSC fetched" warehouse
+  operations.  Possibilities exist that:
+
+  a.  The DSM warehouse already has the required files
+  b.  (else) The given local path may have the files and can be warehouse-symlinked.
+  c.  (else) Neither.  We can separately seek local zstash archive extraction.
+
+  If (a) or (b), the output is `"READY:<dataset_id>:<fullpath>"`.
+  If neither, the output is `"FAIL:<dataset_id>"`.
+    
+
+- **assess_pub_volume_by_experiment_CMIP6.sh**
+
+  Report individual and total volume of local CMIP6 publication directories
+  as defined by `[STAGING_DATA]/CMIP6`.
+
+  Individual volumes are by Activity/Institution/SourceID/Experiment.
+
+- **assess_pub_volume_by_experiment_E3SM.sh**
+
+  Report individual and total volume of local E3SM publication directories
+  as defined by `[STAGING_DATA]/E3SM`.
+
+  Individual volumes are by ModelVersion/Experiment.
+
+-   **case_id_for_e3sm_dsid.sh**
+
+    Usage
+
+    ```
+        case_id_for_e3sm_dsid.sh <e3sm_dataset_id>
+    ```
+
+    This routine will locate the first native output file for the given dataset
+    and parse the filename to return the first 3 dot-delimited values, generally
+    representing the dataset "case_id".  These are usually:
+  
+    ```
+        <modelversion>.<resolution>.<experiment_and_branch>
+        (e.g. "v3.LR.historical_0101")
+    ```
+
+    and are often employed to locate the corresponding user_metadata file, or
+    a zstash archive name.
+
+- **cmip6_parameters.sh**
+
+  Usage
+
+  ```
+      cmip6_parameters.sh <cmip_dataset_id>
+  ```
+
+  This routine augments `"derivatives_conf.sh"`, returning the lines
+
+  ```
+      parent_native_dsid:<parent_native_dataset_id>
+      input_data:<fullpath_to_latest_native_datafiles>
+      namefile_data:<fullpath_to_native_namefile> (or "NONE")
+      restart_data:<fullpath_to_native_restart_file> (or "NONE")
+  ```
+
+  followed by the output of lines from `"derivatives_conf.sh <cmip_dataset_id> fullpath"`.
+
+  These lines are employed by `"dsm_generate_CMIP6.py"` to configure parameters
+  for processing a given CMIP dataset_id.
+
+- **create_checksum_manifest_for_dsid.sh**
+
+  Usage
+
+  ```
+      create_checksum_manifest_for_dsid.sh <dsid>
   ```
 
   Given a dataset id `<dsid>`, the latest warehouse version directory
@@ -1616,6 +1692,28 @@ IMPORTANT CONFIGURATION FILES:
 
   If `[-u | --update-status]` is specified, the corresponding status
   file for the given dataset if updated to reflect this status.
+
+- **derivative_conf.sh**
+
+  Usage
+
+  ```
+      derivative_conf.sh <cmip_dataset_id> ["fullpath']
+  ```
+
+  This routine will consult the file `"[STAGING_RESOURCE]/derivatives.conf"`
+  to return a selection of lines, among which can be:
+
+  ```
+      hrz_atm_map_path:[<path_to>]/<regrid_file>  
+      mapfile:[<path_to>]/<regrid_file>  
+      region_file:[<path_to>]/<region_mask> (or "NONE")
+      file_pattern:<file_selector_pattern>
+      case_finder:<case_selector_pattern>
+  ```
+
+  These are employed by `"dsm_generate_CMIP6.py"` to configure parameters
+  for processing a given CMIP dataset_id.
 
 - **df_util.py**
 
@@ -1781,7 +1879,7 @@ IMPORTANT CONFIGURATION FILES:
 
   NOTE: Developers:  Currently, this "zstash-extract-as-needed" and
   "zstash-globus-transfer-as-needed" capability is performed "inline"
-  with the processing (cmorizing) of the dataset_ids.  Thios means that
+  with the processing (cmorizing) of the dataset_ids.  This means that
   each of the cmorizing, extraction, and transfer operations must wait
   upon each other to complete, before any other processing can continue.
   Far better and simpler to turn these into ticket-controlled service
@@ -1913,7 +2011,7 @@ IMPORTANT CONFIGURATION FILES:
   Usage
 
   ```
-      rw_yaml -i yaml_in -o yaml_out \[-s\] \[-t tabsize\]
+      rw_yaml -i yaml_in -o yaml_out [-s] [-t tabsize]
   ```
 
   This utility will read an arbitrary yaml-format file as a python "dictionary"
