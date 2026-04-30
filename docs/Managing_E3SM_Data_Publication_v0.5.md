@@ -1672,7 +1672,7 @@ IMPORTANT CONFIGURATION FILES:
   Usage
 
   ```
-    datasm_verify_publication -i listfile_of_dsids [-u | --update-status]
+      datasm_verify_publication -i listfile_of_dsids [-u | --update-status]
   ```
 
   Given a file containing one or more dataset_ids (E3SM or CMIP6), this
@@ -1937,6 +1937,26 @@ IMPORTANT CONFIGURATION FILES:
   the dataset, and to provide the "latest state", necessary for the Data State
   Machine to advance required processing.
 
+- **find_mapfiles.sh**
+
+  Given a file list of dataset_ids, this routine will attempt to locate
+  each corresponding warehouse dataset directory, and either
+
+```
+      <dataset_id>:NONE
+      or
+      <dataset_id>:FOUND:<parent_dir>/.mapfile-<version>.map
+```
+  where "parent_dir" is the directory above the leaf version directory. 
+
+- **first_file_for_latest_by_dsid.sh**
+- **first_file_for_latest_by_dsid_list.sh**
+
+  Given a dataset_id (E3SM native, or CMIP), or a file list of same, these
+  routines will determine the latest version of dataset corresponding to each
+  dataset_id, and provide the full warehouse path to the first file of the
+  dataset(s) (or print "NONE" if no dataset files are found)..
+
 - **get_e3sm_vars_for_cmip.sh**
 
   Given a CMIP6 variable as input, this script will output the
@@ -2006,6 +2026,24 @@ IMPORTANT CONFIGURATION FILES:
   evidence from the current "LOCK" directory to a local directory
   "RUN_REPORTS/\<dsid\>/" for future debugging or performance measures.
 
+- **run_esgunpublish.sh**
+
+  Usage
+
+  ```
+      run_esgunpublish.sh <dsid_list_file> ["DELETE"]
+  ```
+
+  Unpublish each dataset in the file-list of dataset_ids provided.
+
+  Default operation is "retraction" if DELETE is not specified.
+  All versions are retracted or deleted on all known datanodes.
+  Any status file under [STAGING_STATUS] is updated.o
+
+  NOTE:  This function has NOT been tested since ESGF federalized its
+  indexing circa Jan 2026. Consult esgcet/esgunpublish if issues arise.
+
+
 - **rw_yaml.py**
 
   Usage
@@ -2043,6 +2081,12 @@ IMPORTANT CONFIGURATION FILES:
   "POSIC tar archive".
 
 - **tell_years_dsid.py**
+
+  Usage
+
+  ```
+      (python) tell_years_dsid -d <dsid>
+  ```
 
   For the given dataset_id, consults the dataset_spec.yaml file to return
   the official `"start_year,end_year"` for dataset publication.

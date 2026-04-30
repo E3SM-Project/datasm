@@ -14,6 +14,8 @@ for dsid in `cat $dsidlist`; do
     parent_dir=`dirname $lastverdir`
     testvalue=$parent_dir/.mapfile-${lastver}.map
     if [[ ! -f $testvalue ]]; then
-        echo "$dsid: No Mapfile"
+        echo "$dsid:NONE"
+    else
+        echo "$dsid:FOUND:$testvalue"
     fi
 done
