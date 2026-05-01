@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Given a native dataset_id, year-range  and an alternative local path, determine if
-#  a. The warehouse has native data for the years given (report WH_READY)
-#  b. The local path has native data for the years given (report LOCAL_READY)
-# This is designed to support hybrid "maybe local"/"maybe NERSC fetched".
+#  a. The warehouse has native data for the years given
+#  b. ELSE if the local path has native data for the years given
+# This is designed to support hybrid "maybe local"/"maybe NERSC fetched" operations.
 # If in-warehouse complete, returns:
 #    READY:<dsid>:<full_warehouse_path>
 # Else if local-user complete, returns:
@@ -13,7 +13,7 @@
 # NOTE: If files in local_path are complete, one must still employ
 #    <path>/<pattern>
 # Where pattern=`grep $nat_dsid $arch_map | cut -f4 -d,`
-# because the <path> may contain files for several frequencies, etc. 
+# because the local <path> may contain files for several frequencies, etc. 
 
 nat_dsid=$1
 year_range=$2

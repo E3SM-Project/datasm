@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Report individual and total volume of local CMIP6 publication directories.
+# Individuals are by Activity/Institution/SourceID/Experiment
+
 ts=`date -u +%Y%m%d`
 
 pub_root=`$DSM_GETPATH PUBLICATION_DATA`

@@ -6,7 +6,6 @@ archive_extraction_service.py
 archive_extraction_ticket.sh
 archive_holodeck_setup.py
 archive_path_mapper.py
-arch_loc_from_arch_map.sh
 assess_native_data_status.sh
 assess_pub_volume_by_experiment_CMIP6.sh
 assess_pub_volume_by_experiment_E3SM.sh
@@ -28,11 +27,11 @@ dsspec_contract.py
 dsspec_expand.py
 ensure_status_file_for_dsid.sh
 esgf_assess_publication.py
+find_mapfiles.sh
 first_file_for_latest_by_dsid_list.sh
 first_file_for_latest_by_dsid.sh
 get_e3sm_vars_for_cmip.sh
 get_file_metadata_version.py
-has_mapfiles.sh
 is_in_year_range.sh
 latest_data_location_by_dsid.sh
 list_cmip6_dsids.py
